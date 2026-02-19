@@ -18,7 +18,9 @@ auto SplashState::enter() -> void {
     GameLogic& logic = m_context;
     QTimer::singleShot(100, [&logic]() { logic.lazyInit(); });
     m_context.m_timer->start(150); 
-    if (m_context.m_soundManager) m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
+    if (m_context.m_soundManager) {
+        m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
+    }
 }
 
 auto SplashState::update() -> void {
@@ -33,16 +35,25 @@ auto SplashState::update() -> void {
 // --- MenuState ---
 auto MenuState::enter() -> void {
     m_context.setInternalState(GameLogic::StartMenu);
-    if (m_context.m_soundManager) m_context.m_soundManager->startMusic();
+    if (m_context.m_soundManager) {
+        m_context.m_soundManager->startMusic();
+    }
 }
 
 auto MenuState::handleStart() -> void {
-    if (m_context.m_soundManager) m_context.m_soundManager->stopMusic();
-    if (m_context.hasSave()) m_context.loadLastSession();
-    else m_context.startGame();
+    if (m_context.m_soundManager) {
+        m_context.m_soundManager->stopMusic();
+    }
+    if (m_context.hasSave()) {
+        m_context.loadLastSession();
+    } else {
+        m_context.startGame();
+    }
 }
 
-auto MenuState::handleSelect() -> void { m_context.nextLevel(); }
+auto MenuState::handleSelect() -> void {
+    m_context.nextLevel();
+}
 
 // --- PlayingState ---
 auto PlayingState::enter() -> void {
@@ -58,7 +69,9 @@ auto PlayingState::update() -> void {
     }
 
     const auto &body = logic.m_snakeModel.body();
-    if (body.empty()) return;
+    if (body.empty()) {
+        return;
+    }
     const QPoint nextHead = body.front() + logic.m_direction;
 
     if (logic.m_activeBuff == GameLogic::Magnet) {
@@ -76,9 +89,11 @@ auto PlayingState::update() -> void {
         logic.m_timer->stop();
         logic.m_buffTimer->stop();
         logic.updateHighScore();
-        logic.incrementCrashes();
+        logic.incrementCrashes(); // Count for Centurion achievement
         logic.clearSavedState();
-        if (logic.m_soundManager) logic.m_soundManager->playCrash(500);
+        if (logic.m_soundManager) {
+            logic.m_soundManager->playCrash(500);
+        }
         emit logic.requestFeedback(8);
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
@@ -95,7 +110,7 @@ auto PlayingState::update() -> void {
 
     if (ateFood) {
         logic.m_score++;
-        logic.logFoodEaten(); // Log for Gourmet achievement
+        logic.logFoodEaten(); // Count for Gourmet achievement
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);
@@ -112,16 +127,20 @@ auto PlayingState::update() -> void {
     if (atePowerUp) {
         auto pType = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
         logic.m_activeBuff = pType;
-        logic.logPowerUpTriggered(pType); // Log for Untouchable achievement
+        logic.logPowerUpTriggered(pType); // Count for Untouchable achievement
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
-        if (logic.m_soundManager) logic.m_soundManager->playBeep(1200, 150);
-        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
+        if (logic.m_soundManager) {
+            logic.m_soundManager->playBeep(1200, 150);
+        }
+        if (logic.m_activeBuff == GameLogic::Slow) {
+            logic.m_timer->setInterval(250);
+        }
         emit logic.buffChanged();
         emit logic.powerUpChanged();
     }
 
-    // Check time-based achievements every frame
+    // Check time-based achievements like Pacifist
     logic.checkAchievements();
 
     logic.m_snakeModel.moveHead(nextHead, ateFood);
@@ -142,5 +161,10 @@ auto PausedState::enter() -> void {
 auto PausedState::handleStart() -> void { m_context.togglePause(); }
 
 // --- GameOverState ---
-void GameOverState::enter() { m_context.setInternalState(GameLogic::GameOver); }
-void GameOverState::handleStart() { m_context.restart(); }
+void GameOverState::enter() {
+    m_context.setInternalState(GameLogic::GameOver);
+}
+
+void GameOverState::handleStart() {
+    m_context.restart();
+}

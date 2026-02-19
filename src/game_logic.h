@@ -19,12 +19,17 @@ class PlayingState;
 class PausedState;
 class GameOverState;
 
+/**
+ * @class SnakeModel
+ * @brief Thread-safe (GUI thread) optimized model for rendering the snake body.
+ */
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
     ~SnakeModel() override = default;
+    
     SnakeModel(const SnakeModel &) = delete;
     auto operator=(const SnakeModel &) -> SnakeModel & = delete;
     SnakeModel(SnakeModel &&) = delete;
@@ -33,25 +38,52 @@ public:
     [[nodiscard]] auto rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const noexcept -> int override {
         return static_cast<int>(m_body.size());
     }
+
     [[nodiscard]] auto data(const QModelIndex &index, int role = Qt::DisplayRole) const -> QVariant override {
-        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
-        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
+        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) {
+            return {};
+        }
+        if (role == PositionRole) {
+            return m_body[static_cast<size_t>(index.row())];
+        }
         return {};
     }
-    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override { return {{PositionRole, "pos"}}; }
+
+    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override {
+        return {{PositionRole, "pos"}};
+    }
+
     [[nodiscard]] auto body() const noexcept -> const std::deque<QPoint> & { return m_body; }
-    auto reset(const std::deque<QPoint> &newBody) -> void { beginResetModel(); m_body = newBody; endResetModel(); }
+
+    auto reset(const std::deque<QPoint> &newBody) -> void {
+        beginResetModel();
+        m_body = newBody;
+        endResetModel();
+    }
+
     auto moveHead(const QPoint &newHead, const bool grew) -> void {
-        beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
+        beginInsertRows(QModelIndex(), 0, 0);
+        m_body.emplace_front(newHead);
+        endInsertRows();
+
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows();
+            if (last >= 0) {
+                beginRemoveRows(QModelIndex(), last, last);
+                m_body.pop_back();
+                endRemoveRows();
+            }
         }
     }
+
 private:
     std::deque<QPoint> m_body;
 };
 
+/**
+ * @class GameLogic
+ * @brief Central controller for game state, persistence, and audio management.
+ */
 class GameLogic final : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
@@ -129,6 +161,8 @@ public:
     auto changeState(std::unique_ptr<GameState> newState) -> void;
     auto setInternalState(State s) -> void;
     auto lazyInit() -> void;
+    
+    // Achievement system triggers
     auto checkAchievements() -> void;
     auto incrementCrashes() -> void;
     auto logFoodEaten() -> void;
@@ -190,7 +224,7 @@ private:
     QList<QPoint> m_bestRecording;
     int m_ghostFrameIndex = 0;
 
-    // Achievement stats
+    // Achievement tracking stats
     int m_totalCrashes = 0;
     int m_totalFoodEaten = 0;
     int m_totalGhostTriggers = 0;
