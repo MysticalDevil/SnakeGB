@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Test ShaderTools)
 
 enable_testing()
 
@@ -23,6 +23,13 @@ set(PROJECT_SOURCES
 
 qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
+)
+
+# 编译着色器
+qt_add_shaders(gameboy-snack "lcd_shaders"
+    PREFIX "/shaders"
+    FILES
+        "src/qml/lcd.frag"
 )
 
 target_include_directories(gameboy-snack PRIVATE src)

@@ -203,16 +203,7 @@ Window {
                         hideSource: false
                         recursive: false
                     }
-                    fragmentShader: "
-                        varying highp vec2 qt_TexCoord0;
-                        uniform lowp sampler2D source;
-                        uniform lowp float qt_Opacity;
-                        void main() {
-                            lowp vec4 tex = texture2D(source, qt_TexCoord0);
-                            highp vec2 ps = qt_TexCoord0 * vec2(240.0, 216.0) * 2.0;
-                            highp float grid = (sin(ps.x * 3.14159) * 0.5 + 0.5) * (sin(ps.y * 3.14159) * 0.5 + 0.5);
-                            gl_FragColor = tex * (0.85 + 0.15 * grid) * qt_Opacity;
-                        }"
+                    fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
                 }
             }
         }
