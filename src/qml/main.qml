@@ -40,29 +40,30 @@ Window {
                 Canvas {
                     anchors.fill: parent
                     onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.strokeStyle = "#8bac0f";
-                        ctx.lineWidth = 1;
+                        var ctx = getContext("2d")
+                        ctx.strokeStyle = "#8bac0f"
+                        ctx.lineWidth = 1
                         for(var i=0; i<=gameLogic.boardWidth; i++) {
-                            var x = i * (width / gameLogic.boardWidth);
-                            ctx.beginPath();
-                            ctx.moveTo(x, 0);
-                            ctx.lineTo(x, height);
-                            ctx.stroke();
+                            var x = i * (width / gameLogic.boardWidth)
+                            ctx.beginPath()
+                            ctx.moveTo(x, 0)
+                            ctx.lineTo(x, height)
+                            ctx.stroke()
                         }
                         for(var j=0; j<=gameLogic.boardHeight; j++) {
-                            var y = j * (height / gameLogic.boardHeight);
-                            ctx.beginPath();
-                            ctx.moveTo(0, y);
-                            ctx.lineTo(width, y);
-                            ctx.stroke();
+                            var y = j * (height / gameLogic.boardHeight)
+                            ctx.beginPath()
+                            ctx.moveTo(0, y)
+                            ctx.lineTo(width, y)
+                            ctx.stroke()
                         }
                     }
                 }
 
                 Rectangle { // Food
                     visible: gameLogic.state !== 0
-                    x: gameLogic.food.x * (gameScreen.width / gameLogic.boardWidth); y: gameLogic.food.y * (gameScreen.height / gameLogic.boardHeight)
+                    x: gameLogic.food.x * (gameScreen.width / gameLogic.boardWidth)
+                    y: gameLogic.food.y * (gameScreen.height / gameLogic.boardHeight)
                     width: gameScreen.width / gameLogic.boardWidth; height: gameScreen.height / gameLogic.boardHeight
                     color: "#0f380f"; radius: width / 2
                 }
@@ -70,7 +71,8 @@ Window {
                 Repeater { // Snake
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
-                        x: model.pos.x * (gameScreen.width / gameLogic.boardWidth); y: model.pos.y * (gameScreen.height / gameLogic.boardHeight)
+                        x: model.pos.x * (gameScreen.width / gameLogic.boardWidth)
+                        y: model.pos.y * (gameScreen.height / gameLogic.boardHeight)
                         width: gameScreen.width / gameLogic.boardWidth; height: gameScreen.height / gameLogic.boardHeight
                         color: index === 0 ? "#0f380f" : "#306230"; radius: 1
                     }
@@ -91,7 +93,17 @@ Window {
                         anchors.centerIn: parent; spacing: 10
                         Text { text: "S N A K E"; font.pixelSize: 32; font.bold: true; color: "#0f380f" }
                         Text { text: "HI-SCORE: " + gameLogic.highScore; font.pixelSize: 14; color: "#0f380f"; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "Press Start"; font.pixelSize: 14; color: "#0f380f"; anchors.horizontalCenter: parent.horizontalCenter; SequentialAnimation on opacity { loops: Animation.Infinite; NumberAnimation { from: 1; to: 0; duration: 800 }; NumberAnimation { from: 0; to: 1; duration: 800 } } }
+                        Text { 
+                            text: "Press Start"
+                            font.pixelSize: 14
+                            color: "#0f380f"
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            SequentialAnimation on opacity { 
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 1; to: 0; duration: 800 }
+                                NumberAnimation { from: 0; to: 1; duration: 800 }
+                            } 
+                        }
                     }
                 }
 
@@ -110,13 +122,23 @@ Window {
         // Controls
         DPad {
             id: dpadUI; anchors.bottom: parent.bottom; anchors.bottomMargin: 110; anchors.left: parent.left; anchors.leftMargin: 25
-            onUpClicked: gameLogic.move(0, -1); onDownClicked: gameLogic.move(0, 1); onLeftClicked: gameLogic.move(-1, 0); onRightClicked: gameLogic.move(1, 0)
+            onUpClicked: gameLogic.move(0, -1)
+            onDownClicked: gameLogic.move(0, 1)
+            onLeftClicked: gameLogic.move(-1, 0)
+            onRightClicked: gameLogic.move(1, 0)
         }
 
         Row {
             anchors.bottom: parent.bottom; anchors.bottomMargin: 140; anchors.right: parent.right; anchors.rightMargin: 30; spacing: 15; rotation: -15
             GBButton { id: bBtnUI; text: "B" }
-            GBButton { id: aBtnUI; text: "A"; onClicked: { if (gameLogic.state === 0) gameLogic.startGame(); else if (gameLogic.state === 3) gameLogic.restart(); } }
+            GBButton { 
+                id: aBtnUI
+                text: "A"
+                onClicked: { 
+                    if (gameLogic.state === 0) gameLogic.startGame()
+                    else if (gameLogic.state === 3) gameLogic.restart()
+                } 
+            }
         }
 
         Row {
@@ -125,9 +147,9 @@ Window {
             SmallButton { 
                 id: startBtnUI; text: "START"
                 onClicked: {
-                    if (gameLogic.state === 0) gameLogic.startGame();
-                    else if (gameLogic.state === 3) gameLogic.restart();
-                    else gameLogic.togglePause();
+                    if (gameLogic.state === 0) gameLogic.startGame()
+                    else if (gameLogic.state === 3) gameLogic.restart()
+                    else gameLogic.togglePause()
                 }
             }
         }
@@ -136,31 +158,31 @@ Window {
     Item {
         focus: true
         Keys.onPressed: (event) => {
-            if (event.isAutoRepeat) return;
-            if (event.key === Qt.Key_Up) { dpadUI.upPressed = true; gameLogic.move(0, -1); }
-            else if (event.key === Qt.Key_Down) { dpadUI.downPressed = true; gameLogic.move(0, 1); }
-            else if (event.key === Qt.Key_Left) { dpadUI.leftPressed = true; gameLogic.move(-1, 0); }
-            else if (event.key === Qt.Key_Right) { dpadUI.rightPressed = true; gameLogic.move(1, 0); }
+            if (event.isAutoRepeat) return
+            if (event.key === Qt.Key_Up) { dpadUI.upPressed = true; gameLogic.move(0, -1) }
+            else if (event.key === Qt.Key_Down) { dpadUI.downPressed = true; gameLogic.move(0, 1) }
+            else if (event.key === Qt.Key_Left) { dpadUI.leftPressed = true; gameLogic.move(-1, 0) }
+            else if (event.key === Qt.Key_Right) { dpadUI.rightPressed = true; gameLogic.move(1, 0) }
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
-                startBtnUI.isPressed = true; 
-                if (gameLogic.state === 0) gameLogic.startGame();
-                else if (gameLogic.state === 3) gameLogic.restart();
-                else gameLogic.togglePause();
+                startBtnUI.isPressed = true 
+                if (gameLogic.state === 0) gameLogic.startGame()
+                else if (gameLogic.state === 3) gameLogic.restart()
+                else gameLogic.togglePause()
             }
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = true;
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = true;
-            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = true;
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = true
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = true
+            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = true
         }
         Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) return;
-            if (event.key === Qt.Key_Up) dpadUI.upPressed = false;
-            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false;
-            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false;
-            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false;
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false;
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false;
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false;
-            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false;
+            if (event.isAutoRepeat) return
+            if (event.key === Qt.Key_Up) dpadUI.upPressed = false
+            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false
+            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false
+            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false
+            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
+            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false
         }
     }
 }
