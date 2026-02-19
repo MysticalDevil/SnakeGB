@@ -65,11 +65,11 @@ void GameLogic::restart() {
     clearSavedState();
     
     m_timer->setInterval(150);
-    spawnFood(); // 确保重置后食物位置合法
+    spawnFood();
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
-    emit foodChanged(); // 显式触发更新
+    emit foodChanged();
     emit ghostChanged();
     changeState(std::make_unique<PlayingState>(*this));
 }
@@ -161,8 +161,8 @@ void GameLogic::loadLevelData(int index) {
     QJsonArray walls = lvl.value(u"walls"_s).toArray();
     for (const auto &w : walls) {
         QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
-        // 核心修复：禁止障碍物出现在起始点 {10, 10} 周围 3x3 区域
-        if (std::abs(p.x() - 10) <= 1 && std::abs(p.y() - 10) <= 1) continue;
+        // 核心修复：扩大安全区至 5x5 (半径为 2)
+        if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
         m_obstacles.append(p);
     }
     emit obstaclesChanged();
@@ -214,8 +214,8 @@ void GameLogic::spawnFood() {
     while (foodIsInvalid) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        // 核心修复：食物禁止出现在蛇身、障碍物，以及起始保护区
-        bool inSafeZone = std::abs(m_food.x() - 10) <= 1 && std::abs(m_food.y() - 10) <= 1;
+        // 核心修复：扩大食物安全区至 5x5
+        bool inSafeZone = std::abs(m_food.x() - 10) <= 2 && std::abs(m_food.y() - 10) <= 2;
         foodIsInvalid = std::ranges::contains(body, m_food) || 
                         std::ranges::contains(m_obstacles, m_food) ||
                         inSafeZone;

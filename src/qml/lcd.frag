@@ -11,7 +11,7 @@ layout(std140, binding = 0) uniform buf {
 layout(binding = 1) uniform sampler2D source;
 
 void main() {
-    // 1. 极轻微的球面畸变 (减小系数从 0.05 -> 0.02)
+    // 1. 极轻微的球面畸变
     vec2 centeredUV = qt_TexCoord0 * 2.0 - 1.0;
     float dist = length(centeredUV);
     vec2 distortedUV = qt_TexCoord0 + centeredUV * (dist * dist) * 0.02;
@@ -21,17 +21,17 @@ void main() {
         return;
     }
 
-    // 2. 采样（移除色差以提升清晰度）
+    // 2. 采样
     vec4 tex = texture(source, distortedUV);
     
-    // 3. 优化像素网格：使其不再模糊整体画面，仅在像素边缘留出微小的缝隙
+    // 3. 修正像素网格：使缝隙变暗 (0.85)，像素主体保持原色
     vec2 ps = distortedUV * vec2(240.0, 216.0);
-    // 使用 step 函数产生锐利的网格边缘
-    float grid = (0.9 + 0.1 * step(0.1, fract(ps.x))) * (0.9 + 0.1 * step(0.1, fract(ps.y)));
+    float grid = (0.85 + 0.15 * step(0.1, fract(ps.x))) * (0.85 + 0.15 * step(0.1, fract(ps.y)));
     
-    // 4. 全局增益：调亮画面
+    // 4. 增强对比度
     vec4 finalColor = tex * grid;
-    finalColor.rgb *= 1.1; 
+    // 调亮
+    finalColor.rgb = pow(finalColor.rgb, vec3(0.9)); 
 
     fragColor = finalColor * qt_Opacity;
 }
