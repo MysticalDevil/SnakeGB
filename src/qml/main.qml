@@ -9,26 +9,22 @@ Window {
     visible: true; title: "Snake GB Edition"
     color: "#c0c0c0"
 
-    // 屏幕震动逻辑
     Connections {
         target: gameLogic
-        function onRequestFeedback() {
-            screenShake.start()
-        }
+        function onRequestFeedback() { screenShake.start() }
     }
 
     SequentialAnimation {
         id: screenShake
-        NumberAnimation { target: gameBoyBody; property: "x"; from: 0; to: 2; duration: 50 }
-        NumberAnimation { target: gameBoyBody; property: "x"; from: 2; to: -2; duration: 50 }
-        NumberAnimation { target: gameBoyBody; property: "x"; from: -2; to: 0; duration: 50 }
+        NumberAnimation { target: gameBoyBody; property: "x"; from: 0; to: 2; duration: 40 }
+        NumberAnimation { target: gameBoyBody; property: "x"; from: 2; to: -2; duration: 40 }
+        NumberAnimation { target: gameBoyBody; property: "x"; from: -2; to: 0; duration: 40 }
     }
 
     Rectangle {
         id: gameBoyBody
-        anchors.fill: parent
-        color: "#c0c0c0"
-        radius: 10; border.color: "#a0a0a0"; border.width: 2
+        anchors.fill: parent; color: "#c0c0c0"; radius: 10
+        border.color: "#a0a0a0"; border.width: 2
 
         Rectangle {
             id: screenBorder
@@ -41,13 +37,11 @@ Window {
                 anchors.centerIn: parent
                 width: 240; height: 216; color: "#9bbc0f"; clip: true
 
-                // 背景网格 (优化：使用单张画布减少节点)
                 Canvas {
                     anchors.fill: parent
                     onPaint: {
                         var ctx = getContext("2d");
-                        ctx.strokeStyle = "#8bac0f";
-                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = "#8bac0f"; ctx.lineWidth = 1;
                         for(var i=0; i<=gameLogic.boardWidth; i++) {
                             var x = i * (width / gameLogic.boardWidth);
                             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
@@ -59,7 +53,6 @@ Window {
                     }
                 }
 
-                // 食物
                 Rectangle {
                     visible: gameLogic.state !== 0
                     x: gameLogic.food.x * (gameScreen.width / gameLogic.boardWidth)
@@ -69,7 +62,6 @@ Window {
                     color: "#0f380f"; radius: width / 2
                 }
 
-                // 蛇 (优化：使用 Model，避免全量刷新抖动)
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
@@ -82,7 +74,7 @@ Window {
                     }
                 }
 
-                // --- 菜单与状态 ---
+                // Start Menu
                 Rectangle {
                     anchors.fill: parent; color: "#9bbc0f"
                     visible: gameLogic.state === 0
@@ -100,6 +92,7 @@ Window {
                     }
                 }
 
+                // Game Over
                 Rectangle {
                     anchors.fill: parent; color: "#A0000000"
                     visible: gameLogic.state === 2
@@ -119,6 +112,7 @@ Window {
         }
 
         DPad {
+            id: dpadUI
             anchors.bottom: parent.bottom; anchors.bottomMargin: 100
             anchors.left: parent.left; anchors.leftMargin: 20
             onUpClicked: gameLogic.move(0, -1)
@@ -130,9 +124,9 @@ Window {
         Row {
             anchors.bottom: parent.bottom; anchors.bottomMargin: 130
             anchors.right: parent.right; anchors.rightMargin: 30; spacing: 15; rotation: -15
-            GBButton { text: "B" }
+            GBButton { id: bBtnUI; text: "B" }
             GBButton { 
-                text: "A"
+                id: aBtnUI; text: "A"
                 onClicked: {
                     if (gameLogic.state === 0) gameLogic.startGame();
                     else if (gameLogic.state === 2) gameLogic.restart();
@@ -141,17 +135,32 @@ Window {
         }
     }
 
+    // 统一键盘控制逻辑
     Item {
         focus: true
         Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Up) gameLogic.move(0, -1);
-            else if (event.key === Qt.Key_Down) gameLogic.move(0, 1);
-            else if (event.key === Qt.Key_Left) gameLogic.move(-1, 0);
-            else if (event.key === Qt.Key_Right) gameLogic.move(1, 0);
+            if (event.isAutoRepeat) return;
+            if (event.key === Qt.Key_Up) { dpadUI.upPressed = true; gameLogic.move(0, -1); }
+            else if (event.key === Qt.Key_Down) { dpadUI.downPressed = true; gameLogic.move(0, 1); }
+            else if (event.key === Qt.Key_Left) { dpadUI.leftPressed = true; gameLogic.move(-1, 0); }
+            else if (event.key === Qt.Key_Right) { dpadUI.rightPressed = true; gameLogic.move(1, 0); }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Return || event.key === Qt.Key_Z) {
+                aBtnUI.isPressed = true;
                 if (gameLogic.state === 0) gameLogic.startGame();
                 else if (gameLogic.state === 2) gameLogic.restart();
             }
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                bBtnUI.isPressed = true;
+            }
+        }
+        Keys.onReleased: (event) => {
+            if (event.isAutoRepeat) return;
+            if (event.key === Qt.Key_Up) dpadUI.upPressed = false;
+            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false;
+            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false;
+            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false;
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Return || event.key === Qt.Key_Z) aBtnUI.isPressed = false;
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false;
         }
     }
 }

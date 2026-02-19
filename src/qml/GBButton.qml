@@ -4,17 +4,21 @@ Rectangle {
     id: root
     property alias text: label.text
     property color buttonColor: "#a01040"
+    property bool isPressed: false // 新增：支持外部按键控制
     signal clicked
 
     width: 45; height: 45; radius: 22.5
-    color: mouseArea.pressed ? Qt.darker(buttonColor, 1.2) : buttonColor
+    // 逻辑：鼠标按下或键盘对应的 isPressed 为 true 时显示按下色
+    color: (mouseArea.pressed || isPressed) ? Qt.darker(buttonColor, 1.2) : buttonColor
     border.color: "#333"; border.width: 2
 
-    scale: mouseArea.pressed ? 0.9 : 1.0
+    scale: (mouseArea.pressed || isPressed) ? 0.9 : 1.0
     
-    // 增加触觉反馈暗示
     Behavior on scale { 
-        NumberAnimation { duration: 100; easing.type: Easing.OutBack } 
+        NumberAnimation { duration: 50; easing.type: Easing.OutQuad } 
+    }
+    Behavior on color {
+        ColorAnimation { duration: 50 }
     }
 
     Text {
