@@ -26,14 +26,15 @@ GameLogic::GameLogic(QObject *parent)
       m_soundManager(std::make_unique<SoundManager>()), m_settings(u"MyCompany"_s, u"SnakeGB"_s),
       m_buffTimer(std::make_unique<QTimer>()) {
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
-    
     m_buffTimer->setSingleShot(true);
     connect(m_buffTimer.get(), &QTimer::timeout, this, &GameLogic::deactivateBuff);
 
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
+    m_totalCrashes = m_settings.value(u"totalCrashes"_s, 0).toInt();
+    m_unlockedMedals = m_settings.value(u"unlockedMedals"_s).toStringList();
 
+    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_fsmState = std::make_unique<SplashState>(*this);
     m_fsmState->enter();
 }
@@ -55,9 +56,7 @@ void GameLogic::lazyInit() {
 GameLogic::~GameLogic() {
     m_timer->stop();
     m_buffTimer->stop();
-    if (m_state == Playing || m_state == Paused) {
-        saveCurrentState();
-    }
+    if (m_state == Playing || m_state == Paused) saveCurrentState();
 }
 
 void GameLogic::changeState(std::unique_ptr<GameState> newState) {
@@ -67,10 +66,7 @@ void GameLogic::changeState(std::unique_ptr<GameState> newState) {
 }
 
 void GameLogic::setInternalState(State s) {
-    if (m_state != s) {
-        m_state = s;
-        emit stateChanged();
-    }
+    if (m_state != s) { m_state = s; emit stateChanged(); }
 }
 
 void GameLogic::startGame() { restart(); }
@@ -84,13 +80,10 @@ void GameLogic::restart() {
     m_ghostFrameIndex = 0;
     m_currentRecording.clear();
     m_currentRecording.append(QPoint(10, 10));
-    
     m_activeBuff = None;
     m_powerUpPos = {-1, -1};
     m_buffTimer->stop();
-    emit buffChanged();
-    emit powerUpChanged();
-
+    emit buffChanged(); emit powerUpChanged();
     loadLevelData(m_levelIndex);
     clearSavedState();
     m_timer->setInterval(InitialInterval);
@@ -115,8 +108,7 @@ void GameLogic::loadLastSession() {
     m_food = m_settings.value(u"saved_food"_s).toPoint();
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
-    m_currentRecording.clear();
-    m_ghostFrameIndex = 0;
+    m_currentRecording.clear(); m_ghostFrameIndex = 0;
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
     changeState(std::make_unique<PausedState>(*this));
 }
@@ -129,14 +121,15 @@ void GameLogic::saveCurrentState() {
     m_settings.setValue(u"saved_score"_s, m_score);
     m_settings.setValue(u"saved_food"_s, m_food);
     m_settings.setValue(u"saved_dir"_s, m_direction);
+    m_settings.setValue(u"totalCrashes"_s, m_totalCrashes);
+    m_settings.setValue(u"unlockedMedals"_s, m_unlockedMedals);
     m_settings.sync();
     emit hasSaveChanged();
 }
 
 void GameLogic::clearSavedState() {
     m_settings.remove(u"saved_body"_s); m_settings.remove(u"saved_obstacles"_s);
-    m_settings.sync();
-    emit hasSaveChanged();
+    m_settings.sync(); emit hasSaveChanged();
 }
 
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
@@ -233,11 +226,32 @@ void GameLogic::spawnPowerUp() {
     }
 }
 
-void GameLogic::deactivateBuff() {
-    m_activeBuff = None;
-    // Restore normal speed if Slow was active
-    m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10));
-    emit buffChanged();
+void GameLogic::deactivateBuff() { m_activeBuff = None; m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10)); emit buffChanged(); }
+
+auto GameLogic::achievements() const noexcept -> QVariantList {
+    QVariantList list; for (const auto &m : m_unlockedMedals) list.append(m);
+    return list;
+}
+
+void GameLogic::checkAchievements() {
+    auto unlock = [this](QString title) {
+        if (!m_unlockedMedals.contains(title)) {
+            m_unlockedMedals.append(title);
+            emit achievementEarned(title);
+            emit achievementsChanged();
+            if (m_soundManager) m_soundManager->playBeep(1500, 300);
+        }
+    };
+
+    if (m_score >= 50) unlock(u"Gold Medal (50 Pts)"_s);
+    if (m_score >= 20) unlock(u"Silver Medal (20 Pts)"_s);
+    if (m_totalCrashes >= 100) unlock(u"Centurion (100 Crashes)"_s);
+    if (m_timer->interval() <= 50) unlock(u"Speed Demon"_s);
+}
+
+void GameLogic::incrementCrashes() {
+    m_totalCrashes++;
+    checkAchievements();
 }
 
 QVariantList GameLogic::ghost() const noexcept {

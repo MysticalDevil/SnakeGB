@@ -78,6 +78,7 @@ auto PlayingState::update() -> void {
         logic.m_timer->stop();
         logic.m_buffTimer->stop();
         logic.updateHighScore();
+        logic.incrementCrashes();
         logic.clearSavedState();
         if (logic.m_soundManager) logic.m_soundManager->playCrash(500);
         emit logic.requestFeedback(8);
@@ -96,6 +97,7 @@ auto PlayingState::update() -> void {
 
     if (ateFood) {
         logic.m_score++;
+        logic.checkAchievements();
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);

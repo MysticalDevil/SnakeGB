@@ -72,6 +72,8 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
+    // Achievement Properties
+    Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
 
 public:
     enum State { Splash, StartMenu, Playing, Paused, GameOver };
@@ -105,6 +107,7 @@ public:
     [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
     [[nodiscard]] auto ghost() const noexcept -> QVariantList;
     [[nodiscard]] auto musicEnabled() const noexcept -> bool;
+    [[nodiscard]] auto achievements() const noexcept -> QVariantList;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -127,6 +130,8 @@ public:
     auto changeState(std::unique_ptr<GameState> newState) -> void;
     auto setInternalState(State s) -> void;
     auto lazyInit() -> void;
+    auto checkAchievements() -> void;
+    auto incrementCrashes() -> void;
 
     friend class SplashState;
     friend class MenuState;
@@ -149,6 +154,8 @@ signals:
     void levelChanged();
     void ghostChanged();
     void musicEnabledChanged();
+    void achievementsChanged();
+    void achievementEarned(QString title);
 
 private slots:
     void update();
@@ -182,12 +189,15 @@ private:
     QList<QPoint> m_bestRecording;
     int m_ghostFrameIndex = 0;
 
+    // Achievement stats
+    int m_totalCrashes = 0;
+    QList<QString> m_unlockedMedals;
+
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
     QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
     std::deque<QPoint> m_inputQueue;
-    
     std::unique_ptr<QTimer> m_buffTimer;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
