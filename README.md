@@ -1,24 +1,23 @@
-# SnakeGB - Retro GameBoy Style Snake Game (v1.2.0)
+# SnakeGB - Retro GameBoy Style Snake Game (v1.3.0)
 
 [中文版](README_zh.md)
 
-SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience while utilizing modern engineering standards.
+SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience while utilizing modern engineering standards and high-performance optimizations.
 
 > **Note**: This project was entirely generated and optimized by **Gemini CLI** (AI Agent).
 
-## Core Features
+## Core Features (v1.3.0)
 
-- **Multi-Platform & Architecture**: Standardized CMake configuration for Windows, macOS, Linux, and Mobile.
-- **Adaptive Rendering**: Automatic RHI backend selection (Vulkan, Metal, DirectX 12, or OpenGL).
-- **Advanced LCD Simulation**: Pre-compiled `.qsb` shaders providing pixel grids, barrel distortion, and vignetting.
-- **Robust Architecture**: 
-  - **FSM (Finite State Machine)**: Clean state management for Splash, Menu, Play, and Pause.
-  - **Input Buffering**: Queue-based input logic to eliminate rapid-turn collisions.
-  - **SnakeModel**: Jitter-free incremental QML rendering.
-- **8-bit Polyphonic Audio**:
-  - Simultaneous BGM and SFX playback.
-  - Softened 8-bit pulse waves with ADSR envelopes.
-- **Game Features**: Level system (JSON-based), Ghost system (high score replay), and automatic Savestate persistence.
+- **Artistic CRT Engine (v3.1)**: Balanced physical curvature, tight chromatic aberration, and dynamic scanlines for a stunning retro aesthetic.
+- **High-Performance Architecture**: 
+  - **Async Loading**: Eliminates startup and exit hiccups via background resource initialization and binary serialization.
+  - **FSM Management**: Clean state-based logic for Splash, Menu, Play, and Pause.
+- **Refined UX & Controls**:
+  - **Smart Start**: Automatically resumes from the last session or starts fresh.
+  - **OSD System**: On-Screen Display provides visual feedback for palette and shell changes.
+  - **Save Management**: Hold SELECT to clear saved progress.
+- **8-bit Polyphonic Audio**: Simultaneous BGM and SFX with softened ADSR envelopes.
+- **Engineered Reliability**: 100% Clang-Tidy compliant, C++23 standard, and robust unit testing.
 
 ## Tech Stack
 
@@ -43,12 +42,14 @@ ctest --output-on-failure
 ```
 
 ## Controls
-- **Arrow Keys**: Move
-- **Enter / S**: START (Begin game)
-- **Shift**: SELECT (Cycle level in menu / Resume save)
-- **B / X**: Return to Menu / Toggle Palette
+- **Arrow Keys**: Move snake
+- **START (Enter / S)**: Begin game / Continue from save
+- **SELECT (Shift)**: Cycle level in menu
+- **Hold SELECT (Shift)**: Clear saved session (In Menu)
+- **B / X**: Return to Menu / Toggle Palette (In Game) / Quit (In Menu)
 - **M**: Toggle Background Music
 - **Ctrl**: Toggle Shell Color
+- **Esc / Q**: Quit Application
 
 ## License
 Licensed under the [MIT License](LICENSE).

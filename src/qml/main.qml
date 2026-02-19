@@ -30,6 +30,19 @@ Window {
         loops: Animation.Infinite
     }
 
+    Timer {
+        id: longPressTimer
+        interval: 1500
+        onTriggered: {
+            if (gameLogic.state === 1 && gameLogic.hasSave) {
+                gameLogic.deleteSave()
+                osdLabel.text = qsTr("Save Cleared")
+                osdBox.visible = true
+                osdTimer.restart()
+            }
+        }
+    }
+
     Connections {
         target: gameLogic
         function onRequestFeedback(magnitude) {
@@ -319,9 +332,9 @@ Window {
                                 }
                             }
                             Text {
-                                text: qsTr("B to Quit")
+                                text: gameLogic.hasSave ? qsTr("Hold SELECT to Delete Save") : qsTr("B to Quit")
                                 font.family: gameFont
-                                font.pixelSize: 10
+                                font.pixelSize: 8
                                 color: p3
                                 opacity: 0.6
                                 anchors.horizontalCenter: parent.horizontalCenter
@@ -470,8 +483,14 @@ Window {
             SmallButton {
                 id: selectBtnUI
                 text: "SELECT"
-                onClicked: {
-                    gameLogic.handleSelect()
+                onPressed: {
+                    longPressTimer.start()
+                }
+                onReleased: {
+                    if (longPressTimer.running) {
+                        longPressTimer.stop()
+                        gameLogic.handleSelect()
+                    }
                 }
             }
             SmallButton {
@@ -517,7 +536,7 @@ Window {
                 }
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
-                gameLogic.handleSelect()
+                longPressTimer.start()
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()
             } else if (event.key === Qt.Key_M) {
@@ -535,7 +554,13 @@ Window {
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
-            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false
+            else if (event.key === Qt.Key_Shift) {
+                selectBtnUI.isPressed = false
+                if (longPressTimer.running) {
+                    longPressTimer.stop()
+                    gameLogic.handleSelect()
+                }
+            }
         }
     }
 }

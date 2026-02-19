@@ -231,6 +231,14 @@ void GameLogic::handleStart() {
     }
 }
 
+void GameLogic::deleteSave() {
+    clearSavedState();
+    if (m_soundManager) {
+        m_soundManager->playCrash(200);
+    }
+    emit paletteChanged(); // Trigger OSD label update via proxy
+}
+
 bool GameLogic::musicEnabled() const noexcept {
     return m_soundManager ? m_soundManager->musicEnabled() : false;
 }

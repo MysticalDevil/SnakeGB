@@ -146,6 +146,7 @@ public:
     Q_INVOKABLE void quit();
     Q_INVOKABLE void handleSelect();
     Q_INVOKABLE void handleStart();
+    Q_INVOKABLE void deleteSave();
 
     auto changeState(std::unique_ptr<GameState> newState) -> void;
     auto setInternalState(State s) -> void;
