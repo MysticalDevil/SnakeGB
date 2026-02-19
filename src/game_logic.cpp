@@ -65,10 +65,11 @@ void GameLogic::restart() {
     clearSavedState();
     
     m_timer->setInterval(150);
-    spawnFood();
+    spawnFood(); // 确保重置后食物位置合法
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
+    emit foodChanged(); // 显式触发更新
     emit ghostChanged();
     changeState(std::make_unique<PlayingState>(*this));
 }
@@ -154,16 +155,21 @@ void GameLogic::loadLevelData(int index) {
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QJsonArray levels = doc.object().value(u"levels"_s).toArray();
     if (index >= levels.size()) index = 0;
+    
     QJsonObject lvl = levels[index].toObject();
     m_obstacles.clear();
     QJsonArray walls = lvl.value(u"walls"_s).toArray();
-    for (const auto &w : walls) m_obstacles.append(QPoint(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()));
+    for (const auto &w : walls) {
+        QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
+        // 核心修复：禁止障碍物出现在起始点 {10, 10} 周围 3x3 区域
+        if (std::abs(p.x() - 10) <= 1 && std::abs(p.y() - 10) <= 1) continue;
+        m_obstacles.append(p);
+    }
     emit obstaclesChanged();
 }
 
 QVariantList GameLogic::ghost() const noexcept {
     QVariantList list;
-    // 优化：显示完整幽灵身躯（取历史记录中当前帧及之前的若干帧）
     int ghostLength = static_cast<int>(m_snakeModel.body().size());
     int start = std::max(0, m_ghostFrameIndex - ghostLength + 1);
     for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) {
@@ -208,7 +214,11 @@ void GameLogic::spawnFood() {
     while (foodIsInvalid) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        foodIsInvalid = std::ranges::contains(body, m_food) || std::ranges::contains(m_obstacles, m_food);
+        // 核心修复：食物禁止出现在蛇身、障碍物，以及起始保护区
+        bool inSafeZone = std::abs(m_food.x() - 10) <= 1 && std::abs(m_food.y() - 10) <= 1;
+        foodIsInvalid = std::ranges::contains(body, m_food) || 
+                        std::ranges::contains(m_obstacles, m_food) ||
+                        inSafeZone;
     }
     emit foodChanged();
 }
