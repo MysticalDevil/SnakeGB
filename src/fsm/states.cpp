@@ -8,7 +8,6 @@
 // --- SplashState ---
 void SplashState::enter() {
     m_context.setInternalState(GameLogic::Splash);
-    // 启动计时器以驱动 update() 逻辑
     m_context.m_timer->start(150); 
     m_context.m_soundManager->playBeep(1046, 100); 
 }
@@ -16,7 +15,6 @@ void SplashState::enter() {
 void SplashState::update() {
     static int splashFrames = 0;
     splashFrames++;
-    // 假设 150ms 一个周期，约 1.5 秒后进入菜单
     if (splashFrames > 10) {
         splashFrames = 0;
         m_context.changeState(std::make_unique<MenuState>(m_context));
@@ -50,6 +48,13 @@ void PlayingState::enter() {
 
 void PlayingState::update() {
     auto& logic = m_context;
+
+    // --- 核心优化：从指令缓冲中取出方向 ---
+    if (!logic.m_inputQueue.empty()) {
+        logic.m_direction = logic.m_inputQueue.front();
+        logic.m_inputQueue.pop_front();
+    }
+
     const auto &body = logic.m_snakeModel.body();
     const QPoint nextHead = body.front() + logic.m_direction;
 
@@ -88,12 +93,7 @@ void PlayingState::update() {
 }
 
 void PlayingState::handleInput(int dx, int dy) {
-    auto& logic = m_context;
-    if ((dx != 0 && logic.m_direction.x() == -dx) || (dy != 0 && logic.m_direction.y() == -dy)) {
-        return;
-    }
-    logic.m_direction = {dx, dy};
-    logic.m_soundManager->playBeep(200, 50);
+    // move() 已经处理了队列逻辑
 }
 
 void PlayingState::handleStart() {

@@ -9,6 +9,7 @@
 #include <QVariantList>
 #include <deque>
 #include <memory>
+#include <queue>
 
 class SoundManager;
 class GameState;
@@ -144,6 +145,9 @@ private:
     std::unique_ptr<SoundManager> m_soundManager;
     QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
+
+    // 优化：输入缓冲队列
+    std::deque<QPoint> m_inputQueue;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

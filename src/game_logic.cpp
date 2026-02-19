@@ -21,16 +21,13 @@ GameLogic::GameLogic(QObject *parent)
     m_levelIndex = m_settings.value(u"levelIndex"_s, 0).toInt();
 
     const auto ghostVar = m_settings.value(u"bestRecording"_s).toList();
-    for (const auto &v : ghostVar) {
-        m_bestRecording.append(v.toPoint());
-    }
+    for (const auto &v : ghostVar) m_bestRecording.append(v.toPoint());
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     loadLevelData(m_levelIndex);
     spawnFood();
 
-    // 初始状态改为 Splash
-    m_fsmState = std::make_unique<SplashState>(*this);
+    m_fsmState = std::make_unique<MenuState>(*this);
     m_fsmState->enter();
 }
 
@@ -41,13 +38,9 @@ GameLogic::~GameLogic() {
 }
 
 void GameLogic::changeState(std::unique_ptr<GameState> newState) {
-    if (m_fsmState) {
-        m_fsmState->exit();
-    }
+    if (m_fsmState) m_fsmState->exit();
     m_fsmState = std::move(newState);
-    if (m_fsmState) {
-        m_fsmState->enter();
-    }
+    if (m_fsmState) m_fsmState->enter();
 }
 
 void GameLogic::setInternalState(State s) {
@@ -62,6 +55,7 @@ void GameLogic::startGame() { restart(); }
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
+    m_inputQueue.clear();
     m_score = 0;
     m_ghostFrameIndex = 0;
     m_currentRecording.clear();
@@ -80,34 +74,23 @@ void GameLogic::restart() {
 }
 
 void GameLogic::togglePause() {
-    if (m_state == Playing) {
-        changeState(std::make_unique<PausedState>(*this));
-    } else if (m_state == Paused) {
-        changeState(std::make_unique<PlayingState>(*this));
-    }
+    if (m_state == Playing) changeState(std::make_unique<PausedState>(*this));
+    else if (m_state == Paused) changeState(std::make_unique<PlayingState>(*this));
 }
 
 void GameLogic::loadLastSession() {
-    if (!m_settings.contains(u"saved_body"_s)) {
-        return;
-    }
+    if (!m_settings.contains(u"saved_body"_s)) return;
     m_score = m_settings.value(u"saved_score"_s).toInt();
     std::deque<QPoint> body;
-    for (const auto &v : m_settings.value(u"saved_body"_s).toList()) {
-        body.emplace_back(v.toPoint());
-    }
+    for (const auto &v : m_settings.value(u"saved_body"_s).toList()) body.emplace_back(v.toPoint());
     m_obstacles.clear();
-    for (const auto &v : m_settings.value(u"saved_obstacles"_s).toList()) {
-        m_obstacles.emplace_back(v.toPoint());
-    }
+    for (const auto &v : m_settings.value(u"saved_obstacles"_s).toList()) m_obstacles.emplace_back(v.toPoint());
     m_food = m_settings.value(u"saved_food"_s).toPoint();
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
     
     m_currentRecording.clear();
-    for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) {
-        m_currentRecording.append(v.toPoint());
-    }
+    for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) m_currentRecording.append(v.toPoint());
     m_ghostFrameIndex = m_currentRecording.size();
 
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
@@ -135,7 +118,15 @@ void GameLogic::clearSavedState() {
 
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
 
-void GameLogic::move(const int dx, const int dy) { if (m_fsmState) m_fsmState->handleInput(dx, dy); }
+void GameLogic::move(const int dx, const int dy) {
+    QPoint lastRequestedDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
+    if ((dx != 0 && lastRequestedDir.x() == -dx) || (dy != 0 && lastRequestedDir.y() == -dy)) return;
+    if (m_inputQueue.size() < 2) {
+        m_inputQueue.push_back({dx, dy});
+        m_soundManager->playBeep(200, 50);
+    }
+}
+
 void GameLogic::update() { if (m_fsmState) m_fsmState->update(); }
 
 void GameLogic::nextPalette() {
@@ -159,27 +150,24 @@ void GameLogic::nextLevel() {
 
 void GameLogic::loadLevelData(int index) {
     QFile file(u":/levels.json"_s);
-    if (!file.open(QIODevice::ReadOnly)) {
-        return;
-    }
+    if (!file.open(QIODevice::ReadOnly)) return;
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QJsonArray levels = doc.object().value(u"levels"_s).toArray();
-    if (index >= levels.size()) {
-        index = 0;
-    }
+    if (index >= levels.size()) index = 0;
     QJsonObject lvl = levels[index].toObject();
     m_obstacles.clear();
     QJsonArray walls = lvl.value(u"walls"_s).toArray();
-    for (const auto &w : walls) {
-        m_obstacles.append(QPoint(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()));
-    }
+    for (const auto &w : walls) m_obstacles.append(QPoint(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()));
     emit obstaclesChanged();
 }
 
 QVariantList GameLogic::ghost() const noexcept {
     QVariantList list;
-    if (m_ghostFrameIndex < m_bestRecording.size()) {
-        list.append(m_bestRecording[m_ghostFrameIndex]);
+    // 优化：显示完整幽灵身躯（取历史记录中当前帧及之前的若干帧）
+    int ghostLength = static_cast<int>(m_snakeModel.body().size());
+    int start = std::max(0, m_ghostFrameIndex - ghostLength + 1);
+    for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) {
+        list.append(m_bestRecording[i]);
     }
     return list;
 }

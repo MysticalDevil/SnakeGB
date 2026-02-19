@@ -123,6 +123,8 @@ Window {
                     Item {
                         id: gameWorld
                         anchors.fill: parent
+                        
+                        // Food
                         Rectangle {
                             visible: gameLogic.state !== 0 && gameLogic.state !== 1
                             x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
@@ -139,6 +141,8 @@ Window {
                                 NumberAnimation { from: 0.7; to: 1.0; duration: 400 }
                             }
                         }
+
+                        // Obstacles
                         Repeater {
                             model: gameLogic.obstacles
                             Rectangle {
@@ -154,6 +158,8 @@ Window {
                                 }
                             }
                         }
+
+                        // --- Ghost System (Full Body) ---
                         Repeater {
                             model: gameLogic.ghost
                             delegate: Rectangle {
@@ -162,10 +168,14 @@ Window {
                                 width: gameContent.width / gameLogic.boardWidth
                                 height: gameContent.height / gameLogic.boardHeight
                                 color: p3
-                                opacity: 0.2
+                                opacity: 0.15
                                 radius: 1
+                                border.color: p2
+                                border.width: 0.5
                             }
                         }
+
+                        // Snake
                         Repeater {
                             model: gameLogic.snakeModel
                             delegate: Rectangle {
