@@ -20,6 +20,7 @@ Window {
 
     readonly property string gameFont: "Monospace"
 
+    // Dynamic shake magnitude
     property int shakeMagnitude: 2
 
     Connections {
@@ -90,7 +91,7 @@ Window {
                 Item {
                     id: gameContent
                     anchors.fill: parent
-                    visible: true
+                    visible: true // Keep visible for Shader capture
 
                     Canvas {
                         id: backgroundGrid
@@ -129,14 +130,16 @@ Window {
                         Rectangle {
                             id: foodRect
                             visible: gameLogic.state > 1
-                            x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
-                            y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
-                            width: parent.width / gameLogic.boardWidth
-                            height: parent.height / gameLogic.boardHeight
+                            x: gameLogic.food.x * (gameContent.width / gameLogic.boardWidth)
+                            y: gameLogic.food.y * (gameContent.height / gameLogic.boardHeight)
+                            width: gameContent.width / gameLogic.boardWidth
+                            height: gameContent.height / gameLogic.boardHeight
                             color: p3
                             radius: width / 2
+                            border.color: p0
+                            border.width: 1
                             z: 10
-                            
+
                             Rectangle {
                                 anchors.centerIn: parent
                                 width: parent.width * 1.5
@@ -262,16 +265,53 @@ Window {
                         Column {
                             anchors.centerIn: parent
                             spacing: 8
-                            Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3 }
-                            Text { text: qsTr("HI-SCORE: ") + gameLogic.highScore; font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: qsTr("SELECT to Load Level: ") + (gameLogic.level + 1); font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text {
+                                text: "S N A K E"
+                                font.family: gameFont
+                                font.pixelSize: 32
+                                font.bold: true
+                                color: p3
+                            }
+                            Text {
+                                text: qsTr("HI-SCORE: ") + gameLogic.highScore
+                                font.family: gameFont
+                                font.pixelSize: 14
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: qsTr("Level: ") + (gameLogic.level + 1)
+                                font.family: gameFont
+                                font.pixelSize: 12
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: qsTr("SELECT to Continue/Cycle")
+                                visible: gameLogic.hasSave
+                                font.family: gameFont
+                                font.pixelSize: 10
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
                             Text {
                                 text: qsTr("START to Play")
-                                font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter
+                                font.family: gameFont
+                                font.pixelSize: 14
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
-                                    NumberAnimation { from: 1; to: 0; duration: 800 }
-                                    NumberAnimation { from: 0; to: 1; duration: 800 }
+                                    NumberAnimation {
+                                        from: 1
+                                        to: 0
+                                        duration: 800
+                                    }
+                                    NumberAnimation {
+                                        from: 0
+                                        to: 1
+                                        duration: 800
+                                    }
                                 }
                             }
                             Text {
@@ -293,8 +333,21 @@ Window {
                         Column {
                             anchors.centerIn: parent
                             spacing: 15
-                            Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: qsTr("Press B to Quit"); font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text {
+                                text: "PAUSED"
+                                font.family: gameFont
+                                font.pixelSize: 32
+                                font.bold: true
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: qsTr("Press B to Quit")
+                                font.family: gameFont
+                                font.pixelSize: 12
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
                         }
                     }
 
@@ -315,11 +368,18 @@ Window {
                                 text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score)
                                 horizontalAlignment: Text.AlignHCenter 
                             }
-                            Text { text: qsTr("Press B to Menu"); font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text {
+                                text: qsTr("Press B to Menu")
+                                font.family: gameFont
+                                font.pixelSize: 12
+                                color: p0
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
                         }
                     }
                 }
 
+                // Shader Output
                 ShaderEffect {
                     anchors.fill: parent
                     property variant source: ShaderEffectSource {
@@ -428,8 +488,8 @@ Window {
             } else if (event.key === Qt.Key_Right) {
                 dpadUI.rightPressed = true
                 gameLogic.move(1, 0)
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
-                startBtnUI.isPressed = true 
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                startBtnUI.isPressed = true
                 if (gameLogic.state === 1) {
                     gameLogic.startGame()
                 } else if (gameLogic.state === 4) {

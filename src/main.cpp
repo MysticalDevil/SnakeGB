@@ -1,19 +1,20 @@
 #include <QGuiApplication>
 #include <QIcon>
+#include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
 #include <QTranslator>
-#include <QLocale>
 
 #include "game_logic.h"
 
 auto main(int argc, char *argv[]) -> int {
+    // Force Vulkan rendering backend via RHI
     qputenv("QSG_RHI_BACKEND", "vulkan");
 
     QGuiApplication app(argc, argv);
 
-    // 多语言支持
+    // Internationalization support
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
@@ -24,6 +25,7 @@ auto main(int argc, char *argv[]) -> int {
         }
     }
 
+    // Set application metadata
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
     QCoreApplication::setApplicationVersion("1.0.0");

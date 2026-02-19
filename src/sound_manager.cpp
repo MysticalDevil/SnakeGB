@@ -11,12 +11,18 @@ SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_format.setSampleFormat(QAudioFormat::UInt8);
 
     const auto device = QMediaDevices::defaultAudioOutput();
-    if (!device.isNull()) {
-        m_sfxSink = new QAudioSink(device, m_format, this);
-        m_sfxBuffer.open(QIODevice::ReadWrite);
-        m_bgmSink = new QAudioSink(device, m_format, this);
-        m_bgmBuffer.open(QIODevice::ReadWrite);
+    if (device.isNull()) {
+        qWarning() << "No default audio output device found. Sound will be disabled.";
+        return;
     }
+
+    // Initialize SFX Channel
+    m_sfxSink = new QAudioSink(device, m_format, this);
+    m_sfxBuffer.open(QIODevice::ReadWrite);
+
+    // Initialize BGM Channel
+    m_bgmSink = new QAudioSink(device, m_format, this);
+    m_bgmBuffer.open(QIODevice::ReadWrite);
 
     connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
 }
@@ -34,7 +40,7 @@ void SoundManager::setMusicEnabled(bool enabled) {
 void SoundManager::playBeep(const int frequencyHz, const int durationMs) {
     if (!m_sfxSink) return;
     QByteArray data;
-    generateSquareWave(frequencyHz, durationMs, data, 32);
+    generateSquareWave(frequencyHz, durationMs, data, 32); // SFX keeps original amplitude
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
@@ -73,7 +79,7 @@ void SoundManager::playNextNote() {
 
     if (freq > 0) {
         QByteArray data;
-        // BGM 振幅设为 10，保持背景感
+        // BGM amplitude set to 10 for subtle background feel
         generateSquareWave(freq, duration - 10, data, 10); 
         m_bgmSink->stop();
         m_bgmBuffer.close();
@@ -93,13 +99,13 @@ void SoundManager::generateSquareWave(const int frequencyHz, const int durationM
     const double cycleLength = static_cast<double>(sampleRate) / frequencyHz;
     const double dutyCycle = 0.25;
     
-    // 5ms 的 Attack 采样数
+    // 5ms Attack for anti-clicking
     const int attackSamples = (sampleRate * 5) / 1000;
 
     for (int i = 0; i < sampleCount; ++i) {
         double phase = fmod(i, cycleLength) / cycleLength;
         
-        // ADSR 包络计算
+        // ADSR Envelope calculation
         double envelope = 1.0;
         if (i < attackSamples) {
             envelope = static_cast<double>(i) / attackSamples; // Attack

@@ -21,13 +21,16 @@ GameLogic::GameLogic(QObject *parent)
     m_levelIndex = m_settings.value(u"levelIndex"_s, 0).toInt();
 
     const auto ghostVar = m_settings.value(u"bestRecording"_s).toList();
-    for (const auto &v : ghostVar) m_bestRecording.append(v.toPoint());
+    for (const auto &v : ghostVar) {
+        m_bestRecording.append(v.toPoint());
+    }
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     loadLevelData(m_levelIndex);
     spawnFood();
 
-    m_fsmState = std::make_unique<MenuState>(*this);
+    // Initial state is Splash
+    m_fsmState = std::make_unique<SplashState>(*this);
     m_fsmState->enter();
 }
 
@@ -38,9 +41,13 @@ GameLogic::~GameLogic() {
 }
 
 void GameLogic::changeState(std::unique_ptr<GameState> newState) {
-    if (m_fsmState) m_fsmState->exit();
+    if (m_fsmState) {
+        m_fsmState->exit();
+    }
     m_fsmState = std::move(newState);
-    if (m_fsmState) m_fsmState->enter();
+    if (m_fsmState) {
+        m_fsmState->enter();
+    }
 }
 
 void GameLogic::setInternalState(State s) {
@@ -55,7 +62,7 @@ void GameLogic::startGame() { restart(); }
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
-    m_inputQueue.clear();
+    m_inputQueue.clear(); // Clear input queue
     m_score = 0;
     m_ghostFrameIndex = 0;
     m_currentRecording.clear();
@@ -65,33 +72,44 @@ void GameLogic::restart() {
     clearSavedState();
     
     m_timer->setInterval(150);
-    spawnFood();
+    spawnFood(); 
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
-    emit foodChanged();
+    emit foodChanged(); 
     emit ghostChanged();
     changeState(std::make_unique<PlayingState>(*this));
 }
 
 void GameLogic::togglePause() {
-    if (m_state == Playing) changeState(std::make_unique<PausedState>(*this));
-    else if (m_state == Paused) changeState(std::make_unique<PlayingState>(*this));
+    if (m_state == Playing) {
+        changeState(std::make_unique<PausedState>(*this));
+    } else if (m_state == Paused) {
+        changeState(std::make_unique<PlayingState>(*this));
+    }
 }
 
 void GameLogic::loadLastSession() {
-    if (!m_settings.contains(u"saved_body"_s)) return;
+    if (!m_settings.contains(u"saved_body"_s)) {
+        return;
+    }
     m_score = m_settings.value(u"saved_score"_s).toInt();
     std::deque<QPoint> body;
-    for (const auto &v : m_settings.value(u"saved_body"_s).toList()) body.emplace_back(v.toPoint());
+    for (const auto &v : m_settings.value(u"saved_body"_s).toList()) {
+        body.emplace_back(v.toPoint());
+    }
     m_obstacles.clear();
-    for (const auto &v : m_settings.value(u"saved_obstacles"_s).toList()) m_obstacles.emplace_back(v.toPoint());
+    for (const auto &v : m_settings.value(u"saved_obstacles"_s).toList()) {
+        m_obstacles.emplace_back(v.toPoint());
+    }
     m_food = m_settings.value(u"saved_food"_s).toPoint();
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
     
     m_currentRecording.clear();
-    for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) m_currentRecording.append(v.toPoint());
+    for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) {
+        m_currentRecording.append(v.toPoint());
+    }
     m_ghostFrameIndex = m_currentRecording.size();
 
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
@@ -120,11 +138,18 @@ void GameLogic::clearSavedState() {
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
 
 void GameLogic::move(const int dx, const int dy) {
-    QPoint lastRequestedDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
-    if ((dx != 0 && lastRequestedDir.x() == -dx) || (dy != 0 && lastRequestedDir.y() == -dy)) return;
-    if (m_inputQueue.size() < 2) {
-        m_inputQueue.push_back({dx, dy});
-        m_soundManager->playBeep(200, 50);
+    if (m_fsmState) {
+        // Prevent 180 degree turns by checking queue end or current direction
+        QPoint lastRequestedDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
+        if ((dx != 0 && lastRequestedDir.x() == -dx) || (dy != 0 && lastRequestedDir.y() == -dy)) {
+            return;
+        }
+        
+        // Limit queue size to 2 to prevent input lag
+        if (m_inputQueue.size() < 2) {
+            m_inputQueue.push_back({dx, dy});
+            m_soundManager->playBeep(200, 50);
+        }
     }
 }
 
@@ -158,7 +183,7 @@ void GameLogic::toggleMusic() {
     bool nextEnabled = !m_soundManager->musicEnabled();
     m_soundManager->setMusicEnabled(nextEnabled);
     
-    // 如果重新开启音乐且当前处于菜单状态，立即恢复播放
+    // If resuming music and in menu, start immediately
     if (nextEnabled && m_state == StartMenu) {
         m_soundManager->startMusic();
     }
@@ -182,7 +207,7 @@ void GameLogic::loadLevelData(int index) {
     QJsonArray walls = lvl.value(u"walls"_s).toArray();
     for (const auto &w : walls) {
         QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
-        // 核心修复：扩大安全区至 5x5 (半径为 2)
+        // Fix: Enlarge safe zone to 5x5 (radius 2) around start point {10, 10}
         if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
         m_obstacles.append(p);
     }
@@ -191,6 +216,7 @@ void GameLogic::loadLevelData(int index) {
 
 QVariantList GameLogic::ghost() const noexcept {
     QVariantList list;
+    // Show full ghost body by backtracking from current frame index
     int ghostLength = static_cast<int>(m_snakeModel.body().size());
     int start = std::max(0, m_ghostFrameIndex - ghostLength + 1);
     for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) {
@@ -235,7 +261,7 @@ void GameLogic::spawnFood() {
     while (foodIsInvalid) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        // 核心修复：扩大食物安全区至 5x5
+        // Fix: Enlarge food safe zone to 5x5
         bool inSafeZone = std::abs(m_food.x() - 10) <= 2 && std::abs(m_food.y() - 10) <= 2;
         foodIsInvalid = std::ranges::contains(body, m_food) || 
                         std::ranges::contains(m_obstacles, m_food) ||

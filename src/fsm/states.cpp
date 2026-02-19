@@ -8,13 +8,16 @@
 // --- SplashState ---
 void SplashState::enter() {
     m_context.setInternalState(GameLogic::Splash);
+    // Start timer to drive update() logic
     m_context.m_timer->start(150); 
+    // Classic boot beep: high frequency short tone
     m_context.m_soundManager->playBeep(1046, 100); 
 }
 
 void SplashState::update() {
     static int splashFrames = 0;
     splashFrames++;
+    // Approximately 1.5 seconds to enter menu (10 frames * 150ms)
     if (splashFrames > 10) {
         splashFrames = 0;
         m_context.changeState(std::make_unique<MenuState>(m_context));
@@ -49,7 +52,7 @@ void PlayingState::enter() {
 void PlayingState::update() {
     auto& logic = m_context;
 
-    // --- 核心优化：从指令缓冲中取出方向 ---
+    // Fetch direction from input buffer
     if (!logic.m_inputQueue.empty()) {
         logic.m_direction = logic.m_inputQueue.front();
         logic.m_inputQueue.pop_front();
@@ -66,14 +69,17 @@ void PlayingState::update() {
         logic.clearSavedState();
         logic.m_soundManager->playCrash(500);
         
+        // Death vibration: magnitude 8
         emit logic.requestFeedback(8);
         
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
+    // Record current frame for ghost
     logic.m_currentRecording.append(nextHead);
     
+    // Advance ghost playback
     if (logic.m_ghostFrameIndex < logic.m_bestRecording.size()) {
         logic.m_ghostFrameIndex++;
         emit logic.ghostChanged();
@@ -87,13 +93,15 @@ void PlayingState::update() {
 
         emit logic.scoreChanged();
         logic.spawnFood();
+        
+        // Score vibration: magnitude increases with score (2 -> 5)
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
     }
     logic.m_snakeModel.moveHead(nextHead, grew);
 }
 
 void PlayingState::handleInput(int dx, int dy) {
-    // move() 已经处理了队列逻辑
+    // Input is handled via queue in move()
 }
 
 void PlayingState::handleStart() {
@@ -105,7 +113,7 @@ void PausedState::enter() {
     m_context.setInternalState(GameLogic::Paused);
     m_context.m_timer->stop();
     m_context.saveCurrentState();
-    emit m_context.requestFeedback(2);
+    emit m_context.requestFeedback(2); // Light vibration for pause
 }
 
 void PausedState::handleStart() {

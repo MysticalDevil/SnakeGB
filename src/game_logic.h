@@ -9,7 +9,6 @@
 #include <QVariantList>
 #include <deque>
 #include <memory>
-#include <queue>
 
 class SoundManager;
 class GameState;
@@ -19,31 +18,64 @@ class PlayingState;
 class PausedState;
 class GameOverState;
 
+/**
+ * @class SnakeModel
+ * @brief Optimized list model for the snake body.
+ */
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override { return static_cast<int>(m_body.size()); }
+
+    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {
+        return static_cast<int>(m_body.size());
+    }
+
     [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
-        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
+        if (!index.isValid() || index.row() < 0 ||
+            index.row() >= static_cast<int>(m_body.size())) {
+            return {};
+        }
+        if (role == PositionRole) {
+            return m_body[static_cast<size_t>(index.row())];
+        }
         return {};
     }
-    [[nodiscard]] QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
+
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override {
+        return {{PositionRole, "pos"}};
+    }
+
     [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
-    void reset(const std::deque<QPoint> &newBody) { beginResetModel(); m_body = newBody; endResetModel(); }
+
+    void reset(const std::deque<QPoint> &newBody) {
+        beginResetModel();
+        m_body = newBody;
+        endResetModel();
+    }
+
     void moveHead(const QPoint &newHead, const bool grew) {
-        beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
+        beginInsertRows(QModelIndex(), 0, 0);
+        m_body.emplace_front(newHead);
+        endInsertRows();
+
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows();
+            beginRemoveRows(QModelIndex(), last, last);
+            m_body.pop_back();
+            endRemoveRows();
         }
     }
+
 private:
     std::deque<QPoint> m_body;
 };
 
+/**
+ * @class GameLogic
+ * @brief Core logic manager for the game.
+ */
 class GameLogic final : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
@@ -68,6 +100,7 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
+    // Getters
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
@@ -83,6 +116,7 @@ public:
     [[nodiscard]] QVariantList ghost() const noexcept;
     [[nodiscard]] bool musicEnabled() const noexcept;
 
+    // Board constants
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
 
@@ -151,7 +185,7 @@ private:
     QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
 
-    // 优化：输入缓冲队列
+    // Input buffer queue
     std::deque<QPoint> m_inputQueue;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};

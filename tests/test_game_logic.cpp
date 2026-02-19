@@ -7,7 +7,7 @@ class TestGameLogic : public QObject {
 private slots:
     void testInitialState() {
         GameLogic game;
-        // 允许 Splash (0) 或 StartMenu (1) 作为合法的初始探测点
+        // Allow Splash (0) or StartMenu (1) as valid initial detection points
         int s = static_cast<int>(game.state());
         QVERIFY(s == 0 || s == 1);
         QCOMPARE(game.score(), 0);
@@ -15,6 +15,7 @@ private slots:
 
     void testMoveAndBoundary() {
         GameLogic game;
+        // Force start game (skips splash for testing)
         game.startGame(); 
         QCOMPARE(static_cast<int>(game.state()), static_cast<int>(GameLogic::Playing));
 
