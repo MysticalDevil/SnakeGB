@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
-project(SnakeGB VERSION 1.2.0 LANGUAGES CXX)
+project(SnakeGB VERSION 1.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Enable strict warnings
 if(MSVC)
     add_compile_options(/W4 /WX)
 else()
@@ -62,7 +61,6 @@ install(TARGETS gameboy-snack
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-# Test Executable
 add_executable(game-tests
     tests/test_game_logic.cpp
     src/game_logic.cpp
@@ -73,7 +71,6 @@ target_include_directories(game-tests PRIVATE src)
 target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Qml)
 add_test(NAME GameLogicTest COMMAND game-tests)
 
-# Doxygen Integration
 find_package(Doxygen)
 if (DOXYGEN_FOUND)
     add_custom_target(docs
