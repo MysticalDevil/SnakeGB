@@ -77,6 +77,7 @@ Window {
                 clip: true
 
                 Canvas {
+                    id: backgroundGrid
                     anchors.fill: parent
                     onPaint: {
                         var ctx = getContext("2d")
@@ -98,7 +99,7 @@ Window {
                     Connections {
                         target: gameLogic
                         function onPaletteChanged() {
-                            parent.requestPaint()
+                            backgroundGrid.requestPaint()
                         }
                     }
                 }
@@ -221,6 +222,7 @@ Window {
                 }
 
                 Canvas {
+                    id: lcdPixelEffect
                     anchors.fill: parent
                     opacity: 0.15
                     onPaint: {
@@ -230,6 +232,12 @@ Window {
                             for (var y = 0; y < height; y += 2) {
                                 ctx.fillRect(x, y, 1, 1)
                             }
+                        }
+                    }
+                    Connections {
+                        target: gameLogic
+                        function onPaletteChanged() {
+                            lcdPixelEffect.requestPaint()
                         }
                     }
                 }

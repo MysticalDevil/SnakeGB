@@ -5,19 +5,13 @@
 #include <QDebug>
 
 SoundManager::SoundManager(QObject *parent) : QObject(parent) {
-    // 8-bit Audio Format: Mono, 8-bit Unsigned, 44100 Hz
     m_format.setSampleRate(44100);
     m_format.setChannelCount(1);
     m_format.setSampleFormat(QAudioFormat::UInt8);
 
     auto device = QMediaDevices::defaultAudioOutput();
-    if (!device.isFormatSupported(m_format)) {
-        qWarning() << "Default format not supported - trying to use nearest";
-        // Attempt to find a supported format if the exact one fails
-    }
-
     m_audioSink = new QAudioSink(device, m_format, this);
-    m_audioSink->setBufferSize(44100 * 2); // 2 seconds buffer
+    m_audioSink->setBufferSize(44100); 
     m_buffer.open(QIODevice::ReadWrite);
 }
 
@@ -60,12 +54,20 @@ void SoundManager::generateSquareWave(int frequency, int duration, QByteArray &b
 
     double cycleLength = static_cast<double>(sampleRate) / frequency;
     
-    // Simple 50% duty cycle square wave
+    // 优化：更柔和的振幅和 25% 占空比
+    // 128 为中位（静音），振幅设为 32（最大 128）
+    const int amplitude = 32; 
+    const double dutyCycle = 0.25;
+
     for (int i = 0; i < sampleCount; ++i) {
         double phase = fmod(i, cycleLength) / cycleLength;
-        // 8-bit unsigned PCM: 128 is silence, 0-255 range.
-        // Square wave: high (200), low (56)
-        buffer[i] = (phase < 0.5) ? static_cast<char>(200) : static_cast<char>(56);
+        
+        // 增加简单的线性包络（淡出）以减少“刺耳”感
+        double envelope = 1.0 - (static_cast<double>(i) / sampleCount);
+        int val = (phase < dutyCycle) ? (128 + amplitude) : (128 - amplitude);
+        
+        // 应用包络并将结果放回 0-255 范围
+        buffer[i] = static_cast<char>(128 + (val - 128) * envelope);
     }
 }
 
@@ -74,9 +76,11 @@ void SoundManager::generateNoise(int duration, QByteArray &buffer) {
     int sampleCount = (sampleRate * duration) / 1000;
     buffer.resize(sampleCount);
 
-    // Simple white noise
+    const int noiseAmplitude = 24;
+
     for (int i = 0; i < sampleCount; ++i) {
-        // Random value between 0 and 255
-        buffer[i] = static_cast<char>(QRandomGenerator::global()->bounded(256));
+        double envelope = 1.0 - (static_cast<double>(i) / sampleCount);
+        int randVal = QRandomGenerator::global()->bounded(noiseAmplitude * 2) - noiseAmplitude;
+        buffer[i] = static_cast<char>(128 + randVal * envelope);
     }
 }
