@@ -31,8 +31,7 @@ void main() {
     // 2. Main Frame Sampling
     vec4 currentTex = texture(source, uv);
 
-    // 3. Balanced LCD Ghosting (Motion Drag)
-    // 0.45 persistence factor provides visible trailing without excessive blurring
+    // 3. Balanced LCD Ghosting (0.45 persistence)
     vec4 historyTex = texture(history, uv);
     vec4 tex = mix(currentTex, historyTex, 0.45);
     
@@ -41,10 +40,22 @@ void main() {
     vec2 gridUV = fract(uv * vec2(240.0, 216.0));
     float grid = step(0.05, gridUV.x) * step(0.05, gridUV.y) * 0.08 + 0.92;
 
-    // 5. Final Composition with Brightness Boost
+    // 5. Procedural Ambient Reflection (Glass Glare)
+    // Simulate a soft window/light reflection from top-left
+    float reflection = 0.0;
+    // Main soft glare
+    float distRef = length(uv - vec2(0.2, 0.2));
+    reflection += smoothstep(0.5, 0.0, distRef) * 0.08;
+    // Sharp specular highlight
+    reflection += smoothstep(0.1, 0.0, distRef) * 0.05;
+
+    // 6. Final Composition
     vec3 finalRGB = tex.rgb * scanline * grid;
     
-    // Gamma correction to keep background bright while trails remain in the shadows
+    // Add reflection (Glass sits on top of pixels)
+    finalRGB += vec3(reflection * 0.6, reflection * 0.7, reflection * 0.8); // Slight blue tint for glass
+
+    // Gamma correction
     finalRGB = pow(finalRGB, vec3(0.85)) * 1.05;
 
     fragColor = vec4(finalRGB, tex.a) * edgeMask * qt_Opacity;
