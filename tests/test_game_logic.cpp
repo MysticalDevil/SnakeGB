@@ -7,7 +7,6 @@ class TestGameLogic : public QObject {
 private slots:
     void testInitialState() {
         GameLogic game;
-        // Allow Splash (0) or StartMenu (1) as valid initial detection points
         int s = static_cast<int>(game.state());
         QVERIFY(s == 0 || s == 1);
         QCOMPARE(game.score(), 0);
@@ -15,20 +14,23 @@ private slots:
 
     void testMoveAndBoundary() {
         GameLogic game;
-        // Force start game (skips splash for testing)
+        // Skip Splash
         game.startGame(); 
+        
+        // Wait for lazyInit
+        QTest::qWait(300);
+
         QCOMPARE(static_cast<int>(game.state()), static_cast<int>(GameLogic::Playing));
 
-        for (int i = 0; i < 11; ++i) {
+        // Initial head is at 10,10. Move Up (0, -1). 
+        // Need ~11 steps to hit boundary y < 0.
+        // Game interval is 150ms. Total wait must be > 11 * 150 = 1650ms.
+        for (int i = 0; i < 30; ++i) {
             game.move(0, -1);
+            QTest::qWait(100); // 30 * 100 = 3000ms total, enough for 20 steps
         }
         
-        QTest::qWait(2000); 
         QCOMPARE(static_cast<int>(game.state()), static_cast<int>(GameLogic::GameOver));
-    }
-
-    void testScoreIncrement() {
-        // Core gameplay verified via human play and FSM integration
     }
 };
 

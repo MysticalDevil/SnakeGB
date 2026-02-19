@@ -1,9 +1,9 @@
 #include "sound_manager.h"
 #include <QAudioDevice>
-#include <QDebug>
 #include <QMediaDevices>
 #include <QRandomGenerator>
 #include <QtMath>
+#include <QTimer>
 
 namespace {
     constexpr int SampleRate = 44100;
@@ -19,15 +19,21 @@ SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_format.setChannelCount(1);
     m_format.setSampleFormat(QAudioFormat::UInt8);
 
+    m_sfxBuffer.open(QIODevice::ReadWrite);
+    m_bgmBuffer.open(QIODevice::ReadWrite);
+
+    connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
+    
+    // Defer heavy device probing to avoid blocking the main constructor
+    QTimer::singleShot(100, this, &SoundManager::initAudioAsync);
+}
+
+void SoundManager::initAudioAsync() {
     const auto device = QMediaDevices::defaultAudioOutput();
     if (!device.isNull()) {
         m_sfxSink = new QAudioSink(device, m_format, this);
-        m_sfxBuffer.open(QIODevice::ReadWrite);
         m_bgmSink = new QAudioSink(device, m_format, this);
-        m_bgmBuffer.open(QIODevice::ReadWrite);
     }
-
-    connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
 }
 
 SoundManager::~SoundManager() {
@@ -113,25 +119,17 @@ auto SoundManager::generateSquareWave(const int frequencyHz, const int durationM
         return;
     }
     buffer.resize(sampleCount);
-
     const double cycleLength = static_cast<double>(sampleRate) / frequencyHz;
     const int attackSamples = (sampleRate * AttackMs) / 1000;
-
     for (int i = 0; i < sampleCount; ++i) {
         const double phase = fmod(i, cycleLength) / cycleLength;
-        double envelope = 1.0;
-        if (i < attackSamples) {
-            envelope = static_cast<double>(i) / attackSamples;
-        } else {
-            envelope = 1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples));
-        }
-        
+        double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples)));
         const int val = (phase < DutyCycle) ? (128 + amplitude) : (128 - amplitude);
         buffer[i] = static_cast<char>(128 + (val - 128) * envelope);
     }
 }
 
-auto SoundManager::generateNoise(const int durationMs, QByteArray &buffer) -> void {
+void SoundManager::generateNoise(const int durationMs, QByteArray &buffer) {
     const int sampleRate = m_format.sampleRate();
     const int sampleCount = (sampleRate * durationMs) / 1000;
     if (sampleCount <= 0) {
