@@ -1,4 +1,5 @@
 #include "game_logic.h"
+#include "fsm/states.h"
 #include "sound_manager.h"
 #include <QRandomGenerator>
 #include <algorithm>
@@ -16,6 +17,10 @@ GameLogic::GameLogic(QObject *parent)
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     spawnFood();
+
+    // Initial State
+    m_fsmState = std::make_unique<MenuState>(*this);
+    m_fsmState->enter();
 }
 
 GameLogic::~GameLogic() {
@@ -24,36 +29,52 @@ GameLogic::~GameLogic() {
     }
 }
 
-void GameLogic::startGame() { restart(); }
+void GameLogic::changeState(std::unique_ptr<GameState> newState) {
+    if (m_fsmState) {
+        m_fsmState->exit();
+    }
+    m_fsmState = std::move(newState);
+    if (m_fsmState) {
+        m_fsmState->enter();
+    }
+}
+
+void GameLogic::setInternalState(State s) {
+    if (m_state != s) {
+        m_state = s;
+        emit stateChanged();
+    }
+}
+
+void GameLogic::startGame() { 
+    restart(); 
+}
 
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
     m_score = 0;
-    m_state = Playing;
     m_obstacles.clear();
     clearSavedState();
+    
+    // Reset timer interval default
+    m_timer->setInterval(150);
 
-    m_timer->start(150);
     spawnFood();
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
-    emit stateChanged();
     emit obstaclesChanged();
+
+    changeState(std::make_unique<PlayingState>(*this));
 }
 
 void GameLogic::togglePause() {
     if (m_state == Playing) {
-        m_state = Paused;
-        m_timer->stop();
-        saveCurrentState();
+        changeState(std::make_unique<PausedState>(*this));
     } else if (m_state == Paused) {
-        m_state = Playing;
-        m_timer->start();
+        changeState(std::make_unique<PlayingState>(*this));
     }
-    emit stateChanged();
-    emit requestFeedback();
 }
 
 void GameLogic::loadLastSession() {
@@ -79,13 +100,13 @@ void GameLogic::loadLastSession() {
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
 
     m_snakeModel.reset(body);
-    m_state = Paused;
-
+    
     emit scoreChanged();
-    emit stateChanged();
     emit obstaclesChanged();
     emit foodChanged();
     emit hasSaveChanged();
+
+    changeState(std::make_unique<PausedState>(*this));
 }
 
 void GameLogic::saveCurrentState() {
@@ -117,59 +138,15 @@ void GameLogic::clearSavedState() {
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
 
 void GameLogic::move(const int dx, const int dy) {
-    if (m_state != Playing) {
-        return;
+    if (m_fsmState) {
+        m_fsmState->handleInput(dx, dy);
     }
-    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) {
-        return;
-    }
-    m_direction = {dx, dy};
-    m_soundManager->playBeep(200, 50);
 }
 
 void GameLogic::update() {
-    if (m_state != Playing) {
-        return;
+    if (m_fsmState) {
+        m_fsmState->update();
     }
-    const auto &body = m_snakeModel.body();
-    const QPoint nextHead = body.front() + m_direction;
-
-    if (isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead) ||
-        std::ranges::contains(m_obstacles, nextHead)) {
-        m_state = GameOver;
-        m_timer->stop();
-        updateHighScore();
-        clearSavedState();
-        m_soundManager->playCrash(500);
-        emit stateChanged();
-        emit requestFeedback();
-        return;
-    }
-
-    const bool grew = (nextHead == m_food);
-    if (grew) {
-        m_score++;
-        m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10));
-        m_soundManager->playBeep(880, 100);
-
-        if (m_score % 10 == 0) {
-            bool valid = false;
-            while (!valid) {
-                const QPoint obs(QRandomGenerator::global()->bounded(BOARD_WIDTH),
-                                 QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-                if (!std::ranges::contains(body, obs) && obs != m_food &&
-                    !std::ranges::contains(m_obstacles, obs)) {
-                    m_obstacles.append(obs);
-                    valid = true;
-                }
-            }
-            emit obstaclesChanged();
-        }
-        emit scoreChanged();
-        spawnFood();
-        emit requestFeedback();
-    }
-    m_snakeModel.moveHead(nextHead, grew);
 }
 
 void GameLogic::nextPalette() {

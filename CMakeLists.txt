@@ -18,6 +18,9 @@ set(PROJECT_SOURCES
     src/game_logic.h
     src/sound_manager.cpp
     src/sound_manager.h
+    src/fsm/states.cpp
+    src/fsm/states.h
+    src/fsm/game_state.h
     src/qml/resources.qrc
 )
 
@@ -47,6 +50,7 @@ add_executable(game-tests
     tests/test_game_logic.cpp
     src/game_logic.cpp
     src/sound_manager.cpp
+    src/fsm/states.cpp
 )
 target_include_directories(game-tests PRIVATE src)
 target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Qml)

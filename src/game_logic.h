@@ -1,16 +1,21 @@
 #pragma once
 
 #include <QAbstractListModel>
-#include <QColor>
 #include <QObject>
 #include <QRect>
 #include <QSettings>
 #include <QTimer>
-#include <QVariantList>
 #include <deque>
 #include <memory>
+#include <QColor>
+#include <QVariantList>
 
 class SoundManager;
+class GameState;
+class MenuState;
+class PlayingState;
+class PausedState;
+class GameOverState;
 
 /**
  * @class SnakeModel
@@ -91,7 +96,7 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // 获取器 (Q_PROPERTY 要求为非静态成员函数)
+    // 获取器
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
@@ -115,6 +120,16 @@ public:
     Q_INVOKABLE void nextPalette();
     Q_INVOKABLE void nextShellColor();
     Q_INVOKABLE void loadLastSession();
+
+    // 状态切换辅助函数
+    void changeState(std::unique_ptr<GameState> newState);
+    void setInternalState(State s); // 更新枚举值以通知 QML
+
+    // Friends
+    friend class MenuState;
+    friend class PlayingState;
+    friend class PausedState;
+    friend class GameOverState;
 
 signals:
     void foodChanged();
@@ -150,6 +165,9 @@ private:
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
     QSettings m_settings;
+    
+    // FSM
+    std::unique_ptr<GameState> m_fsmState;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };
