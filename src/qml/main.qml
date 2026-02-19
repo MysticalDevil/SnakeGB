@@ -90,7 +90,7 @@ Window {
                 Item {
                     id: gameContent
                     anchors.fill: parent
-                    visible: false
+                    visible: true
 
                     Canvas {
                         id: backgroundGrid
@@ -99,7 +99,7 @@ Window {
                         onPaint: {
                             var ctx = getContext("2d")
                             ctx.strokeStyle = p1
-                            ctx.lineWidth = 1
+                            ctx.lineWidth = 1.5
                             ctx.beginPath()
                             for (var i = 0; i <= gameLogic.boardWidth; i++) {
                                 var x = i * (width / gameLogic.boardWidth)
@@ -129,23 +129,21 @@ Window {
                         Rectangle {
                             id: foodRect
                             visible: gameLogic.state > 1
-                            x: gameLogic.food.x * (gameContent.width / gameLogic.boardWidth)
-                            y: gameLogic.food.y * (gameContent.height / gameLogic.boardHeight)
-                            width: gameContent.width / gameLogic.boardWidth
-                            height: gameContent.height / gameLogic.boardHeight
+                            x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
+                            y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
+                            width: parent.width / gameLogic.boardWidth
+                            height: parent.height / gameLogic.boardHeight
                             color: p3
                             radius: width / 2
-                            border.color: p0
-                            border.width: 1
                             z: 10
-
+                            
                             Rectangle {
                                 anchors.centerIn: parent
                                 width: parent.width * 1.5
                                 height: parent.height * 1.5
                                 radius: width / 2
                                 color: p3
-                                opacity: 0.3
+                                opacity: 0.4
                                 z: -1
                                 SequentialAnimation on scale {
                                     loops: Animation.Infinite
@@ -245,27 +243,7 @@ Window {
                             font.bold: true
                             color: p3
                             anchors.horizontalCenter: parent.horizontalCenter
-                            y: -50
-                            SequentialAnimation {
-                                id: splashAnim
-                                NumberAnimation {
-                                    target: splashText
-                                    property: "y"
-                                    from: -50
-                                    to: 80
-                                    duration: 1500
-                                    easing.type: Easing.OutBounce
-                                }
-                            }
-                            Component.onCompleted: splashAnim.start()
-                        }
-                        Text {
-                            text: "TM"
-                            font.family: gameFont
-                            font.pixelSize: 8
-                            color: p3
-                            anchors.left: splashText.right
-                            anchors.top: splashText.top
+                            y: 80
                         }
                     }
 
@@ -341,14 +319,14 @@ Window {
                         color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
                         visible: gameLogic.state === 4
                         z: 40
-                        Text {
+                        Text { 
                             anchors.centerIn: parent
                             color: p0
                             font.family: gameFont
                             font.pixelSize: 20
                             font.bold: true
                             text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score)
-                            horizontalAlignment: Text.AlignHCenter
+                            horizontalAlignment: Text.AlignHCenter 
                         }
                     }
                 }
@@ -455,8 +433,8 @@ Window {
             } else if (event.key === Qt.Key_Right) {
                 dpadUI.rightPressed = true
                 gameLogic.move(1, 0)
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                startBtnUI.isPressed = true
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
+                startBtnUI.isPressed = true 
                 if (gameLogic.state === 1) {
                     gameLogic.startGame()
                 } else if (gameLogic.state === 4) {
