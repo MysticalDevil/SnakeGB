@@ -12,6 +12,7 @@ GameLogic::GameLogic(QObject *parent)
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     m_highScore = m_settings.value("highScore", 0).toInt();
     m_paletteIndex = m_settings.value("paletteIndex", 0).toInt();
+    m_shellIndex = m_settings.value("shellIndex", 0).toInt();
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     spawnFood();
@@ -27,7 +28,6 @@ void GameLogic::restart() {
     m_score = 0;
     m_state = Playing;
     m_obstacles.clear();
-    setupLevel();
 
     m_timer->start(150);
     spawnFood();
@@ -36,11 +36,6 @@ void GameLogic::restart() {
     emit scoreChanged();
     emit stateChanged();
     emit obstaclesChanged();
-}
-
-void GameLogic::setupLevel() {
-    // Basic level: no obstacles initially. 
-    // We could add preset levels here.
 }
 
 void GameLogic::togglePause() {
@@ -67,9 +62,7 @@ void GameLogic::update() {
     const auto &body = m_snakeModel.body();
     const QPoint nextHead = body.front() + m_direction;
 
-    // Collision check: Wall, Self, and Obstacles
-    bool hitObstacle = std::ranges::contains(m_obstacles, nextHead);
-    if (isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead) || hitObstacle) {
+    if (isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead) || std::ranges::contains(m_obstacles, nextHead)) {
         m_state = GameOver;
         m_timer->stop();
         updateHighScore();
@@ -85,12 +78,11 @@ void GameLogic::update() {
         m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10));
         m_soundManager->playBeep(880, 100);
 
-        // Every 10 points, add an obstacle
         if (m_score % 10 == 0) {
             bool valid = false;
             while (!valid) {
-                QPoint obs(QRandomGenerator::global()->bounded(BOARD_WIDTH),
-                           QRandomGenerator::global()->bounded(BOARD_HEIGHT));
+                const QPoint obs(QRandomGenerator::global()->bounded(BOARD_WIDTH),
+                                 QRandomGenerator::global()->bounded(BOARD_HEIGHT));
                 if (!std::ranges::contains(body, obs) && obs != m_food && !std::ranges::contains(m_obstacles, obs)) {
                     m_obstacles.append(obs);
                     valid = true;
@@ -98,7 +90,6 @@ void GameLogic::update() {
             }
             emit obstaclesChanged();
         }
-
         emit scoreChanged();
         spawnFood();
         emit requestFeedback();
@@ -111,6 +102,13 @@ void GameLogic::nextPalette() {
     m_settings.setValue("paletteIndex", m_paletteIndex);
     emit paletteChanged();
     m_soundManager->playBeep(600, 50);
+}
+
+void GameLogic::nextShellColor() {
+    m_shellIndex = (m_shellIndex + 1) % 5;
+    m_settings.setValue("shellIndex", m_shellIndex);
+    emit shellColorChanged();
+    m_soundManager->playBeep(500, 50);
 }
 
 QVariantList GameLogic::palette() const noexcept {
@@ -129,6 +127,17 @@ QVariantList GameLogic::obstacles() const noexcept {
     return list;
 }
 
+QColor GameLogic::shellColor() const noexcept {
+    static const QList<QColor> colors = {
+        "#c0c0c0", // Classic Gray
+        "#f0f0f0", // Arctic White
+        "#9370db", // Atomic Purple
+        "#ffd700", // Bright Yellow
+        "#32cd32"  // Lime Green
+    };
+    return colors[m_shellIndex];
+}
+
 void GameLogic::updateHighScore() {
     if (m_score > m_highScore) {
         m_highScore = m_score;
@@ -139,11 +148,11 @@ void GameLogic::updateHighScore() {
 
 void GameLogic::spawnFood() {
     const auto &body = m_snakeModel.body();
-    bool onSnake = true;
-    while (onSnake) {
+    bool foodIsInvalid = true;
+    while (foodIsInvalid) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        onSnake = std::ranges::contains(body, m_food) || std::ranges::contains(m_obstacles, m_food);
+        foodIsInvalid = std::ranges::contains(body, m_food) || std::ranges::contains(m_obstacles, m_food);
     }
     emit foodChanged();
 }
