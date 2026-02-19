@@ -8,7 +8,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Test)
+
+enable_testing()
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -33,6 +35,12 @@ target_link_libraries(gameboy-snack PRIVATE
     Qt6::Multimedia
 )
 
-target_compile_definitions(gameboy-snack PRIVATE
-    $<$<CONFIG:Debug>:QT_QML_DEBUG>
+# Test Executable
+add_executable(game-tests
+    tests/test_game_logic.cpp
+    src/game_logic.cpp
+    src/sound_manager.cpp
 )
+target_include_directories(game-tests PRIVATE src)
+target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Qml)
+add_test(NAME GameLogicTest COMMAND game-tests)

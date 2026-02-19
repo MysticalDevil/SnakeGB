@@ -64,8 +64,7 @@ Window {
                     Connections { target: gameLogic; function onPaletteChanged() { parent.requestPaint() } }
                 }
 
-                // Food
-                Rectangle {
+                Rectangle { // Food
                     visible: gameLogic.state !== 0
                     x: gameLogic.food.x * (gameScreen.width / gameLogic.boardWidth)
                     y: gameLogic.food.y * (gameScreen.height / gameLogic.boardHeight)
@@ -82,7 +81,7 @@ Window {
                         width: gameScreen.width / gameLogic.boardWidth; height: gameScreen.height / gameLogic.boardHeight
                         color: p3
                         radius: 0
-                        Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 } // Hollow box look
+                        Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 }
                     }
                 }
 
