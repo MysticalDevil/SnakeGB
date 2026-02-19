@@ -59,6 +59,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
+    Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
 
 public:
     enum State { Splash, StartMenu, Playing, Paused, GameOver };
@@ -80,6 +81,7 @@ public:
     [[nodiscard]] bool hasSave() const noexcept;
     [[nodiscard]] int level() const noexcept { return m_levelIndex; }
     [[nodiscard]] QVariantList ghost() const noexcept;
+    [[nodiscard]] bool musicEnabled() const noexcept;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -93,6 +95,7 @@ public:
     Q_INVOKABLE void loadLastSession();
     Q_INVOKABLE void nextLevel();
     Q_INVOKABLE void quitToMenu();
+    Q_INVOKABLE void toggleMusic();
 
     void changeState(std::unique_ptr<GameState> newState);
     void setInternalState(State s);
@@ -115,6 +118,7 @@ signals:
     void hasSaveChanged();
     void levelChanged();
     void ghostChanged();
+    void musicEnabledChanged();
 
 private slots:
     void update();

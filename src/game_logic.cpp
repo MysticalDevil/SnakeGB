@@ -154,6 +154,15 @@ void GameLogic::quitToMenu() {
     changeState(std::make_unique<MenuState>(*this));
 }
 
+void GameLogic::toggleMusic() {
+    m_soundManager->setMusicEnabled(!m_soundManager->musicEnabled());
+    emit musicEnabledChanged();
+}
+
+bool GameLogic::musicEnabled() const noexcept {
+    return m_soundManager->musicEnabled();
+}
+
 void GameLogic::loadLevelData(int index) {
     QFile file(u":/levels.json"_s);
     if (!file.open(QIODevice::ReadOnly)) return;

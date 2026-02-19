@@ -228,6 +228,13 @@ Window {
                             font.pixelSize: 14
                             font.bold: true
                         }
+                        Text {
+                            text: gameLogic.musicEnabled ? "♪" : "×"
+                            color: p3
+                            font.family: gameFont
+                            font.pixelSize: 14
+                            anchors.right: parent.right
+                        }
                     }
 
                     Rectangle {
@@ -263,17 +270,17 @@ Window {
                                 font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
-                                    NumberAnimation {
-                                        from: 1
-                                        to: 0
-                                        duration: 800
-                                    }
-                                    NumberAnimation {
-                                        from: 0
-                                        to: 1
-                                        duration: 800
-                                    }
+                                    NumberAnimation { from: 1; to: 0; duration: 800 }
+                                    NumberAnimation { from: 0; to: 1; duration: 800 }
                                 }
+                            }
+                            Text {
+                                text: qsTr("M to Mute Music")
+                                font.family: gameFont
+                                font.pixelSize: 8
+                                color: p3
+                                opacity: 0.6
+                                anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
                     }
@@ -421,8 +428,8 @@ Window {
             } else if (event.key === Qt.Key_Right) {
                 dpadUI.rightPressed = true
                 gameLogic.move(1, 0)
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                startBtnUI.isPressed = true
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
+                startBtnUI.isPressed = true 
                 if (gameLogic.state === 1) {
                     gameLogic.startGame()
                 } else if (gameLogic.state === 4) {
@@ -450,6 +457,8 @@ Window {
                 }
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()
+            } else if (event.key === Qt.Key_M) {
+                gameLogic.toggleMusic()
             }
         }
         Keys.onReleased: (event) => {
