@@ -19,39 +19,70 @@ class PlayingState;
 class PausedState;
 class GameOverState;
 
+/**
+ * @class SnakeModel
+ * @brief Optimized list model for the snake body.
+ */
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
+    
+    // Rule of Five - Modernization
     ~SnakeModel() override = default;
     SnakeModel(const SnakeModel &) = delete;
-    SnakeModel &operator=(const SnakeModel &) = delete;
+    auto operator=(const SnakeModel &) -> SnakeModel & = delete;
     SnakeModel(SnakeModel &&) = delete;
-    SnakeModel &operator=(SnakeModel &&) = delete;
+    auto operator=(SnakeModel &&) -> SnakeModel & = delete;
 
-    [[nodiscard]] int rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const noexcept override {
+    [[nodiscard]] auto rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const noexcept -> int override {
         return static_cast<int>(m_body.size());
     }
-    [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
-        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
+
+    [[nodiscard]] auto data(const QModelIndex &index, int role = Qt::DisplayRole) const -> QVariant override {
+        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) {
+            return {};
+        }
+        if (role == PositionRole) {
+            return m_body[static_cast<size_t>(index.row())];
+        }
         return {};
     }
-    [[nodiscard]] QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
-    [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
-    void reset(const std::deque<QPoint> &newBody) { beginResetModel(); m_body = newBody; endResetModel(); }
-    void moveHead(const QPoint &newHead, const bool grew) {
-        beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
+
+    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override {
+        return {{PositionRole, "pos"}};
+    }
+
+    [[nodiscard]] auto body() const noexcept -> const std::deque<QPoint> & { return m_body; }
+
+    auto reset(const std::deque<QPoint> &newBody) -> void {
+        beginResetModel();
+        m_body = newBody;
+        endResetModel();
+    }
+
+    auto moveHead(const QPoint &newHead, const bool grew) -> void {
+        beginInsertRows(QModelIndex(), 0, 0);
+        m_body.emplace_front(newHead);
+        endInsertRows();
+
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows();
+            beginRemoveRows(QModelIndex(), last, last);
+            m_body.pop_back();
+            endRemoveRows();
         }
     }
+
 private:
     std::deque<QPoint> m_body;
 };
 
+/**
+ * @class GameLogic
+ * @brief Core logic manager for the game.
+ */
 class GameLogic final : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
@@ -76,26 +107,28 @@ public:
 
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
-    GameLogic(const GameLogic &) = delete;
-    GameLogic &operator=(const GameLogic &) = delete;
-    GameLogic(GameLogic &&) = delete;
-    GameLogic &operator=(GameLogic &&) = delete;
 
-    [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
-    [[nodiscard]] QPoint food() const noexcept { return m_food; }
-    [[nodiscard]] int score() const noexcept { return m_score; }
-    [[nodiscard]] int highScore() const noexcept { return m_highScore; }
-    [[nodiscard]] State state() const noexcept { return m_state; }
-    [[nodiscard]] int boardWidth() const noexcept { return BOARD_WIDTH; }
-    [[nodiscard]] int boardHeight() const noexcept { return BOARD_HEIGHT; }
-    [[nodiscard]] QVariantList palette() const noexcept;
-    [[nodiscard]] QString paletteName() const noexcept;
-    [[nodiscard]] QVariantList obstacles() const noexcept;
-    [[nodiscard]] QColor shellColor() const noexcept;
-    [[nodiscard]] bool hasSave() const noexcept;
-    [[nodiscard]] int level() const noexcept { return m_levelIndex; }
-    [[nodiscard]] QVariantList ghost() const noexcept;
-    [[nodiscard]] bool musicEnabled() const noexcept;
+    // Rule of Five - Modernization
+    GameLogic(const GameLogic &) = delete;
+    auto operator=(const GameLogic &) -> GameLogic & = delete;
+    GameLogic(GameLogic &&) = delete;
+    auto operator=(GameLogic &&) -> GameLogic & = delete;
+
+    [[nodiscard]] auto snakeModel() noexcept -> SnakeModel * { return &m_snakeModel; }
+    [[nodiscard]] auto food() const noexcept -> QPoint { return m_food; }
+    [[nodiscard]] auto score() const noexcept -> int { return m_score; }
+    [[nodiscard]] auto highScore() const noexcept -> int { return m_highScore; }
+    [[nodiscard]] auto state() const noexcept -> State { return m_state; }
+    [[nodiscard]] auto boardWidth() const noexcept -> int { return BOARD_WIDTH; }
+    [[nodiscard]] auto boardHeight() const noexcept -> int { return BOARD_HEIGHT; }
+    [[nodiscard]] auto palette() const noexcept -> QVariantList;
+    [[nodiscard]] auto paletteName() const noexcept -> QString;
+    [[nodiscard]] auto obstacles() const noexcept -> QVariantList;
+    [[nodiscard]] auto shellColor() const noexcept -> QColor;
+    [[nodiscard]] auto hasSave() const noexcept -> bool;
+    [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
+    [[nodiscard]] auto ghost() const noexcept -> QVariantList;
+    [[nodiscard]] auto musicEnabled() const noexcept -> bool;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -112,9 +145,9 @@ public:
     Q_INVOKABLE void toggleMusic();
     Q_INVOKABLE void quit();
 
-    void changeState(std::unique_ptr<GameState> newState);
-    void setInternalState(State s);
-    void lazyInit();
+    auto changeState(std::unique_ptr<GameState> newState) -> void;
+    auto setInternalState(State s) -> void;
+    auto lazyInit() -> void;
 
     friend class SplashState;
     friend class MenuState;
@@ -140,11 +173,11 @@ private slots:
     void update();
 
 private:
-    void spawnFood();
-    void updateHighScore();
-    void saveCurrentState();
-    void clearSavedState();
-    void loadLevelData(int index);
+    auto spawnFood() -> void;
+    auto updateHighScore() -> void;
+    auto saveCurrentState() -> void;
+    auto clearSavedState() -> void;
+    auto loadLevelData(int index) -> void;
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
