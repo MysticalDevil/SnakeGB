@@ -28,6 +28,12 @@ public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
 
+    ~SnakeModel() override = default;
+    SnakeModel(const SnakeModel &) = delete;
+    SnakeModel &operator=(const SnakeModel &) = delete;
+    SnakeModel(SnakeModel &&) = delete;
+    SnakeModel &operator=(SnakeModel &&) = delete;
+
     [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {
         return static_cast<int>(m_body.size());
     }
@@ -100,7 +106,12 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // Getters
+    GameLogic(const GameLogic &) = delete;
+    GameLogic &operator=(const GameLogic &) = delete;
+    GameLogic(GameLogic &&) = delete;
+    GameLogic &operator=(GameLogic &&) = delete;
+
+    // Getters - Reverted to explicit types for MOC/QML
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
@@ -116,11 +127,10 @@ public:
     [[nodiscard]] QVariantList ghost() const noexcept;
     [[nodiscard]] bool musicEnabled() const noexcept;
 
-    // Board constants
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
 
-    Q_INVOKABLE void move(const int dx, const int dy);
+    Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame();
     Q_INVOKABLE void restart();
     Q_INVOKABLE void togglePause();
@@ -166,8 +176,8 @@ private:
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
-    QPoint m_food;
-    QPoint m_direction{0, -1};
+    QPoint m_food = {0, 0};
+    QPoint m_direction = {0, -1};
     int m_score = 0;
     int m_highScore = 0;
     State m_state = Splash;
@@ -185,7 +195,6 @@ private:
     QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
 
-    // Input buffer queue
     std::deque<QPoint> m_inputQueue;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};

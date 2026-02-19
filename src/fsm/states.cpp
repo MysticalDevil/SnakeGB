@@ -5,37 +5,40 @@
 #include <algorithm>
 #include <ranges>
 
-// --- SplashState ---
-void SplashState::enter() {
-    m_context.setInternalState(GameLogic::Splash);
-    // Start timer to drive update() logic
-    m_context.m_timer->start(150); 
-    // Classic boot beep: high frequency short tone
-    m_context.m_soundManager->playBeep(1046, 100); 
+namespace {
+    constexpr int SplashFramesMax = 10;
+    constexpr int BootBeepFreq = 1046;
+    constexpr int BootBeepDuration = 100;
 }
 
-void SplashState::update() {
+// --- SplashState ---
+auto SplashState::enter() -> void {
+    m_context.setInternalState(GameLogic::Splash);
+    m_context.m_timer->start(150); 
+    m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
+}
+
+auto SplashState::update() -> void {
     static int splashFrames = 0;
     splashFrames++;
-    // Approximately 1.5 seconds to enter menu (10 frames * 150ms)
-    if (splashFrames > 10) {
+    if (splashFrames > SplashFramesMax) {
         splashFrames = 0;
         m_context.changeState(std::make_unique<MenuState>(m_context));
     }
 }
 
 // --- MenuState ---
-void MenuState::enter() {
+auto MenuState::enter() -> void {
     m_context.setInternalState(GameLogic::StartMenu);
     m_context.m_soundManager->startMusic();
 }
 
-void MenuState::handleStart() {
+auto MenuState::handleStart() -> void {
     m_context.m_soundManager->stopMusic();
     m_context.startGame();
 }
 
-void MenuState::handleSelect() {
+auto MenuState::handleSelect() -> void {
     if (m_context.hasSave()) {
         m_context.loadLastSession();
     } else {
@@ -44,15 +47,14 @@ void MenuState::handleSelect() {
 }
 
 // --- PlayingState ---
-void PlayingState::enter() {
+auto PlayingState::enter() -> void {
     m_context.setInternalState(GameLogic::Playing);
     m_context.m_timer->start();
 }
 
-void PlayingState::update() {
+auto PlayingState::update() -> void {
     auto& logic = m_context;
 
-    // Fetch direction from input buffer
     if (!logic.m_inputQueue.empty()) {
         logic.m_direction = logic.m_inputQueue.front();
         logic.m_inputQueue.pop_front();
@@ -68,19 +70,14 @@ void PlayingState::update() {
         logic.updateHighScore();
         logic.clearSavedState();
         logic.m_soundManager->playCrash(500);
-        
-        // Death vibration: magnitude 8
         emit logic.requestFeedback(8);
-        
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
-    // Record current frame for ghost
     logic.m_currentRecording.append(nextHead);
     
-    // Advance ghost playback
-    if (logic.m_ghostFrameIndex < logic.m_bestRecording.size()) {
+    if (logic.m_ghostFrameIndex < static_cast<int>(logic.m_bestRecording.size())) {
         logic.m_ghostFrameIndex++;
         emit logic.ghostChanged();
     }
@@ -90,41 +87,36 @@ void PlayingState::update() {
         logic.m_score++;
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         logic.m_soundManager->playBeep(880, 100);
-
         emit logic.scoreChanged();
         logic.spawnFood();
-        
-        // Score vibration: magnitude increases with score (2 -> 5)
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
     }
     logic.m_snakeModel.moveHead(nextHead, grew);
 }
 
-void PlayingState::handleInput(int dx, int dy) {
-    // Input is handled via queue in move()
-}
+auto PlayingState::handleInput(int dx, int dy) -> void {}
 
-void PlayingState::handleStart() {
+auto PlayingState::handleStart() -> void {
     m_context.togglePause();
 }
 
 // --- PausedState ---
-void PausedState::enter() {
+auto PausedState::enter() -> void {
     m_context.setInternalState(GameLogic::Paused);
     m_context.m_timer->stop();
     m_context.saveCurrentState();
-    emit m_context.requestFeedback(2); // Light vibration for pause
+    emit m_context.requestFeedback(2);
 }
 
-void PausedState::handleStart() {
+auto PausedState::handleStart() -> void {
     m_context.togglePause();
 }
 
 // --- GameOverState ---
-void GameOverState::enter() {
+auto GameOverState::enter() -> void {
     m_context.setInternalState(GameLogic::GameOver);
 }
 
-void GameOverState::handleStart() {
+auto GameOverState::handleStart() -> void {
     m_context.restart();
 }

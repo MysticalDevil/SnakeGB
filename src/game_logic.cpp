@@ -11,6 +11,10 @@
 
 using namespace Qt::StringLiterals;
 
+namespace {
+    constexpr int InitialInterval = 150;
+}
+
 GameLogic::GameLogic(QObject *parent)
     : QObject(parent), m_timer(std::make_unique<QTimer>()),
       m_soundManager(std::make_unique<SoundManager>()), m_settings(u"MyCompany"_s, u"SnakeGB"_s) {
@@ -29,7 +33,6 @@ GameLogic::GameLogic(QObject *parent)
     loadLevelData(m_levelIndex);
     spawnFood();
 
-    // Initial state is Splash
     m_fsmState = std::make_unique<SplashState>(*this);
     m_fsmState->enter();
 }
@@ -62,7 +65,7 @@ void GameLogic::startGame() { restart(); }
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
-    m_inputQueue.clear(); // Clear input queue
+    m_inputQueue.clear();
     m_score = 0;
     m_ghostFrameIndex = 0;
     m_currentRecording.clear();
@@ -71,12 +74,12 @@ void GameLogic::restart() {
     loadLevelData(m_levelIndex);
     clearSavedState();
     
-    m_timer->setInterval(150);
-    spawnFood(); 
+    m_timer->setInterval(InitialInterval);
+    spawnFood();
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
-    emit foodChanged(); 
+    emit foodChanged();
     emit ghostChanged();
     changeState(std::make_unique<PlayingState>(*this));
 }
@@ -110,7 +113,7 @@ void GameLogic::loadLastSession() {
     for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) {
         m_currentRecording.append(v.toPoint());
     }
-    m_ghostFrameIndex = m_currentRecording.size();
+    m_ghostFrameIndex = static_cast<int>(m_currentRecording.size());
 
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
     changeState(std::make_unique<PausedState>(*this));
@@ -137,15 +140,12 @@ void GameLogic::clearSavedState() {
 
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
 
-void GameLogic::move(const int dx, const int dy) {
+void GameLogic::move(int dx, int dy) {
     if (m_fsmState) {
-        // Prevent 180 degree turns by checking queue end or current direction
         QPoint lastRequestedDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
         if ((dx != 0 && lastRequestedDir.x() == -dx) || (dy != 0 && lastRequestedDir.y() == -dy)) {
             return;
         }
-        
-        // Limit queue size to 2 to prevent input lag
         if (m_inputQueue.size() < 2) {
             m_inputQueue.push_back({dx, dy});
             m_soundManager->playBeep(200, 50);
@@ -182,12 +182,9 @@ void GameLogic::quitToMenu() {
 void GameLogic::toggleMusic() {
     bool nextEnabled = !m_soundManager->musicEnabled();
     m_soundManager->setMusicEnabled(nextEnabled);
-    
-    // If resuming music and in menu, start immediately
     if (nextEnabled && m_state == StartMenu) {
         m_soundManager->startMusic();
     }
-    
     emit musicEnabledChanged();
 }
 
@@ -197,18 +194,23 @@ bool GameLogic::musicEnabled() const noexcept {
 
 void GameLogic::loadLevelData(int index) {
     QFile file(u":/levels.json"_s);
-    if (!file.open(QIODevice::ReadOnly)) return;
+    if (!file.open(QIODevice::ReadOnly)) {
+        return;
+    }
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
     QJsonArray levels = doc.object().value(u"levels"_s).toArray();
-    if (index >= levels.size()) index = 0;
+    if (index >= levels.size()) {
+        index = 0;
+    }
     
     QJsonObject lvl = levels[index].toObject();
     m_obstacles.clear();
     QJsonArray walls = lvl.value(u"walls"_s).toArray();
     for (const auto &w : walls) {
         QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
-        // Fix: Enlarge safe zone to 5x5 (radius 2) around start point {10, 10}
-        if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
+        if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) {
+            continue;
+        }
         m_obstacles.append(p);
     }
     emit obstaclesChanged();
@@ -216,7 +218,6 @@ void GameLogic::loadLevelData(int index) {
 
 QVariantList GameLogic::ghost() const noexcept {
     QVariantList list;
-    // Show full ghost body by backtracking from current frame index
     int ghostLength = static_cast<int>(m_snakeModel.body().size());
     int start = std::max(0, m_ghostFrameIndex - ghostLength + 1);
     for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) {
@@ -261,7 +262,6 @@ void GameLogic::spawnFood() {
     while (foodIsInvalid) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        // Fix: Enlarge food safe zone to 5x5
         bool inSafeZone = std::abs(m_food.x() - 10) <= 2 && std::abs(m_food.y() - 10) <= 2;
         foodIsInvalid = std::ranges::contains(body, m_food) || 
                         std::ranges::contains(m_obstacles, m_food) ||
