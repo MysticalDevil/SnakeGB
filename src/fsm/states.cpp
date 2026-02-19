@@ -14,14 +14,17 @@ namespace {
 // --- SplashState ---
 auto SplashState::enter() -> void {
     m_context.setInternalState(GameLogic::Splash);
-    m_context.lazyInit(); // 异步加载大数据
+    // Initialize heavy resources during splash animation
+    m_context.lazyInit();
     m_context.m_timer->start(150); 
+    // Classic boot beep
     m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
 }
 
 auto SplashState::update() -> void {
     static int splashFrames = 0;
     splashFrames++;
+    // Transition to menu after ~1.5s
     if (splashFrames > SplashFramesMax) {
         splashFrames = 0;
         m_context.changeState(std::make_unique<MenuState>(m_context));
@@ -56,6 +59,7 @@ auto PlayingState::enter() -> void {
 auto PlayingState::update() -> void {
     auto& logic = m_context;
 
+    // Fetch buffered direction input
     if (!logic.m_inputQueue.empty()) {
         logic.m_direction = logic.m_inputQueue.front();
         logic.m_inputQueue.pop_front();
@@ -64,6 +68,7 @@ auto PlayingState::update() -> void {
     const auto &body = logic.m_snakeModel.body();
     const QPoint nextHead = body.front() + logic.m_direction;
 
+    // Collision detection
     if (GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead) ||
         std::ranges::contains(logic.m_obstacles, nextHead)) {
         
@@ -71,11 +76,15 @@ auto PlayingState::update() -> void {
         logic.updateHighScore();
         logic.clearSavedState();
         logic.m_soundManager->playCrash(500);
+        
+        // Final feedback
         emit logic.requestFeedback(8);
+        
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
+    // Recording for ghost system
     logic.m_currentRecording.append(nextHead);
     
     if (logic.m_ghostFrameIndex < static_cast<int>(logic.m_bestRecording.size())) {
@@ -86,8 +95,10 @@ auto PlayingState::update() -> void {
     const bool grew = (nextHead == logic.m_food);
     if (grew) {
         logic.m_score++;
+        // Dynamic speed up
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         logic.m_soundManager->playBeep(880, 100);
+
         emit logic.scoreChanged();
         logic.spawnFood();
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
@@ -114,10 +125,10 @@ auto PausedState::handleStart() -> void {
 }
 
 // --- GameOverState ---
-auto GameOverState::enter() -> void {
+void GameOverState::enter() {
     m_context.setInternalState(GameLogic::GameOver);
 }
 
-auto GameOverState::handleStart() -> void {
+void GameOverState::handleStart() {
     m_context.restart();
 }
