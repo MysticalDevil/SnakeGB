@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(SnakeGB VERSION 1.0.0 LANGUAGES CXX)
+project(SnakeGB VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -9,6 +9,9 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Test ShaderTools)
+
+# Standardize setup for all platforms (handles assets, bundles, etc.)
+qt_standard_project_setup()
 
 enable_testing()
 
@@ -24,11 +27,12 @@ set(PROJECT_SOURCES
     src/qml/resources.qrc
 )
 
+# Application Executable
 qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
 )
 
-# 编译着色器
+# Compile Shaders into .qsb (Multi-backend support: Vulkan, Metal, DX, GL)
 qt_add_shaders(gameboy-snack "lcd_shaders"
     PREFIX "/shaders"
     FILES
@@ -43,6 +47,16 @@ target_link_libraries(gameboy-snack PRIVATE
     Qt6::Qml
     Qt6::Quick
     Qt6::Multimedia
+)
+
+target_compile_definitions(gameboy-snack PRIVATE
+    $<$<CONFIG:Debug>:QT_QML_DEBUG>
+)
+
+# Installation & Deployment Rules
+install(TARGETS gameboy-snack
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 # Test Executable

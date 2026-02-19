@@ -9,8 +9,8 @@
 #include "game_logic.h"
 
 auto main(int argc, char *argv[]) -> int {
-    // Force Vulkan rendering backend via RHI
-    qputenv("QSG_RHI_BACKEND", "vulkan");
+    // Enable High DPI scaling
+    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
 
@@ -28,7 +28,7 @@ auto main(int argc, char *argv[]) -> int {
     // Set application metadata
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QCoreApplication::setApplicationVersion("1.0.0");
+    QCoreApplication::setApplicationVersion("1.2.0");
     QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
 
     GameLogic gameLogic;
