@@ -1,0 +1,13 @@
+PROJECT_NAME           = "SnakeGB"
+PROJECT_NUMBER         = "1.1.0"
+OUTPUT_DIRECTORY       = "docs"
+INPUT                  = src/
+FILE_PATTERNS          = *.cpp *.h
+RECURSIVE              = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+OPTIMIZE_OUTPUT_FOR_C  = NO
+USE_MDFILE_AS_MAINPAGE = README.md

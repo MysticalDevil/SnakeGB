@@ -51,3 +51,14 @@ add_executable(game-tests
 target_include_directories(game-tests PRIVATE src)
 target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Qml)
 add_test(NAME GameLogicTest COMMAND game-tests)
+
+# Doxygen Integration
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM
+    )
+endif()
