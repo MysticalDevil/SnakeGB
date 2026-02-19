@@ -20,7 +20,7 @@ void MenuState::handleSelect() {
     if (m_context.hasSave()) {
         m_context.loadLastSession();
     } else {
-        m_context.nextLevel(); // 切换关卡
+        m_context.nextLevel();
     }
 }
 
@@ -46,6 +46,15 @@ void PlayingState::update() {
         
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
+    }
+
+    // 录制当前帧
+    logic.m_currentRecording.append(nextHead);
+    
+    // 推进幽灵回放帧
+    if (logic.m_ghostFrameIndex < logic.m_bestRecording.size()) {
+        logic.m_ghostFrameIndex++;
+        emit logic.ghostChanged();
     }
 
     const bool grew = (nextHead == logic.m_food);

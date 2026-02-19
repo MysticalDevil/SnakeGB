@@ -20,6 +20,10 @@ GameLogic::GameLogic(QObject *parent)
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
     m_levelIndex = m_settings.value(u"levelIndex"_s, 0).toInt();
 
+    // 加载幽灵数据
+    const auto ghostVar = m_settings.value(u"bestRecording"_s).toList();
+    for (const auto &v : ghostVar) m_bestRecording.append(v.toPoint());
+
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     loadLevelData(m_levelIndex);
     spawnFood();
@@ -53,6 +57,10 @@ void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
     m_score = 0;
+    m_ghostFrameIndex = 0;
+    m_currentRecording.clear();
+    m_currentRecording.append(QPoint(10, 10)); // 记录初始位置
+    
     loadLevelData(m_levelIndex);
     clearSavedState();
     
@@ -61,6 +69,7 @@ void GameLogic::restart() {
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
+    emit ghostChanged();
     changeState(std::make_unique<PlayingState>(*this));
 }
 
@@ -79,6 +88,12 @@ void GameLogic::loadLastSession() {
     m_food = m_settings.value(u"saved_food"_s).toPoint();
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
+    
+    // 加载录制数据
+    m_currentRecording.clear();
+    for (const auto &v : m_settings.value(u"saved_recording"_s).toList()) m_currentRecording.append(v.toPoint());
+    m_ghostFrameIndex = m_currentRecording.size();
+
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
     changeState(std::make_unique<PausedState>(*this));
 }
@@ -91,11 +106,16 @@ void GameLogic::saveCurrentState() {
     m_settings.setValue(u"saved_score"_s, m_score);
     m_settings.setValue(u"saved_food"_s, m_food);
     m_settings.setValue(u"saved_dir"_s, m_direction);
+    
+    QVariantList recVar; for (const auto &p : m_currentRecording) recVar.append(p);
+    m_settings.setValue(u"saved_recording"_s, recVar);
+
     emit hasSaveChanged();
 }
 
 void GameLogic::clearSavedState() {
     m_settings.remove(u"saved_body"_s); m_settings.remove(u"saved_obstacles"_s);
+    m_settings.remove(u"saved_recording"_s);
     emit hasSaveChanged();
 }
 
@@ -117,7 +137,7 @@ void GameLogic::nextShellColor() {
 }
 
 void GameLogic::nextLevel() {
-    m_levelIndex = (m_levelIndex + 1) % 2; // We have 2 levels in JSON
+    m_levelIndex = (m_levelIndex + 1) % 2;
     m_settings.setValue(u"levelIndex"_s, m_levelIndex);
     loadLevelData(m_levelIndex);
     emit levelChanged();
@@ -138,6 +158,14 @@ void GameLogic::loadLevelData(int index) {
         m_obstacles.append(QPoint(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()));
     }
     emit obstaclesChanged();
+}
+
+QVariantList GameLogic::ghost() const noexcept {
+    QVariantList list;
+    if (m_ghostFrameIndex < m_bestRecording.size()) {
+        list.append(m_bestRecording[m_ghostFrameIndex]);
+    }
+    return list;
 }
 
 QVariantList GameLogic::palette() const noexcept {
@@ -163,6 +191,12 @@ void GameLogic::updateHighScore() {
     if (m_score > m_highScore) {
         m_highScore = m_score;
         m_settings.setValue(u"highScore"_s, m_highScore);
+        
+        // 保存破纪录的幽灵数据
+        m_bestRecording = m_currentRecording;
+        QVariantList recVar; for (const auto &p : m_bestRecording) recVar.append(p);
+        m_settings.setValue(u"bestRecording"_s, recVar);
+        
         emit highScoreChanged();
     }
 }
@@ -171,7 +205,8 @@ void GameLogic::spawnFood() {
     const auto &body = m_snakeModel.body();
     bool foodIsInvalid = true;
     while (foodIsInvalid) {
-        m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH), QRandomGenerator::global()->bounded(BOARD_HEIGHT));
+        m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
+                        QRandomGenerator::global()->bounded(BOARD_HEIGHT));
         foodIsInvalid = std::ranges::contains(body, m_food) || std::ranges::contains(m_obstacles, m_food);
     }
     emit foodChanged();

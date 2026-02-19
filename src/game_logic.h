@@ -56,6 +56,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
+    Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
 
 public:
     enum State { StartMenu, Playing, Paused, GameOver };
@@ -76,6 +77,7 @@ public:
     [[nodiscard]] QColor shellColor() const noexcept;
     [[nodiscard]] bool hasSave() const noexcept;
     [[nodiscard]] int level() const noexcept { return m_levelIndex; }
+    [[nodiscard]] QVariantList ghost() const noexcept;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -108,6 +110,7 @@ signals:
     void shellColorChanged();
     void hasSaveChanged();
     void levelChanged();
+    void ghostChanged();
 
 private slots:
     void update();
@@ -130,6 +133,11 @@ private:
     int m_shellIndex = 0;
     int m_levelIndex = 0;
     QList<QPoint> m_obstacles;
+
+    // Ghost System
+    QList<QPoint> m_currentRecording;
+    QList<QPoint> m_bestRecording;
+    int m_ghostFrameIndex = 0;
 
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
