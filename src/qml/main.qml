@@ -18,7 +18,12 @@ Window {
     readonly property color p2: gameLogic.palette[2]
     readonly property color p3: gameLogic.palette[3]
 
-    readonly property string gameFont: "Monospace"
+    FontLoader {
+        id: pixelFont
+        // source: "qrc:/fonts/EarlyGameBoy.ttf" 
+    }
+    
+    readonly property string gameFont: pixelFont.status === FontLoader.Ready ? pixelFont.name : "Monospace"
 
     Connections {
         target: gameLogic
