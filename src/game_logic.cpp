@@ -23,16 +23,23 @@ GameLogic::GameLogic(QObject *parent)
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
+    
+    // Default FSM state
     m_fsmState = std::make_unique<SplashState>(*this);
     m_fsmState->enter();
 }
 
+/** 
+ * @brief Heavy resource initialization called during splash screen.
+ */
 void GameLogic::lazyInit() {
     m_highScore = m_settings.value(u"highScore"_s, 0).toInt();
     m_levelIndex = m_settings.value(u"levelIndex"_s, 0).toInt();
     const auto ghostVar = m_settings.value(u"bestRecording"_s).toList();
     m_bestRecording.clear();
-    for (const auto &v : ghostVar) m_bestRecording.append(v.toPoint());
+    for (const auto &v : ghostVar) {
+        m_bestRecording.append(v.toPoint());
+    }
     loadLevelData(m_levelIndex);
     spawnFood();
     emit paletteChanged();
@@ -40,7 +47,9 @@ void GameLogic::lazyInit() {
 }
 
 GameLogic::~GameLogic() {
-    if (m_state == Playing || m_state == Paused) saveCurrentState();
+    if (m_state == Playing || m_state == Paused) {
+        saveCurrentState();
+    }
 }
 
 void GameLogic::changeState(std::unique_ptr<GameState> newState) {
@@ -50,7 +59,10 @@ void GameLogic::changeState(std::unique_ptr<GameState> newState) {
 }
 
 void GameLogic::setInternalState(State s) {
-    if (m_state != s) { m_state = s; emit stateChanged(); }
+    if (m_state != s) {
+        m_state = s;
+        emit stateChanged();
+    }
 }
 
 void GameLogic::startGame() { restart(); }
@@ -126,7 +138,7 @@ void GameLogic::move(const int dx, const int dy) {
 void GameLogic::update() { if (m_fsmState) m_fsmState->update(); }
 
 void GameLogic::nextPalette() {
-    m_paletteIndex = (m_paletteIndex + 1) % 6; // Increased to 6
+    m_paletteIndex = (m_paletteIndex + 1) % 6;
     m_settings.setValue(u"paletteIndex"_s, m_paletteIndex);
     emit paletteChanged();
     m_soundManager->playBeep(600, 50);
@@ -169,6 +181,7 @@ void GameLogic::loadLevelData(int index) {
     m_obstacles.clear();
     for (const auto &w : lvl.value(u"walls"_s).toArray()) {
         QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
+        // Enforce 5x5 safe zone around spawn point {10, 10}
         if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
         m_obstacles.append(p);
     }
@@ -184,21 +197,20 @@ QVariantList GameLogic::ghost() const noexcept {
 }
 
 QVariantList GameLogic::palette() const noexcept {
+    // p0: background, p1: grid, p2: snake body, p3: head/food/text
     static const QList<QVariantList> palettes = {
-        {u"#9bbc0f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s}, // Classic
-        {u"#c4cfa1"_s, u"#8b956d"_s, u"#4d533c"_s, u"#1f1f1f"_s}, // Pocket
-        {u"#70a0d0"_s, u"#4070a0"_s, u"#204060"_s, u"#001020"_s}, // Light
-        {u"#ffffff"_s, u"#aaaaaa"_s, u"#555555"_s, u"#000000"_s}, // DMG
-        {u"#000000"_s, u"#550000"_s, u"#aa0000"_s, u"#ff0000"_s}, // Virtual Red
-        {u"#201000"_s, u"#a05000"_s, u"#e0a000"_s, u"#ffd700"_s}  // Gold
+        {u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s}, // Bright Original
+        {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s}, // Pocket
+        {u"#70a0d0"_s, u"#4070a0"_s, u"#204060"_s, u"#001020"_s}, // Blue Light
+        {u"#ffffff"_s, u"#aaaaaa"_s, u"#555555"_s, u"#000000"_s}, // Mono
+        {u"#200000"_s, u"#550000"_s, u"#aa0000"_s, u"#ff0000"_s}, // Virtual Red
+        {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s}  // Golden
     };
     return palettes[m_paletteIndex];
 }
 
 QString GameLogic::paletteName() const noexcept {
-    static const QStringList names = {
-        u"Original"_s, u"Pocket"_s, u"Blue Light"_s, u"Mono"_s, u"Virtual Red"_s, u"Golden"_s
-    };
+    static const QStringList names = { u"Original"_s, u"Pocket"_s, u"Blue Light"_s, u"Mono"_s, u"Virtual Red"_s, u"Golden"_s };
     return names[m_paletteIndex];
 }
 
@@ -226,9 +238,12 @@ void GameLogic::spawnFood() {
     const auto &body = m_snakeModel.body();
     bool foodIsInvalid = true;
     while (foodIsInvalid) {
-        m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH), QRandomGenerator::global()->bounded(BOARD_HEIGHT));
+        m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
+                        QRandomGenerator::global()->bounded(BOARD_HEIGHT));
+        // Ensure food spawns away from start point and existing items
         bool inSafeZone = std::abs(m_food.x() - 10) <= 2 && std::abs(m_food.y() - 10) <= 2;
-        foodIsInvalid = std::ranges::contains(body, m_food) || std::ranges::contains(m_obstacles, m_food) || inSafeZone;
+        foodIsInvalid = std::ranges::contains(body, m_food) || 
+                        std::ranges::contains(m_obstacles, m_food) || inSafeZone;
     }
     emit foodChanged();
 }
