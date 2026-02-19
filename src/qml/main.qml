@@ -255,33 +255,12 @@ Window {
                         Column {
                             anchors.centerIn: parent
                             spacing: 8
-                            Text {
-                                text: "S N A K E"
-                                font.family: gameFont
-                                font.pixelSize: 32
-                                font.bold: true
-                                color: p3
-                            }
-                            Text {
-                                text: qsTr("HI-SCORE: ") + gameLogic.highScore
-                                font.family: gameFont
-                                font.pixelSize: 14
-                                color: p3
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: qsTr("SELECT to Load Level: ") + (gameLogic.level + 1)
-                                font.family: gameFont
-                                font.pixelSize: 10
-                                color: p3
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
+                            Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3 }
+                            Text { text: qsTr("HI-SCORE: ") + gameLogic.highScore; font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("SELECT to Load Level: ") + (gameLogic.level + 1); font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                             Text {
                                 text: qsTr("START to Play")
-                                font.family: gameFont
-                                font.pixelSize: 14
-                                color: p3
-                                anchors.horizontalCenter: parent.horizontalCenter
+                                font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
                                     NumberAnimation {
@@ -304,13 +283,11 @@ Window {
                         color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
                         visible: gameLogic.state === 3
                         z: 40
-                        Text {
+                        Column {
                             anchors.centerIn: parent
-                            text: "PAUSED"
-                            font.family: gameFont
-                            font.pixelSize: 32
-                            font.bold: true
-                            color: p3
+                            spacing: 15
+                            Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("Press B to Quit"); font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                     }
 
@@ -319,14 +296,19 @@ Window {
                         color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
                         visible: gameLogic.state === 4
                         z: 40
-                        Text { 
+                        Column {
                             anchors.centerIn: parent
-                            color: p0
-                            font.family: gameFont
-                            font.pixelSize: 20
-                            font.bold: true
-                            text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score)
-                            horizontalAlignment: Text.AlignHCenter 
+                            spacing: 10
+                            Text { 
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                color: p0
+                                font.family: gameFont
+                                font.pixelSize: 20
+                                font.bold: true
+                                text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score)
+                                horizontalAlignment: Text.AlignHCenter 
+                            }
+                            Text { text: qsTr("Press B to Menu"); font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                     }
                 }
@@ -366,7 +348,13 @@ Window {
             GBButton {
                 id: bBtnUI
                 text: "B"
-                onClicked: gameLogic.nextPalette()
+                onClicked: {
+                    if (gameLogic.state === 3 || gameLogic.state === 4) {
+                        gameLogic.quitToMenu()
+                    } else {
+                        gameLogic.nextPalette()
+                    }
+                }
             }
             GBButton {
                 id: aBtnUI
@@ -433,8 +421,8 @@ Window {
             } else if (event.key === Qt.Key_Right) {
                 dpadUI.rightPressed = true
                 gameLogic.move(1, 0)
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
-                startBtnUI.isPressed = true 
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                startBtnUI.isPressed = true
                 if (gameLogic.state === 1) {
                     gameLogic.startGame()
                 } else if (gameLogic.state === 4) {
@@ -446,7 +434,11 @@ Window {
                 aBtnUI.isPressed = true
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 bBtnUI.isPressed = true
-                gameLogic.nextPalette()
+                if (gameLogic.state === 3 || gameLogic.state === 4) {
+                    gameLogic.quitToMenu()
+                } else {
+                    gameLogic.nextPalette()
+                }
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
                 if (gameLogic.state === 1) {

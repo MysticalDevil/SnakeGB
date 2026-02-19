@@ -149,6 +149,11 @@ void GameLogic::nextLevel() {
     emit levelChanged();
 }
 
+void GameLogic::quitToMenu() {
+    m_timer->stop();
+    changeState(std::make_unique<MenuState>(*this));
+}
+
 void GameLogic::loadLevelData(int index) {
     QFile file(u":/levels.json"_s);
     if (!file.open(QIODevice::ReadOnly)) return;

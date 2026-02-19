@@ -92,6 +92,7 @@ public:
     Q_INVOKABLE void nextShellColor();
     Q_INVOKABLE void loadLastSession();
     Q_INVOKABLE void nextLevel();
+    Q_INVOKABLE void quitToMenu();
 
     void changeState(std::unique_ptr<GameState> newState);
     void setInternalState(State s);
