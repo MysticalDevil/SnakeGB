@@ -18,7 +18,11 @@ GameLogic::GameLogic(QObject *parent)
     spawnFood();
 }
 
-GameLogic::~GameLogic() = default;
+GameLogic::~GameLogic() {
+    if (m_state == Playing || m_state == Paused) {
+        saveCurrentState();
+    }
+}
 
 void GameLogic::startGame() { restart(); }
 
@@ -28,6 +32,7 @@ void GameLogic::restart() {
     m_score = 0;
     m_state = Playing;
     m_obstacles.clear();
+    clearSavedState();
 
     m_timer->start(150);
     spawnFood();
@@ -42,12 +47,57 @@ void GameLogic::togglePause() {
     if (m_state == Playing) {
         m_state = Paused;
         m_timer->stop();
+        saveCurrentState();
     } else if (m_state == Paused) {
         m_state = Playing;
         m_timer->start();
     }
     emit stateChanged();
     emit requestFeedback();
+}
+
+void GameLogic::loadLastSession() {
+    if (!m_settings.contains("saved_body")) return;
+
+    m_score = m_settings.value("saved_score").toInt();
+    
+    QList<QPoint> body;
+    auto bodyVar = m_settings.value("saved_body").toList();
+    for (const auto &v : bodyVar) body.append(v.toPoint());
+    
+    m_obstacles.clear();
+    auto obsVar = m_settings.value("saved_obstacles").toList();
+    for (const auto &v : obsVar) m_obstacles.append(v.toPoint());
+
+    m_food = m_settings.value("saved_food").toPoint();
+    m_direction = m_settings.value("saved_dir").toPoint();
+
+    m_snakeModel.reset(std::deque<QPoint>(body.begin(), body.end()));
+    m_state = Paused;
+    
+    emit scoreChanged();
+    emit stateChanged();
+    emit obstaclesChanged();
+    emit foodChanged();
+}
+
+void GameLogic::saveCurrentState() {
+    QVariantList bodyVar;
+    for (const auto &p : m_snakeModel.body()) bodyVar.append(p);
+    m_settings.setValue("saved_body", bodyVar);
+
+    QVariantList obsVar;
+    for (const auto &p : m_obstacles) obsVar.append(p);
+    m_settings.setValue("saved_obstacles", obsVar);
+
+    m_settings.setValue("saved_score", m_score);
+    m_settings.setValue("saved_food", m_food);
+    m_settings.setValue("saved_dir", m_direction);
+}
+
+void GameLogic::clearSavedState() {
+    m_settings.remove("saved_body");
+    m_settings.remove("saved_obstacles");
 }
 
 void GameLogic::move(const int dx, const int dy) {
@@ -66,6 +116,7 @@ void GameLogic::update() {
         m_state = GameOver;
         m_timer->stop();
         updateHighScore();
+        clearSavedState();
         m_soundManager->playCrash(500);
         emit stateChanged();
         emit requestFeedback();
@@ -129,11 +180,7 @@ QVariantList GameLogic::obstacles() const noexcept {
 
 QColor GameLogic::shellColor() const noexcept {
     static const QList<QColor> colors = {
-        "#c0c0c0", // Classic Gray
-        "#f0f0f0", // Arctic White
-        "#9370db", // Atomic Purple
-        "#ffd700", // Bright Yellow
-        "#32cd32"  // Lime Green
+        "#c0c0c0", "#f0f0f0", "#9370db", "#ffd700", "#32cd32"
     };
     return colors[m_shellIndex];
 }

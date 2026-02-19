@@ -50,6 +50,7 @@ class GameLogic : public QObject {
     Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
     Q_PROPERTY(QVariantList palette READ palette NOTIFY paletteChanged)
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
+    Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
 
 public:
     enum State { StartMenu, Playing, Paused, GameOver };
@@ -65,6 +66,7 @@ public:
     [[nodiscard]] State state() const noexcept { return m_state; }
     [[nodiscard]] QVariantList palette() const noexcept;
     [[nodiscard]] QVariantList obstacles() const noexcept;
+    [[nodiscard]] QColor shellColor() const noexcept;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -76,6 +78,8 @@ public:
     Q_INVOKABLE void restart();
     Q_INVOKABLE void togglePause();
     Q_INVOKABLE void nextPalette();
+    Q_INVOKABLE void nextShellColor();
+    Q_INVOKABLE void loadLastSession();
 
 signals:
     void foodChanged();
@@ -85,6 +89,7 @@ signals:
     void requestFeedback();
     void paletteChanged();
     void obstaclesChanged();
+    void shellColorChanged();
 
 private slots:
     void update();
@@ -92,7 +97,8 @@ private slots:
 private:
     void spawnFood();
     void updateHighScore();
-    void setupLevel();
+    void saveCurrentState();
+    void clearSavedState();
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
@@ -102,6 +108,7 @@ private:
     int m_highScore = 0;
     State m_state = StartMenu;
     int m_paletteIndex = 0;
+    int m_shellIndex = 0;
     QList<QPoint> m_obstacles;
 
     std::unique_ptr<QTimer> m_timer;
