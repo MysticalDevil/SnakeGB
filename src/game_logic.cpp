@@ -11,6 +11,7 @@ GameLogic::GameLogic(QObject *parent)
 {
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     m_highScore = m_settings.value("highScore", 0).toInt();
+    m_paletteIndex = m_settings.value("paletteIndex", 0).toInt();
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     spawnFood();
@@ -28,8 +29,6 @@ void GameLogic::restart() {
 
     m_timer->start(150);
     spawnFood();
-
-    // Start sound
     m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
@@ -49,55 +48,52 @@ void GameLogic::togglePause() {
 }
 
 void GameLogic::move(const int dx, const int dy) {
-    if (m_state != Playing) {
-        return;
-    }
-
-    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) {
-        return;
-    }
-
+    if (m_state != Playing) return;
+    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) return;
     m_direction = {dx, dy};
-    // Move sound
     m_soundManager->playBeep(200, 50);
 }
 
 void GameLogic::update() {
-    if (m_state != Playing) {
-        return;
-    }
-
+    if (m_state != Playing) return;
     const auto &body = m_snakeModel.body();
     const QPoint nextHead = body.front() + m_direction;
-
-    const bool selfCollision = std::ranges::contains(body, nextHead);
-
-    if (isOutOfBounds(nextHead) || selfCollision) {
+    if (isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead)) {
         m_state = GameOver;
         m_timer->stop();
         updateHighScore();
-        // Crash sound
         m_soundManager->playCrash(500);
         emit stateChanged();
         emit requestFeedback();
         return;
     }
-
     const bool grew = (nextHead == m_food);
     if (grew) {
         m_score++;
-        const int newInterval = std::max(50, 150 - (m_score / 5) * 10);
-        m_timer->setInterval(newInterval);
-        
-        // Eat sound
+        m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10));
         m_soundManager->playBeep(880, 100);
-
         emit scoreChanged();
         spawnFood();
         emit requestFeedback();
     }
-
     m_snakeModel.moveHead(nextHead, grew);
+}
+
+void GameLogic::nextPalette() {
+    m_paletteIndex = (m_paletteIndex + 1) % 4;
+    m_settings.setValue("paletteIndex", m_paletteIndex);
+    emit paletteChanged();
+    m_soundManager->playBeep(600, 50);
+}
+
+QVariantList GameLogic::palette() const noexcept {
+    static const QList<QVariantList> palettes = {
+        {"#9bbc0f", "#8bac0f", "#306230", "#0f380f"}, // Original Green
+        {"#c4cfa1", "#8b956d", "#4d533c", "#1f1f1f"}, // Pocket Gray
+        {"#70a0d0", "#4070a0", "#204060", "#001020"}, // Light Blue
+        {"#ffffff", "#aaaaaa", "#555555", "#000000"}  // DMG B&W
+    };
+    return palettes[m_paletteIndex];
 }
 
 void GameLogic::updateHighScore() {
