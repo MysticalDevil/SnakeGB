@@ -8,7 +8,8 @@
 // --- SplashState ---
 void SplashState::enter() {
     m_context.setInternalState(GameLogic::Splash);
-    // 经典的开机“叮”声：高频短音
+    // 启动计时器以驱动 update() 逻辑
+    m_context.m_timer->start(150); 
     m_context.m_soundManager->playBeep(1046, 100); 
 }
 

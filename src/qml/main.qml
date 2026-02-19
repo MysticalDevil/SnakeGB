@@ -215,7 +215,9 @@ Window {
                             color: p3
                             anchors.horizontalCenter: parent.horizontalCenter
                             y: -50
-                            Component.onCompleted: SequentialAnimation {
+                            
+                            SequentialAnimation {
+                                id: splashAnim
                                 NumberAnimation {
                                     target: splashText
                                     property: "y"
@@ -225,6 +227,7 @@ Window {
                                     easing.type: Easing.OutBounce
                                 }
                             }
+                            Component.onCompleted: splashAnim.start()
                         }
                         Text {
                             text: "TM"
