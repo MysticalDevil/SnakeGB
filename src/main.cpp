@@ -2,10 +2,10 @@
 #include <QIcon>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+
 #include "game_logic.h"
 
-int main(int argc, char *argv[])
-{
+auto main(int argc, char *argv[]) -> int {
     QGuiApplication app(argc, argv);
 
     // 设置应用元数据
@@ -24,13 +24,14 @@ int main(int argc, char *argv[])
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
-        [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl)
+        [url](QObject *obj, const QUrl &objUrl) -> void {
+            if (!obj && url == objUrl) {
                 QCoreApplication::exit(-1);
+            }
         },
         Qt::QueuedConnection);
 
     engine.load(url);
 
-    return app.exec();
+    return QGuiApplication::exec();
 }

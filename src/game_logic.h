@@ -1,46 +1,37 @@
 #pragma once
 
-#include <deque>
 #include <QAbstractListModel>
 #include <QObject>
 #include <QPoint>
 #include <QRandomGenerator>
 #include <QSettings>
 #include <QTimer>
+#include <deque>
 
-class SnakeModel : public QAbstractListModel
-{
+class SnakeModel : public QAbstractListModel {
     Q_OBJECT
 public:
-    enum Roles
-    {
-        PositionRole = Qt::UserRole + 1
-    };
+    enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override
-    {
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override {
         return static_cast<int>(m_body.size());
     }
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override
-    {
-        if (!index.isValid() || index.row() >= m_body.size())
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
+        if (!index.isValid() || index.row() >= m_body.size()) {
             return {};
-        if (role == PositionRole)
+        }
+        if (role == PositionRole) {
             return m_body[index.row()];
+        }
         return {};
     }
-    QHash<int, QByteArray> roleNames() const override
-    {
-        return {{PositionRole, "pos"}};
-    }
-    void reset(const std::deque<QPoint> &newBody)
-    {
+    QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
+    void reset(const std::deque<QPoint> &newBody) {
         beginResetModel();
         m_body = newBody;
         endResetModel();
     }
-    void moveHead(const QPoint &newHead, bool grew)
-    {
+    void moveHead(const QPoint &newHead, bool grew) {
         beginInsertRows(QModelIndex(), 0, 0);
         m_body.push_front(newHead);
         endInsertRows();
@@ -56,8 +47,7 @@ private:
     std::deque<QPoint> m_body;
 };
 
-class GameLogic : public QObject
-{
+class GameLogic : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
     Q_PROPERTY(QPoint food READ food NOTIFY foodChanged)
@@ -68,45 +58,18 @@ class GameLogic : public QObject
     Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
 
 public:
-    enum State
-    {
-        StartMenu,
-        Playing,
-        Paused,
-        GameOver
-    };
+    enum State { StartMenu, Playing, Paused, GameOver };
     Q_ENUM(State)
 
     explicit GameLogic(QObject *parent = nullptr);
 
-    SnakeModel *snakeModel()
-    {
-        return &m_snakeModel;
-    }
-    [[nodiscard]] QPoint food() const noexcept
-    {
-        return m_food;
-    }
-    [[nodiscard]] int score() const noexcept
-    {
-        return m_score;
-    }
-    [[nodiscard]] int highScore() const noexcept
-    {
-        return m_highScore;
-    }
-    [[nodiscard]] State state() const noexcept
-    {
-        return m_state;
-    }
-    static constexpr int boardWidth() noexcept
-    {
-        return 20;
-    }
-    static constexpr int boardHeight() noexcept
-    {
-        return 18;
-    }
+    SnakeModel *snakeModel() { return &m_snakeModel; }
+    [[nodiscard]] QPoint food() const noexcept { return m_food; }
+    [[nodiscard]] int score() const noexcept { return m_score; }
+    [[nodiscard]] int highScore() const noexcept { return m_highScore; }
+    [[nodiscard]] State state() const noexcept { return m_state; }
+    static constexpr int boardWidth() noexcept { return 20; }
+    static constexpr int boardHeight() noexcept { return 18; }
 
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame();
@@ -126,7 +89,7 @@ private slots:
 private:
     void spawnFood();
     void updateHighScore();
-    [[nodiscard]] bool isOutOfBounds(const QPoint &p) const noexcept;
+    [[nodiscard]] auto isOutOfBounds(const QPoint &p) const noexcept -> bool;
 
     SnakeModel m_snakeModel;
     std::deque<QPoint> m_currentBody;

@@ -10,7 +10,6 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
 
-# Group sources for better organization
 set(PROJECT_SOURCES
     src/main.cpp
     src/game_logic.cpp
@@ -22,7 +21,6 @@ qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
 )
 
-# Include directories
 target_include_directories(gameboy-snack PRIVATE src)
 
 target_link_libraries(gameboy-snack PRIVATE

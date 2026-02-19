@@ -1,11 +1,11 @@
 #include "game_logic.h"
 
 #include <algorithm>
+#include <ranges>
 
 GameLogic::GameLogic(QObject *parent) : QObject(parent), m_timer(new QTimer(this)) {
     connect(m_timer, &QTimer::timeout, this, &GameLogic::update);
 
-    // 加载最高分
     QSettings settings("MyCompany", "SnakeGB");
     m_highScore = settings.value("highScore", 0).toInt();
 
@@ -46,22 +46,24 @@ void GameLogic::togglePause() {
 }
 
 void GameLogic::move(int dx, int dy) {
-    if (m_state != Playing)
+    if (m_state != Playing) {
         return;
-    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy))
+    }
+    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) {
         return;
+    }
     m_direction = {dx, dy};
 }
 
 void GameLogic::update() {
-    if (m_state != Playing)
+    if (m_state != Playing) {
         return;
+    }
 
     QPoint head = m_currentBody.front() + m_direction;
 
-    // 使用 C++20/23 风格的容器查找
-    bool selfCollision =
-        std::any_of(m_currentBody.begin(), m_currentBody.end(), [&](const auto &p) { return p == head; });
+    // 优化：使用 C++23 ranges
+    bool selfCollision = std::ranges::any_of(m_currentBody, [&](const auto &p) -> bool { return p == head; });
 
     if (isOutOfBounds(head) || selfCollision) {
         m_state = GameOver;
@@ -104,12 +106,12 @@ void GameLogic::spawnFood() {
     while (onSnake) {
         m_food = {QRandomGenerator::global()->bounded(boardWidth()),
                   QRandomGenerator::global()->bounded(boardHeight())};
-        onSnake = std::any_of(m_currentBody.begin(), m_currentBody.end(),
-                              [&](const auto &p) { return p == m_food; });
+        // 优化：使用 C++23 ranges
+        onSnake = std::ranges::any_of(m_currentBody, [&](const auto &p) -> bool { return p == m_food; });
     }
     emit foodChanged();
 }
 
-bool GameLogic::isOutOfBounds(const QPoint &p) const noexcept {
+auto GameLogic::isOutOfBounds(const QPoint &p) const noexcept -> bool {
     return p.x() < 0 || p.x() >= boardWidth() || p.y() < 0 || p.y() >= boardHeight();
 }
