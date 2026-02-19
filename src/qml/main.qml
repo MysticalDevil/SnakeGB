@@ -102,13 +102,20 @@ Window {
                 anchors.centerIn: parent
                 width: 240
                 height: 216
-                color: p0
+                color: "black" // 容器底色设为黑，防止溢出
                 clip: true
 
                 Item {
                     id: gameContent
                     anchors.fill: parent
                     visible: true
+
+                    // --- 核心修复：将背景色放进 gameContent 内部 ---
+                    Rectangle {
+                        anchors.fill: parent
+                        color: p0
+                        z: -1
+                    }
 
                     Canvas {
                         id: backgroundGrid
@@ -165,16 +172,8 @@ Window {
                                 z: -1
                                 SequentialAnimation on scale {
                                     loops: Animation.Infinite
-                                    NumberAnimation {
-                                        from: 0.8
-                                        to: 1.2
-                                        duration: 500
-                                    }
-                                    NumberAnimation {
-                                        from: 1.2
-                                        to: 0.8
-                                        duration: 500
-                                    }
+                                    NumberAnimation { from: 0.8; to: 1.2; duration: 500 }
+                                    NumberAnimation { from: 1.2; to: 0.8; duration: 500 }
                                 }
                             }
                         }
@@ -413,7 +412,7 @@ Window {
                     anchors.fill: parent
                     property variant source: ShaderEffectSource {
                         sourceItem: gameContent
-                        hideSource: true
+                        hideSource: true 
                         live: true
                         recursive: false
                     }
@@ -487,9 +486,13 @@ Window {
                 id: startBtnUI
                 text: "START"
                 onClicked: {
-                    if (gameLogic.state === 1) gameLogic.startGame()
-                    else if (gameLogic.state === 4) gameLogic.restart()
-                    else if (gameLogic.state > 1) gameLogic.togglePause()
+                    if (gameLogic.state === 1) {
+                        gameLogic.startGame()
+                    } else if (gameLogic.state === 4) {
+                        gameLogic.restart()
+                    } else if (gameLogic.state > 1) {
+                        gameLogic.togglePause()
+                    }
                 }
             }
         }
@@ -513,9 +516,13 @@ Window {
                 gameLogic.move(1, 0)
             } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
                 startBtnUI.isPressed = true 
-                if (gameLogic.state === 1) gameLogic.startGame()
-                else if (gameLogic.state === 4) gameLogic.restart()
-                else if (gameLogic.state > 1) gameLogic.togglePause()
+                if (gameLogic.state === 1) {
+                    gameLogic.startGame()
+                } else if (gameLogic.state === 4) {
+                    gameLogic.restart()
+                } else if (gameLogic.state > 1) {
+                    gameLogic.togglePause()
+                }
             } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 aBtnUI.isPressed = true
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
@@ -530,8 +537,11 @@ Window {
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
                 if (gameLogic.state === 1) {
-                    if (gameLogic.hasSave) gameLogic.loadLastSession()
-                    else gameLogic.nextLevel()
+                    if (gameLogic.hasSave) {
+                        gameLogic.loadLastSession()
+                    } else {
+                        gameLogic.nextLevel()
+                    }
                 }
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()
@@ -542,15 +552,26 @@ Window {
             }
         }
         Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) dpadUI.upPressed = false
-            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false
-            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false
-            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
-            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false
+            if (event.isAutoRepeat) {
+                return
+            }
+            if (event.key === Qt.Key_Up) {
+                dpadUI.upPressed = false
+            } else if (event.key === Qt.Key_Down) {
+                dpadUI.downPressed = false
+            } else if (event.key === Qt.Key_Left) {
+                dpadUI.leftPressed = false
+            } else if (event.key === Qt.Key_Right) {
+                dpadUI.rightPressed = false
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                startBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
+                aBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                bBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_Shift) {
+                selectBtnUI.isPressed = false
+            }
         }
     }
 }
