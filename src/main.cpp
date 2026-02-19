@@ -8,11 +8,11 @@
 auto main(int argc, char *argv[]) -> int {
     QGuiApplication app(argc, argv);
 
-    // 设置应用元数据
-    app.setApplicationName("SnakeGB");
-    app.setApplicationDisplayName("Snake GameBoy Edition");
-    app.setApplicationVersion("1.0.0");
-    app.setWindowIcon(QIcon(":/icon.svg"));
+    // 设置应用元数据 (使用类名调用静态方法)
+    QCoreApplication::setApplicationName("SnakeGB");
+    QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
+    QCoreApplication::setApplicationVersion("1.0.0");
+    QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
 
     GameLogic gameLogic;
 

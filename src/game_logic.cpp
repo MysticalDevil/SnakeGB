@@ -37,7 +37,7 @@ void GameLogic::togglePause() {
     emit requestFeedback();
 }
 
-void GameLogic::move(int dx, int dy) {
+void GameLogic::move(const int dx, const int dy) {
     if (m_state != Playing) {
         return;
     }

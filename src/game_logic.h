@@ -40,13 +40,13 @@ public:
         endResetModel();
     }
 
-    void moveHead(const QPoint &newHead, bool grew) {
+    void moveHead(const QPoint &newHead, const bool grew) {
         beginInsertRows(QModelIndex(), 0, 0);
         m_body.push_front(newHead);
         endInsertRows();
 
         if (!grew) {
-            int last = static_cast<int>(m_body.size() - 1);
+            const int last = static_cast<int>(m_body.size() - 1);
             beginRemoveRows(QModelIndex(), last, last);
             m_body.pop_back();
             endRemoveRows();
@@ -87,7 +87,7 @@ public:
     [[nodiscard]] int boardWidth() const noexcept { return BOARD_WIDTH; }
     [[nodiscard]] int boardHeight() const noexcept { return BOARD_HEIGHT; }
 
-    Q_INVOKABLE void move(int dx, int dy);
+    Q_INVOKABLE void move(const int dx, const int dy);
     Q_INVOKABLE void startGame();
     Q_INVOKABLE void restart();
     Q_INVOKABLE void togglePause();
