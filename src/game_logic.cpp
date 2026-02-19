@@ -79,6 +79,7 @@ void GameLogic::loadLastSession() {
     emit stateChanged();
     emit obstaclesChanged();
     emit foodChanged();
+    emit hasSaveChanged();
 }
 
 void GameLogic::saveCurrentState() {
@@ -93,11 +94,18 @@ void GameLogic::saveCurrentState() {
     m_settings.setValue("saved_score", m_score);
     m_settings.setValue("saved_food", m_food);
     m_settings.setValue("saved_dir", m_direction);
+    
+    emit hasSaveChanged();
 }
 
 void GameLogic::clearSavedState() {
     m_settings.remove("saved_body");
     m_settings.remove("saved_obstacles");
+    emit hasSaveChanged();
+}
+
+bool GameLogic::hasSave() const noexcept {
+    return m_settings.contains("saved_body");
 }
 
 void GameLogic::move(const int dx, const int dy) {

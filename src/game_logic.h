@@ -51,6 +51,7 @@ class GameLogic : public QObject {
     Q_PROPERTY(QVariantList palette READ palette NOTIFY paletteChanged)
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
+    Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
 
 public:
     enum State { StartMenu, Playing, Paused, GameOver };
@@ -67,6 +68,7 @@ public:
     [[nodiscard]] QVariantList palette() const noexcept;
     [[nodiscard]] QVariantList obstacles() const noexcept;
     [[nodiscard]] QColor shellColor() const noexcept;
+    [[nodiscard]] bool hasSave() const noexcept;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -90,6 +92,7 @@ signals:
     void paletteChanged();
     void obstaclesChanged();
     void shellColorChanged();
+    void hasSaveChanged();
 
 private slots:
     void update();
