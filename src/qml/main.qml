@@ -211,16 +211,8 @@ Window {
                                     z: -1
                                     SequentialAnimation on scale {
                                         loops: Animation.Infinite
-                                        NumberAnimation {
-                                            from: 0.8
-                                            to: 1.2
-                                            duration: 500
-                                        }
-                                        NumberAnimation {
-                                            from: 1.2
-                                            to: 0.8
-                                            duration: 500
-                                        }
+                                        NumberAnimation { from: 0.8; to: 1.2; duration: 500 }
+                                        NumberAnimation { from: 1.2; to: 0.8; duration: 500 }
                                     }
                                 }
                             }
@@ -421,15 +413,15 @@ Window {
                                             }
                                         }
                                     }
-                                    Text {
-                                        text: gameLogic.achievements.length > 0 ? qsTr("(Click to View)") : ""
-                                        font.family: gameFont
-                                        font.pixelSize: 8
-                                        color: p3
-                                        opacity: 0.5
-                                    }
                                 }
 
+                                Text {
+                                    text: qsTr("UP to View Medals")
+                                    font.family: gameFont
+                                    font.pixelSize: 8
+                                    color: p3
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
                                 Text {
                                     text: qsTr("SELECT to Cycle Levels")
                                     font.family: gameFont
@@ -509,8 +501,6 @@ Window {
                                     color: p3
                                     opacity: 0.6
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    anchors.bottom: parent.bottom
-                                    anchors.bottomMargin: 10
                                 }
                             }
                         }
@@ -625,7 +615,11 @@ Window {
                 anchors.left: parent.left
                 anchors.leftMargin: 25
                 onUpClicked: {
-                    gameLogic.move(0, -1)
+                    if (gameLogic.state === 1) {
+                        showingMedals = true
+                    } else {
+                        gameLogic.move(0, -1)
+                    }
                 }
                 onDownClicked: {
                     gameLogic.move(0, 1)
@@ -718,7 +712,11 @@ Window {
             }
             if (event.key === Qt.Key_Up) {
                 dpadUI.upPressed = true
-                gameLogic.move(0, -1)
+                if (gameLogic.state === 1) {
+                    showingMedals = true
+                } else {
+                    gameLogic.move(0, -1)
+                }
             } else if (event.key === Qt.Key_Down) {
                 dpadUI.downPressed = true
                 gameLogic.move(0, 1)
