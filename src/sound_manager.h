@@ -1,41 +1,37 @@
 #pragma once
 
-#include <QObject>
-#include <QAudioSink>
-#include <QMediaDevices>
 #include <QAudioFormat>
+#include <QAudioSink>
 #include <QBuffer>
+#include <QMediaDevices>
+#include <QObject>
 #include <QThread>
 
 /**
  * @class SoundManager
- * @brief Manages 8-bit style sound effects using procedurally generated PCM data.
+ * @brief 使用过程生成 PCM 数据管理 8-bit 音效。
  */
-class SoundManager : public QObject {
+class SoundManager final : public QObject {
     Q_OBJECT
 public:
     explicit SoundManager(QObject *parent = nullptr);
     ~SoundManager() override;
 
     /**
-     * @brief Play a square wave beep.
-     * @param frequency Frequency in Hz.
-     * @param duration Duration in milliseconds.
+     * @brief 播放方波哔声。
      */
-    Q_INVOKABLE void playBeep(int frequency, int duration);
+    Q_INVOKABLE void playBeep(int frequencyHz, int durationMs);
 
     /**
-     * @brief Play a noise sound (for crash/game over).
-     * @param duration Duration in milliseconds.
+     * @brief 播放噪声（用于碰撞/游戏结束）。
      */
-    Q_INVOKABLE void playCrash(int duration);
+    Q_INVOKABLE void playCrash(int durationMs);
 
 private:
-    void generateSquareWave(int frequency, int duration, QByteArray &buffer);
-    void generateNoise(int duration, QByteArray &buffer);
+    void generateSquareWave(int frequencyHz, int durationMs, QByteArray &buffer);
+    void generateNoise(int durationMs, QByteArray &buffer);
 
     QAudioFormat m_format;
     QAudioSink *m_audioSink = nullptr;
-    QIODevice *m_audioIO = nullptr;
     QBuffer m_buffer;
 };
