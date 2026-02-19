@@ -73,14 +73,18 @@ void SoundManager::playNextNote() {
 
     if (freq > 0) {
         QByteArray data;
-        generateSquareWave(freq, duration, data, 12); // 核心优化：BGM 振幅设为 12，非常柔和
+        generateSquareWave(freq, duration, data, 12);
         m_bgmSink->stop();
         m_bgmBuffer.close();
         m_bgmBuffer.setData(data);
         m_bgmBuffer.open(QIODevice::ReadOnly);
         m_bgmSink->start(&m_bgmBuffer);
+    } else {
+        m_bgmSink->stop();
     }
-    m_musicTimer.start(duration + 50);
+    
+    // 使用当前音符的持续时间作为下次触发间隔
+    m_musicTimer.start(duration);
 }
 
 void SoundManager::generateSquareWave(const int frequencyHz, const int durationMs, QByteArray &buffer, int amplitude) {
