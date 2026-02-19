@@ -13,7 +13,7 @@ public:
     virtual void enter() {}
     virtual void exit() {}
     virtual void update() {}
-    virtual void handleInput(int dx, int dy) {}
+    virtual void handleInput(int /*dx*/, int /*dy*/) {}
     virtual void handleStart() {}
     virtual void handleSelect() {}
 

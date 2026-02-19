@@ -94,7 +94,7 @@ auto PlayingState::update() -> void {
     logic.m_snakeModel.moveHead(nextHead, grew);
 }
 
-auto PlayingState::handleInput(int dx, int dy) -> void {}
+auto PlayingState::handleInput(int /*dx*/, int /*dy*/) -> void {}
 
 auto PlayingState::handleStart() -> void {
     m_context.togglePause();

@@ -34,7 +34,7 @@ public:
     SnakeModel(SnakeModel &&) = delete;
     SnakeModel &operator=(SnakeModel &&) = delete;
 
-    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {
+    [[nodiscard]] int rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const noexcept override {
         return static_cast<int>(m_body.size());
     }
 

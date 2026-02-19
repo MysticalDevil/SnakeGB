@@ -9,8 +9,8 @@
 #include "game_logic.h"
 
 auto main(int argc, char *argv[]) -> int {
-    // Enable High DPI scaling
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    // Force Vulkan rendering backend via RHI
+    // Note: High DPI scaling is always enabled by default in Qt 6.
 
     QGuiApplication app(argc, argv);
 
