@@ -34,7 +34,7 @@ void SoundManager::setMusicEnabled(bool enabled) {
 void SoundManager::playBeep(const int frequencyHz, const int durationMs) {
     if (!m_sfxSink) return;
     QByteArray data;
-    generateSquareWave(frequencyHz, durationMs, data, 32); // SFX 保持原有响度
+    generateSquareWave(frequencyHz, durationMs, data, 32);
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
@@ -73,17 +73,14 @@ void SoundManager::playNextNote() {
 
     if (freq > 0) {
         QByteArray data;
-        generateSquareWave(freq, duration, data, 12);
+        // BGM 振幅设为 10，保持背景感
+        generateSquareWave(freq, duration - 10, data, 10); 
         m_bgmSink->stop();
         m_bgmBuffer.close();
         m_bgmBuffer.setData(data);
         m_bgmBuffer.open(QIODevice::ReadOnly);
         m_bgmSink->start(&m_bgmBuffer);
-    } else {
-        m_bgmSink->stop();
     }
-    
-    // 使用当前音符的持续时间作为下次触发间隔
     m_musicTimer.start(duration);
 }
 
@@ -95,10 +92,21 @@ void SoundManager::generateSquareWave(const int frequencyHz, const int durationM
 
     const double cycleLength = static_cast<double>(sampleRate) / frequencyHz;
     const double dutyCycle = 0.25;
+    
+    // 5ms 的 Attack 采样数
+    const int attackSamples = (sampleRate * 5) / 1000;
 
     for (int i = 0; i < sampleCount; ++i) {
         double phase = fmod(i, cycleLength) / cycleLength;
-        double envelope = 1.0 - (static_cast<double>(i) / sampleCount);
+        
+        // ADSR 包络计算
+        double envelope = 1.0;
+        if (i < attackSamples) {
+            envelope = static_cast<double>(i) / attackSamples; // Attack
+        } else {
+            envelope = 1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples)); // Decay
+        }
+        
         int val = (phase < dutyCycle) ? (128 + amplitude) : (128 - amplitude);
         buffer[i] = static_cast<char>(128 + (val - 128) * envelope);
     }
@@ -109,7 +117,7 @@ void SoundManager::generateNoise(const int durationMs, QByteArray &buffer) {
     const int sampleCount = (sampleRate * durationMs) / 1000;
     if (sampleCount <= 0) return;
     buffer.resize(sampleCount);
-    const int noiseAmplitude = 24;
+    const int noiseAmplitude = 20;
     for (int i = 0; i < sampleCount; ++i) {
         double envelope = 1.0 - (static_cast<double>(i) / sampleCount);
         int randVal = QRandomGenerator::global()->bounded(noiseAmplitude * 2) - noiseAmplitude;
