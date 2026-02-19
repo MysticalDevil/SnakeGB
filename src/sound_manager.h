@@ -27,6 +27,9 @@ public:
     [[nodiscard]] bool musicEnabled() const { return m_musicEnabled; }
 
     void initAudioAsync();
+    
+    // Dynamic Tempo Control
+    void setScore(int score);
 
 private slots:
     void playNextNote();
@@ -43,8 +46,8 @@ private:
     QTimer m_musicTimer;
     bool m_musicEnabled = true;
     int m_noteIndex = 0;
+    int m_currentScore = 0;
 
-    // Classic-style GameBoy melody (restored and extended)
     const std::vector<std::pair<int, int>> m_melody = {
         {440, 300}, {494, 300}, {523, 300}, {587, 300}, {659, 600}, {587, 600},
         {523, 300}, {494, 300}, {440, 600}, {0, 300},

@@ -76,6 +76,9 @@ void GameLogic::restart() {
     m_direction = {0, -1};
     m_inputQueue.clear();
     m_score = 0;
+    if (m_soundManager) {
+        m_soundManager->setScore(0);
+    }
     m_ghostFrameIndex = 0;
     m_currentRecording.clear();
     m_currentRecording.append(QPoint(10, 10));

@@ -102,10 +102,11 @@ auto PlayingState::update() -> void {
     const bool grew = (nextHead == logic.m_food);
     if (grew) {
         logic.m_score++;
-        logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         if (logic.m_soundManager) {
+            logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);
         }
+        logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         emit logic.scoreChanged();
         logic.spawnFood();
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
