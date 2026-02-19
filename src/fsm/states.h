@@ -2,6 +2,13 @@
 
 #include "game_state.h"
 
+class SplashState : public GameState {
+public:
+    using GameState::GameState;
+    void enter() override;
+    void update() override;
+};
+
 class MenuState : public GameState {
 public:
     using GameState::GameState;

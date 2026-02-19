@@ -12,6 +12,7 @@
 
 class SoundManager;
 class GameState;
+class SplashState;
 class MenuState;
 class PlayingState;
 class PausedState;
@@ -59,7 +60,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
 
 public:
-    enum State { StartMenu, Playing, Paused, GameOver };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver };
     Q_ENUM(State)
 
     explicit GameLogic(QObject *parent = nullptr);
@@ -94,6 +95,7 @@ public:
     void changeState(std::unique_ptr<GameState> newState);
     void setInternalState(State s);
 
+    friend class SplashState;
     friend class MenuState;
     friend class PlayingState;
     friend class PausedState;
@@ -104,7 +106,7 @@ signals:
     void scoreChanged();
     void highScoreChanged();
     void stateChanged();
-    void requestFeedback();
+    void requestFeedback(int magnitude);
     void paletteChanged();
     void obstaclesChanged();
     void shellColorChanged();
@@ -128,13 +130,12 @@ private:
     QPoint m_direction{0, -1};
     int m_score = 0;
     int m_highScore = 0;
-    State m_state = StartMenu;
+    State m_state = Splash;
     int m_paletteIndex = 0;
     int m_shellIndex = 0;
     int m_levelIndex = 0;
     QList<QPoint> m_obstacles;
 
-    // Ghost System
     QList<QPoint> m_currentRecording;
     QList<QPoint> m_bestRecording;
     int m_ghostFrameIndex = 0;

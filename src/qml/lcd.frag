@@ -11,23 +11,27 @@ layout(std140, binding = 0) uniform buf {
 layout(binding = 1) uniform sampler2D source;
 
 void main() {
-    // 模拟色差 (Chromatic Aberration)
-    vec2 shift = vec2(0.002, 0.0);
-    float r = texture(source, qt_TexCoord0 - shift).r;
-    float g = texture(source, qt_TexCoord0).g;
-    float b = texture(source, qt_TexCoord0 + shift).b;
-    vec4 tex = vec4(r, g, b, 1.0);
+    // 1. 极轻微的球面畸变 (减小系数从 0.05 -> 0.02)
+    vec2 centeredUV = qt_TexCoord0 * 2.0 - 1.0;
+    float dist = length(centeredUV);
+    vec2 distortedUV = qt_TexCoord0 + centeredUV * (dist * dist) * 0.02;
     
-    // 模拟像素网格 (Pixel Grid)
-    vec2 ps = qt_TexCoord0 * vec2(240.0, 216.0) * 2.0;
-    float gridX = abs(sin(ps.x * 3.14159));
-    float gridY = abs(sin(ps.y * 3.14159));
-    float grid = clamp(gridX * gridY + 0.2, 0.0, 1.0);
-    
-    // 模拟暗角 (Vignette)
-    vec2 uv = qt_TexCoord0 * (1.0 - qt_TexCoord0.yx);
-    float vig = uv.x * uv.y * 15.0;
-    vig = pow(vig, 0.15);
+    if (distortedUV.x < 0.0 || distortedUV.x > 1.0 || distortedUV.y < 0.0 || distortedUV.y > 1.0) {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
 
-    fragColor = tex * grid * vig * qt_Opacity;
+    // 2. 采样（移除色差以提升清晰度）
+    vec4 tex = texture(source, distortedUV);
+    
+    // 3. 优化像素网格：使其不再模糊整体画面，仅在像素边缘留出微小的缝隙
+    vec2 ps = distortedUV * vec2(240.0, 216.0);
+    // 使用 step 函数产生锐利的网格边缘
+    float grid = (0.9 + 0.1 * step(0.1, fract(ps.x))) * (0.9 + 0.1 * step(0.1, fract(ps.y)));
+    
+    // 4. 全局增益：调亮画面
+    vec4 finalColor = tex * grid;
+    finalColor.rgb *= 1.1; 
+
+    fragColor = finalColor * qt_Opacity;
 }

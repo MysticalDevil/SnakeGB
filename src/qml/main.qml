@@ -20,9 +20,12 @@ Window {
 
     readonly property string gameFont: "Monospace"
 
+    property int shakeMagnitude: 2
+
     Connections {
         target: gameLogic
-        function onRequestFeedback() {
+        function onRequestFeedback(magnitude) {
+            shakeMagnitude = magnitude
             screenShake.start()
         }
     }
@@ -33,20 +36,20 @@ Window {
             target: gameBoyBody
             property: "x"
             from: 0
-            to: 2
+            to: shakeMagnitude
             duration: 40
         }
         NumberAnimation {
             target: gameBoyBody
             property: "x"
-            from: 2
-            to: -2
+            from: shakeMagnitude
+            to: -shakeMagnitude
             duration: 40
         }
         NumberAnimation {
             target: gameBoyBody
             property: "x"
-            from: -2
+            from: -shakeMagnitude
             to: 0
             duration: 40
         }
@@ -121,13 +124,20 @@ Window {
                         id: gameWorld
                         anchors.fill: parent
                         Rectangle {
-                            visible: gameLogic.state !== 0
+                            visible: gameLogic.state !== 0 && gameLogic.state !== 1
                             x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
                             y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
                             width: parent.width / gameLogic.boardWidth
                             height: parent.height / gameLogic.boardHeight
                             color: p3
                             radius: width / 2
+                            border.color: p0
+                            border.width: 1
+                            SequentialAnimation on scale {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 1.0; to: 0.7; duration: 400 }
+                                NumberAnimation { from: 0.7; to: 1.0; duration: 400 }
+                            }
                         }
                         Repeater {
                             model: gameLogic.obstacles
@@ -145,6 +155,18 @@ Window {
                             }
                         }
                         Repeater {
+                            model: gameLogic.ghost
+                            delegate: Rectangle {
+                                x: modelData.x * (gameContent.width / gameLogic.boardWidth)
+                                y: modelData.y * (gameContent.height / gameLogic.boardHeight)
+                                width: gameContent.width / gameLogic.boardWidth
+                                height: gameContent.height / gameLogic.boardHeight
+                                color: p3
+                                opacity: 0.2
+                                radius: 1
+                            }
+                        }
+                        Repeater {
                             model: gameLogic.snakeModel
                             delegate: Rectangle {
                                 x: model.pos.x * (gameContent.width / gameLogic.boardWidth)
@@ -152,7 +174,9 @@ Window {
                                 width: gameContent.width / gameLogic.boardWidth
                                 height: gameContent.height / gameLogic.boardHeight
                                 color: index === 0 ? p3 : p2
-                                radius: 1
+                                radius: index === 0 ? 2 : 1
+                                border.color: p0
+                                border.width: index === 0 ? 1 : 0
                             }
                         }
                     }
@@ -161,19 +185,19 @@ Window {
                         anchors.top: parent.top
                         anchors.right: parent.right
                         anchors.margins: 4
-                        visible: gameLogic.state !== 0
+                        visible: gameLogic.state > 1
                         Text {
-                            text: qsTr("HI: ") + gameLogic.highScore
-                            color: p3
-                            font.family: gameFont
-                            font.pixelSize: 10
-                            font.bold: true
-                        }
-                        Text {
-                            text: qsTr("SC: ") + gameLogic.score
+                            text: "HI " + gameLogic.highScore
                             color: p3
                             font.family: gameFont
                             font.pixelSize: 12
+                            font.bold: true
+                        }
+                        Text {
+                            text: "SC " + gameLogic.score
+                            color: p3
+                            font.family: gameFont
+                            font.pixelSize: 14
                             font.bold: true
                         }
                     }
@@ -182,9 +206,44 @@ Window {
                         anchors.fill: parent
                         color: p0
                         visible: gameLogic.state === 0
+                        Text {
+                            id: splashText
+                            text: "S N A K E"
+                            font.family: gameFont
+                            font.pixelSize: 32
+                            font.bold: true
+                            color: p3
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            y: -50
+                            Component.onCompleted: SequentialAnimation {
+                                NumberAnimation {
+                                    target: splashText
+                                    property: "y"
+                                    from: -50
+                                    to: 80
+                                    duration: 1500
+                                    easing.type: Easing.OutBounce
+                                }
+                            }
+                        }
+                        Text {
+                            text: "TM"
+                            font.family: gameFont
+                            font.pixelSize: 8
+                            color: p3
+                            anchors.left: splashText.right
+                            anchors.top: splashText.top
+                            anchors.leftMargin: 2
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: p0
+                        visible: gameLogic.state === 1
                         Column {
                             anchors.centerIn: parent
-                            spacing: 6
+                            spacing: 8
                             Text {
                                 text: "S N A K E"
                                 font.family: gameFont
@@ -200,15 +259,7 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("Level: ") + (gameLogic.level + 1)
-                                font.family: gameFont
-                                font.pixelSize: 12
-                                color: p3
-                                anchors.horizontalCenter: parent.horizontalCenter
-                            }
-                            Text {
-                                text: qsTr("SELECT to Continue/Cycle")
-                                visible: gameLogic.hasSave
+                                text: qsTr("SELECT to Load Level: ") + (gameLogic.level + 1)
                                 font.family: gameFont
                                 font.pixelSize: 10
                                 color: p3
@@ -231,13 +282,13 @@ Window {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: Qt.rgba(p0.r, p0.g, p0.b, 0.5)
-                        visible: gameLogic.state === 2
+                        color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
+                        visible: gameLogic.state === 3
                         Text {
                             anchors.centerIn: parent
-                            text: qsTr("PAUSED")
+                            text: "PAUSED"
                             font.family: gameFont
-                            font.pixelSize: 24
+                            font.pixelSize: 32
                             font.bold: true
                             color: p3
                         }
@@ -245,14 +296,15 @@ Window {
 
                     Rectangle {
                         anchors.fill: parent
-                        color: Qt.rgba(p3.r, p3.g, p3.b, 0.6)
-                        visible: gameLogic.state === 3
+                        color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
+                        visible: gameLogic.state === 4
                         Text {
                             anchors.centerIn: parent
                             color: p0
                             font.family: gameFont
-                            font.pixelSize: 18
-                            text: qsTr("GAME OVER\nScore: %1\nPress Start").arg(gameLogic.score)
+                            font.pixelSize: 20
+                            font.bold: true
+                            text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score)
                             horizontalAlignment: Text.AlignHCenter
                         }
                     }
@@ -299,9 +351,9 @@ Window {
                 id: aBtnUI
                 text: "A"
                 onClicked: {
-                    if (gameLogic.state === 0) {
+                    if (gameLogic.state === 1) {
                         gameLogic.startGame()
-                    } else if (gameLogic.state === 3) {
+                    } else if (gameLogic.state === 4) {
                         gameLogic.restart()
                     }
                 }
@@ -315,23 +367,26 @@ Window {
             spacing: 30
             SmallButton {
                 id: selectBtnUI
-                text: qsTr("SELECT")
+                text: "SELECT"
                 onClicked: {
-                    if (gameLogic.state === 0) {
-                        if (gameLogic.hasSave) gameLogic.loadLastSession()
-                        else gameLogic.nextLevel()
+                    if (gameLogic.state === 1) {
+                        if (gameLogic.hasSave) {
+                            gameLogic.loadLastSession()
+                        } else {
+                            gameLogic.nextLevel()
+                        }
                     }
                 }
             }
             SmallButton {
                 id: startBtnUI
-                text: qsTr("START")
+                text: "START"
                 onClicked: {
-                    if (gameLogic.state === 0) {
+                    if (gameLogic.state === 1) {
                         gameLogic.startGame()
-                    } else if (gameLogic.state === 3) {
+                    } else if (gameLogic.state === 4) {
                         gameLogic.restart()
-                    } else {
+                    } else if (gameLogic.state > 1) {
                         gameLogic.togglePause()
                     }
                 }
@@ -359,11 +414,11 @@ Window {
                 gameLogic.move(1, 0)
             } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
                 startBtnUI.isPressed = true
-                if (gameLogic.state === 0) {
+                if (gameLogic.state === 1) {
                     gameLogic.startGame()
-                } else if (gameLogic.state === 3) {
+                } else if (gameLogic.state === 4) {
                     gameLogic.restart()
-                } else {
+                } else if (gameLogic.state > 1) {
                     gameLogic.togglePause()
                 }
             } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
@@ -373,9 +428,12 @@ Window {
                 gameLogic.nextPalette()
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
-                if (gameLogic.state === 0) {
-                    if (gameLogic.hasSave) gameLogic.loadLastSession()
-                    else gameLogic.nextLevel()
+                if (gameLogic.state === 1) {
+                    if (gameLogic.hasSave) {
+                        gameLogic.loadLastSession()
+                    } else {
+                        gameLogic.nextLevel()
+                    }
                 }
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()

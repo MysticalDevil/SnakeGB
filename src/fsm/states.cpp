@@ -5,6 +5,23 @@
 #include <algorithm>
 #include <ranges>
 
+// --- SplashState ---
+void SplashState::enter() {
+    m_context.setInternalState(GameLogic::Splash);
+    // 经典的开机“叮”声：高频短音
+    m_context.m_soundManager->playBeep(1046, 100); 
+}
+
+void SplashState::update() {
+    static int splashFrames = 0;
+    splashFrames++;
+    // 假设 150ms 一个周期，约 1.5 秒后进入菜单
+    if (splashFrames > 10) {
+        splashFrames = 0;
+        m_context.changeState(std::make_unique<MenuState>(m_context));
+    }
+}
+
 // --- MenuState ---
 void MenuState::enter() {
     m_context.setInternalState(GameLogic::StartMenu);
@@ -42,16 +59,15 @@ void PlayingState::update() {
         logic.updateHighScore();
         logic.clearSavedState();
         logic.m_soundManager->playCrash(500);
-        emit logic.requestFeedback();
+        
+        emit logic.requestFeedback(8);
         
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
-    // 录制当前帧
     logic.m_currentRecording.append(nextHead);
     
-    // 推进幽灵回放帧
     if (logic.m_ghostFrameIndex < logic.m_bestRecording.size()) {
         logic.m_ghostFrameIndex++;
         emit logic.ghostChanged();
@@ -65,7 +81,7 @@ void PlayingState::update() {
 
         emit logic.scoreChanged();
         logic.spawnFood();
-        emit logic.requestFeedback();
+        emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
     }
     logic.m_snakeModel.moveHead(nextHead, grew);
 }
@@ -88,6 +104,7 @@ void PausedState::enter() {
     m_context.setInternalState(GameLogic::Paused);
     m_context.m_timer->stop();
     m_context.saveCurrentState();
+    emit m_context.requestFeedback(2);
 }
 
 void PausedState::handleStart() {
