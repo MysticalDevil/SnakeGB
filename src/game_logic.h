@@ -10,10 +10,6 @@
 #include <deque>
 #include <memory>
 
-/**
- * @class SnakeModel
- * @brief 优化后的蛇身模型，作为数据唯一源
- */
 class SnakeModel : public QAbstractListModel {
     Q_OBJECT
 public:
@@ -25,17 +21,18 @@ public:
     }
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() >= static_cast<int>(m_body.size())) return {};
-        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
+        if (!index.isValid() || index.row() >= static_cast<int>(m_body.size())) {
+            return {};
+        }
+        if (role == PositionRole) {
+            return m_body[static_cast<size_t>(index.row())];
+        }
         return {};
     }
 
-    QHash<int, QByteArray> roleNames() const override {
-        return {{PositionRole, "pos"}};
-    }
+    QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
 
-    // 直接暴露 deque 用于 GameLogic 逻辑判断
-    const std::deque<QPoint>& body() const noexcept { return m_body; }
+    [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
 
     void reset(const std::deque<QPoint> &newBody) {
         beginResetModel();
@@ -82,9 +79,13 @@ public:
     [[nodiscard]] int score() const noexcept { return m_score; }
     [[nodiscard]] int highScore() const noexcept { return m_highScore; }
     [[nodiscard]] State state() const noexcept { return m_state; }
-    
-    static constexpr int boardWidth() noexcept { return 20; }
-    static constexpr int boardHeight() noexcept { return 18; }
+
+    // 改为变量以解决 constexpr 初始化顺序问题
+    static constexpr int BOARD_WIDTH = 20;
+    static constexpr int BOARD_HEIGHT = 18;
+
+    [[nodiscard]] int boardWidth() const noexcept { return BOARD_WIDTH; }
+    [[nodiscard]] int boardHeight() const noexcept { return BOARD_HEIGHT; }
 
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame();
@@ -104,7 +105,8 @@ private slots:
 private:
     void spawnFood();
     void updateHighScore();
-    [[nodiscard]] auto isOutOfBounds(const QPoint &p) const noexcept -> bool;
+
+    [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
     QPoint m_food;
@@ -112,8 +114,9 @@ private:
     int m_score = 0;
     int m_highScore = 0;
     State m_state = StartMenu;
-    
+
     std::unique_ptr<QTimer> m_timer;
     QSettings m_settings{"MyCompany", "SnakeGB"};
-    const QRect m_boardRect{0, 0, boardWidth(), boardHeight()};
+
+    static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };
