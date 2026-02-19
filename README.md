@@ -1,43 +1,45 @@
 # SnakeGB - Retro GameBoy Style Snake Game
 
-SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高品质仿 GameBoy 贪吃蛇游戏。本项目从底层架构到顶层视觉均模拟了经典的复古掌机体验。
+[中文版](README_zh.md)
 
-> **注意**：本项目的所有代码、资源配置及文档均由 **Gemini CLI** (AI Agent) 自动生成并迭代优化。
+SnakeGB is a high-quality GameBoy-style Snake game built with **Qt 6** and **C++23**. This project simulates the classic retro handheld experience from low-level architecture to top-level visuals.
 
-## 核心特性
+> **Note**: All code, resource configurations, and documentation for this project were automatically generated and iteratively optimized by **Gemini CLI** (AI Agent).
 
-- **现代 C++23**：全面应用 `std::ranges`、尾置返回、智能指针及严格的 `const` 语义。
-- **高性能渲染**：
-  - 基于 **Vulkan** 后端的 RHI 渲染。
-  - **ShaderEffect**：物理模拟 LCD 像素网格、球面畸变及暗角。
-  - **SnakeModel**：基于 `QAbstractListModel` 的增量刷新，确保 QML 渲染零抖动。
-- **8-bit 视听系统**：
-  - **Procedural Audio**：内存生成方波与噪声，支持多通道 BGM 与 SFX 混音。
-  - **ADSR 包络**：优化的音量渐入渐出，听感柔和。
-- **极致交互**：
-  - **输入缓冲 (Input Queue)**：解决快速转向冲突，手感丝滑。
-  - **动态震动反馈**：根据游戏强度自动调整屏幕抖动。
-- **完整游戏机制**：
-  - **有限状态机 (FSM)**：解耦的状态管理。
-  - **Savestate**：自动保存进度、分数及关卡设置。
-  - **幽灵回放 (Ghost System)**：与历史最高分的残影同台竞技。
-  - **关卡系统**：支持 JSON 结构化关卡加载。
+## Core Features
 
-## 技术栈
+- **Modern C++23**: Full use of `std::ranges`, trailing return types, smart pointers, and strict `const` semantics.
+- **High-Performance Rendering**:
+  - RHI rendering based on the **Vulkan** backend.
+  - **ShaderEffect**: Physical simulation of LCD pixel grids, barrel distortion, and vignetting.
+  - **SnakeModel**: Incremental updates based on `QAbstractListModel` to ensure jitter-free QML rendering.
+- **8-bit Audiovisual System**:
+  - **Procedural Audio**: In-memory generation of square waves and noise, supporting multi-channel BGM and SFX mixing.
+  - **ADSR Envelope**: Optimized volume attack and decay for a soft, pleasant sound.
+- **Superior Interaction**:
+  - **Input Queue**: Resolves rapid-turn conflicts for smooth, responsive controls.
+  - **Dynamic Vibration**: Automatically adjusts screen shake intensity based on gameplay events.
+- **Complete Game Mechanics**:
+  - **Finite State Machine (FSM)**: Decoupled state management.
+  - **Savestate**: Automatic persistence of progress, scores, and level settings.
+  - **Ghost System**: Compete against the translucent phantom of your all-time high score.
+  - **Level System**: Supports structured level loading via JSON.
 
-- **语言**：C++23
-- **框架**：Qt 6.x (Quick/QML, Multimedia, ShaderTools)
-- **构建系统**：CMake + Ninja
-- **质量保障**：QtTest, Clang-Tidy, Clang-Format, GitHub Actions CI
+## Tech Stack
 
-## 快速开始
+- **Language**: C++23
+- **Framework**: Qt 6.x (Quick/QML, Multimedia, ShaderTools)
+- **Build System**: CMake + Ninja
+- **Quality Assurance**: QtTest, Clang-Tidy, Clang-Format, GitHub Actions CI
 
-### 依赖要求
-- Qt 6.5+ (包含 Multimedia, ShaderTools 模块)
-- 支持 Vulkan 的驱动
-- Doxygen (可选，用于生成文档)
+## Getting Started
 
-### 编译运行
+### Prerequisites
+- Qt 6.5+ (including Multimedia and ShaderTools modules)
+- Vulkan-capable drivers
+- Doxygen (optional, for documentation generation)
+
+### Build and Run
 ```bash
 mkdir build && cd build
 cmake -G Ninja ..
@@ -45,19 +47,19 @@ ninja
 ./gameboy-snack
 ```
 
-### 运行测试
+### Run Tests
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-## 操控说明
-- **方向键**：移动
-- **Enter / S**：开始 (START)
-- **Shift**：选择关卡 / 恢复存档 (SELECT)
-- **B / X**：切换调色盘 / 返回主页
-- **M**：开启/关闭音乐
-- **Ctrl**：切换机身颜色
+## Controls
+- **Arrow Keys**: Move
+- **Enter / S**: START
+- **Shift**: SELECT (Level selection / Resume save)
+- **B / X**: Toggle palette / Return to menu
+- **M**: Toggle music
+- **Ctrl**: Toggle shell color
 
-## 许可证
-本项目采用 [MIT License](LICENSE) 开源协议。
+## License
+This project is licensed under the [MIT License](LICENSE).
