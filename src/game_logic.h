@@ -19,17 +19,11 @@ class PlayingState;
 class PausedState;
 class GameOverState;
 
-/**
- * @class SnakeModel
- * @brief Optimized list model for the snake body.
- */
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-    
-    // Rule of Five - Modernization
     ~SnakeModel() override = default;
     SnakeModel(const SnakeModel &) = delete;
     auto operator=(const SnakeModel &) -> SnakeModel & = delete;
@@ -39,54 +33,31 @@ public:
     [[nodiscard]] auto rowCount(const QModelIndex & /*parent*/ = QModelIndex()) const noexcept -> int override {
         return static_cast<int>(m_body.size());
     }
-
     [[nodiscard]] auto data(const QModelIndex &index, int role = Qt::DisplayRole) const -> QVariant override {
-        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) {
-            return {};
-        }
-        if (role == PositionRole) {
-            return m_body[static_cast<size_t>(index.row())];
-        }
+        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
+        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
         return {};
     }
-
-    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override {
-        return {{PositionRole, "pos"}};
-    }
-
+    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override { return {{PositionRole, "pos"}}; }
     [[nodiscard]] auto body() const noexcept -> const std::deque<QPoint> & { return m_body; }
-
-    auto reset(const std::deque<QPoint> &newBody) -> void {
-        beginResetModel();
-        m_body = newBody;
-        endResetModel();
-    }
-
+    auto reset(const std::deque<QPoint> &newBody) -> void { beginResetModel(); m_body = newBody; endResetModel(); }
     auto moveHead(const QPoint &newHead, const bool grew) -> void {
-        beginInsertRows(QModelIndex(), 0, 0);
-        m_body.emplace_front(newHead);
-        endInsertRows();
-
+        beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            beginRemoveRows(QModelIndex(), last, last);
-            m_body.pop_back();
-            endRemoveRows();
+            beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows();
         }
     }
-
 private:
     std::deque<QPoint> m_body;
 };
 
-/**
- * @class GameLogic
- * @brief Core logic manager for the game.
- */
 class GameLogic final : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
     Q_PROPERTY(QPoint food READ food NOTIFY foodChanged)
+    Q_PROPERTY(QPoint powerUpPos READ powerUpPos NOTIFY powerUpChanged)
+    Q_PROPERTY(int powerUpType READ powerUpType NOTIFY powerUpChanged)
     Q_PROPERTY(int score READ score NOTIFY scoreChanged)
     Q_PROPERTY(int highScore READ highScore NOTIFY highScoreChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
@@ -100,15 +71,17 @@ class GameLogic final : public QObject {
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
+    Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
 
 public:
     enum State { Splash, StartMenu, Playing, Paused, GameOver };
+    enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3 };
     Q_ENUM(State)
+    Q_ENUM(PowerUp)
 
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // Rule of Five - Modernization
     GameLogic(const GameLogic &) = delete;
     auto operator=(const GameLogic &) -> GameLogic & = delete;
     GameLogic(GameLogic &&) = delete;
@@ -116,6 +89,9 @@ public:
 
     [[nodiscard]] auto snakeModel() noexcept -> SnakeModel * { return &m_snakeModel; }
     [[nodiscard]] auto food() const noexcept -> QPoint { return m_food; }
+    [[nodiscard]] auto powerUpPos() const noexcept -> QPoint { return m_powerUpPos; }
+    [[nodiscard]] auto powerUpType() const noexcept -> int { return static_cast<int>(m_powerUpType); }
+    [[nodiscard]] auto activeBuff() const noexcept -> int { return static_cast<int>(m_activeBuff); }
     [[nodiscard]] auto score() const noexcept -> int { return m_score; }
     [[nodiscard]] auto highScore() const noexcept -> int { return m_highScore; }
     [[nodiscard]] auto state() const noexcept -> State { return m_state; }
@@ -160,6 +136,8 @@ public:
 
 signals:
     void foodChanged();
+    void powerUpChanged();
+    void buffChanged();
     void scoreChanged();
     void highScoreChanged();
     void stateChanged();
@@ -174,9 +152,11 @@ signals:
 
 private slots:
     void update();
+    void deactivateBuff();
 
 private:
     auto spawnFood() -> void;
+    auto spawnPowerUp() -> void;
     auto updateHighScore() -> void;
     auto saveCurrentState() -> void;
     auto clearSavedState() -> void;
@@ -185,6 +165,10 @@ private:
 
     SnakeModel m_snakeModel;
     QPoint m_food = {0, 0};
+    QPoint m_powerUpPos = {-1, -1};
+    PowerUp m_powerUpType = None;
+    PowerUp m_activeBuff = None;
+    
     QPoint m_direction = {0, -1};
     int m_score = 0;
     int m_highScore = 0;
@@ -203,6 +187,8 @@ private:
     QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
     std::deque<QPoint> m_inputQueue;
+    
+    std::unique_ptr<QTimer> m_buffTimer;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

@@ -9,22 +9,16 @@ namespace {
     constexpr int SplashFramesMax = 10;
     constexpr int BootBeepFreq = 1046;
     constexpr int BootBeepDuration = 100;
+    constexpr int BuffDurationMs = 8000;
 }
 
 // --- SplashState ---
 auto SplashState::enter() -> void {
     m_context.setInternalState(GameLogic::Splash);
-    
-    // Safety Fix: Capture by reference to the context, which outlives the state object
     GameLogic& logic = m_context;
-    QTimer::singleShot(100, [&logic]() {
-        logic.lazyInit();
-    });
-
+    QTimer::singleShot(100, [&logic]() { logic.lazyInit(); });
     m_context.m_timer->start(150); 
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
-    }
+    if (m_context.m_soundManager) m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
 }
 
 auto SplashState::update() -> void {
@@ -39,25 +33,16 @@ auto SplashState::update() -> void {
 // --- MenuState ---
 auto MenuState::enter() -> void {
     m_context.setInternalState(GameLogic::StartMenu);
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->startMusic();
-    }
+    if (m_context.m_soundManager) m_context.m_soundManager->startMusic();
 }
 
 auto MenuState::handleStart() -> void {
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->stopMusic();
-    }
-    if (m_context.hasSave()) {
-        m_context.loadLastSession();
-    } else {
-        m_context.startGame();
-    }
+    if (m_context.m_soundManager) m_context.m_soundManager->stopMusic();
+    if (m_context.hasSave()) m_context.loadLastSession();
+    else m_context.startGame();
 }
 
-auto MenuState::handleSelect() -> void {
-    m_context.nextLevel();
-}
+auto MenuState::handleSelect() -> void { m_context.nextLevel(); }
 
 // --- PlayingState ---
 auto PlayingState::enter() -> void {
@@ -67,7 +52,6 @@ auto PlayingState::enter() -> void {
 
 auto PlayingState::update() -> void {
     auto& logic = m_context;
-
     if (!logic.m_inputQueue.empty()) {
         logic.m_direction = logic.m_inputQueue.front();
         logic.m_inputQueue.pop_front();
@@ -75,32 +59,42 @@ auto PlayingState::update() -> void {
 
     const auto &body = logic.m_snakeModel.body();
     if (body.empty()) return;
-
     const QPoint nextHead = body.front() + logic.m_direction;
 
-    if (GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(body, nextHead) ||
-        std::ranges::contains(logic.m_obstacles, nextHead)) {
-        
+    // Magnet Effect
+    if (logic.m_activeBuff == GameLogic::Magnet) {
+        if (std::abs(logic.m_food.x() - nextHead.x()) <= 1 && std::abs(logic.m_food.y() - nextHead.y()) <= 1) {
+            logic.m_food = nextHead;
+        }
+    }
+
+    // Collision detection (Bypassed if Ghost mode is active)
+    bool collision = GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(logic.m_obstacles, nextHead);
+    if (logic.m_activeBuff != GameLogic::Ghost) {
+        collision = collision || std::ranges::contains(body, nextHead);
+    }
+
+    if (collision) {
         logic.m_timer->stop();
+        logic.m_buffTimer->stop();
         logic.updateHighScore();
         logic.clearSavedState();
-        if (logic.m_soundManager) {
-            logic.m_soundManager->playCrash(500);
-        }
+        if (logic.m_soundManager) logic.m_soundManager->playCrash(500);
         emit logic.requestFeedback(8);
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
     logic.m_currentRecording.append(nextHead);
-    
     if (logic.m_ghostFrameIndex < static_cast<int>(logic.m_bestRecording.size())) {
         logic.m_ghostFrameIndex++;
         emit logic.ghostChanged();
     }
 
-    const bool grew = (nextHead == logic.m_food);
-    if (grew) {
+    const bool ateFood = (nextHead == logic.m_food);
+    const bool atePowerUp = (nextHead == logic.m_powerUpPos);
+
+    if (ateFood) {
         logic.m_score++;
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
@@ -109,34 +103,43 @@ auto PlayingState::update() -> void {
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         emit logic.scoreChanged();
         logic.spawnFood();
+        // Spawning power-up chance (20%)
+        if (QRandomGenerator::global()->bounded(100) < 20 && logic.m_powerUpPos == QPoint(-1, -1)) {
+            logic.spawnPowerUp();
+        }
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
     }
-    logic.m_snakeModel.moveHead(nextHead, grew);
+
+    if (atePowerUp) {
+        logic.m_activeBuff = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
+        logic.m_powerUpPos = QPoint(-1, -1);
+        logic.m_buffTimer->start(BuffDurationMs);
+        if (logic.m_soundManager) logic.m_soundManager->playBeep(1200, 150);
+        
+        if (logic.m_activeBuff == GameLogic::Slow) {
+            logic.m_timer->setInterval(250);
+        }
+        emit logic.buffChanged();
+        emit logic.powerUpChanged();
+    }
+
+    logic.m_snakeModel.moveHead(nextHead, ateFood);
 }
 
 auto PlayingState::handleInput(int /*dx*/, int /*dy*/) -> void {}
-
-auto PlayingState::handleStart() -> void {
-    m_context.togglePause();
-}
+auto PlayingState::handleStart() -> void { m_context.togglePause(); }
 
 // --- PausedState ---
 auto PausedState::enter() -> void {
     m_context.setInternalState(GameLogic::Paused);
     m_context.m_timer->stop();
+    m_context.m_buffTimer->stop();
     m_context.saveCurrentState();
     emit m_context.requestFeedback(2);
 }
 
-auto PausedState::handleStart() -> void {
-    m_context.togglePause();
-}
+auto PausedState::handleStart() -> void { m_context.togglePause(); }
 
 // --- GameOverState ---
-void GameOverState::enter() {
-    m_context.setInternalState(GameLogic::GameOver);
-}
-
-void GameOverState::handleStart() {
-    m_context.restart();
-}
+void GameOverState::enter() { m_context.setInternalState(GameLogic::GameOver); }
+void GameOverState::handleStart() { m_context.restart(); }
