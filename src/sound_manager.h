@@ -26,7 +26,6 @@ public:
     Q_INVOKABLE void stopMusic();
     [[nodiscard]] bool musicEnabled() const { return m_musicEnabled; }
 
-    // Async init to prevent startup lag
     void initAudioAsync();
 
 private slots:
@@ -45,8 +44,12 @@ private:
     bool m_musicEnabled = true;
     int m_noteIndex = 0;
 
+    // Classic-style GameBoy melody (restored and extended)
     const std::vector<std::pair<int, int>> m_melody = {
-        {440, 300}, {494, 300}, {523, 300}, {587, 300},
-        {659, 600}, {587, 600}, {523, 300}, {494, 300}, {440, 600}
+        {440, 300}, {494, 300}, {523, 300}, {587, 300}, {659, 600}, {587, 600},
+        {523, 300}, {494, 300}, {440, 600}, {0, 300},
+        {330, 300}, {392, 300}, {440, 600}, {392, 300}, {330, 300}, {293, 600},
+        {440, 300}, {494, 300}, {523, 300}, {587, 300}, {659, 600}, {784, 600},
+        {880, 600}, {784, 300}, {659, 300}, {587, 600}
     };
 };

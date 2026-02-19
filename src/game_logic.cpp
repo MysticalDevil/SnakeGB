@@ -26,7 +26,6 @@ GameLogic::GameLogic(QObject *parent)
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
-
     m_fsmState = std::make_unique<SplashState>(*this);
     m_fsmState->enter();
 }
@@ -47,27 +46,17 @@ void GameLogic::lazyInit() {
 
 GameLogic::~GameLogic() {
     m_timer->stop();
-    if (m_state == Playing || m_state == Paused) {
-        saveCurrentState();
-    }
+    if (m_state == Playing || m_state == Paused) saveCurrentState();
 }
 
 void GameLogic::changeState(std::unique_ptr<GameState> newState) {
-    if (m_fsmState) {
-        m_fsmState->exit();
-    }
-    // Perform swap to ensure pointer validity during transition if possible
+    if (m_fsmState) m_fsmState->exit();
     m_fsmState = std::move(newState);
-    if (m_fsmState) {
-        m_fsmState->enter();
-    }
+    if (m_fsmState) m_fsmState->enter();
 }
 
 void GameLogic::setInternalState(State s) {
-    if (m_state != s) {
-        m_state = s;
-        emit stateChanged();
-    }
+    if (m_state != s) { m_state = s; emit stateChanged(); }
 }
 
 void GameLogic::startGame() { restart(); }
@@ -131,8 +120,6 @@ void GameLogic::clearSavedState() {
 bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
 
 void GameLogic::move(const int dx, const int dy) {
-    // Logic removal: Only add to queue, don't check m_fsmState for direction validation here
-    // to prevent race conditions during state transitions.
     if (m_inputQueue.size() < 2) {
         QPoint lastDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
         if ((dx != 0 && lastDir.x() == -dx) || (dy != 0 && lastDir.y() == -dy)) return;
@@ -141,11 +128,7 @@ void GameLogic::move(const int dx, const int dy) {
     }
 }
 
-void GameLogic::update() { 
-    if (m_fsmState) {
-        m_fsmState->update(); 
-    }
-}
+void GameLogic::update() { if (m_fsmState) m_fsmState->update(); }
 
 void GameLogic::nextPalette() {
     m_paletteIndex = (m_paletteIndex + 1) % 6;
@@ -174,7 +157,12 @@ void GameLogic::toggleMusic() {
     if (!m_soundManager) return;
     bool nextEnabled = !m_soundManager->musicEnabled();
     m_soundManager->setMusicEnabled(nextEnabled);
-    if (nextEnabled && m_state == StartMenu) m_soundManager->startMusic();
+    
+    // Fix: Resume music immediately if unmuted and not in Splash
+    if (nextEnabled && m_state != Splash) {
+        m_soundManager->startMusic();
+    }
+    
     emit musicEnabledChanged();
 }
 
