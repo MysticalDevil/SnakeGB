@@ -184,8 +184,16 @@ Window {
                                 z: -1
                                 SequentialAnimation on scale {
                                     loops: Animation.Infinite
-                                    NumberAnimation { from: 0.8; to: 1.2; duration: 500 }
-                                    NumberAnimation { from: 1.2; to: 0.8; duration: 500 }
+                                    NumberAnimation {
+                                        from: 0.8
+                                        to: 1.2
+                                        duration: 500
+                                    }
+                                    NumberAnimation {
+                                        from: 1.2
+                                        to: 0.8
+                                        duration: 500
+                                    }
                                 }
                             }
                         }
@@ -327,8 +335,16 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
-                                    NumberAnimation { from: 1; to: 0; duration: 800 }
-                                    NumberAnimation { from: 0; to: 1; duration: 800 }
+                                    NumberAnimation {
+                                        from: 1
+                                        to: 0
+                                        duration: 800
+                                    }
+                                    NumberAnimation {
+                                        from: 0
+                                        to: 1
+                                        duration: 800
+                                    }
                                 }
                             }
                             Text {
@@ -415,7 +431,9 @@ Window {
                         Timer {
                             id: osdTimer
                             interval: 1000
-                            onTriggered: osdBox.visible = false
+                            onTriggered: {
+                                osdBox.visible = false
+                            }
                         }
                     }
                 }
@@ -440,10 +458,18 @@ Window {
             anchors.bottomMargin: 110
             anchors.left: parent.left
             anchors.leftMargin: 25
-            onUpClicked: gameLogic.move(0, -1)
-            onDownClicked: gameLogic.move(0, 1)
-            onLeftClicked: gameLogic.move(-1, 0)
-            onRightClicked: gameLogic.move(1, 0)
+            onUpClicked: {
+                gameLogic.move(0, -1)
+            }
+            onDownClicked: {
+                gameLogic.move(0, 1)
+            }
+            onLeftClicked: {
+                gameLogic.move(-1, 0)
+            }
+            onRightClicked: {
+                gameLogic.move(1, 0)
+            }
         }
 
         Row {
@@ -506,7 +532,9 @@ Window {
     Item {
         focus: true
         Keys.onPressed: (event) => {
-            if (event.isAutoRepeat) return
+            if (event.isAutoRepeat) {
+                return
+            }
             if (event.key === Qt.Key_Up) {
                 dpadUI.upPressed = true
                 gameLogic.move(0, -1)
@@ -546,15 +574,24 @@ Window {
             }
         }
         Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) dpadUI.upPressed = false
-            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false
-            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false
-            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
-            else if (event.key === Qt.Key_Shift) {
+            if (event.isAutoRepeat) {
+                return
+            }
+            if (event.key === Qt.Key_Up) {
+                dpadUI.upPressed = false
+            } else if (event.key === Qt.Key_Down) {
+                dpadUI.downPressed = false
+            } else if (event.key === Qt.Key_Left) {
+                dpadUI.leftPressed = false
+            } else if (event.key === Qt.Key_Right) {
+                dpadUI.rightPressed = false
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                startBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
+                aBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                bBtnUI.isPressed = false
+            } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = false
                 if (longPressTimer.running) {
                     longPressTimer.stop()
