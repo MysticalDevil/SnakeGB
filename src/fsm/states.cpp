@@ -69,9 +69,7 @@ auto PlayingState::update() -> void {
     }
 
     const auto &body = logic.m_snakeModel.body();
-    if (body.empty()) {
-        return;
-    }
+    if (body.empty()) return;
     const QPoint nextHead = body.front() + logic.m_direction;
 
     if (logic.m_activeBuff == GameLogic::Magnet) {
@@ -89,11 +87,9 @@ auto PlayingState::update() -> void {
         logic.m_timer->stop();
         logic.m_buffTimer->stop();
         logic.updateHighScore();
-        logic.incrementCrashes(); // Count for Centurion achievement
+        logic.incrementCrashes();
         logic.clearSavedState();
-        if (logic.m_soundManager) {
-            logic.m_soundManager->playCrash(500);
-        }
+        if (logic.m_soundManager) logic.m_soundManager->playCrash(500);
         emit logic.requestFeedback(8);
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
@@ -110,7 +106,7 @@ auto PlayingState::update() -> void {
 
     if (ateFood) {
         logic.m_score++;
-        logic.logFoodEaten(); // Count for Gourmet achievement
+        logic.logFoodEaten();
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);
@@ -127,27 +123,88 @@ auto PlayingState::update() -> void {
     if (atePowerUp) {
         auto pType = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
         logic.m_activeBuff = pType;
-        logic.logPowerUpTriggered(pType); // Count for Untouchable achievement
+        logic.logPowerUpTriggered(pType);
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
-        if (logic.m_soundManager) {
-            logic.m_soundManager->playBeep(1200, 150);
-        }
-        if (logic.m_activeBuff == GameLogic::Slow) {
-            logic.m_timer->setInterval(250);
-        }
+        if (logic.m_soundManager) logic.m_soundManager->playBeep(1200, 150);
+        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
         emit logic.buffChanged();
         emit logic.powerUpChanged();
     }
 
-    // Check time-based achievements like Pacifist
     logic.checkAchievements();
-
     logic.m_snakeModel.moveHead(nextHead, ateFood);
 }
 
 auto PlayingState::handleInput(int /*dx*/, int /*dy*/) -> void {}
 auto PlayingState::handleStart() -> void { m_context.togglePause(); }
+
+// --- ReplayingState ---
+auto ReplayingState::enter() -> void {
+    m_context.setInternalState(GameLogic::Replaying);
+    m_context.m_timer->start();
+}
+
+auto ReplayingState::update() -> void {
+    auto& logic = m_context;
+    
+    // Inject historical input
+    for (const auto &f : logic.m_bestInputHistory) {
+        if (f.frame == logic.m_gameTickCounter) {
+            logic.m_direction = QPoint(f.dx, f.dy);
+        }
+    }
+
+    const auto &body = logic.m_snakeModel.body();
+    if (body.empty()) return;
+    const QPoint nextHead = body.front() + logic.m_direction;
+
+    if (logic.m_activeBuff == GameLogic::Magnet) {
+        if (std::abs(logic.m_food.x() - nextHead.x()) <= 1 && std::abs(logic.m_food.y() - nextHead.y()) <= 1) {
+            logic.m_food = nextHead;
+        }
+    }
+
+    bool collision = GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(logic.m_obstacles, nextHead);
+    if (logic.m_activeBuff != GameLogic::Ghost) {
+        collision = collision || std::ranges::contains(body, nextHead);
+    }
+
+    if (collision) {
+        logic.m_timer->stop();
+        logic.m_soundManager->playCrash(500);
+        logic.changeState(std::make_unique<MenuState>(logic));
+        return;
+    }
+
+    const bool ateFood = (nextHead == logic.m_food);
+    const bool atePowerUp = (nextHead == logic.m_powerUpPos);
+
+    if (ateFood) {
+        logic.m_score++;
+        logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
+        emit logic.scoreChanged();
+        logic.spawnFood();
+        if (QRandomGenerator::global()->bounded(100) < 20 && logic.m_powerUpPos == QPoint(-1, -1)) {
+            logic.spawnPowerUp();
+        }
+    }
+
+    if (atePowerUp) {
+        logic.m_activeBuff = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
+        logic.m_powerUpPos = QPoint(-1, -1);
+        logic.m_buffTimer->start(BuffDurationMs);
+        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
+        emit logic.buffChanged();
+        emit logic.powerUpChanged();
+    }
+
+    logic.m_snakeModel.moveHead(nextHead, ateFood);
+}
+
+auto ReplayingState::handleStart() -> void {
+    m_context.changeState(std::make_unique<MenuState>(m_context));
+}
 
 // --- PausedState ---
 auto PausedState::enter() -> void {
@@ -158,7 +215,9 @@ auto PausedState::enter() -> void {
     emit m_context.requestFeedback(2);
 }
 
-auto PausedState::handleStart() -> void { m_context.togglePause(); }
+auto PausedState::handleStart() -> void {
+    m_context.togglePause();
+}
 
 // --- GameOverState ---
 void GameOverState::enter() {

@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QTimer>
 #include <QVariantList>
+#include <QRandomGenerator>
 #include <deque>
 #include <memory>
 #include <queue>
@@ -16,8 +17,17 @@ class GameState;
 class SplashState;
 class MenuState;
 class PlayingState;
+class ReplayingState;
 class PausedState;
 class GameOverState;
+
+struct ReplayFrame {
+    int frame;
+    int dx;
+    int dy;
+    friend QDataStream &operator<<(QDataStream &out, const ReplayFrame &f) { return out << f.frame << f.dx << f.dy; }
+    friend QDataStream &operator>>(QDataStream &in, ReplayFrame &f) { return in >> f.frame >> f.dx >> f.dy; }
+};
 
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
@@ -39,17 +49,13 @@ public:
         return {};
     }
     [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override { return {{PositionRole, "pos"}}; }
-    [[nodiscard]] auto body() const noexcept -> const std::deque<QPoint> & { return m_body; }
+    [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
     auto reset(const std::deque<QPoint> &newBody) -> void { beginResetModel(); m_body = newBody; endResetModel(); }
     auto moveHead(const QPoint &newHead, const bool grew) -> void {
         beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            if (last >= 0) {
-                beginRemoveRows(QModelIndex(), last, last);
-                m_body.pop_back();
-                endRemoveRows();
-            }
+            if (last >= 0) { beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows(); }
         }
     }
 private:
@@ -72,16 +78,16 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
+    Q_PROPERTY(bool hasReplay READ hasReplay NOTIFY highScoreChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
-    // New: Full library of medals for "???" display
     Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying };
     enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3 };
     Q_ENUM(State)
     Q_ENUM(PowerUp)
@@ -109,6 +115,7 @@ public:
     [[nodiscard]] auto obstacles() const noexcept -> QVariantList;
     [[nodiscard]] auto shellColor() const noexcept -> QColor;
     [[nodiscard]] auto hasSave() const noexcept -> bool;
+    [[nodiscard]] auto hasReplay() const noexcept -> bool;
     [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
     [[nodiscard]] auto ghost() const noexcept -> QVariantList;
     [[nodiscard]] auto musicEnabled() const noexcept -> bool;
@@ -120,6 +127,7 @@ public:
 
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame();
+    Q_INVOKABLE void startReplay();
     Q_INVOKABLE void restart();
     Q_INVOKABLE void togglePause();
     Q_INVOKABLE void nextPalette();
@@ -144,6 +152,7 @@ public:
     friend class SplashState;
     friend class MenuState;
     friend class PlayingState;
+    friend class ReplayingState;
     friend class PausedState;
     friend class GameOverState;
 
@@ -178,12 +187,13 @@ private:
     auto loadLevelData(int index) -> void;
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
+    // --- Data Order for Initialization Safety ---
     SnakeModel m_snakeModel;
+    QRandomGenerator m_rng;
     QPoint m_food = {0, 0};
     QPoint m_powerUpPos = {-1, -1};
     PowerUp m_powerUpType = None;
     PowerUp m_activeBuff = None;
-    
     QPoint m_direction = {0, -1};
     int m_score = 0;
     int m_highScore = 0;
@@ -192,20 +202,24 @@ private:
     int m_shellIndex = 0;
     int m_levelIndex = 0;
     QList<QPoint> m_obstacles;
-
     QList<QPoint> m_currentRecording;
     QList<QPoint> m_bestRecording;
     int m_ghostFrameIndex = 0;
-
+    uint m_randomSeed = 0;
+    uint m_bestRandomSeed = 0;
+    int m_gameTickCounter = 0;
+    QList<ReplayFrame> m_currentInputHistory;
+    QList<ReplayFrame> m_bestInputHistory;
     int m_totalCrashes = 0;
     int m_totalFoodEaten = 0;
     int m_totalGhostTriggers = 0;
     qint64 m_sessionStartTime = 0;
     QList<QString> m_unlockedMedals;
+    QSettings m_settings;
 
+    // Smart Pointers Last
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
-    QSettings m_settings;
     std::unique_ptr<GameState> m_fsmState;
     std::deque<QPoint> m_inputQueue;
     std::unique_ptr<QTimer> m_buffTimer;

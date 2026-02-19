@@ -1,17 +1,20 @@
 #pragma once
 
 #include "game_state.h"
+#include <memory>
+
+class GameLogic;
 
 class SplashState : public GameState {
 public:
-    using GameState::GameState;
+    explicit SplashState(GameLogic& logic) : GameState(logic) {}
     void enter() override;
     void update() override;
 };
 
 class MenuState : public GameState {
 public:
-    using GameState::GameState;
+    explicit MenuState(GameLogic& logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
     void handleSelect() override;
@@ -19,23 +22,31 @@ public:
 
 class PlayingState : public GameState {
 public:
-    using GameState::GameState;
+    explicit PlayingState(GameLogic& logic) : GameState(logic) {}
     void enter() override;
     void update() override;
     void handleInput(int dx, int dy) override;
     void handleStart() override;
 };
 
+class ReplayingState : public GameState {
+public:
+    explicit ReplayingState(GameLogic& logic) : GameState(logic) {}
+    void enter() override;
+    void update() override;
+    void handleStart() override;
+};
+
 class PausedState : public GameState {
 public:
-    using GameState::GameState;
+    explicit PausedState(GameLogic& logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
 };
 
 class GameOverState : public GameState {
 public:
-    using GameState::GameState;
+    explicit GameOverState(GameLogic& logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
 };

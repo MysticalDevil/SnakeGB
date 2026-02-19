@@ -165,7 +165,6 @@ Window {
                                 ctx.strokeStyle = p1
                                 ctx.lineWidth = 1.5
                                 ctx.beginPath()
-                                // Valid JS semicolons in loop header
                                 for (var i = 0; i <= gameLogic.boardWidth; i++) {
                                     var xPos = i * (width / gameLogic.boardWidth)
                                     ctx.moveTo(xPos, 0)
@@ -193,7 +192,7 @@ Window {
 
                             Rectangle {
                                 id: foodRect
-                                visible: gameLogic.state > 1
+                                visible: gameLogic.state >= 2
                                 x: gameLogic.food.x * (gameContent.width / gameLogic.boardWidth)
                                 y: gameLogic.food.y * (gameContent.height / gameLogic.boardHeight)
                                 width: gameContent.width / gameLogic.boardWidth
@@ -228,7 +227,7 @@ Window {
 
                             Rectangle {
                                 id: powerUpRect
-                                visible: gameLogic.state > 1 && gameLogic.powerUpPos.x !== -1
+                                visible: gameLogic.state >= 2 && gameLogic.powerUpPos.x !== -1
                                 x: gameLogic.powerUpPos.x * (gameContent.width / gameLogic.boardWidth)
                                 y: gameLogic.powerUpPos.y * (gameContent.height / gameLogic.boardHeight)
                                 width: gameContent.width / gameLogic.boardWidth
@@ -276,6 +275,7 @@ Window {
 
                             Repeater {
                                 model: gameLogic.ghost
+                                visible: gameLogic.state === 2
                                 delegate: Rectangle {
                                     x: modelData.x * (gameContent.width / gameLogic.boardWidth)
                                     y: modelData.y * (gameContent.height / gameLogic.boardHeight)
@@ -309,7 +309,7 @@ Window {
                             anchors.top: parent.top
                             anchors.right: parent.right
                             anchors.margins: 4
-                            visible: gameLogic.state > 1
+                            visible: gameLogic.state >= 2
                             z: 20
                             Text {
                                 text: "HI " + gameLogic.highScore
@@ -326,7 +326,7 @@ Window {
                                 font.bold: true
                             }
                             Text {
-                                text: gameLogic.musicEnabled ? "♪" : "×"
+                                text: gameLogic.state === 5 ? "REPLAY" : (gameLogic.musicEnabled ? "♪" : "×")
                                 color: p3
                                 font.family: gameFont
                                 font.pixelSize: 14
@@ -396,13 +396,6 @@ Window {
                                     color: p3
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
-                                Text {
-                                    text: qsTr("Level: ") + (gameLogic.level + 1)
-                                    font.family: gameFont
-                                    font.pixelSize: 10
-                                    color: p3
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
                                 
                                 Row {
                                     anchors.horizontalCenter: parent.horizontalCenter
@@ -422,17 +415,10 @@ Window {
                                             }
                                         }
                                     }
-                                    Text {
-                                        text: gameLogic.achievements.length > 0 ? qsTr("(Click to View)") : ""
-                                        font.family: gameFont
-                                        font.pixelSize: 8
-                                        color: p3
-                                        opacity: 0.5
-                                    }
                                 }
 
                                 Text {
-                                    text: qsTr("UP to View Medals")
+                                    text: qsTr("UP: Medals | DOWN: Replay")
                                     font.family: gameFont
                                     font.pixelSize: 8
                                     color: p3
@@ -604,7 +590,11 @@ Window {
                     }
                 }
                 onDownClicked: {
-                    gameLogic.move(0, 1)
+                    if (gameLogic.state === 1 && gameLogic.hasReplay) {
+                        gameLogic.startReplay()
+                    } else {
+                        gameLogic.move(0, 1)
+                    }
                 }
                 onLeftClicked: {
                     gameLogic.move(-1, 0)
@@ -629,7 +619,7 @@ Window {
                             showingMedals = false
                         } else if (gameLogic.state === 1) {
                             gameLogic.quit()
-                        } else if (gameLogic.state === 3 || gameLogic.state === 4) {
+                        } else if (gameLogic.state === 3 || gameLogic.state === 4 || gameLogic.state === 5) {
                             gameLogic.quitToMenu()
                         } else {
                             gameLogic.nextPalette()
@@ -701,7 +691,11 @@ Window {
                 }
             } else if (event.key === Qt.Key_Down) {
                 dpadUI.downPressed = true
-                gameLogic.move(0, 1)
+                if (gameLogic.state === 1 && gameLogic.hasReplay) {
+                    gameLogic.startReplay()
+                } else {
+                    gameLogic.move(0, 1)
+                }
             } else if (event.key === Qt.Key_Left) {
                 dpadUI.leftPressed = true
                 gameLogic.move(-1, 0)
@@ -728,7 +722,7 @@ Window {
                     showingMedals = false
                 } else if (gameLogic.state === 1) {
                     gameLogic.quit()
-                } else if (gameLogic.state === 3 || gameLogic.state === 4) {
+                } else if (gameLogic.state === 3 || gameLogic.state === 4 || gameLogic.state === 5) {
                     gameLogic.quitToMenu()
                 } else {
                     gameLogic.nextPalette()

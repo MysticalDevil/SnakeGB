@@ -9,10 +9,15 @@
 #include "game_logic.h"
 
 auto main(int argc, char *argv[]) -> int {
-    // Force Vulkan rendering backend via RHI
-    // Note: High DPI scaling is always enabled by default in Qt 6.
-
     QGuiApplication app(argc, argv);
+
+    // Set application metadata for platform-standard paths
+    QCoreApplication::setOrganizationName("DevilOrg");
+    QCoreApplication::setOrganizationDomain("org.devil");
+    QCoreApplication::setApplicationName("SnakeGB");
+    QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
+    QGuiApplication::setApplicationVersion("1.3.0");
+    QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
 
     // Internationalization support
     QTranslator translator;
@@ -24,12 +29,6 @@ auto main(int argc, char *argv[]) -> int {
             break;
         }
     }
-
-    // Set application metadata
-    QCoreApplication::setApplicationName("SnakeGB");
-    QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QCoreApplication::setApplicationVersion("1.2.0");
-    QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
 
     GameLogic gameLogic;
 
