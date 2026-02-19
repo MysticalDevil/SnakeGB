@@ -1,4 +1,5 @@
 #include "game_logic.h"
+#include <QRandomGenerator>
 #include <algorithm>
 #include <ranges>
 
@@ -95,8 +96,8 @@ void GameLogic::spawnFood() {
     const auto &body = m_snakeModel.body();
     bool onSnake = true;
     while (onSnake) {
-        m_food = {QRandomGenerator::global()->bounded(BOARD_WIDTH),
-                  QRandomGenerator::global()->bounded(BOARD_HEIGHT)};
+        m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
+                        QRandomGenerator::global()->bounded(BOARD_HEIGHT));
         onSnake = std::ranges::any_of(body, [&](const auto &p) -> bool { return p == m_food; });
     }
     emit foodChanged();
