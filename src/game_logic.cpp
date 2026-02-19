@@ -238,6 +238,9 @@ void GameLogic::loadLevelData(int index) {
     if (index >= levels.size()) index = 0;
     const QJsonObject lvl = levels[index].toObject();
     
+    // Extract level name
+    m_currentLevelName = lvl.value(u"name"_s).toString();
+    
     // Clear old state
     m_obstacles.clear();
     m_currentScript = lvl.value(u"script"_s).toString();

@@ -396,6 +396,14 @@ Window {
                                     color: p3
                                     anchors.horizontalCenter: parent.horizontalCenter
                                 }
+                                Text {
+                                    text: "LEVEL: " + gameLogic.currentLevelName
+                                    font.family: gameFont
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    color: p3
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
                                 
                                 Row {
                                     anchors.horizontalCenter: parent.horizontalCenter

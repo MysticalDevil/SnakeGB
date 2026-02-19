@@ -81,6 +81,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
     Q_PROPERTY(bool hasReplay READ hasReplay NOTIFY highScoreChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
+    Q_PROPERTY(QString currentLevelName READ currentLevelName NOTIFY levelChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
@@ -118,6 +119,7 @@ public:
     [[nodiscard]] auto hasSave() const noexcept -> bool;
     [[nodiscard]] auto hasReplay() const noexcept -> bool;
     [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
+    [[nodiscard]] auto currentLevelName() const noexcept -> QString { return m_currentLevelName; }
     [[nodiscard]] auto ghost() const noexcept -> QVariantList;
     [[nodiscard]] auto musicEnabled() const noexcept -> bool;
     [[nodiscard]] auto achievements() const noexcept -> QVariantList;
@@ -150,7 +152,6 @@ public:
     auto logFoodEaten() -> void;
     auto logPowerUpTriggered(PowerUp type) -> void;
     
-    // New Scripting API
     void runLevelScript();
 
     friend class SplashState;
@@ -204,6 +205,7 @@ private:
     int m_paletteIndex = 0;
     int m_shellIndex = 0;
     int m_levelIndex = 0;
+    QString m_currentLevelName = QStringLiteral("Classic");
     QList<QPoint> m_obstacles;
     QList<QPoint> m_currentRecording;
     QList<QPoint> m_bestRecording;
@@ -220,7 +222,6 @@ private:
     QList<QString> m_unlockedMedals;
     QSettings m_settings;
 
-    // Scripting Engine
     QJSEngine m_jsEngine;
     QString m_currentScript;
 
