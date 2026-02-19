@@ -32,19 +32,21 @@ set(PROJECT_SOURCES
     src/qml/resources.qrc
 )
 
-# App Icon for Desktop
-set(APP_ICON_RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/qml/icon.svg")
-
 qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
 )
 
-# Android specific deployment
+# Platform Specific Deployment
 if(ANDROID)
     set_property(TARGET gameboy-snack PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+elseif(WASM)
+    # WASM settings
+    set_target_properties(gameboy-snack PROPERTIES
+        QT_WASM_PTHREADS OFF
+        QT_WASM_INITIAL_MEMORY "64MB"
+    )
 endif()
 
-# Set Icon property for supported platforms
 set_target_properties(gameboy-snack PROPERTIES
     MACOSX_BUNDLE_ICON_FILE "icon.svg"
     WIN32_EXECUTABLE TRUE

@@ -216,7 +216,12 @@ void GameLogic::toggleMusic() {
 
 void GameLogic::quit() {
     saveCurrentState();
+#ifdef Q_OS_WASM
+    // WASM cannot quit the browser tab, provide visual feedback instead
+    emit paletteChanged(); 
+#else
     QCoreApplication::quit();
+#endif
 }
 
 void GameLogic::handleSelect() {
