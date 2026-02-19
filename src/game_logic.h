@@ -144,6 +144,8 @@ public:
     Q_INVOKABLE void quitToMenu();
     Q_INVOKABLE void toggleMusic();
     Q_INVOKABLE void quit();
+    Q_INVOKABLE void handleSelect();
+    Q_INVOKABLE void handleStart();
 
     auto changeState(std::unique_ptr<GameState> newState) -> void;
     auto setInternalState(State s) -> void;

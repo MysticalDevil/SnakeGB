@@ -219,6 +219,18 @@ void GameLogic::quit() {
     QCoreApplication::quit();
 }
 
+void GameLogic::handleSelect() {
+    if (m_fsmState) {
+        m_fsmState->handleSelect();
+    }
+}
+
+void GameLogic::handleStart() {
+    if (m_fsmState) {
+        m_fsmState->handleStart();
+    }
+}
+
 bool GameLogic::musicEnabled() const noexcept {
     return m_soundManager ? m_soundManager->musicEnabled() : false;
 }

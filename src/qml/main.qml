@@ -102,7 +102,7 @@ Window {
                 anchors.centerIn: parent
                 width: 240
                 height: 216
-                color: "black" // 容器底色设为黑，防止溢出
+                color: "black"
                 clip: true
 
                 Item {
@@ -110,7 +110,6 @@ Window {
                     anchors.fill: parent
                     visible: true
 
-                    // --- 核心修复：将背景色放进 gameContent 内部 ---
                     Rectangle {
                         anchors.fill: parent
                         color: p0
@@ -301,14 +300,14 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("SELECT to Cycle Level")
+                                text: qsTr("SELECT to Cycle Levels")
                                 font.family: gameFont
                                 font.pixelSize: 10
                                 color: p3
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("START to Play")
+                                text: gameLogic.hasSave ? qsTr("START to Continue") : qsTr("START to Play")
                                 font.family: gameFont
                                 font.pixelSize: 14
                                 color: p3
@@ -458,11 +457,7 @@ Window {
                 id: aBtnUI
                 text: "A"
                 onClicked: {
-                    if (gameLogic.state === 1) {
-                        gameLogic.startGame()
-                    } else if (gameLogic.state === 4) {
-                        gameLogic.restart()
-                    }
+                    gameLogic.handleStart()
                 }
             }
         }
@@ -476,23 +471,14 @@ Window {
                 id: selectBtnUI
                 text: "SELECT"
                 onClicked: {
-                    if (gameLogic.state === 1) {
-                        if (gameLogic.hasSave) gameLogic.loadLastSession()
-                        else gameLogic.nextLevel()
-                    }
+                    gameLogic.handleSelect()
                 }
             }
             SmallButton {
                 id: startBtnUI
                 text: "START"
                 onClicked: {
-                    if (gameLogic.state === 1) {
-                        gameLogic.startGame()
-                    } else if (gameLogic.state === 4) {
-                        gameLogic.restart()
-                    } else if (gameLogic.state > 1) {
-                        gameLogic.togglePause()
-                    }
+                    gameLogic.handleStart()
                 }
             }
         }
@@ -516,15 +502,10 @@ Window {
                 gameLogic.move(1, 0)
             } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
                 startBtnUI.isPressed = true 
-                if (gameLogic.state === 1) {
-                    gameLogic.startGame()
-                } else if (gameLogic.state === 4) {
-                    gameLogic.restart()
-                } else if (gameLogic.state > 1) {
-                    gameLogic.togglePause()
-                }
+                gameLogic.handleStart()
             } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 aBtnUI.isPressed = true
+                gameLogic.handleStart()
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 bBtnUI.isPressed = true
                 if (gameLogic.state === 1) {
@@ -536,13 +517,7 @@ Window {
                 }
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
-                if (gameLogic.state === 1) {
-                    if (gameLogic.hasSave) {
-                        gameLogic.loadLastSession()
-                    } else {
-                        gameLogic.nextLevel()
-                    }
-                }
+                gameLogic.handleSelect()
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()
             } else if (event.key === Qt.Key_M) {
@@ -552,26 +527,15 @@ Window {
             }
         }
         Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) {
-                return
-            }
-            if (event.key === Qt.Key_Up) {
-                dpadUI.upPressed = false
-            } else if (event.key === Qt.Key_Down) {
-                dpadUI.downPressed = false
-            } else if (event.key === Qt.Key_Left) {
-                dpadUI.leftPressed = false
-            } else if (event.key === Qt.Key_Right) {
-                dpadUI.rightPressed = false
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                startBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
-                aBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                bBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_Shift) {
-                selectBtnUI.isPressed = false
-            }
+            if (event.isAutoRepeat) return
+            if (event.key === Qt.Key_Up) dpadUI.upPressed = false
+            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false
+            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false
+            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false
+            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
+            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false
         }
     }
 }

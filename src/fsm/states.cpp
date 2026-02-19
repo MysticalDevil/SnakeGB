@@ -48,15 +48,15 @@ auto MenuState::handleStart() -> void {
     if (m_context.m_soundManager) {
         m_context.m_soundManager->stopMusic();
     }
-    m_context.startGame();
-}
-
-auto MenuState::handleSelect() -> void {
     if (m_context.hasSave()) {
         m_context.loadLastSession();
     } else {
-        m_context.nextLevel();
+        m_context.startGame();
     }
+}
+
+auto MenuState::handleSelect() -> void {
+    m_context.nextLevel();
 }
 
 // --- PlayingState ---
