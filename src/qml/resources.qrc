@@ -3,6 +3,7 @@
     <file>main.qml</file>
     <file>GBButton.qml</file>
     <file>DPad.qml</file>
+    <file>SmallButton.qml</file>
     <file>icon.svg</file>
 </qresource>
 </RCC>

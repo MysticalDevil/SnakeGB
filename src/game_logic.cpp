@@ -5,9 +5,11 @@ GameLogic::GameLogic(QObject *parent)
     : QObject(parent), m_timer(new QTimer(this)) 
 {
     connect(m_timer, &QTimer::timeout, this, &GameLogic::update);
-    m_timer->setInterval(150);
     
-    // 初始化显示
+    // 加载最高分
+    QSettings settings("MyCompany", "SnakeGB");
+    m_highScore = settings.value("highScore", 0).toInt();
+
     m_currentBody = { {10, 10}, {10, 11}, {10, 12} };
     m_snakeModel.reset(m_currentBody);
     m_direction = {0, -1};
@@ -23,19 +25,34 @@ void GameLogic::restart() {
     m_snakeModel.reset(m_currentBody);
     m_direction = {0, -1};
     m_score = 0;
+    m_currentInterval = 150;
     m_state = Playing;
+    
+    m_timer->setInterval(m_currentInterval);
     spawnFood();
     m_timer->start();
+    
     emit scoreChanged();
     emit stateChanged();
+}
+
+void GameLogic::togglePause() {
+    if (m_state == Playing) {
+        m_state = Paused;
+        m_timer->stop();
+    } else if (m_state == Paused) {
+        m_state = Playing;
+        m_timer->start();
+    }
+    emit stateChanged();
+    emit requestFeedback();
 }
 
 void GameLogic::move(int dx, int dy) {
     if (m_state != Playing) return;
     if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) return;
-    
     m_direction = {dx, dy};
-    emit requestFeedback(); // 按键触发反馈信号
+    // 移除这里的高频反馈，仅在吃到食物或操作重要按键时触发，避免过度抖动
 }
 
 void GameLogic::update() {
@@ -43,13 +60,12 @@ void GameLogic::update() {
 
     QPoint head = m_currentBody.front() + m_direction;
 
-    // 碰撞检测
-    auto it = std::find(m_currentBody.begin(), m_currentBody.end(), head);
-    if (isOutOfBounds(head) || it != m_currentBody.end()) {
+    if (isOutOfBounds(head) || std::find(m_currentBody.begin(), m_currentBody.end(), head) != m_currentBody.end()) {
         m_state = GameOver;
         m_timer->stop();
+        updateHighScore();
         emit stateChanged();
-        emit requestFeedback(); // 死亡反馈
+        emit requestFeedback();
         return;
     }
 
@@ -57,9 +73,14 @@ void GameLogic::update() {
     m_currentBody.push_front(head);
     if (grew) {
         m_score++;
+        // 动态加速
+        if (m_score % 5 == 0 && m_currentInterval > 50) {
+            m_currentInterval -= 10;
+            m_timer->setInterval(m_currentInterval);
+        }
         emit scoreChanged();
         spawnFood();
-        emit requestFeedback(); // 吃到食物反馈
+        emit requestFeedback();
     } else {
         m_currentBody.pop_back();
     }
@@ -67,13 +88,21 @@ void GameLogic::update() {
     m_snakeModel.moveHead(head, grew);
 }
 
+void GameLogic::updateHighScore() {
+    if (m_score > m_highScore) {
+        m_highScore = m_score;
+        QSettings settings("MyCompany", "SnakeGB");
+        settings.setValue("highScore", m_highScore);
+        emit highScoreChanged();
+    }
+}
+
 void GameLogic::spawnFood() {
     bool onSnake = true;
     while (onSnake) {
         m_food = {QRandomGenerator::global()->bounded(boardWidth()),
                   QRandomGenerator::global()->bounded(boardHeight())};
-        auto it = std::find(m_currentBody.begin(), m_currentBody.end(), m_food);
-        onSnake = (it != m_currentBody.end());
+        onSnake = (std::find(m_currentBody.begin(), m_currentBody.end(), m_food) != m_currentBody.end());
     }
     emit foodChanged();
 }
