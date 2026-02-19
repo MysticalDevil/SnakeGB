@@ -164,19 +164,16 @@ Window {
                                 ctx.strokeStyle = p1
                                 ctx.lineWidth = 1.5
                                 ctx.beginPath()
-                                var i = 0
-                                while (i <= gameLogic.boardWidth) {
+                                // Standard JS for loops are perfectly fine inside a function block
+                                for (var i = 0; i <= gameLogic.boardWidth; i++) {
                                     var xPos = i * (width / gameLogic.boardWidth)
                                     ctx.moveTo(xPos, 0)
                                     ctx.lineTo(xPos, height)
-                                    i++
                                 }
-                                var j = 0
-                                while (j <= gameLogic.boardHeight) {
+                                for (var j = 0; j <= gameLogic.boardHeight; j++) {
                                     var yPos = j * (height / gameLogic.boardHeight)
                                     ctx.moveTo(0, yPos)
                                     ctx.lineTo(width, yPos)
-                                    j++
                                 }
                                 ctx.stroke()
                             }
