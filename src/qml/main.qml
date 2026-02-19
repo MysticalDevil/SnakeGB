@@ -18,12 +18,7 @@ Window {
     readonly property color p2: gameLogic.palette[2]
     readonly property color p3: gameLogic.palette[3]
 
-    FontLoader {
-        id: pixelFont
-        // source: "qrc:/fonts/EarlyGameBoy.ttf" 
-    }
-    
-    readonly property string gameFont: pixelFont.status === FontLoader.Ready ? pixelFont.name : "Monospace"
+    readonly property string gameFont: "Monospace"
 
     Connections {
         target: gameLogic
@@ -189,7 +184,7 @@ Window {
                         visible: gameLogic.state === 0
                         Column {
                             anchors.centerIn: parent
-                            spacing: 8
+                            spacing: 6
                             Text {
                                 text: "S N A K E"
                                 font.family: gameFont
@@ -205,20 +200,22 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("SELECT to Continue")
-                                visible: gameLogic.hasSave
+                                text: qsTr("Level: ") + (gameLogic.level + 1)
                                 font.family: gameFont
                                 font.pixelSize: 12
                                 color: p3
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                SequentialAnimation on opacity {
-                                    loops: Animation.Infinite
-                                    NumberAnimation { from: 1; to: 0.3; duration: 600 }
-                                    NumberAnimation { from: 0.3; to: 1; duration: 600 }
-                                }
                             }
                             Text {
-                                text: qsTr("START to New Game")
+                                text: qsTr("SELECT to Continue/Cycle")
+                                visible: gameLogic.hasSave
+                                font.family: gameFont
+                                font.pixelSize: 10
+                                color: p3
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
+                            Text {
+                                text: qsTr("START to Play")
                                 font.family: gameFont
                                 font.pixelSize: 14
                                 color: p3
@@ -255,7 +252,7 @@ Window {
                             color: p0
                             font.family: gameFont
                             font.pixelSize: 18
-                            text: qsTr("GAME OVER\nScore: %1\nPress Start to Retry").arg(gameLogic.score)
+                            text: qsTr("GAME OVER\nScore: %1\nPress Start").arg(gameLogic.score)
                             horizontalAlignment: Text.AlignHCenter
                         }
                     }
@@ -296,6 +293,7 @@ Window {
             GBButton {
                 id: bBtnUI
                 text: "B"
+                onClicked: gameLogic.nextPalette()
             }
             GBButton {
                 id: aBtnUI
@@ -319,10 +317,9 @@ Window {
                 id: selectBtnUI
                 text: qsTr("SELECT")
                 onClicked: {
-                    if (gameLogic.state === 0 && gameLogic.hasSave) {
-                        gameLogic.loadLastSession()
-                    } else {
-                        gameLogic.nextPalette()
+                    if (gameLogic.state === 0) {
+                        if (gameLogic.hasSave) gameLogic.loadLastSession()
+                        else gameLogic.nextLevel()
                     }
                 }
             }
@@ -373,12 +370,12 @@ Window {
                 aBtnUI.isPressed = true
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 bBtnUI.isPressed = true
+                gameLogic.nextPalette()
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
-                if (gameLogic.state === 0 && gameLogic.hasSave) {
-                    gameLogic.loadLastSession()
-                } else {
-                    gameLogic.nextPalette()
+                if (gameLogic.state === 0) {
+                    if (gameLogic.hasSave) gameLogic.loadLastSession()
+                    else gameLogic.nextLevel()
                 }
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()

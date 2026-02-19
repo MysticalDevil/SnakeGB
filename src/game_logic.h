@@ -1,14 +1,14 @@
 #pragma once
 
 #include <QAbstractListModel>
+#include <QColor>
 #include <QObject>
 #include <QRect>
 #include <QSettings>
 #include <QTimer>
+#include <QVariantList>
 #include <deque>
 #include <memory>
-#include <QColor>
-#include <QVariantList>
 
 class SoundManager;
 class GameState;
@@ -17,64 +17,31 @@ class PlayingState;
 class PausedState;
 class GameOverState;
 
-/**
- * @class SnakeModel
- * @brief 深度优化的蛇身列表模型
- */
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-
-    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {
-        return static_cast<int>(m_body.size());
-    }
-
+    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override { return static_cast<int>(m_body.size()); }
     [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() < 0 ||
-            index.row() >= static_cast<int>(m_body.size())) {
-            return {};
-        }
-        if (role == PositionRole) {
-            return m_body[static_cast<size_t>(index.row())];
-        }
+        if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
+        if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
         return {};
     }
-
-    [[nodiscard]] QHash<int, QByteArray> roleNames() const override {
-        return {{PositionRole, "pos"}};
-    }
-
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
     [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
-
-    void reset(const std::deque<QPoint> &newBody) {
-        beginResetModel();
-        m_body = newBody;
-        endResetModel();
-    }
-
+    void reset(const std::deque<QPoint> &newBody) { beginResetModel(); m_body = newBody; endResetModel(); }
     void moveHead(const QPoint &newHead, const bool grew) {
-        beginInsertRows(QModelIndex(), 0, 0);
-        m_body.emplace_front(newHead);
-        endInsertRows();
-
+        beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
         if (!grew) {
             const int last = static_cast<int>(m_body.size() - 1);
-            beginRemoveRows(QModelIndex(), last, last);
-            m_body.pop_back();
-            endRemoveRows();
+            beginRemoveRows(QModelIndex(), last, last); m_body.pop_back(); endRemoveRows();
         }
     }
-
 private:
     std::deque<QPoint> m_body;
 };
 
-/**
- * @class GameLogic
- * @brief 游戏核心逻辑管理器
- */
 class GameLogic final : public QObject {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
@@ -88,6 +55,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
+    Q_PROPERTY(int level READ level NOTIFY levelChanged)
 
 public:
     enum State { StartMenu, Playing, Paused, GameOver };
@@ -96,7 +64,6 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // 获取器
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
@@ -108,8 +75,8 @@ public:
     [[nodiscard]] QVariantList obstacles() const noexcept;
     [[nodiscard]] QColor shellColor() const noexcept;
     [[nodiscard]] bool hasSave() const noexcept;
+    [[nodiscard]] int level() const noexcept { return m_levelIndex; }
 
-    // 棋盘常量
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
 
@@ -120,12 +87,11 @@ public:
     Q_INVOKABLE void nextPalette();
     Q_INVOKABLE void nextShellColor();
     Q_INVOKABLE void loadLastSession();
+    Q_INVOKABLE void nextLevel();
 
-    // 状态切换辅助函数
     void changeState(std::unique_ptr<GameState> newState);
-    void setInternalState(State s); // 更新枚举值以通知 QML
+    void setInternalState(State s);
 
-    // Friends
     friend class MenuState;
     friend class PlayingState;
     friend class PausedState;
@@ -141,6 +107,7 @@ signals:
     void obstaclesChanged();
     void shellColorChanged();
     void hasSaveChanged();
+    void levelChanged();
 
 private slots:
     void update();
@@ -150,6 +117,7 @@ private:
     void updateHighScore();
     void saveCurrentState();
     void clearSavedState();
+    void loadLevelData(int index);
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
@@ -160,13 +128,12 @@ private:
     State m_state = StartMenu;
     int m_paletteIndex = 0;
     int m_shellIndex = 0;
+    int m_levelIndex = 0;
     QList<QPoint> m_obstacles;
 
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
     QSettings m_settings;
-    
-    // FSM
     std::unique_ptr<GameState> m_fsmState;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};

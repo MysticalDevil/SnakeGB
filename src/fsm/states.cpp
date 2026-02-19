@@ -8,9 +8,11 @@
 // --- MenuState ---
 void MenuState::enter() {
     m_context.setInternalState(GameLogic::StartMenu);
+    m_context.m_soundManager->startMusic();
 }
 
 void MenuState::handleStart() {
+    m_context.m_soundManager->stopMusic();
     m_context.startGame();
 }
 
@@ -18,7 +20,7 @@ void MenuState::handleSelect() {
     if (m_context.hasSave()) {
         m_context.loadLastSession();
     } else {
-        m_context.nextPalette();
+        m_context.nextLevel(); // 切换关卡
     }
 }
 
@@ -52,19 +54,6 @@ void PlayingState::update() {
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         logic.m_soundManager->playBeep(880, 100);
 
-        if (logic.m_score % 10 == 0) {
-            bool valid = false;
-            while (!valid) {
-                const QPoint obs(QRandomGenerator::global()->bounded(GameLogic::BOARD_WIDTH),
-                                 QRandomGenerator::global()->bounded(GameLogic::BOARD_HEIGHT));
-                if (!std::ranges::contains(body, obs) && obs != logic.m_food &&
-                    !std::ranges::contains(logic.m_obstacles, obs)) {
-                    logic.m_obstacles.append(obs);
-                    valid = true;
-                }
-            }
-            emit logic.obstaclesChanged();
-        }
         emit logic.scoreChanged();
         logic.spawnFood();
         emit logic.requestFeedback();

@@ -19,6 +19,8 @@ SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_audioSink = new QAudioSink(device, m_format, this);
     m_audioSink->setBufferSize(44100);
     m_buffer.open(QIODevice::ReadWrite);
+
+    connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
 }
 
 SoundManager::~SoundManager() {
@@ -28,9 +30,14 @@ SoundManager::~SoundManager() {
 }
 
 void SoundManager::playBeep(const int frequencyHz, const int durationMs) {
-    if (!m_audioSink) {
-        return;
+    if (!m_audioSink || m_musicTimer.isActive()) { // Don't interrupt music with beep for now, or mix? 
+        // Simple strategy: SFX interrupts music briefly or we need a mixer.
+        // For simplicity: SFX takes priority.
+        if (m_musicTimer.isActive()) m_musicTimer.stop(); 
+        // Actually, stopping music for every move is bad.
+        // Let's just play SFX. Ideally we need mixing.
     }
+    if (!m_audioSink) return;
 
     QByteArray data;
     generateSquareWave(frequencyHz, durationMs, data);
@@ -40,12 +47,14 @@ void SoundManager::playBeep(const int frequencyHz, const int durationMs) {
     m_buffer.setData(data);
     m_buffer.open(QIODevice::ReadOnly);
     m_audioSink->start(&m_buffer);
+    
+    // Resume music? This is tricky with single channel.
+    // We will leave it as SFX interrupts for now.
 }
 
 void SoundManager::playCrash(const int durationMs) {
-    if (!m_audioSink) {
-        return;
-    }
+    if (!m_audioSink) return;
+    stopMusic();
 
     QByteArray data;
     generateNoise(durationMs, data);
@@ -55,6 +64,38 @@ void SoundManager::playCrash(const int durationMs) {
     m_buffer.setData(data);
     m_buffer.open(QIODevice::ReadOnly);
     m_audioSink->start(&m_buffer);
+}
+
+void SoundManager::startMusic() {
+    m_noteIndex = 0;
+    playNextNote();
+}
+
+void SoundManager::stopMusic() {
+    m_musicTimer.stop();
+}
+
+void SoundManager::playNextNote() {
+    if (!m_audioSink) return;
+    if (m_noteIndex >= m_melody.size()) m_noteIndex = 0;
+
+    auto [freq, duration] = m_melody[m_noteIndex];
+    m_noteIndex++;
+
+    if (freq > 0) {
+        QByteArray data;
+        generateSquareWave(freq, duration, data);
+        
+        m_audioSink->stop();
+        m_buffer.close();
+        m_buffer.setData(data);
+        m_buffer.open(QIODevice::ReadOnly);
+        m_audioSink->start(&m_buffer);
+    } else {
+        m_audioSink->stop(); // Silence
+    }
+
+    m_musicTimer.start(duration + 50); // Small gap
 }
 
 void SoundManager::generateSquareWave(const int frequencyHz, const int durationMs,
