@@ -8,6 +8,7 @@
 #include <QTimer>
 #include <QVariantList>
 #include <QRandomGenerator>
+#include <QJSEngine>
 #include <deque>
 #include <memory>
 #include <queue>
@@ -148,6 +149,9 @@ public:
     auto incrementCrashes() -> void;
     auto logFoodEaten() -> void;
     auto logPowerUpTriggered(PowerUp type) -> void;
+    
+    // New Scripting API
+    void runLevelScript();
 
     friend class SplashState;
     friend class MenuState;
@@ -187,7 +191,6 @@ private:
     auto loadLevelData(int index) -> void;
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
-    // --- Data Order for Initialization Safety ---
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;
     QPoint m_food = {0, 0};
@@ -217,7 +220,10 @@ private:
     QList<QString> m_unlockedMedals;
     QSettings m_settings;
 
-    // Smart Pointers Last
+    // Scripting Engine
+    QJSEngine m_jsEngine;
+    QString m_currentScript;
+
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
     std::unique_ptr<GameState> m_fsmState;

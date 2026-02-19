@@ -11,6 +11,7 @@
 #include <QRandomGenerator>
 #include <QStandardPaths>
 #include <QDateTime>
+#include <QJSValue>
 #include <algorithm>
 #include <ranges>
 
@@ -89,11 +90,9 @@ void GameLogic::startReplay() {
     m_direction = {0, -1}; m_inputQueue.clear(); m_score = 0;
     m_ghostFrameIndex = 0; m_currentRecording.clear();
     m_activeBuff = None; m_powerUpPos = {-1, -1};
-    m_rng.seed(m_bestRandomSeed); 
-    m_gameTickCounter = 0;
+    m_rng.seed(m_bestRandomSeed); m_gameTickCounter = 0;
     loadLevelData(m_levelIndex);
-    m_timer->setInterval(InitialInterval);
-    spawnFood();
+    m_timer->setInterval(InitialInterval); spawnFood();
     changeState(std::make_unique<ReplayingState>(*this));
 }
 
@@ -104,9 +103,7 @@ void GameLogic::restart() {
     m_ghostFrameIndex = 0; m_currentRecording.clear(); m_currentRecording.append(QPoint(10, 10));
     m_activeBuff = None; m_powerUpPos = {-1, -1}; m_buffTimer->stop();
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
-    m_rng.seed(m_randomSeed);
-    m_gameTickCounter = 0;
-    m_currentInputHistory.clear();
+    m_rng.seed(m_randomSeed); m_gameTickCounter = 0; m_currentInputHistory.clear();
     m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
     emit buffChanged(); emit powerUpChanged();
     loadLevelData(m_levelIndex); clearSavedState();
@@ -157,8 +154,8 @@ void GameLogic::clearSavedState() {
     m_settings.sync(); emit hasSaveChanged();
 }
 
-bool GameLogic::hasSave() const noexcept { return m_settings.contains(u"saved_body"_s); }
-bool GameLogic::hasReplay() const noexcept { return !m_bestInputHistory.isEmpty(); }
+auto GameLogic::hasSave() const noexcept -> bool { return m_settings.contains(u"saved_body"_s); }
+auto GameLogic::hasReplay() const noexcept -> bool { return !m_bestInputHistory.isEmpty(); }
 
 void GameLogic::move(int dx, int dy) {
     if (m_inputQueue.size() < 2) {
@@ -170,7 +167,31 @@ void GameLogic::move(int dx, int dy) {
     }
 }
 
-void GameLogic::update() { if (m_fsmState) { m_fsmState->update(); m_gameTickCounter++; } }
+void GameLogic::update() { 
+    if (m_fsmState) {
+        m_fsmState->update();
+        if (!m_currentScript.isEmpty()) runLevelScript();
+        m_gameTickCounter++;
+    }
+}
+
+void GameLogic::runLevelScript() {
+    QJSValue onTick = m_jsEngine.globalObject().property(u"onTick"_s);
+    if (onTick.isCallable()) {
+        QJSValueList args;
+        args << m_gameTickCounter;
+        QJSValue result = onTick.call(args);
+        if (result.isArray()) {
+            m_obstacles.clear();
+            int len = result.property(u"length"_s).toInt();
+            for (int i = 0; i < len; ++i) {
+                QJSValue item = result.property(i);
+                m_obstacles.append(QPoint(item.property(u"x"_s).toInt(), item.property(u"y"_s).toInt()));
+            }
+            emit obstaclesChanged();
+        }
+    }
+}
 
 void GameLogic::nextPalette() {
     m_paletteIndex = (m_paletteIndex + 1) % 6; m_settings.setValue(u"paletteIndex"_s, m_paletteIndex);
@@ -216,11 +237,19 @@ void GameLogic::loadLevelData(int index) {
     const QJsonArray levels = doc.object().value(u"levels"_s).toArray();
     if (index >= levels.size()) index = 0;
     const QJsonObject lvl = levels[index].toObject();
+    
+    // Clear old state
     m_obstacles.clear();
-    for (const auto &w : lvl.value(u"walls"_s).toArray()) {
-        const QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
-        if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
-        m_obstacles.append(p);
+    m_currentScript = lvl.value(u"script"_s).toString();
+    
+    if (!m_currentScript.isEmpty()) {
+        m_jsEngine.evaluate(m_currentScript);
+    } else {
+        for (const auto &w : lvl.value(u"walls"_s).toArray()) {
+            const QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt());
+            if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue;
+            m_obstacles.append(p);
+        }
     }
     emit obstaclesChanged();
 }

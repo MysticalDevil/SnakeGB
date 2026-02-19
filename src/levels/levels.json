@@ -1,17 +1,19 @@
 {
-  "levels": [
-    {
-      "name": "Open Field",
-      "walls": []
-    },
-    {
-      "name": "Corridor",
-      "walls": [
-        {"x": 5, "y": 5}, {"x": 6, "y": 5}, {"x": 7, "y": 5},
-        {"x": 13, "y": 5}, {"x": 14, "y": 5}, {"x": 15, "y": 5},
-        {"x": 5, "y": 13}, {"x": 6, "y": 13}, {"x": 7, "y": 13},
-        {"x": 13, "y": 13}, {"x": 14, "y": 13}, {"x": 15, "y": 13}
-      ]
-    }
-  ]
+    "levels": [
+        {
+            "name": "Classic",
+            "walls": []
+        },
+        {
+            "name": "The Cage",
+            "walls": [
+                {"x": 5, "y": 5}, {"x": 6, "y": 5}, {"x": 14, "y": 5}, {"x": 15, "y": 5},
+                {"x": 5, "y": 12}, {"x": 6, "y": 12}, {"x": 14, "y": 12}, {"x": 15, "y": 12}
+            ]
+        },
+        {
+            "name": "Dynamic Pulse",
+            "script": "function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"
+        }
+    ]
 }
