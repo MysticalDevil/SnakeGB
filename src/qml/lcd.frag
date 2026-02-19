@@ -10,14 +10,14 @@ layout(std140, binding = 0) uniform buf {
 };
 
 layout(binding = 1) uniform sampler2D source;
+layout(binding = 2) uniform sampler2D history; // Previous frame feedback
 
 void main() {
-    // 1. CRT Physical Curvature (Subtle 0.01 for that tube feel)
+    // 1. CRT Physical Curvature
     vec2 centeredUV = qt_TexCoord0 * 2.0 - 1.0;
     float dist = length(centeredUV);
     vec2 uv = qt_TexCoord0 + centeredUV * (dist * dist) * 0.01;
     
-    // Smooth high-quality edge vignette/mask
     float edgeMask = smoothstep(0.0, 0.02, uv.x) * 
                      smoothstep(1.0, 0.98, uv.x) * 
                      smoothstep(0.0, 0.02, uv.y) * 
@@ -28,17 +28,22 @@ void main() {
         return;
     }
 
-    // 2. Chromatic Aberration (The Rainbow Edge)
-    // Very tight shift (0.001) for artistic glow without losing clarity
+    // 2. Sample Current Frame with Chromatic Aberration
     float r = texture(source, uv + vec2(0.001, 0.0)).r;
     float g = texture(source, uv).g;
     float b = texture(source, uv - vec2(0.001, 0.0)).b;
-    vec4 tex = vec4(r, g, b, 1.0);
+    vec4 currentTex = vec4(r, g, b, 1.0);
+
+    // 3. LCD Ghosting (Motion Blur)
+    // Sample history and blend with current frame
+    // Persistence factor of 0.4 creates a distinct retro drag
+    vec4 historyTex = texture(history, uv);
+    vec4 tex = mix(currentTex, historyTex, 0.4);
     
-    // 3. Dynamic Curved Scanlines
+    // 4. Dynamic Curved Scanlines
     float scanline = 0.95 + 0.05 * sin(uv.y * 216.0 * 3.14159 * 2.0 + time * 3.0);
 
-    // 4. Subtle RGB subpixel mask (Aperture Grille)
+    // 5. Subtle RGB subpixel mask
     float pixelX = uv.x * 240.0 * 3.0;
     vec3 mask = vec3(1.0);
     int m = int(mod(pixelX, 3.0));
@@ -46,14 +51,12 @@ void main() {
     else if (m == 1) mask = vec3(0.97, 1.03, 0.97);
     else mask = vec3(0.97, 0.97, 1.03);
 
-    // 5. Pixel Grid Gap (Mapped to curved UV)
+    // 6. Pixel Grid Gap
     vec2 gridUV = fract(uv * vec2(240.0, 216.0));
     float grid = step(0.05, gridUV.x) * step(0.05, gridUV.y) * 0.1 + 0.9;
 
-    // 6. Overall Composition & Brightness Correction
+    // 7. Overall Composition
     vec3 finalRGB = tex.rgb * mask * scanline * grid;
-    
-    // Boost brightness to maintain visibility with the CRT effects
     finalRGB = pow(finalRGB, vec3(0.85)) * 1.1;
 
     fragColor = vec4(finalRGB, tex.a) * edgeMask * qt_Opacity;

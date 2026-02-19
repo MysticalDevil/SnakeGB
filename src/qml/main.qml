@@ -7,7 +7,7 @@ Window {
     height: 550
     visible: true
     title: qsTr("Snake GB Edition")
-    color: "#1a1a1a" // Darker background outside the shell
+    color: "#1a1a1a"
 
     readonly property color p0: gameLogic.palette[0]
     readonly property color p1: gameLogic.palette[1]
@@ -19,7 +19,6 @@ Window {
     property int shakeMagnitude: 2
     property real elapsed: 0.0
 
-    // Reference size for GameBoy Shell
     readonly property real refWidth: 350
     readonly property real refHeight: 550
 
@@ -86,7 +85,6 @@ Window {
         }
     }
 
-    // Adaptive Container
     Item {
         id: rootContainer
         anchors.centerIn: parent
@@ -446,14 +444,25 @@ Window {
                         }
                     }
 
+                    // --- Final Output with Feedback Loop ---
                     ShaderEffect {
+                        id: finalShader
                         anchors.fill: parent
+                        
                         property variant source: ShaderEffectSource {
                             sourceItem: gameContent
                             hideSource: true 
                             live: true
                             recursive: false
                         }
+                        
+                        // History buffer for ghosting
+                        property variant history: ShaderEffectSource {
+                            sourceItem: finalShader
+                            live: true
+                            recursive: false
+                        }
+
                         property real time: window.elapsed
                         fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
                     }
@@ -581,7 +590,6 @@ Window {
             } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) {
                 gameLogic.quit()
             } else if (event.key === Qt.Key_Back) {
-                // Support Android Hardware Back Button
                 if (gameLogic.state === 1) {
                     gameLogic.quit()
                 } else {
