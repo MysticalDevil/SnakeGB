@@ -3,8 +3,11 @@
 
 GameLogic::GameLogic(QObject *parent) : QObject(parent), m_timer(new QTimer(this)) {
     connect(m_timer, &QTimer::timeout, this, &GameLogic::update);
-    m_timer->setInterval(150); // Speed
-    restart();
+    m_timer->setInterval(150);
+    // Initial setup for visual background behind menu
+    m_snakeBody = { {10, 10}, {10, 11}, {10, 12} };
+    m_direction = {0, -1};
+    spawnFood();
 }
 
 QVariantList GameLogic::snake() const {
@@ -15,21 +18,27 @@ QVariantList GameLogic::snake() const {
     return list;
 }
 
+void GameLogic::startGame() {
+    m_state = Playing;
+    restart();
+    emit stateChanged();
+}
+
 void GameLogic::restart() {
     m_snakeBody = { {10, 10}, {10, 11}, {10, 12} };
     m_direction = {0, -1};
     m_score = 0;
-    m_gameOver = false;
+    m_state = Playing;
     spawnFood();
     m_timer->start();
     emit snakeChanged();
     emit foodChanged();
     emit scoreChanged();
-    emit gameOverChanged();
+    emit stateChanged();
 }
 
 void GameLogic::move(int dx, int dy) {
-    // Prevent 180-degree turns
+    if (m_state != Playing) return;
     if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) {
         return;
     }
@@ -37,15 +46,14 @@ void GameLogic::move(int dx, int dy) {
 }
 
 void GameLogic::update() {
-    if (m_gameOver) return;
+    if (m_state != Playing) return;
 
     QPoint head = m_snakeBody.first() + m_direction;
 
-    // Check collisions
     if (isOutOfBounds(head) || m_snakeBody.contains(head)) {
-        m_gameOver = true;
+        m_state = GameOver;
         m_timer->stop();
-        emit gameOverChanged();
+        emit stateChanged();
         return;
     }
 
