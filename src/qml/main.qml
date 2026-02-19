@@ -6,7 +6,7 @@ Window {
     width: 350; height: 550
     minimumWidth: 350; maximumWidth: 350
     minimumHeight: 550; maximumHeight: 550
-    visible: true; title: "GB Snake Pro"
+    visible: true; title: "Snake GB Edition"
     color: "#c0c0c0"
 
     // 屏幕震动逻辑
