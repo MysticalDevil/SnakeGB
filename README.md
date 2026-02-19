@@ -1,6 +1,6 @@
 # SnakeGB - Retro GameBoy Style Snake Game (v1.3.0)
 
-[中文版](README_zh.md)
+[中文版](README_zh-CN.md)
 
 SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience while utilizing modern engineering standards and high-performance optimizations.
 
