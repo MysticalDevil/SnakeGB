@@ -52,4 +52,4 @@ ctest --output-on-failure
 - **Esc / Q**：直接退出应用
 
 ## 许可证
-本项目采用 [MIT License](LICENSE) 开源协议。
+本项目采用 [GNU GPL v3](LICENSE) 开源协议。项目使用的 Qt 框架遵循 LGPLv3/GPLv3 协议。

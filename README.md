@@ -52,4 +52,4 @@ ctest --output-on-failure
 - **Esc / Q**: Quit Application
 
 ## License
-Licensed under the [MIT License](LICENSE).
+Licensed under the [GNU GPL v3](LICENSE). This project utilizes the Qt Framework under LGPLv3/GPLv3.
