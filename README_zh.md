@@ -1,43 +1,33 @@
-# SnakeGB - 复古 GameBoy 风格贪吃蛇游戏
+# SnakeGB - 复古 GameBoy 风格贪吃蛇游戏 (v1.2.0)
 
 [English Version](README.md)
 
-SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高品质仿 GameBoy 贪吃蛇游戏。本项目从底层架构到顶层视觉均模拟了经典的复古掌机体验。
+SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高品质、跨平台仿 GameBoy 贪吃蛇游戏。本项目在追求工业级工程标准的同时，忠实还原了经典复古掌机的视听体验。
 
 > **注意**：本项目的所有代码、资源配置及文档均由 **Gemini CLI** (AI Agent) 自动生成并迭代优化。
 
 ## 核心特性
 
-- **现代 C++23**：全面应用 `std::ranges`、尾置返回、智能指针及严格的 `const` 语义。
-- **高性能渲染**：
-  - 基于 **Vulkan** 后端的 RHI 渲染。
-  - **ShaderEffect**：物理模拟 LCD 像素网格、球面畸变及暗角。
-  - **SnakeModel**：基于 `QAbstractListModel` 的增量刷新，确保 QML 渲染零抖动。
-- **8-bit 视听系统**：
-  - **Procedural Audio**：内存生成方波与噪声，支持多通道 BGM 与 SFX 混音。
-  - **ADSR 包络**：优化的音量渐入渐出，听感柔和。
-- **极致交互**：
-  - **输入缓冲 (Input Queue)**：解决快速转向冲突，手感丝滑。
-  - **动态震动反馈**：根据游戏强度自动调整屏幕抖动。
-- **完整游戏机制**：
-  - **有限状态机 (FSM)**：解耦的状态管理。
-  - **Savestate**：自动保存进度、分数及关卡设置。
-  - **幽灵回放 (Ghost System)**：与历史最高分的残影同台竞技。
-  - **关卡系统**：支持 JSON 结构化关卡加载。
+- **多平台与多架构支持**：标准化 CMake 配置，适配 Windows, macOS, Linux 及移动端。
+- **自适应渲染**：自动选择最佳图形后端（Vulkan, Metal, DirectX 12 或 OpenGL）。
+- **高级 LCD 模拟**：预编译 `.qsb` 着色器，实现像素网格、球面畸变及暗角效果。
+- **稳健架构**：
+  - **有限状态机 (FSM)**：解耦的开机动画、菜单、游戏及暂停状态管理。
+  - **输入指令缓冲**：基于队列的输入逻辑，彻底根除快速掉头导致自杀的 Bug。
+  - **SnakeModel**：增量更新机制，确保 QML 渲染丝滑零抖动。
+- **8-bit 复音系统**：
+  - 支持 BGM（背景音乐）与 SFX（音效）同时播放。
+  - 采用 ADSR 包络优化的柔和 8-bit 方波。
+- **完善机制**：JSON 关卡系统、幽灵回放（最高分残影）及全自动进度存档 (Savestate)。
 
 ## 技术栈
 
 - **语言**：C++23
-- **框架**：Qt 6.x (Quick/QML, Multimedia, ShaderTools)
+- **框架**：Qt 6.5+ (Quick, Multimedia, ShaderTools)
 - **构建系统**：CMake + Ninja
-- **质量保障**：QtTest, Clang-Tidy, Clang-Format, GitHub Actions CI
+- **质量保障**：QtTest, Clang-Tidy, Clang-Format, GitHub CI
 
 ## 快速开始
-
-### 依赖要求
-- Qt 6.5+ (包含 Multimedia, ShaderTools 模块)
-- 支持 Vulkan 的驱动
-- Doxygen (可选，用于生成文档)
 
 ### 编译运行
 ```bash
@@ -49,16 +39,15 @@ ninja
 
 ### 运行测试
 ```bash
-cd build
 ctest --output-on-failure
 ```
 
 ## 操控说明
 - **方向键**：移动
-- **Enter / S**：开始 (START)
-- **Shift**：选择关卡 / 恢复存档 (SELECT)
-- **B / X**：切换调色盘 / 返回主页
-- **M**：开启/关闭音乐
+- **Enter / S**：START (开始游戏)
+- **Shift**：SELECT (菜单中切换关卡 / 恢复进度)
+- **B / X**：返回主菜单 / 切换调色盘
+- **M**：开启/关闭背景音乐
 - **Ctrl**：切换机身颜色
 
 ## 许可证
