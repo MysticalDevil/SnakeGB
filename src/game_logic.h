@@ -62,6 +62,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(int boardWidth READ boardWidth CONSTANT)
     Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
     Q_PROPERTY(QVariantList palette READ palette NOTIFY paletteChanged)
+    Q_PROPERTY(QString paletteName READ paletteName NOTIFY paletteChanged)
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
@@ -88,6 +89,7 @@ public:
     [[nodiscard]] int boardWidth() const noexcept { return BOARD_WIDTH; }
     [[nodiscard]] int boardHeight() const noexcept { return BOARD_HEIGHT; }
     [[nodiscard]] QVariantList palette() const noexcept;
+    [[nodiscard]] QString paletteName() const noexcept;
     [[nodiscard]] QVariantList obstacles() const noexcept;
     [[nodiscard]] QColor shellColor() const noexcept;
     [[nodiscard]] bool hasSave() const noexcept;
