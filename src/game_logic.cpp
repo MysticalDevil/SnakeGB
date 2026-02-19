@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include <QRandomGenerator>
 #include <QStandardPaths>
+#include <QDateTime>
 #include <algorithm>
 #include <ranges>
 
@@ -32,6 +33,8 @@ GameLogic::GameLogic(QObject *parent)
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
     m_totalCrashes = m_settings.value(u"totalCrashes"_s, 0).toInt();
+    m_totalFoodEaten = m_settings.value(u"totalFoodEaten"_s, 0).toInt();
+    m_totalGhostTriggers = m_settings.value(u"totalGhostTriggers"_s, 0).toInt();
     m_unlockedMedals = m_settings.value(u"unlockedMedals"_s).toStringList();
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
@@ -54,8 +57,7 @@ void GameLogic::lazyInit() {
 }
 
 GameLogic::~GameLogic() {
-    m_timer->stop();
-    m_buffTimer->stop();
+    m_timer->stop(); m_buffTimer->stop();
     if (m_state == Playing || m_state == Paused) saveCurrentState();
 }
 
@@ -83,6 +85,7 @@ void GameLogic::restart() {
     m_activeBuff = None;
     m_powerUpPos = {-1, -1};
     m_buffTimer->stop();
+    m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
     emit buffChanged(); emit powerUpChanged();
     loadLevelData(m_levelIndex);
     clearSavedState();
@@ -108,7 +111,9 @@ void GameLogic::loadLastSession() {
     m_food = m_settings.value(u"saved_food"_s).toPoint();
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
-    m_currentRecording.clear(); m_ghostFrameIndex = 0;
+    m_currentRecording.clear();
+    m_ghostFrameIndex = 0;
+    m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
     changeState(std::make_unique<PausedState>(*this));
 }
@@ -122,6 +127,8 @@ void GameLogic::saveCurrentState() {
     m_settings.setValue(u"saved_food"_s, m_food);
     m_settings.setValue(u"saved_dir"_s, m_direction);
     m_settings.setValue(u"totalCrashes"_s, m_totalCrashes);
+    m_settings.setValue(u"totalFoodEaten"_s, m_totalFoodEaten);
+    m_settings.setValue(u"totalGhostTriggers"_s, m_totalGhostTriggers);
     m_settings.setValue(u"unlockedMedals"_s, m_unlockedMedals);
     m_settings.sync();
     emit hasSaveChanged();
@@ -237,8 +244,7 @@ void GameLogic::checkAchievements() {
     auto unlock = [this](QString title) {
         if (!m_unlockedMedals.contains(title)) {
             m_unlockedMedals.append(title);
-            emit achievementEarned(title);
-            emit achievementsChanged();
+            emit achievementEarned(title); emit achievementsChanged();
             if (m_soundManager) m_soundManager->playBeep(1500, 300);
         }
     };
@@ -246,13 +252,20 @@ void GameLogic::checkAchievements() {
     if (m_score >= 50) unlock(u"Gold Medal (50 Pts)"_s);
     if (m_score >= 20) unlock(u"Silver Medal (20 Pts)"_s);
     if (m_totalCrashes >= 100) unlock(u"Centurion (100 Crashes)"_s);
+    if (m_totalFoodEaten >= 500) unlock(u"Gourmet (500 Food)"_s);
+    if (m_totalGhostTriggers >= 20) unlock(u"Untouchable"_s);
     if (m_timer->interval() <= 50) unlock(u"Speed Demon"_s);
+    
+    // Pacifist: Survived 60s without food
+    qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (m_score == 0 && (now - m_sessionStartTime) > 60000 && m_state == Playing) {
+        unlock(u"Pacifist (60s No Food)"_s);
+    }
 }
 
-void GameLogic::incrementCrashes() {
-    m_totalCrashes++;
-    checkAchievements();
-}
+void GameLogic::incrementCrashes() { m_totalCrashes++; checkAchievements(); }
+void GameLogic::logFoodEaten() { m_totalFoodEaten++; checkAchievements(); }
+void GameLogic::logPowerUpTriggered(PowerUp type) { if (type == Ghost) m_totalGhostTriggers++; checkAchievements(); }
 
 QVariantList GameLogic::ghost() const noexcept {
     QVariantList list;

@@ -18,6 +18,7 @@ Window {
 
     property int shakeMagnitude: 2
     property real elapsed: 0.0
+    property bool showingMedals: false
 
     readonly property real refWidth: 350
     readonly property real refHeight: 550
@@ -75,7 +76,7 @@ Window {
         }
         function onAchievementEarned(title) {
             osdTimer.restart()
-            osdLabel.text = "MEDAL: " + title
+            osdLabel.text = "UNLOCKED: " + title
             osdBox.visible = true
         }
     }
@@ -164,7 +165,6 @@ Window {
                                 ctx.strokeStyle = p1
                                 ctx.lineWidth = 1.5
                                 ctx.beginPath()
-                                // Standard JS for loops are perfectly fine inside a function block
                                 for (var i = 0; i <= gameLogic.boardWidth; i++) {
                                     var xPos = i * (width / gameLogic.boardWidth)
                                     ctx.moveTo(xPos, 0)
@@ -409,18 +409,24 @@ Window {
                                     Repeater {
                                         model: gameLogic.achievements
                                         Rectangle {
-                                            width: 10
-                                            height: 10
-                                            radius: 5
+                                            width: 12
+                                            height: 12
+                                            radius: 6
                                             color: p3
-                                            ToolTip.visible: ma.containsMouse
-                                            ToolTip.text: modelData
                                             MouseArea {
-                                                id: ma
                                                 anchors.fill: parent
-                                                hoverEnabled: true
+                                                onClicked: {
+                                                    showingMedals = true
+                                                }
                                             }
                                         }
+                                    }
+                                    Text {
+                                        text: gameLogic.achievements.length > 0 ? qsTr("(Click to View)") : ""
+                                        font.family: gameFont
+                                        font.pixelSize: 8
+                                        color: p3
+                                        opacity: 0.5
                                     }
                                 }
 
@@ -458,6 +464,53 @@ Window {
                                     color: p3
                                     opacity: 0.6
                                     anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            id: medalRoom
+                            anchors.fill: parent
+                            color: p0
+                            visible: showingMedals
+                            z: 150
+                            Column {
+                                anchors.centerIn: parent
+                                width: parent.width - 40
+                                spacing: 10
+                                Text {
+                                    text: "MEDAL COLLECTION"
+                                    font.family: gameFont
+                                    font.pixelSize: 16
+                                    font.bold: true
+                                    color: p3
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                                Rectangle {
+                                    width: parent.width
+                                    height: 1
+                                    color: p3
+                                }
+                                Repeater {
+                                    model: gameLogic.achievements
+                                    Text {
+                                        text: "★ " + modelData
+                                        font.family: gameFont
+                                        font.pixelSize: 10
+                                        color: p3
+                                        width: parent.width
+                                        wrapMode: Text.WordWrap
+                                    }
+                                }
+                                Text { 
+                                    text: qsTr("Press B to Close")
+                                    font.family: gameFont
+                                    font.pixelSize: 8
+                                    color: p3
+                                    opacity: 0.6
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.bottom: parent.bottom
+                                    anchors.bottomMargin: 10
                                 }
                             }
                         }
@@ -523,7 +576,7 @@ Window {
                             radius: 5
                             color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
                             visible: false
-                            z: 100
+                            z: 200
                             Text {
                                 id: osdLabel
                                 anchors.centerIn: parent
@@ -596,7 +649,9 @@ Window {
                     id: bBtnUI
                     text: "B"
                     onClicked: {
-                        if (gameLogic.state === 1) {
+                        if (showingMedals) {
+                            showingMedals = false
+                        } else if (gameLogic.state === 1) {
                             gameLogic.quit()
                         } else if (gameLogic.state === 3 || gameLogic.state === 4) {
                             gameLogic.quitToMenu()
@@ -609,7 +664,11 @@ Window {
                     id: aBtnUI
                     text: "A"
                     onClicked: {
-                        gameLogic.handleStart()
+                        if (showingMedals) {
+                            showingMedals = false
+                        } else {
+                            gameLogic.handleStart()
+                        }
                     }
                 }
             }
@@ -628,7 +687,11 @@ Window {
                     onReleased: {
                         if (longPressTimer.running) {
                             longPressTimer.stop()
-                            gameLogic.handleSelect()
+                            if (showingMedals) {
+                                showingMedals = false
+                            } else {
+                                gameLogic.handleSelect()
+                            }
                         }
                     }
                 }
@@ -636,7 +699,11 @@ Window {
                     id: startBtnUI
                     text: "START"
                     onClicked: {
-                        gameLogic.handleStart()
+                        if (showingMedals) {
+                            showingMedals = false
+                        } else {
+                            gameLogic.handleStart()
+                        }
                     }
                 }
             }
@@ -663,13 +730,23 @@ Window {
                 gameLogic.move(1, 0)
             } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
                 startBtnUI.isPressed = true 
-                gameLogic.handleStart()
+                if (showingMedals) {
+                    showingMedals = false
+                } else {
+                    gameLogic.handleStart()
+                }
             } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 aBtnUI.isPressed = true
-                gameLogic.handleStart()
+                if (showingMedals) {
+                    showingMedals = false
+                } else {
+                    gameLogic.handleStart()
+                }
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 bBtnUI.isPressed = true
-                if (gameLogic.state === 1) {
+                if (showingMedals) {
+                    showingMedals = false
+                } else if (gameLogic.state === 1) {
                     gameLogic.quit()
                 } else if (gameLogic.state === 3 || gameLogic.state === 4) {
                     gameLogic.quitToMenu()
@@ -686,7 +763,9 @@ Window {
             } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) {
                 gameLogic.quit()
             } else if (event.key === Qt.Key_Back) {
-                if (gameLogic.state === 1) {
+                if (showingMedals) {
+                    showingMedals = false
+                } else if (gameLogic.state === 1) {
                     gameLogic.quit()
                 } else {
                     gameLogic.quitToMenu()
@@ -715,7 +794,11 @@ Window {
                 selectBtnUI.isPressed = false
                 if (longPressTimer.running) {
                     longPressTimer.stop()
-                    gameLogic.handleSelect()
+                    if (showingMedals) {
+                        showingMedals = false
+                    } else {
+                        gameLogic.handleSelect()
+                    }
                 }
             }
         }

@@ -72,7 +72,6 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
-    // Achievement Properties
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
 
 public:
@@ -132,6 +131,8 @@ public:
     auto lazyInit() -> void;
     auto checkAchievements() -> void;
     auto incrementCrashes() -> void;
+    auto logFoodEaten() -> void;
+    auto logPowerUpTriggered(PowerUp type) -> void;
 
     friend class SplashState;
     friend class MenuState;
@@ -191,6 +192,9 @@ private:
 
     // Achievement stats
     int m_totalCrashes = 0;
+    int m_totalFoodEaten = 0;
+    int m_totalGhostTriggers = 0;
+    qint64 m_sessionStartTime = 0;
     QList<QString> m_unlockedMedals;
 
     std::unique_ptr<QTimer> m_timer;

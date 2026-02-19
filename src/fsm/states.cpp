@@ -61,14 +61,12 @@ auto PlayingState::update() -> void {
     if (body.empty()) return;
     const QPoint nextHead = body.front() + logic.m_direction;
 
-    // Magnet Effect
     if (logic.m_activeBuff == GameLogic::Magnet) {
         if (std::abs(logic.m_food.x() - nextHead.x()) <= 1 && std::abs(logic.m_food.y() - nextHead.y()) <= 1) {
             logic.m_food = nextHead;
         }
     }
 
-    // Collision detection (Bypassed if Ghost mode is active)
     bool collision = GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(logic.m_obstacles, nextHead);
     if (logic.m_activeBuff != GameLogic::Ghost) {
         collision = collision || std::ranges::contains(body, nextHead);
@@ -97,7 +95,7 @@ auto PlayingState::update() -> void {
 
     if (ateFood) {
         logic.m_score++;
-        logic.checkAchievements();
+        logic.logFoodEaten(); // Log for Gourmet achievement
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);
@@ -105,7 +103,6 @@ auto PlayingState::update() -> void {
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         emit logic.scoreChanged();
         logic.spawnFood();
-        // Spawning power-up chance (20%)
         if (QRandomGenerator::global()->bounded(100) < 20 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
@@ -113,17 +110,19 @@ auto PlayingState::update() -> void {
     }
 
     if (atePowerUp) {
-        logic.m_activeBuff = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
+        auto pType = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
+        logic.m_activeBuff = pType;
+        logic.logPowerUpTriggered(pType); // Log for Untouchable achievement
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
         if (logic.m_soundManager) logic.m_soundManager->playBeep(1200, 150);
-        
-        if (logic.m_activeBuff == GameLogic::Slow) {
-            logic.m_timer->setInterval(250);
-        }
+        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
         emit logic.buffChanged();
         emit logic.powerUpChanged();
     }
+
+    // Check time-based achievements every frame
+    logic.checkAchievements();
 
     logic.m_snakeModel.moveHead(nextHead, ateFood);
 }
