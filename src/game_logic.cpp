@@ -1,37 +1,34 @@
 #include "game_logic.h"
+
 #include <algorithm>
 
-GameLogic::GameLogic(QObject *parent) 
-    : QObject(parent), m_timer(new QTimer(this)) 
-{
+GameLogic::GameLogic(QObject *parent) : QObject(parent), m_timer(new QTimer(this)) {
     connect(m_timer, &QTimer::timeout, this, &GameLogic::update);
-    
+
     // 加载最高分
     QSettings settings("MyCompany", "SnakeGB");
     m_highScore = settings.value("highScore", 0).toInt();
 
-    m_currentBody = { {10, 10}, {10, 11}, {10, 12} };
+    m_currentBody = {{10, 10}, {10, 11}, {10, 12}};
     m_snakeModel.reset(m_currentBody);
     m_direction = {0, -1};
     spawnFood();
 }
 
-void GameLogic::startGame() {
-    restart();
-}
+void GameLogic::startGame() { restart(); }
 
 void GameLogic::restart() {
-    m_currentBody = { {10, 10}, {10, 11}, {10, 12} };
+    m_currentBody = {{10, 10}, {10, 11}, {10, 12}};
     m_snakeModel.reset(m_currentBody);
     m_direction = {0, -1};
     m_score = 0;
     m_currentInterval = 150;
     m_state = Playing;
-    
+
     m_timer->setInterval(m_currentInterval);
     spawnFood();
     m_timer->start();
-    
+
     emit scoreChanged();
     emit stateChanged();
 }
@@ -49,18 +46,24 @@ void GameLogic::togglePause() {
 }
 
 void GameLogic::move(int dx, int dy) {
-    if (m_state != Playing) return;
-    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy)) return;
+    if (m_state != Playing)
+        return;
+    if ((dx != 0 && m_direction.x() == -dx) || (dy != 0 && m_direction.y() == -dy))
+        return;
     m_direction = {dx, dy};
-    // 移除这里的高频反馈，仅在吃到食物或操作重要按键时触发，避免过度抖动
 }
 
 void GameLogic::update() {
-    if (m_state != Playing) return;
+    if (m_state != Playing)
+        return;
 
     QPoint head = m_currentBody.front() + m_direction;
 
-    if (isOutOfBounds(head) || std::find(m_currentBody.begin(), m_currentBody.end(), head) != m_currentBody.end()) {
+    // 使用 C++20/23 风格的容器查找
+    bool selfCollision =
+        std::any_of(m_currentBody.begin(), m_currentBody.end(), [&](const auto &p) { return p == head; });
+
+    if (isOutOfBounds(head) || selfCollision) {
         m_state = GameOver;
         m_timer->stop();
         updateHighScore();
@@ -73,7 +76,6 @@ void GameLogic::update() {
     m_currentBody.push_front(head);
     if (grew) {
         m_score++;
-        // 动态加速
         if (m_score % 5 == 0 && m_currentInterval > 50) {
             m_currentInterval -= 10;
             m_timer->setInterval(m_currentInterval);
@@ -102,7 +104,8 @@ void GameLogic::spawnFood() {
     while (onSnake) {
         m_food = {QRandomGenerator::global()->bounded(boardWidth()),
                   QRandomGenerator::global()->bounded(boardHeight())};
-        onSnake = (std::find(m_currentBody.begin(), m_currentBody.end(), m_food) != m_currentBody.end());
+        onSnake = std::any_of(m_currentBody.begin(), m_currentBody.end(),
+                              [&](const auto &p) { return p == m_food; });
     }
     emit foodChanged();
 }
