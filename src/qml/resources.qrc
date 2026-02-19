@@ -4,6 +4,7 @@
     <file>GBButton.qml</file>
     <file>DPad.qml</file>
     <file>SmallButton.qml</file>
+    <file>MedalRoom.qml</file>
     <file>icon.svg</file>
     <file>lcd.frag</file>
     <file alias="levels.json">../levels/levels.json</file>

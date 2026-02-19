@@ -165,6 +165,7 @@ Window {
                                 ctx.strokeStyle = p1
                                 ctx.lineWidth = 1.5
                                 ctx.beginPath()
+                                // Valid JS semicolons in loop header
                                 for (var i = 0; i <= gameLogic.boardWidth; i++) {
                                     var xPos = i * (width / gameLogic.boardWidth)
                                     ctx.moveTo(xPos, 0)
@@ -211,8 +212,16 @@ Window {
                                     z: -1
                                     SequentialAnimation on scale {
                                         loops: Animation.Infinite
-                                        NumberAnimation { from: 0.8; to: 1.2; duration: 500 }
-                                        NumberAnimation { from: 1.2; to: 0.8; duration: 500 }
+                                        NumberAnimation {
+                                            from: 0.8
+                                            to: 1.2
+                                            duration: 500
+                                        }
+                                        NumberAnimation {
+                                            from: 1.2
+                                            to: 0.8
+                                            duration: 500
+                                        }
                                     }
                                 }
                             }
@@ -413,6 +422,13 @@ Window {
                                             }
                                         }
                                     }
+                                    Text {
+                                        text: gameLogic.achievements.length > 0 ? qsTr("(Click to View)") : ""
+                                        font.family: gameFont
+                                        font.pixelSize: 8
+                                        color: p3
+                                        opacity: 0.5
+                                    }
                                 }
 
                                 Text {
@@ -460,48 +476,14 @@ Window {
                             }
                         }
 
-                        Rectangle {
+                        MedalRoom {
                             id: medalRoom
-                            anchors.fill: parent
-                            color: p0
+                            p0: window.p0
+                            p3: window.p3
+                            gameFont: window.gameFont
                             visible: showingMedals
-                            z: 150
-                            Column {
-                                anchors.centerIn: parent
-                                width: parent.width - 40
-                                spacing: 10
-                                Text {
-                                    text: "MEDAL COLLECTION"
-                                    font.family: gameFont
-                                    font.pixelSize: 16
-                                    font.bold: true
-                                    color: p3
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                                Rectangle {
-                                    width: parent.width
-                                    height: 1
-                                    color: p3
-                                }
-                                Repeater {
-                                    model: gameLogic.achievements
-                                    Text {
-                                        text: "★ " + modelData
-                                        font.family: gameFont
-                                        font.pixelSize: 10
-                                        color: p3
-                                        width: parent.width
-                                        wrapMode: Text.WordWrap
-                                    }
-                                }
-                                Text { 
-                                    text: qsTr("Press B to Close")
-                                    font.family: gameFont
-                                    font.pixelSize: 8
-                                    color: p3
-                                    opacity: 0.6
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
+                            onCloseRequested: {
+                                showingMedals = false
                             }
                         }
 
