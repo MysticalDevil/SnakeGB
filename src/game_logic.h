@@ -8,6 +8,8 @@
 #include <deque>
 #include <memory>
 
+class SoundManager; // Forward declaration
+
 /**
  * @class SnakeModel
  * @brief 深度优化的蛇身模型，利用 C++23 语义
@@ -74,7 +76,7 @@ public:
     Q_ENUM(State)
 
     explicit GameLogic(QObject *parent = nullptr);
-    ~GameLogic() override = default;
+    ~GameLogic() override;
 
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
@@ -117,6 +119,7 @@ private:
     State m_state = StartMenu;
 
     std::unique_ptr<QTimer> m_timer;
+    std::unique_ptr<SoundManager> m_soundManager;
     QSettings m_settings{"MyCompany", "SnakeGB"};
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};

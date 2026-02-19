@@ -1,15 +1,22 @@
 #include "game_logic.h"
+#include "sound_manager.h"
 #include <QRandomGenerator>
 #include <algorithm>
 #include <ranges>
 
-GameLogic::GameLogic(QObject *parent) : QObject(parent), m_timer(std::make_unique<QTimer>()) {
+GameLogic::GameLogic(QObject *parent) 
+    : QObject(parent), 
+      m_timer(std::make_unique<QTimer>()),
+      m_soundManager(std::make_unique<SoundManager>())
+{
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     m_highScore = m_settings.value("highScore", 0).toInt();
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     spawnFood();
 }
+
+GameLogic::~GameLogic() = default;
 
 void GameLogic::startGame() { restart(); }
 
@@ -21,6 +28,9 @@ void GameLogic::restart() {
 
     m_timer->start(150);
     spawnFood();
+
+    // Start sound
+    m_soundManager->playBeep(1000, 200);
 
     emit scoreChanged();
     emit stateChanged();
@@ -48,6 +58,8 @@ void GameLogic::move(const int dx, const int dy) {
     }
 
     m_direction = {dx, dy};
+    // Move sound
+    m_soundManager->playBeep(200, 50);
 }
 
 void GameLogic::update() {
@@ -58,13 +70,14 @@ void GameLogic::update() {
     const auto &body = m_snakeModel.body();
     const QPoint nextHead = body.front() + m_direction;
 
-    // 优化：使用 C++23 std::ranges::contains
     const bool selfCollision = std::ranges::contains(body, nextHead);
 
     if (isOutOfBounds(nextHead) || selfCollision) {
         m_state = GameOver;
         m_timer->stop();
         updateHighScore();
+        // Crash sound
+        m_soundManager->playCrash(500);
         emit stateChanged();
         emit requestFeedback();
         return;
@@ -75,6 +88,9 @@ void GameLogic::update() {
         m_score++;
         const int newInterval = std::max(50, 150 - (m_score / 5) * 10);
         m_timer->setInterval(newInterval);
+        
+        // Eat sound
+        m_soundManager->playBeep(880, 100);
 
         emit scoreChanged();
         spawnFood();
@@ -98,7 +114,6 @@ void GameLogic::spawnFood() {
     while (onSnake) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        // 优化：使用 C++23 std::ranges::contains
         onSnake = std::ranges::contains(body, m_food);
     }
     emit foodChanged();

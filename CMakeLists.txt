@@ -8,12 +8,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia)
 
 set(PROJECT_SOURCES
     src/main.cpp
     src/game_logic.cpp
     src/game_logic.h
+    src/sound_manager.cpp
+    src/sound_manager.h
     src/qml/resources.qrc
 )
 
@@ -28,6 +30,7 @@ target_link_libraries(gameboy-snack PRIVATE
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
+    Qt6::Multimedia
 )
 
 target_compile_definitions(gameboy-snack PRIVATE
