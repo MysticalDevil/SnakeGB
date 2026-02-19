@@ -268,27 +268,7 @@ Window {
                             font.bold: true
                             color: p3
                             anchors.horizontalCenter: parent.horizontalCenter
-                            y: -50
-                            SequentialAnimation {
-                                id: splashAnim
-                                NumberAnimation {
-                                    target: splashText
-                                    property: "y"
-                                    from: -50
-                                    to: 80
-                                    duration: 1500
-                                    easing.type: Easing.OutBounce
-                                }
-                            }
-                            Component.onCompleted: splashAnim.start()
-                        }
-                        Text {
-                            text: "TM"
-                            font.family: gameFont
-                            font.pixelSize: 8
-                            color: p3
-                            anchors.left: splashText.right
-                            anchors.top: splashText.top
+                            y: 80
                         }
                     }
 
@@ -336,17 +316,17 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 SequentialAnimation on opacity {
                                     loops: Animation.Infinite
-                                    NumberAnimation {
-                                        from: 1
-                                        to: 0
-                                        duration: 800
-                                    }
-                                    NumberAnimation {
-                                        from: 0
-                                        to: 1
-                                        duration: 800
-                                    }
+                                    NumberAnimation { from: 1; to: 0; duration: 800 }
+                                    NumberAnimation { from: 0; to: 1; duration: 800 }
                                 }
+                            }
+                            Text {
+                                text: qsTr("B to Quit")
+                                font.family: gameFont
+                                font.pixelSize: 10
+                                color: p3
+                                opacity: 0.6
+                                anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
                     }
@@ -368,7 +348,7 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("Press B to Quit")
+                                text: qsTr("Press B to Menu")
                                 font.family: gameFont
                                 font.pixelSize: 12
                                 color: p3
@@ -424,9 +404,7 @@ Window {
                         Timer {
                             id: osdTimer
                             interval: 1000
-                            onTriggered: {
-                                osdBox.visible = false
-                            }
+                            onTriggered: osdBox.visible = false
                         }
                     }
                 }
@@ -451,18 +429,10 @@ Window {
             anchors.bottomMargin: 110
             anchors.left: parent.left
             anchors.leftMargin: 25
-            onUpClicked: {
-                gameLogic.move(0, -1)
-            }
-            onDownClicked: {
-                gameLogic.move(0, 1)
-            }
-            onLeftClicked: {
-                gameLogic.move(-1, 0)
-            }
-            onRightClicked: {
-                gameLogic.move(1, 0)
-            }
+            onUpClicked: gameLogic.move(0, -1)
+            onDownClicked: gameLogic.move(0, 1)
+            onLeftClicked: gameLogic.move(-1, 0)
+            onRightClicked: gameLogic.move(1, 0)
         }
 
         Row {
@@ -508,11 +478,8 @@ Window {
                 text: "SELECT"
                 onClicked: {
                     if (gameLogic.state === 1) {
-                        if (gameLogic.hasSave) {
-                            gameLogic.loadLastSession()
-                        } else {
-                            gameLogic.nextLevel()
-                        }
+                        if (gameLogic.hasSave) gameLogic.loadLastSession()
+                        else gameLogic.nextLevel()
                     }
                 }
             }
@@ -520,13 +487,9 @@ Window {
                 id: startBtnUI
                 text: "START"
                 onClicked: {
-                    if (gameLogic.state === 1) {
-                        gameLogic.startGame()
-                    } else if (gameLogic.state === 4) {
-                        gameLogic.restart()
-                    } else if (gameLogic.state > 1) {
-                        gameLogic.togglePause()
-                    }
+                    if (gameLogic.state === 1) gameLogic.startGame()
+                    else if (gameLogic.state === 4) gameLogic.restart()
+                    else if (gameLogic.state > 1) gameLogic.togglePause()
                 }
             }
         }
@@ -535,9 +498,7 @@ Window {
     Item {
         focus: true
         Keys.onPressed: (event) => {
-            if (event.isAutoRepeat) {
-                return
-            }
+            if (event.isAutoRepeat) return
             if (event.key === Qt.Key_Up) {
                 dpadUI.upPressed = true
                 gameLogic.move(0, -1)
@@ -550,15 +511,11 @@ Window {
             } else if (event.key === Qt.Key_Right) {
                 dpadUI.rightPressed = true
                 gameLogic.move(1, 0)
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                startBtnUI.isPressed = true
-                if (gameLogic.state === 1) {
-                    gameLogic.startGame()
-                } else if (gameLogic.state === 4) {
-                    gameLogic.restart()
-                } else if (gameLogic.state > 1) {
-                    gameLogic.togglePause()
-                }
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
+                startBtnUI.isPressed = true 
+                if (gameLogic.state === 1) gameLogic.startGame()
+                else if (gameLogic.state === 4) gameLogic.restart()
+                else if (gameLogic.state > 1) gameLogic.togglePause()
             } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 aBtnUI.isPressed = true
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
@@ -573,11 +530,8 @@ Window {
             } else if (event.key === Qt.Key_Shift) {
                 selectBtnUI.isPressed = true
                 if (gameLogic.state === 1) {
-                    if (gameLogic.hasSave) {
-                        gameLogic.loadLastSession()
-                    } else {
-                        gameLogic.nextLevel()
-                    }
+                    if (gameLogic.hasSave) gameLogic.loadLastSession()
+                    else gameLogic.nextLevel()
                 }
             } else if (event.key === Qt.Key_Control) {
                 gameLogic.nextShellColor()
@@ -588,26 +542,15 @@ Window {
             }
         }
         Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) {
-                return
-            }
-            if (event.key === Qt.Key_Up) {
-                dpadUI.upPressed = false
-            } else if (event.key === Qt.Key_Down) {
-                dpadUI.downPressed = false
-            } else if (event.key === Qt.Key_Left) {
-                dpadUI.leftPressed = false
-            } else if (event.key === Qt.Key_Right) {
-                dpadUI.rightPressed = false
-            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                startBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
-                aBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                bBtnUI.isPressed = false
-            } else if (event.key === Qt.Key_Shift) {
-                selectBtnUI.isPressed = false
-            }
+            if (event.isAutoRepeat) return
+            if (event.key === Qt.Key_Up) dpadUI.upPressed = false
+            else if (event.key === Qt.Key_Down) dpadUI.downPressed = false
+            else if (event.key === Qt.Key_Left) dpadUI.leftPressed = false
+            else if (event.key === Qt.Key_Right) dpadUI.rightPressed = false
+            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) startBtnUI.isPressed = false
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) aBtnUI.isPressed = false
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) bBtnUI.isPressed = false
+            else if (event.key === Qt.Key_Shift) selectBtnUI.isPressed = false
         }
     }
 }
