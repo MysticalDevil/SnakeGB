@@ -36,6 +36,11 @@ qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
 )
 
+# Android specific deployment
+if(ANDROID)
+    set_property(TARGET gameboy-snack PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+endif()
+
 qt_add_shaders(gameboy-snack "lcd_shaders"
     PREFIX "/shaders"
     FILES
