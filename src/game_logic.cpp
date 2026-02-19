@@ -155,7 +155,14 @@ void GameLogic::quitToMenu() {
 }
 
 void GameLogic::toggleMusic() {
-    m_soundManager->setMusicEnabled(!m_soundManager->musicEnabled());
+    bool nextEnabled = !m_soundManager->musicEnabled();
+    m_soundManager->setMusicEnabled(nextEnabled);
+    
+    // 如果重新开启音乐且当前处于菜单状态，立即恢复播放
+    if (nextEnabled && m_state == StartMenu) {
+        m_soundManager->startMusic();
+    }
+    
     emit musicEnabledChanged();
 }
 
