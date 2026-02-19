@@ -73,6 +73,19 @@ Window {
                     color: p3; radius: width / 2
                 }
 
+                // Obstacles
+                Repeater {
+                    model: gameLogic.obstacles
+                    Rectangle {
+                        x: modelData.x * (gameScreen.width / gameLogic.boardWidth)
+                        y: modelData.y * (gameScreen.height / gameLogic.boardHeight)
+                        width: gameScreen.width / gameLogic.boardWidth; height: gameScreen.height / gameLogic.boardHeight
+                        color: p3
+                        radius: 0
+                        Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 } // Hollow box look
+                    }
+                }
+
                 // Snake
                 Repeater {
                     model: gameLogic.snakeModel
