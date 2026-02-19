@@ -9,6 +9,7 @@
 #include <QVariantList>
 #include <deque>
 #include <memory>
+#include <queue>
 
 class SoundManager;
 class GameState;
@@ -80,7 +81,7 @@ private:
 
 /**
  * @class GameLogic
- * @brief Core logic manager for the game.
+ * @brief Core logic manager for the game with lazy loading.
  */
 class GameLogic final : public QObject {
     Q_OBJECT
@@ -111,7 +112,6 @@ public:
     GameLogic(GameLogic &&) = delete;
     GameLogic &operator=(GameLogic &&) = delete;
 
-    // Getters - Reverted to explicit types for MOC/QML
     [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
@@ -144,6 +144,7 @@ public:
 
     void changeState(std::unique_ptr<GameState> newState);
     void setInternalState(State s);
+    void lazyInit(); // Added for performance optimization
 
     friend class SplashState;
     friend class MenuState;

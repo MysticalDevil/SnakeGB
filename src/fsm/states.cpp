@@ -14,6 +14,7 @@ namespace {
 // --- SplashState ---
 auto SplashState::enter() -> void {
     m_context.setInternalState(GameLogic::Splash);
+    m_context.lazyInit(); // 异步加载大数据
     m_context.m_timer->start(150); 
     m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
 }
