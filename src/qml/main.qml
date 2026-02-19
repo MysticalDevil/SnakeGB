@@ -20,7 +20,6 @@ Window {
 
     readonly property string gameFont: "Monospace"
 
-    // Dynamic shake magnitude
     property int shakeMagnitude: 2
 
     Connections {
@@ -91,7 +90,7 @@ Window {
                 Item {
                     id: gameContent
                     anchors.fill: parent
-                    visible: true // Keep visible for Shader capture
+                    visible: true
 
                     Canvas {
                         id: backgroundGrid
@@ -315,7 +314,7 @@ Window {
                                 }
                             }
                             Text {
-                                text: qsTr("M to Mute Music")
+                                text: qsTr("B to Quit App")
                                 font.family: gameFont
                                 font.pixelSize: 8
                                 color: p3
@@ -342,7 +341,7 @@ Window {
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                             Text {
-                                text: qsTr("Press B to Quit")
+                                text: qsTr("Press B to Quit Game")
                                 font.family: gameFont
                                 font.pixelSize: 12
                                 color: p3
@@ -416,7 +415,9 @@ Window {
                 id: bBtnUI
                 text: "B"
                 onClicked: {
-                    if (gameLogic.state === 3 || gameLogic.state === 4) {
+                    if (gameLogic.state === 1) {
+                        gameLogic.quit()
+                    } else if (gameLogic.state === 3 || gameLogic.state === 4) {
                         gameLogic.quitToMenu()
                     } else {
                         gameLogic.nextPalette()
@@ -501,7 +502,9 @@ Window {
                 aBtnUI.isPressed = true
             } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 bBtnUI.isPressed = true
-                if (gameLogic.state === 3 || gameLogic.state === 4) {
+                if (gameLogic.state === 1) {
+                    gameLogic.quit()
+                } else if (gameLogic.state === 3 || gameLogic.state === 4) {
                     gameLogic.quitToMenu()
                 } else {
                     gameLogic.nextPalette()
@@ -519,6 +522,8 @@ Window {
                 gameLogic.nextShellColor()
             } else if (event.key === Qt.Key_M) {
                 gameLogic.toggleMusic()
+            } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) {
+                gameLogic.quit()
             }
         }
         Keys.onReleased: (event) => {

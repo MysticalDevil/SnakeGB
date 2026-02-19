@@ -140,6 +140,7 @@ public:
     Q_INVOKABLE void nextLevel();
     Q_INVOKABLE void quitToMenu();
     Q_INVOKABLE void toggleMusic();
+    Q_INVOKABLE void quit();
 
     void changeState(std::unique_ptr<GameState> newState);
     void setInternalState(State s);

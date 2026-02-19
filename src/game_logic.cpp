@@ -1,6 +1,7 @@
 #include "game_logic.h"
 #include "fsm/states.h"
 #include "sound_manager.h"
+#include <QCoreApplication>
 #include <QRandomGenerator>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -186,6 +187,10 @@ void GameLogic::toggleMusic() {
         m_soundManager->startMusic();
     }
     emit musicEnabledChanged();
+}
+
+void GameLogic::quit() {
+    QCoreApplication::quit();
 }
 
 bool GameLogic::musicEnabled() const noexcept {
