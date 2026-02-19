@@ -6,7 +6,7 @@
 #include "game_logic.h"
 
 auto main(int argc, char *argv[]) -> int {
-    QGuiApplication app(argc, argv);
+    const QGuiApplication app(argc, argv);
 
     // 设置应用元数据 (使用类名调用静态方法)
     QCoreApplication::setApplicationName("SnakeGB");
@@ -24,7 +24,7 @@ auto main(int argc, char *argv[]) -> int {
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
-        [url](QObject *obj, const QUrl &objUrl) -> void {
+        [url](const QObject *obj, const QUrl &objUrl) -> void {
             if (!obj && url == objUrl) {
                 QCoreApplication::exit(-1);
             }

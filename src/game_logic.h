@@ -2,25 +2,27 @@
 
 #include <QAbstractListModel>
 #include <QObject>
-#include <QPoint>
 #include <QRect>
-#include <QRandomGenerator>
 #include <QSettings>
 #include <QTimer>
 #include <deque>
 #include <memory>
 
+/**
+ * @class SnakeModel
+ * @brief 深度优化的蛇身模型，利用 C++23 语义
+ */
 class SnakeModel : public QAbstractListModel {
     Q_OBJECT
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
 
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override {
+    [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override {
         return static_cast<int>(m_body.size());
     }
 
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
+    [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
         if (!index.isValid() || index.row() >= static_cast<int>(m_body.size())) {
             return {};
         }
@@ -30,7 +32,7 @@ public:
         return {};
     }
 
-    QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
+    [[nodiscard]] QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
 
     [[nodiscard]] const std::deque<QPoint> &body() const noexcept { return m_body; }
 
@@ -42,7 +44,7 @@ public:
 
     void moveHead(const QPoint &newHead, const bool grew) {
         beginInsertRows(QModelIndex(), 0, 0);
-        m_body.push_front(newHead);
+        m_body.emplace_front(newHead); // 优化：使用 emplace
         endInsertRows();
 
         if (!grew) {
@@ -74,18 +76,17 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override = default;
 
-    SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
+    [[nodiscard]] SnakeModel *snakeModel() noexcept { return &m_snakeModel; }
     [[nodiscard]] QPoint food() const noexcept { return m_food; }
     [[nodiscard]] int score() const noexcept { return m_score; }
     [[nodiscard]] int highScore() const noexcept { return m_highScore; }
     [[nodiscard]] State state() const noexcept { return m_state; }
 
-    // 改为变量以解决 constexpr 初始化顺序问题
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
 
-    [[nodiscard]] int boardWidth() const noexcept { return BOARD_WIDTH; }
-    [[nodiscard]] int boardHeight() const noexcept { return BOARD_HEIGHT; }
+    [[nodiscard]] static int boardWidth() noexcept { return BOARD_WIDTH; }
+    [[nodiscard]] static int boardHeight() noexcept { return BOARD_HEIGHT; }
 
     Q_INVOKABLE void move(const int dx, const int dy);
     Q_INVOKABLE void startGame();

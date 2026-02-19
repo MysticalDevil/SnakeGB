@@ -58,8 +58,8 @@ void GameLogic::update() {
     const auto &body = m_snakeModel.body();
     const QPoint nextHead = body.front() + m_direction;
 
-    const bool selfCollision =
-        std::ranges::any_of(body, [&](const auto &p) -> bool { return p == nextHead; });
+    // 优化：使用 C++23 std::ranges::contains
+    const bool selfCollision = std::ranges::contains(body, nextHead);
 
     if (isOutOfBounds(nextHead) || selfCollision) {
         m_state = GameOver;
@@ -98,7 +98,8 @@ void GameLogic::spawnFood() {
     while (onSnake) {
         m_food = QPoint(QRandomGenerator::global()->bounded(BOARD_WIDTH),
                         QRandomGenerator::global()->bounded(BOARD_HEIGHT));
-        onSnake = std::ranges::any_of(body, [&](const auto &p) -> bool { return p == m_food; });
+        // 优化：使用 C++23 std::ranges::contains
+        onSnake = std::ranges::contains(body, m_food);
     }
     emit foodChanged();
 }
