@@ -5,13 +5,14 @@
 void SplashState::enter() {
     m_context.setInternalState(GameLogic::Splash);
     m_frames = 0;
-    // CRITICAL FIX: Must start timer for update() to be called
+    m_context.lazyInit();
     m_context.startEngineTimer(16); // ~60fps logic
 }
 
 void SplashState::update() {
     m_frames++;
     if (m_frames > 80) {
+        m_context.playEventSound(3);
         m_context.requestStateChange(GameLogic::StartMenu);
     }
 }
@@ -54,7 +55,26 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    // Movement logic handled by timer connection in GameLogic
+    auto &queue = m_context.inputQueue();
+    if (!queue.empty()) {
+        m_context.direction() = queue.front();
+        queue.pop_front();
+        m_context.currentInputHistory().append(
+            {m_context.gameTickCounter(), m_context.direction().x(), m_context.direction().y()});
+    }
+
+    const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();
+    if (m_context.checkCollision(nextHead)) {
+        m_context.triggerHaptic(8);
+        m_context.playEventSound(1);
+        m_context.requestStateChange(GameLogic::GameOver);
+        return;
+    }
+
+    const bool grew = (nextHead == m_context.foodPos());
+    m_context.handleFoodConsumption(nextHead);
+    m_context.handlePowerUpConsumption(nextHead);
+    m_context.applyMovement(nextHead, grew);
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
@@ -107,6 +127,33 @@ void ChoiceState::handleStart() {
 // --- Replaying State ---
 void ReplayingState::enter() {
     m_context.setInternalState(GameLogic::Replaying);
+    m_historyIndex = 0;
+}
+
+void ReplayingState::update() {
+    auto &bestHistory = m_context.bestInputHistory();
+    while (m_historyIndex < bestHistory.size()) {
+        const auto &frame = bestHistory[m_historyIndex];
+        if (frame.frame == m_context.gameTickCounter()) {
+            m_context.direction() = QPoint(frame.dx, frame.dy);
+            m_historyIndex++;
+        } else if (frame.frame > m_context.gameTickCounter()) {
+            break;
+        } else {
+            m_historyIndex++;
+        }
+    }
+
+    const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();
+    if (m_context.checkCollision(nextHead)) {
+        m_context.requestStateChange(GameLogic::StartMenu);
+        return;
+    }
+
+    const bool grew = (nextHead == m_context.foodPos());
+    m_context.handleFoodConsumption(nextHead);
+    m_context.handlePowerUpConsumption(nextHead);
+    m_context.applyMovement(nextHead, grew);
 }
 
 void ReplayingState::handleStart() {

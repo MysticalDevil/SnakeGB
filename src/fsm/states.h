@@ -51,7 +51,10 @@ class ReplayingState : public GameState {
 public:
     explicit ReplayingState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
+    void update() override;
     void handleStart() override;
+private:
+    int m_historyIndex = 0;
 };
 
 class ChoiceState : public GameState {

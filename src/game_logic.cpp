@@ -80,11 +80,17 @@ GameLogic::GameLogic(QObject *parent)
             }
 
             if (m_state == StartMenu) {
-                m_soundManager->startMusic();
-            } else if (m_state == Playing) {
+                const int token = m_audioStateToken;
+                QTimer::singleShot(650, this, [this, token]() {
+                    if (!m_soundManager || token != m_audioStateToken) {
+                        return;
+                    }
+                    if (m_state == StartMenu && m_soundManager->musicEnabled()) {
+                        m_soundManager->startMusic();
+                    }
+                });
+            } else if (m_state == Playing || m_state == Replaying || m_state == GameOver) {
                 m_soundManager->stopMusic();
-            } else if (m_state == Splash) {
-                m_soundManager->playBeep(440, 100);
             }
         });
     }
@@ -105,6 +111,7 @@ void GameLogic::setInternalState(int s) {
     State next = static_cast<State>(s);
     if (m_state != next) {
         m_state = next;
+        m_audioStateToken++;
         if (m_soundManager) {
             m_soundManager->setPaused(m_state == Paused || 
                                      m_state == ChoiceSelection || 
@@ -118,6 +125,9 @@ void GameLogic::setInternalState(int s) {
 void GameLogic::requestStateChange(int newState) {
     State s = static_cast<State>(newState);
     switch (s) {
+        case Splash:
+            changeState(std::make_unique<SplashState>(*this));
+            break;
         case StartMenu: 
             changeState(std::make_unique<MenuState>(*this)); 
             break;
@@ -469,7 +479,7 @@ void GameLogic::playEventSound(int type, float pan) {
     } else if (type == 2) {
         emit uiInteractTriggered();
     } else if (type == 3 && m_soundManager) {
-        m_soundManager->playBeep(150, 100);
+        m_soundManager->playBeep(1046, 140);
     }
 }
 

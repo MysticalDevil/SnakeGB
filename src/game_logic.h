@@ -101,7 +101,7 @@ public:
 
     // --- IGameEngine Interface ---
     void setInternalState(int s) override;
-    void requestStateChange(int newState) override;
+    Q_INVOKABLE void requestStateChange(int newState) override;
     
     SnakeModel* snakeModel() override { return &m_snakeModel; }
     QPoint& direction() override { return m_direction; }
@@ -244,6 +244,7 @@ private:
     QList<ReplayFrame> m_bestInputHistory;
     QList<ChoiceRecord> m_currentChoiceHistory;
     QList<ChoiceRecord> m_bestChoiceHistory;
+    int m_audioStateToken = 0;
     uint m_randomSeed = 0;
     uint m_bestRandomSeed = 0;
     int m_bestLevelIndex = 0;
