@@ -112,19 +112,39 @@ void ReplayingState::exit() {}
 
 void ReplayingState::update() {
     auto& e = engine(*this);
-    static int historyIdx = 0;
-    if (e.gameTickCounter() == 0) historyIdx = 0;
+    static int inputIdx = 0;
+    static int choiceIdx = 0;
+    if (e.gameTickCounter() == 0) { inputIdx = 0; choiceIdx = 0; }
 
+    // 1. Process Choices (Roguelike Auto-selection)
+    auto& bestChoices = e.bestChoiceHistory();
+    while (choiceIdx < bestChoices.size()) {
+        const auto &c = bestChoices[choiceIdx];
+        if (c.frame == e.gameTickCounter()) {
+            // Re-generate choices to keep RNG in sync
+            e.generateChoices();
+            // Automatically select the recorded choice
+            static_cast<GameLogic&>(e).selectChoice(c.index);
+            choiceIdx++;
+            return; // State changed to Playing, let it continue next tick
+        } else if (c.frame > e.gameTickCounter()) {
+            break;
+        } else {
+            choiceIdx++;
+        }
+    }
+
+    // 2. Process Movement
     auto& bestHistory = e.bestInputHistory();
-    while (historyIdx < bestHistory.size()) {
-        const auto &f = bestHistory[historyIdx];
+    while (inputIdx < bestHistory.size()) {
+        const auto &f = bestHistory[inputIdx];
         if (f.frame == e.gameTickCounter()) {
             e.direction() = QPoint(f.dx, f.dy);
-            historyIdx++;
+            inputIdx++;
         } else if (f.frame > e.gameTickCounter()) {
             break; 
         } else {
-            historyIdx++;
+            inputIdx++;
         }
     }
 
@@ -144,6 +164,17 @@ void ReplayingState::handleInput(int, int) {}
 void ReplayingState::handleStart() { 
     engine(*this).requestStateChange(GameLogic::StartMenu); 
 }
+
+// --- ChoiceState ---
+void ChoiceState::enter() { 
+    auto& e = engine(*this);
+    e.setInternalState(GameLogic::ChoiceSelection); 
+    e.generateChoices();
+}
+void ChoiceState::exit() {}
+void ChoiceState::update() {}
+void ChoiceState::handleInput(int, int) {}
+void ChoiceState::handleStart() {}
 
 // --- PausedState ---
 
@@ -170,14 +201,3 @@ void GameOverState::handleInput(int, int) {}
 void GameOverState::handleStart() { 
     engine(*this).restart(); 
 }
-
-// --- ChoiceState ---
-void ChoiceState::enter() { 
-    auto& e = engine(*this);
-    e.setInternalState(GameLogic::ChoiceSelection); 
-    e.generateChoices();
-}
-void ChoiceState::exit() {}
-void ChoiceState::update() {}
-void ChoiceState::handleInput(int, int) {}
-void ChoiceState::handleStart() {}

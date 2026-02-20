@@ -25,6 +25,13 @@ struct ReplayFrame {
     friend QDataStream &operator>>(QDataStream &in, ReplayFrame &f) { return in >> f.frame >> f.dx >> f.dy; }
 };
 
+struct ChoiceRecord {
+    int frame;
+    int index;
+    friend QDataStream &operator<<(QDataStream &out, const ChoiceRecord &c) { return out << c.frame << c.index; }
+    friend QDataStream &operator>>(QDataStream &in, ChoiceRecord &c) { return in >> c.frame >> c.index; }
+};
+
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
 public:
@@ -98,6 +105,8 @@ public:
     std::deque<QPoint>& inputQueue() override { return m_inputQueue; }
     QList<ReplayFrame>& currentInputHistory() override { return m_currentInputHistory; }
     QList<ReplayFrame>& bestInputHistory() override { return m_bestInputHistory; }
+    QList<ChoiceRecord>& currentChoiceHistory() override { return m_currentChoiceHistory; }
+    QList<ChoiceRecord>& bestChoiceHistory() override { return m_bestChoiceHistory; }
     int& gameTickCounter() override { return m_gameTickCounter; }
     QPoint foodPos() const override { return m_food; }
     bool hasSave() const override;
@@ -216,6 +225,8 @@ private:
     QList<QPoint> m_bestRecording;
     QList<ReplayFrame> m_currentInputHistory;
     QList<ReplayFrame> m_bestInputHistory;
+    QList<ChoiceRecord> m_currentChoiceHistory;
+    QList<ChoiceRecord> m_bestChoiceHistory;
     uint m_randomSeed = 0;
     uint m_bestRandomSeed = 0;
     int m_bestLevelIndex = 0;

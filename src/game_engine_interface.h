@@ -6,6 +6,7 @@
 
 class SnakeModel;
 struct ReplayFrame;
+struct ChoiceRecord;
 
 /**
  * @brief Unified Interface for Game Logic operations.
@@ -25,6 +26,8 @@ public:
     virtual std::deque<QPoint>& inputQueue() = 0;
     virtual QList<ReplayFrame>& currentInputHistory() = 0;
     virtual QList<ReplayFrame>& bestInputHistory() = 0;
+    virtual QList<ChoiceRecord>& currentChoiceHistory() = 0;
+    virtual QList<ChoiceRecord>& bestChoiceHistory() = 0;
     virtual int& gameTickCounter() = 0;
     virtual QPoint foodPos() const = 0;
     virtual bool hasSave() const = 0;

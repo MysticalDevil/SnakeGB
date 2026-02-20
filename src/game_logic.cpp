@@ -24,7 +24,7 @@ using namespace Qt::StringLiterals;
 namespace {
     constexpr int InitialInterval = 200;
     constexpr int BuffDurationTicks = 40; 
-    constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B03;
+    constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B04; // Version 4: Choice History
 
     QString getGhostFilePath() {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -276,6 +276,7 @@ void GameLogic::restart() {
     m_ghostFrameIndex = 0;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
+    m_currentChoiceHistory.clear();
     
     loadLevelData(m_levelIndex);
     clearSavedState();
@@ -331,6 +332,7 @@ void GameLogic::loadLastSession() {
     m_inputQueue.clear();
     m_currentInputHistory.clear();
     m_currentRecording.clear();
+    m_currentChoiceHistory.clear();
     for(const auto &p : b) m_currentRecording.append(p);
     
     m_timer->setInterval(std::max(60, 200 - (m_score/5)*8));
@@ -379,10 +381,15 @@ void GameLogic::generateChoices() {
 
 void GameLogic::selectChoice(int index) {
     if (index < 0 || index >= m_choices.size()) return;
+    
+    if (m_state != Replaying) {
+        m_currentChoiceHistory.append({m_gameTickCounter, index});
+    }
+
     int type = m_choices[index].toMap().value(u"type"_s).toInt();
     m_activeBuff = static_cast<PowerUp>(type);
     if (m_activeBuff == Shield) m_shieldActive = true;
-    m_buffTicksRemaining = BuffDurationTicks * 2; // Selection buffs last longer
+    m_buffTicksRemaining = BuffDurationTicks * 2; 
     emit buffChanged();
     requestStateChange(Playing);
 }
@@ -426,7 +433,7 @@ void GameLogic::spawnPowerUp() {
     }
     if (!freeSpots.isEmpty()) {
         m_powerUpPos = freeSpots[m_rng.bounded(freeSpots.size())];
-        m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 7)); // Expanded range
+        m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 7)); 
         emit powerUpChanged();
     }
 }
@@ -442,12 +449,14 @@ void GameLogic::updateHighScore() {
         m_profileManager->updateHighScore(m_score);
         m_bestInputHistory = m_currentInputHistory;
         m_bestRecording = m_currentRecording;
+        m_bestChoiceHistory = m_currentChoiceHistory;
         m_bestRandomSeed = m_randomSeed;
         m_bestLevelIndex = m_levelIndex;
+        
         QFile file(getGhostFilePath());
         if (file.open(QIODevice::WriteOnly)) {
             QDataStream out(&file);
-            out << GHOST_FILE_MAGIC << m_bestRecording << m_bestRandomSeed << m_bestInputHistory << m_bestLevelIndex;
+            out << GHOST_FILE_MAGIC << m_bestRecording << m_bestRandomSeed << m_bestInputHistory << m_bestLevelIndex << m_bestChoiceHistory;
         }
         emit highScoreChanged();
     }
@@ -461,8 +470,11 @@ void GameLogic::lazyInit() {
     QFile f(getGhostFilePath());
     if (f.open(QIODevice::ReadOnly)) {
         QDataStream in(&f); quint32 magic; in >> magic;
-        if (magic == GHOST_FILE_MAGIC || magic == 0x534E4B02) {
+        if (magic == GHOST_FILE_MAGIC) {
+            in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex >> m_bestChoiceHistory;
+        } else if (magic == 0x534E4B03 || magic == 0x534E4B02) {
             in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex;
+            m_bestChoiceHistory.clear();
         } else {
             m_bestRecording.clear(); m_bestInputHistory.clear(); 
         }
