@@ -76,7 +76,7 @@
 ## 4. Optimization Plan (Next)
 
 ### P1（建议立即执行）
-状态（2026-02-20）：部分完成（1/3 完成，1/3 部分完成，1/3 未完成）
+状态（2026-02-20）：已完成
 
 1. 将 `GameState` 上下文类型改为 `IGameEngine&`
 标记：已完成
@@ -84,14 +84,15 @@
 - 影响文件：`src/fsm/game_state.h`, `src/fsm/states.h/.cpp`, `src/game_logic.cpp`.
 
 2. 收口 `IGameEngine` 可变引用接口
-标记：未完成
+标记：已完成
 - 用命令式方法替代容器直接暴露（如 `enqueueInput`, `consumeNextInput`, `recordInputFrame`）。
 - 降低状态层越权风险。
+- 已将状态层对 `direction()/inputQueue()/history` 的可变引用访问替换为命令式接口（消费输入、设置方向、按帧读取回放数据）。
 
 3. 为关键规则补测试矩阵
-标记：部分完成
+标记：已完成（基线矩阵）
 - 边界穿越、动态障碍脚本/回退、Buff 冲突组合、回放一致性。
-- 当前已有基础测试，建议扩到分模块用例。
+- 已补齐上述关键规则的自动化基线测试；后续可继续扩展到更细粒度分模块用例。
 
 ### P2（中期）
 
