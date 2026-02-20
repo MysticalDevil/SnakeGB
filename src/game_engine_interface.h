@@ -33,14 +33,17 @@ public:
     virtual void requestStateChange(int newState) = 0;
 
     // --- Core Data Access ---
-    virtual auto snakeModel() -> SnakeModel* = 0;
-    virtual auto direction() -> QPoint& = 0;
-    virtual auto inputQueue() -> std::deque<QPoint>& = 0;
-    virtual auto currentInputHistory() -> QList<ReplayFrame>& = 0;
-    virtual auto bestInputHistory() -> QList<ReplayFrame>& = 0;
-    virtual auto currentChoiceHistory() -> QList<ChoiceRecord>& = 0;
-    virtual auto bestChoiceHistory() -> QList<ChoiceRecord>& = 0;
-    virtual auto gameTickCounter() -> int& = 0;
+    [[nodiscard]] virtual auto snakeModel() const -> const SnakeModel* = 0;
+    [[nodiscard]] virtual auto headPosition() const -> QPoint = 0;
+    [[nodiscard]] virtual auto currentDirection() const -> QPoint = 0;
+    virtual void setDirection(const QPoint &direction) = 0;
+    [[nodiscard]] virtual auto currentTick() const -> int = 0;
+    virtual auto consumeQueuedInput(QPoint &nextInput) -> bool = 0;
+    virtual void recordInputAtCurrentTick(const QPoint &input) = 0;
+    [[nodiscard]] virtual auto bestInputHistorySize() const -> int = 0;
+    virtual auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool = 0;
+    [[nodiscard]] virtual auto bestChoiceHistorySize() const -> int = 0;
+    virtual auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool = 0;
     [[nodiscard]] virtual auto foodPos() const -> QPoint = 0;
     [[nodiscard]] virtual auto currentState() const -> int = 0;
     [[nodiscard]] virtual auto hasSave() const -> bool = 0;

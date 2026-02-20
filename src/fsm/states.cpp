@@ -58,15 +58,13 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    auto &queue = m_context.inputQueue();
-    if (!queue.empty()) {
-        m_context.direction() = queue.front();
-        queue.pop_front();
-        m_context.currentInputHistory().append(
-            {.frame=m_context.gameTickCounter(), .dx=m_context.direction().x(), .dy=m_context.direction().y()});
+    QPoint nextInput;
+    if (m_context.consumeQueuedInput(nextInput)) {
+        m_context.setDirection(nextInput);
+        m_context.recordInputAtCurrentTick(nextInput);
     }
 
-    const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();
+    const QPoint nextHead = m_context.headPosition() + m_context.currentDirection();
     if (m_context.checkCollision(nextHead)) {
         m_context.triggerHaptic(8);
         m_context.playEventSound(1);
@@ -142,34 +140,41 @@ void ReplayingState::enter() {
 }
 
 void ReplayingState::update() {
-    auto &bestChoices = m_context.bestChoiceHistory();
-    while (m_choiceHistoryIndex < bestChoices.size()) {
-        const auto &choice = bestChoices[m_choiceHistoryIndex];
-        if (choice.frame == m_context.gameTickCounter()) {
-            m_context.selectChoice(choice.index);
+    while (m_choiceHistoryIndex < m_context.bestChoiceHistorySize()) {
+        int frame = 0;
+        int choiceIndex = 0;
+        if (!m_context.bestChoiceAt(m_choiceHistoryIndex, frame, choiceIndex)) {
+            break;
+        }
+        if (frame == m_context.currentTick()) {
+            m_context.selectChoice(choiceIndex);
             m_choiceHistoryIndex++;
             break;
-        } else if (choice.frame > m_context.gameTickCounter()) {
+        } else if (frame > m_context.currentTick()) {
             break;
         } else {
             m_choiceHistoryIndex++;
         }
     }
 
-    auto &bestHistory = m_context.bestInputHistory();
-    while (m_historyIndex < bestHistory.size()) {
-        const auto &frame = bestHistory[m_historyIndex];
-        if (frame.frame == m_context.gameTickCounter()) {
-            m_context.direction() = QPoint(frame.dx, frame.dy);
+    while (m_historyIndex < m_context.bestInputHistorySize()) {
+        int frame = 0;
+        int dx = 0;
+        int dy = 0;
+        if (!m_context.bestInputFrameAt(m_historyIndex, frame, dx, dy)) {
+            break;
+        }
+        if (frame == m_context.currentTick()) {
+            m_context.setDirection(QPoint(dx, dy));
             m_historyIndex++;
-        } else if (frame.frame > m_context.gameTickCounter()) {
+        } else if (frame > m_context.currentTick()) {
             break;
         } else {
             m_historyIndex++;
         }
     }
 
-    const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();
+    const QPoint nextHead = m_context.headPosition() + m_context.currentDirection();
     if (m_context.checkCollision(nextHead)) {
         m_context.requestStateChange(IGameEngine::StartMenu);
         return;

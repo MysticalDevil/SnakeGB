@@ -105,14 +105,45 @@ public:
     void setInternalState(int s) override;
     Q_INVOKABLE void requestStateChange(int newState) override;
     
-    auto snakeModel() -> SnakeModel* override { return &m_snakeModel; }
-    auto direction() -> QPoint& override { return m_direction; }
-    auto inputQueue() -> std::deque<QPoint>& override { return m_inputQueue; }
-    auto currentInputHistory() -> QList<ReplayFrame>& override { return m_currentInputHistory; }
-    auto bestInputHistory() -> QList<ReplayFrame>& override { return m_bestInputHistory; }
-    auto currentChoiceHistory() -> QList<ChoiceRecord>& override { return m_currentChoiceHistory; }
-    auto bestChoiceHistory() -> QList<ChoiceRecord>& override { return m_bestChoiceHistory; }
-    auto gameTickCounter() -> int& override { return m_gameTickCounter; }
+    [[nodiscard]] auto snakeModel() const -> const SnakeModel* override { return &m_snakeModel; }
+    [[nodiscard]] auto headPosition() const -> QPoint override {
+        return m_snakeModel.body().empty() ? QPoint() : m_snakeModel.body().front();
+    }
+    [[nodiscard]] auto currentDirection() const -> QPoint override { return m_direction; }
+    void setDirection(const QPoint &direction) override { m_direction = direction; }
+    [[nodiscard]] auto currentTick() const -> int override { return m_gameTickCounter; }
+    auto consumeQueuedInput(QPoint &nextInput) -> bool override {
+        if (m_inputQueue.empty()) {
+            return false;
+        }
+        nextInput = m_inputQueue.front();
+        m_inputQueue.pop_front();
+        return true;
+    }
+    void recordInputAtCurrentTick(const QPoint &input) override {
+        m_currentInputHistory.append({.frame = m_gameTickCounter, .dx = input.x(), .dy = input.y()});
+    }
+    [[nodiscard]] auto bestInputHistorySize() const -> int override { return m_bestInputHistory.size(); }
+    auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool override {
+        if (index < 0 || index >= m_bestInputHistory.size()) {
+            return false;
+        }
+        const auto &item = m_bestInputHistory[index];
+        frame = item.frame;
+        dx = item.dx;
+        dy = item.dy;
+        return true;
+    }
+    [[nodiscard]] auto bestChoiceHistorySize() const -> int override { return m_bestChoiceHistory.size(); }
+    auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool override {
+        if (index < 0 || index >= m_bestChoiceHistory.size()) {
+            return false;
+        }
+        const auto &item = m_bestChoiceHistory[index];
+        frame = item.frame;
+        choiceIndex = item.index;
+        return true;
+    }
     [[nodiscard]] auto foodPos() const -> QPoint override { return m_food; }
     [[nodiscard]] auto currentState() const -> int override { return static_cast<int>(m_state); }
     [[nodiscard]] auto hasSave() const -> bool override;
