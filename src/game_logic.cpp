@@ -146,11 +146,11 @@ void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
 }
 
 void GameLogic::triggerHaptic(int magnitude) { emit requestFeedback(magnitude); }
-void GameLogic::playEventSound(int type, float pan) {
-    if (type == 0) emit foodEaten(pan);
-    else if (type == 1) emit playerCrashed();
-    else if (type == 2) emit uiInteractTriggered();
-    else if (type == 3 && m_soundManager) m_soundManager->playBeep(150, 100); // Low error beep
+void GameLogic::playEventSound(int type, float pan) { 
+    if (type == 0) emit foodEaten(pan); 
+    else if (type == 1) emit playerCrashed(); 
+    else if (type == 2) emit uiInteractTriggered(); 
+    else if (type == 3 && m_soundManager) m_soundManager->playBeep(150, 100);
 }
 void GameLogic::updatePersistence() { updateHighScore(); if (m_profileManager) m_profileManager->incrementCrashes(); clearSavedState(); }
 void GameLogic::startEngineTimer(int intervalMs) { if (intervalMs > 0) m_timer->setInterval(intervalMs); m_timer->start(); }
@@ -207,8 +207,17 @@ void GameLogic::deactivateBuff() {
     emit buffChanged();
 }
 
-void GameLogic::saveCurrentState() { if (m_profileManager) m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction); }
-void GameLogic::clearSavedState() { if (m_profileManager) m_profileManager->clearSession(); }
+void GameLogic::saveCurrentState() {
+    if (m_profileManager) {
+        m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction);
+    }
+}
+
+void GameLogic::clearSavedState() {
+    if (m_profileManager) {
+        m_profileManager->clearSession();
+    }
+}
 
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
@@ -218,18 +227,22 @@ void GameLogic::restart() {
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
     m_powerUpPos = QPoint(-1, -1);
+    
+    // Deterministic Seeding Sequence
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
-    m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
+    
     loadLevelData(m_levelIndex);
     clearSavedState();
     m_timer->setInterval(InitialInterval);
     m_timer->start();
+    
     spawnFood();
+    
     emit buffChanged(); emit powerUpChanged(); emit scoreChanged(); emit foodChanged();
     requestStateChange(Playing);
 }
@@ -237,6 +250,7 @@ void GameLogic::restart() {
 void GameLogic::startReplay() {
     if (m_bestInputHistory.isEmpty()) return;
     setInternalState(Replaying);
+    
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_currentRecording.clear();
     m_direction = {0, -1};
@@ -245,13 +259,17 @@ void GameLogic::startReplay() {
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
     m_powerUpPos = QPoint(-1, -1);
+    
     loadLevelData(m_bestLevelIndex);
     m_rng.seed(m_bestRandomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
+    
     m_timer->setInterval(InitialInterval);
     m_timer->start();
+    
     spawnFood();
+    
     emit scoreChanged(); emit foodChanged(); emit ghostChanged();
     changeState(std::make_unique<ReplayingState>(*this));
 }
@@ -268,7 +286,6 @@ void GameLogic::loadLastSession() {
     for (const auto &v : d[u"body"_s].toList()) b.emplace_back(v.toPoint());
     m_snakeModel.reset(b);
     
-    // Reset session-specific volatile state
     m_inputQueue.clear();
     m_currentInputHistory.clear();
     m_currentRecording.clear();
@@ -277,12 +294,7 @@ void GameLogic::loadLastSession() {
     m_timer->setInterval(std::max(60, 200 - (m_score/5)*8));
     m_timer->start();
     
-    // CRITICAL: Notify UI to refresh all layers
-    emit scoreChanged();
-    emit foodChanged();
-    emit obstaclesChanged();
-    emit ghostChanged();
-    
+    emit scoreChanged(); emit foodChanged(); emit obstaclesChanged(); emit ghostChanged();
     requestStateChange(Paused);
 }
 
@@ -386,7 +398,7 @@ void GameLogic::lazyInit() {
 }
 
 void GameLogic::loadLevelData(int i) {
-    QFile f(u":/levels.json"_s); if (!f.open(QIODevice::ReadOnly)) return;
+    QFile f(u"qrc:/src/levels/levels.json"_s); if (!f.open(QIODevice::ReadOnly)) return;
     auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
     auto lvl = levels[i % levels.size()].toObject();
     m_currentLevelName = lvl.value(u"name"_s).toString();

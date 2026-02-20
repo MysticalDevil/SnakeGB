@@ -36,7 +36,7 @@ auto main(int argc, char *argv[]) -> int {
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
 
     using namespace Qt::StringLiterals;
-    const QUrl url(u"qrc:/main.qml"_s);
+    const QUrl url(u"qrc:/src/qml/main.qml"_s);
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
