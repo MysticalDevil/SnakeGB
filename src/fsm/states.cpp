@@ -43,13 +43,18 @@ auto MenuState::handleSelect() -> void {
 auto PlayingState::enter() -> void {
     m_context.setInternalState(GameLogic::Playing);
     m_context.m_timer->start();
+    m_context.m_ghostFrameIndex = 0; // Reset ghost index on start
 }
 
 auto PlayingState::update() -> void {
     auto& logic = m_context;
+    
+    // Apply buffered input from queue
     if (!logic.m_inputQueue.empty()) {
         logic.m_direction = logic.m_inputQueue.front();
         logic.m_inputQueue.pop_front();
+        // Record EXACTLY when input is consumed/applied
+        logic.m_currentInputHistory.append({logic.m_gameTickCounter, logic.m_direction.x(), logic.m_direction.y()});
     }
 
     const auto &body = logic.m_snakeModel.body();
@@ -76,12 +81,13 @@ auto PlayingState::update() -> void {
         logic.updateHighScore();
         logic.incrementCrashes();
         logic.clearSavedState();
-        emit logic.playerCrashed(); // Signal replaces direct call
+        emit logic.playerCrashed();
         emit logic.requestFeedback(8);
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
     }
 
+    // Record position for Ghost rendering
     logic.m_currentRecording.append(nextHead);
     if (logic.m_ghostFrameIndex < static_cast<int>(logic.m_bestRecording.size())) {
         logic.m_ghostFrameIndex++;
@@ -94,11 +100,8 @@ auto PlayingState::update() -> void {
     if (ateFood) {
         logic.m_score++;
         logic.logFoodEaten();
-        
-        // Panning based on horizontal position (-0.7 to 0.7)
         float pan = (static_cast<float>(nextHead.x()) / GameLogic::BOARD_WIDTH - 0.5f) * 1.4f;
-        emit logic.foodEaten(pan); // Signal replaces direct call
-        
+        emit logic.foodEaten(pan);
         logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
         emit logic.scoreChanged();
         logic.spawnFood();
@@ -114,7 +117,7 @@ auto PlayingState::update() -> void {
         logic.logPowerUpTriggered(pType);
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
-        emit logic.powerUpEaten(); // Signal replaces direct call
+        emit logic.powerUpEaten();
         if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
         emit logic.buffChanged();
         emit logic.powerUpChanged();
@@ -136,9 +139,19 @@ auto ReplayingState::enter() -> void {
 auto ReplayingState::update() -> void {
     auto& logic = m_context;
     
-    for (const auto &f : logic.m_bestInputHistory) {
+    // Optimized playback: No full scan per frame
+    static int historyIdx = 0;
+    if (logic.m_gameTickCounter == 0) historyIdx = 0;
+
+    while (historyIdx < logic.m_bestInputHistory.size()) {
+        const auto &f = logic.m_bestInputHistory[historyIdx];
         if (f.frame == logic.m_gameTickCounter) {
             logic.m_direction = QPoint(f.dx, f.dy);
+            historyIdx++;
+        } else if (f.frame > logic.m_gameTickCounter) {
+            break; // Not time yet
+        } else {
+            historyIdx++; // Skip missed frame
         }
     }
 
@@ -146,6 +159,8 @@ auto ReplayingState::update() -> void {
     if (body.empty()) return;
     const QPoint nextHead = body.front() + logic.m_direction;
 
+    // No collisions should occur in a valid replay
+    // But we check for safety or if logic version changed
     bool collision = GameLogic::isOutOfBounds(nextHead);
     if (!collision) {
         for (const auto &p : logic.m_obstacles) { if (p == nextHead) { collision = true; break; } }
