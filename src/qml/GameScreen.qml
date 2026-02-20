@@ -125,6 +125,8 @@ Item {
                         anchors.centerIn: parent
                         width: parent.width * 0.9
                         height: parent.height * 0.9
+                        
+                        // Icon Type 1
                         Rectangle { 
                             anchors.fill: parent
                             border.color: p3
@@ -138,6 +140,8 @@ Item {
                                 border.color: p3
                             } 
                         }
+                        
+                        // Icon Type 2
                         Rectangle { 
                             anchors.fill: parent
                             radius: 10
@@ -146,6 +150,8 @@ Item {
                             border.width: 2
                             visible: gameLogic.powerUpType === 2
                         }
+                        
+                        // Icon Type 3
                         Rectangle { 
                             anchors.centerIn: parent
                             width: 14
@@ -153,12 +159,16 @@ Item {
                             color: p3
                             visible: gameLogic.powerUpType === 3
                         }
+                        
+                        // Icon Type 4
                         Rectangle { 
                             anchors.fill: parent
                             radius: 10
                             color: p3
                             visible: gameLogic.powerUpType === 4
                         }
+                        
+                        // Icon Type 5
                         Rectangle { 
                             anchors.fill: parent
                             radius: 10
@@ -166,6 +176,8 @@ Item {
                             color: "transparent"
                             visible: gameLogic.powerUpType === 5
                         }
+                        
+                        // Icon Type 6
                         Rectangle { 
                             anchors.centerIn: parent
                             width: 14
@@ -174,6 +186,8 @@ Item {
                             color: "#ffd700"
                             visible: gameLogic.powerUpType === 6
                         }
+                        
+                        // Icon Type 7
                         Rectangle { 
                             anchors.centerIn: parent
                             width: 14
@@ -182,6 +196,8 @@ Item {
                             color: "#00ffff"
                             visible: gameLogic.powerUpType === 7
                         }
+                        
+                        // Icon Type 8
                         Rectangle { 
                             anchors.fill: parent
                             border.color: "#ff0000"
@@ -189,12 +205,15 @@ Item {
                             border.width: 2
                             visible: gameLogic.powerUpType === 8
                         }
+                        
+                        // Icon Type 9
                         Rectangle { 
                             anchors.fill: parent
                             border.color: p3
                             color: "transparent"
                             visible: gameLogic.powerUpType === 9
                         }
+
                         SequentialAnimation on scale { 
                             loops: Animation.Infinite
                             NumberAnimation { from: 0.8; to: 1.1; duration: 300 }
@@ -227,9 +246,7 @@ Item {
         }
 
         ShaderEffect {
-            id: lcdShader
-            anchors.fill: parent
-            z: 20
+            id: lcdShader; anchors.fill: parent; z: 20
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
             property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
             property real time: root.elapsed
@@ -245,8 +262,10 @@ Item {
             Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
             Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
         }
+        
+        OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
     }
 
-    function showOSD(t) { console.log(t) }
+    function showOSD(t) { osd.show(t) }
     function triggerPowerCycle() { bootAnim.restart() }
 }

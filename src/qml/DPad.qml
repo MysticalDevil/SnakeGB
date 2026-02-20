@@ -35,13 +35,25 @@ Item {
         border.width: 2
     }
 
-    // 方向键
     Item {
         anchors.fill: parent
+        
         // UP
         Rectangle {
-            x: 33; y: 5; width: 34; height: 34; color: upPressed ? "#111" : "transparent"
-            Text { text: "▲"; anchors.centerIn: parent; color: "#333"; opacity: 0.5; font.pixelSize: 10 }
+            x: 33; y: 0; width: 34; height: 34; color: upPressed ? "#111" : "transparent"
+            Canvas {
+                anchors.centerIn: parent
+                width: 12; height: 10
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.fillStyle = "#333"
+                    ctx.beginPath()
+                    ctx.moveTo(6, 0)
+                    ctx.lineTo(12, 10)
+                    ctx.lineTo(0, 10)
+                    ctx.fill()
+                }
+            }
             MouseArea { 
                 anchors.fill: parent
                 onPressed: { 
@@ -53,10 +65,23 @@ Item {
                 } 
             }
         }
+        
         // DOWN
         Rectangle {
-            x: 33; y: 61; width: 34; height: 34; color: downPressed ? "#111" : "transparent"
-            Text { text: "▼"; anchors.centerIn: parent; color: "#333"; opacity: 0.5; font.pixelSize: 10 }
+            x: 33; y: 66; width: 34; height: 34; color: downPressed ? "#111" : "transparent"
+            Canvas {
+                anchors.centerIn: parent
+                width: 12; height: 10
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.fillStyle = "#333"
+                    ctx.beginPath()
+                    ctx.moveTo(0, 0)
+                    ctx.lineTo(12, 0)
+                    ctx.lineTo(6, 10)
+                    ctx.fill()
+                }
+            }
             MouseArea { 
                 anchors.fill: parent
                 onPressed: { 
@@ -68,10 +93,23 @@ Item {
                 } 
             }
         }
+        
         // LEFT
         Rectangle {
-            x: 5; y: 33; width: 34; height: 34; color: leftPressed ? "#111" : "transparent"
-            Text { text: "◀"; anchors.centerIn: parent; color: "#333"; opacity: 0.5; font.pixelSize: 10 }
+            x: 0; y: 33; width: 34; height: 34; color: leftPressed ? "#111" : "transparent"
+            Canvas {
+                anchors.centerIn: parent
+                width: 10; height: 12
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.fillStyle = "#333"
+                    ctx.beginPath()
+                    ctx.moveTo(10, 0)
+                    ctx.lineTo(10, 12)
+                    ctx.lineTo(0, 6)
+                    ctx.fill()
+                }
+            }
             MouseArea { 
                 anchors.fill: parent
                 onPressed: { 
@@ -83,10 +121,23 @@ Item {
                 } 
             }
         }
+        
         // RIGHT
         Rectangle {
-            x: 61; y: 33; width: 34; height: 34; color: rightPressed ? "#111" : "transparent"
-            Text { text: "▶"; anchors.centerIn: parent; color: "#333"; opacity: 0.5; font.pixelSize: 10 }
+            x: 66; y: 33; width: 34; height: 34; color: rightPressed ? "#111" : "transparent"
+            Canvas {
+                anchors.centerIn: parent
+                width: 10; height: 12
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.fillStyle = "#333"
+                    ctx.beginPath()
+                    ctx.moveTo(0, 0)
+                    ctx.lineTo(10, 6)
+                    ctx.lineTo(0, 12)
+                    ctx.fill()
+                }
+            }
             MouseArea { 
                 anchors.fill: parent
                 onPressed: { 
