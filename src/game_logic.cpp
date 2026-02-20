@@ -20,7 +20,7 @@ using namespace Qt::StringLiterals;
 namespace {
 constexpr int InitialInterval = 150;
 constexpr int MaxSpawnAttempts = 100;
-constexpr int BuffDurationMs = 8000;
+[[maybe_unused]] constexpr int BuffDurationMs = 8000;
 constexpr int PacifistThresholdMs = 60000;
 
 QString getGhostFilePath() {

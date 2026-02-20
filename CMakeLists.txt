@@ -35,6 +35,7 @@ set(PROJECT_SOURCES
 qt_add_executable(gameboy-snack
     ${PROJECT_SOURCES}
 )
+set_property(TARGET gameboy-snack PROPERTY QT_QML_MODULE_NO_IMPORT_SCAN TRUE)
 
 # Platform Specific Deployment
 if(ANDROID)
@@ -74,6 +75,7 @@ target_compile_definitions(gameboy-snack PRIVATE
 
 install(TARGETS gameboy-snack
     BUNDLE DESTINATION .
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 

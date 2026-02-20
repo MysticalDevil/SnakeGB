@@ -51,6 +51,34 @@ ninja
 ./gameboy-snack
 ```
 
+### Android 编译与部署（环境变量方式）
+仓库内提供了 `scripts/android_deploy.sh`，通过环境变量配置路径（使用时无需在命令里硬编码本地目录）。
+
+必需：
+```bash
+export QT_ANDROID_PREFIX="$HOME/dev/build-qt-android/build-android-arm64/qt-android-install"
+```
+
+推荐：
+```bash
+export QT_HOST_PATH="$HOME/dev/build-qt-android/build-android-arm64/qtbase"
+export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export ANDROID_NDK_ROOT="$HOME/Android/Sdk/ndk/29.0.14206865"
+export JAVA_HOME="/opt/openjdk-bin-21"
+```
+
+执行：
+```bash
+./scripts/android_deploy.sh
+```
+
+常用可选变量：
+- `BUILD_DIR`（默认：`build-android-local`）
+- `ANDROID_ABI`（默认：`arm64-v8a`）
+- `ANDROID_PLATFORM`（默认：`28`）
+- `INSTALL_TO_DEVICE=0`（仅构建/签名，不安装）
+- `LAUNCH_AFTER_INSTALL=0`（仅安装，不自动启动）
+
 ## 操控说明
 - **方向键**：控制蛇移动
 - **START (Enter / S)**：开始游戏 / 继续进度

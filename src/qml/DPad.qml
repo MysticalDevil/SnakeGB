@@ -47,6 +47,39 @@ Item {
         }
     }
 
+    component ArrowGlyph : Canvas {
+        property int direction: 0 // 0 up, 1 down, 2 left, 3 right
+        width: 14
+        height: 14
+        anchors.centerIn: parent
+        opacity: 0.55
+        onPaint: {
+            var ctx = getContext("2d")
+            ctx.clearRect(0, 0, width, height)
+            ctx.fillStyle = "#111"
+            ctx.beginPath()
+            if (direction === 0) {
+                ctx.moveTo(width / 2, 2)
+                ctx.lineTo(2, height - 2)
+                ctx.lineTo(width - 2, height - 2)
+            } else if (direction === 1) {
+                ctx.moveTo(2, 2)
+                ctx.lineTo(width - 2, 2)
+                ctx.lineTo(width / 2, height - 2)
+            } else if (direction === 2) {
+                ctx.moveTo(2, height / 2)
+                ctx.lineTo(width - 2, 2)
+                ctx.lineTo(width - 2, height - 2)
+            } else {
+                ctx.moveTo(2, 2)
+                ctx.lineTo(width - 2, height / 2)
+                ctx.lineTo(2, height - 2)
+            }
+            ctx.closePath()
+            ctx.fill()
+        }
+    }
+
     DPadButton {
         id: upBtn
         anchors.top: parent.top
@@ -55,12 +88,7 @@ Item {
         onPressAction: {
             upClicked()
         }
-        Text {
-            text: "▲"
-            color: "#111"
-            anchors.centerIn: parent
-            opacity: 0.5
-        }
+        ArrowGlyph { direction: 0 }
     }
 
     DPadButton {
@@ -71,12 +99,7 @@ Item {
         onPressAction: {
             downClicked()
         }
-        Text {
-            text: "▼"
-            color: "#111"
-            anchors.centerIn: parent
-            opacity: 0.5
-        }
+        ArrowGlyph { direction: 1 }
     }
 
     DPadButton {
@@ -87,12 +110,7 @@ Item {
         onPressAction: {
             leftClicked()
         }
-        Text {
-            text: "◀"
-            color: "#111"
-            anchors.centerIn: parent
-            opacity: 0.5
-        }
+        ArrowGlyph { direction: 2 }
     }
 
     DPadButton {
@@ -103,11 +121,6 @@ Item {
         onPressAction: {
             rightClicked()
         }
-        Text {
-            text: "▶"
-            color: "#111"
-            anchors.centerIn: parent
-            opacity: 0.5
-        }
+        ArrowGlyph { direction: 3 }
     }
 }

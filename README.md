@@ -51,6 +51,34 @@ ninja
 ./gameboy-snack
 ```
 
+### Android Build and Deploy (Environment Variables)
+This repository includes `scripts/android_deploy.sh` for Android packaging and deployment with environment-driven configuration (no hardcoded local paths in usage).
+
+Required:
+```bash
+export QT_ANDROID_PREFIX="$HOME/dev/build-qt-android/build-android-arm64/qt-android-install"
+```
+
+Recommended:
+```bash
+export QT_HOST_PATH="$HOME/dev/build-qt-android/build-android-arm64/qtbase"
+export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+export ANDROID_NDK_ROOT="$HOME/Android/Sdk/ndk/29.0.14206865"
+export JAVA_HOME="/opt/openjdk-bin-21"
+```
+
+Run:
+```bash
+./scripts/android_deploy.sh
+```
+
+Useful optional variables:
+- `BUILD_DIR` (default: `build-android-local`)
+- `ANDROID_ABI` (default: `arm64-v8a`)
+- `ANDROID_PLATFORM` (default: `28`)
+- `INSTALL_TO_DEVICE=0` (build/sign only, skip install)
+- `LAUNCH_AFTER_INSTALL=0` (install only, skip launch)
+
 ## Controls
 - **Arrow Keys**: Move snake
 - **START (Enter / S)**: Play / Continue from save
