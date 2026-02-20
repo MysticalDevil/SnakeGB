@@ -42,14 +42,27 @@ Window {
     }
 
     Item {
-        id: rootContainer; anchors.fill: parent
+        id: rootContainer
+        anchors.fill: parent
         Item {
-            id: scaledWrapper; width: 350; height: 550; anchors.centerIn: parent; scale: Math.min(window.width / 350, window.height / 550)
+            id: scaledWrapper
+            width: 350
+            height: 550
+            anchors.centerIn: parent
+            scale: Math.min(window.width / 350, window.height / 550)
             GameBoyShell {
-                id: shell; anchors.fill: parent
+                id: shell
+                anchors.fill: parent
                 GameScreen {
-                    id: screen; parent: shell.screenContainer; anchors.fill: parent
-                    p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3; gameFont: window.gameFont; elapsed: window.elapsed
+                    id: screen
+                    parent: shell.screenContainer
+                    anchors.fill: parent
+                    p0: window.p0
+                    p1: window.p1
+                    p2: window.p2
+                    p3: window.p3
+                    gameFont: window.gameFont
+                    elapsed: window.elapsed
                 }
                 Connections {
                     target: shell.dpad
@@ -59,7 +72,7 @@ Window {
                     function onRightClicked() { gameLogic.move(1, 0) }
                 }
                 Connections { target: shell.aButton; onClicked: { gameLogic.handleStart() } }
-                Connections { target: shell.bButton; onClicked: { if (gameLogic.state === 1) gameLogic.quit(); else if (gameLogic.state >= 3) gameLogic.quitToMenu(); else gameLogic.nextPalette(); } }
+                Connections { target: shell.bButton; onClicked: { if (gameLogic.state === 1) gameLogic.quit(); else if (gameLogic.state >= 3) gameLogic.quitToMenu(); else gameLogic.nextPalette() } }
                 Connections { target: shell.selectButton; onPressed: { longPressTimer.start() }; onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } } }
                 Connections { target: shell.startButton; onClicked: { gameLogic.handleStart() } }
             }

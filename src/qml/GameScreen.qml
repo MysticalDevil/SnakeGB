@@ -28,9 +28,26 @@ Item {
             
             Canvas {
                 id: backgroundGrid
-                anchors.fill: parent; z: 0
+                anchors.fill: parent
+                z: 0
                 property color gridColor: (gameLogic.coverage > 0.5) ? Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3) : p1
-                onPaint: { var ctx = getContext("2d"); ctx.strokeStyle = gridColor; ctx.lineWidth = 1.5; ctx.beginPath(); for (var i = 0; i <= gameLogic.boardWidth; i++) { var x = i * (width / gameLogic.boardWidth); ctx.moveTo(x, 0); ctx.lineTo(x, height); } for (var j = 0; j <= gameLogic.boardHeight; j++) { var y = j * (height / gameLogic.boardHeight); ctx.moveTo(0, y); ctx.lineTo(width, y); } ctx.stroke(); }
+                onPaint: { 
+                    var ctx = getContext("2d")
+                    ctx.strokeStyle = gridColor
+                    ctx.lineWidth = 1.5
+                    ctx.beginPath()
+                    for (var i = 0; i <= gameLogic.boardWidth; i++) { 
+                        var x = i * (width / gameLogic.boardWidth)
+                        ctx.moveTo(x, 0)
+                        ctx.lineTo(x, height)
+                    } 
+                    for (var j = 0; j <= gameLogic.boardHeight; j++) { 
+                        var y = j * (height / gameLogic.boardHeight)
+                        ctx.moveTo(0, y)
+                        ctx.lineTo(width, y)
+                    } 
+                    ctx.stroke() 
+                }
                 Connections { target: gameLogic; function onPaletteChanged() { backgroundGrid.requestPaint() } }
             }
 
