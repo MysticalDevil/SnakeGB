@@ -118,6 +118,27 @@ Item {
                         anchors.centerIn: parent
                         width: parent.width * 0.9; height: parent.height * 0.9
                         
+                        // Ghost (Dashed box with hollow center)
+                        Rectangle {
+                            anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; border.style: Qt.DashLine
+                            visible: gameLogic.powerUpType === 1
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.4; height: parent.height*0.4; rotation: 45; color: "transparent"; border.color: p3; border.width: 1 }
+                        }
+                        
+                        // Slow (Clock-like circle)
+                        Rectangle {
+                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 2
+                            visible: gameLogic.powerUpType === 2
+                            Rectangle { width: parent.width*0.5; height: 2; color: p3; anchors.centerIn: parent }
+                        }
+
+                        // Magnet (Inverted Triangle)
+                        Rectangle {
+                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; color: p3
+                            visible: gameLogic.powerUpType === 3
+                            clip: true; Rectangle { width: parent.width; height: parent.height; rotation: 45; y: parent.height*0.5; color: p0 }
+                        }
+
                         // Shield (Circle with cross)
                         Rectangle {
                             anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 2
@@ -525,6 +546,12 @@ Item {
                                     width: 20; height: 20
                                     anchors.verticalCenter: parent.verticalCenter
                                     
+                                    // Ghost (Dashed)
+                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; border.style: Qt.DashLine; visible: modelData.discovered && modelData.type === 1; Rectangle { anchors.centerIn: parent; width: 8; height: 8; rotation: 45; border.color: p3; border.width: 1; color: "transparent" } }
+                                    // Slow (Clock)
+                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 2; Rectangle { width: 8; height: 2; color: p3; anchors.centerIn: parent } }
+                                    // Magnet (Triangle)
+                                    Rectangle { anchors.fill: parent; color: p3; visible: modelData.discovered && modelData.type === 3; clip: true; Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: p1 } }
                                     // Shield (Circle)
                                     Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
                                     // Portal (Rings)

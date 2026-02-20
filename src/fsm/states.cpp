@@ -23,7 +23,7 @@ void SplashState::exit() {
 
 void SplashState::update() {
     static int frames = 0;
-    if (++frames > 50) { // Increased from 30 to 50 for better timing
+    if (++frames > 80) { // Increased from 50 to 80 for definitive audio separation
         frames = 0;
         engine(*this).requestStateChange(GameLogic::StartMenu);
     }
