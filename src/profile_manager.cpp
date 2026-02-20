@@ -24,7 +24,7 @@ void ProfileManager::setLevelIndex(int i) { m_levelIndex = i; m_settings.setValu
 void ProfileManager::setVolume(float v) { m_volume = v; m_settings.setValue(u"volume"_s, v); }
 void ProfileManager::updateHighScore(int s) { m_highScore = s; m_settings.setValue(u"highScore"_s, s); }
 
-bool ProfileManager::unlockMedal(const QString &t) {
+auto ProfileManager::unlockMedal(const QString &t) -> bool {
     if (m_unlockedMedals.contains(t)) return false;
     m_unlockedMedals << t;
     m_settings.setValue(u"medals"_s, m_unlockedMedals);
@@ -60,8 +60,8 @@ void ProfileManager::saveSession(int score, const std::deque<QPoint> &body, cons
 }
 
 void ProfileManager::clearSession() { m_settings.remove(u"session"_s); }
-bool ProfileManager::hasSession() const { return m_settings.value(u"session/active"_s, false).toBool(); }
-QVariantMap ProfileManager::loadSession() {
+auto ProfileManager::hasSession() const -> bool { return m_settings.value(u"session/active"_s, false).toBool(); }
+auto ProfileManager::loadSession() -> QVariantMap {
     QVariantMap d; m_settings.beginGroup(u"session"_s);
     d[u"score"_s] = m_settings.value(u"score"_s);
     d[u"food"_s] = m_settings.value(u"food"_s);

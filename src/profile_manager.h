@@ -12,36 +12,36 @@ class ProfileManager : public QObject {
 public:
     explicit ProfileManager(QObject *parent = nullptr);
 
-    int paletteIndex() const { return m_paletteIndex; }
+    [[nodiscard]] auto paletteIndex() const -> int { return m_paletteIndex; }
     void setPaletteIndex(int index);
-    int shellIndex() const { return m_shellIndex; }
+    [[nodiscard]] auto shellIndex() const -> int { return m_shellIndex; }
     void setShellIndex(int index);
-    int levelIndex() const { return m_levelIndex; }
+    [[nodiscard]] auto levelIndex() const -> int { return m_levelIndex; }
     void setLevelIndex(int index);
-    float volume() const { return m_volume; }
+    [[nodiscard]] auto volume() const -> float { return m_volume; }
     void setVolume(float v);
     
-    int highScore() const { return m_highScore; }
+    [[nodiscard]] auto highScore() const -> int { return m_highScore; }
     void updateHighScore(int score);
 
     void incrementCrashes() { m_totalCrashes++; saveStats(); }
     void logFoodEaten() { m_totalFoodEaten++; saveStats(); }
     void logGhostTrigger() { m_totalGhostTriggers++; saveStats(); }
 
-    QStringList unlockedMedals() const { return m_unlockedMedals; }
-    bool unlockMedal(const QString &title);
+    [[nodiscard]] auto unlockedMedals() const -> QStringList { return m_unlockedMedals; }
+    auto unlockMedal(const QString &title) -> bool;
 
     void discoverFruit(int type);
-    QList<int> discoveredFruits() const { return m_discoveredFruits; }
+    [[nodiscard]] auto discoveredFruits() const -> QList<int> { return m_discoveredFruits; }
     
     void saveSession(int score, const std::deque<QPoint> &body, const QList<QPoint> &obstacles, QPoint food, QPoint dir);
     void clearSession();
-    bool hasSession() const;
-    QVariantMap loadSession();
+    [[nodiscard]] auto hasSession() const -> bool;
+    auto loadSession() -> QVariantMap;
 
-    int totalCrashes() const { return m_totalCrashes; }
-    int totalFoodEaten() const { return m_totalFoodEaten; }
-    int totalGhostTriggers() const { return m_totalGhostTriggers; }
+    [[nodiscard]] auto totalCrashes() const -> int { return m_totalCrashes; }
+    [[nodiscard]] auto totalFoodEaten() const -> int { return m_totalFoodEaten; }
+    [[nodiscard]] auto totalGhostTriggers() const -> int { return m_totalGhostTriggers; }
 
 signals:
     void medalUnlocked(const QString &title);

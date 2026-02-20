@@ -21,20 +21,20 @@ public:
     virtual void requestStateChange(int newState) = 0;
 
     // --- Core Data Access ---
-    virtual SnakeModel* snakeModel() = 0;
-    virtual QPoint& direction() = 0;
-    virtual std::deque<QPoint>& inputQueue() = 0;
-    virtual QList<ReplayFrame>& currentInputHistory() = 0;
-    virtual QList<ReplayFrame>& bestInputHistory() = 0;
-    virtual QList<ChoiceRecord>& currentChoiceHistory() = 0;
-    virtual QList<ChoiceRecord>& bestChoiceHistory() = 0;
-    virtual int& gameTickCounter() = 0;
-    virtual QPoint foodPos() const = 0;
-    virtual bool hasSave() const = 0;
-    virtual bool hasReplay() const = 0;
+    virtual auto snakeModel() -> SnakeModel* = 0;
+    virtual auto direction() -> QPoint& = 0;
+    virtual auto inputQueue() -> std::deque<QPoint>& = 0;
+    virtual auto currentInputHistory() -> QList<ReplayFrame>& = 0;
+    virtual auto bestInputHistory() -> QList<ReplayFrame>& = 0;
+    virtual auto currentChoiceHistory() -> QList<ChoiceRecord>& = 0;
+    virtual auto bestChoiceHistory() -> QList<ChoiceRecord>& = 0;
+    virtual auto gameTickCounter() -> int& = 0;
+    [[nodiscard]] virtual auto foodPos() const -> QPoint = 0;
+    [[nodiscard]] virtual auto hasSave() const -> bool = 0;
+    [[nodiscard]] virtual auto hasReplay() const -> bool = 0;
 
     // --- Logic & Physics ---
-    virtual bool checkCollision(const QPoint &head) = 0;
+    virtual auto checkCollision(const QPoint &head) -> bool = 0;
     virtual void handleFoodConsumption(const QPoint &head) = 0;
     virtual void handlePowerUpConsumption(const QPoint &head) = 0;
     virtual void applyMovement(const QPoint &newHead, bool grew) = 0;
@@ -59,11 +59,11 @@ public:
     virtual void forceUpdate() = 0;
     
     // --- Roguelike Selection ---
-    virtual int choiceIndex() const = 0;
+    [[nodiscard]] virtual auto choiceIndex() const -> int = 0;
     virtual void setChoiceIndex(int index) = 0;
-    virtual int libraryIndex() const = 0;
+    [[nodiscard]] virtual auto libraryIndex() const -> int = 0;
     virtual void setLibraryIndex(int index) = 0;
-    virtual int medalIndex() const = 0;
+    [[nodiscard]] virtual auto medalIndex() const -> int = 0;
     virtual void setMedalIndex(int index) = 0;
     virtual void generateChoices() = 0;
     virtual void selectChoice(int index) = 0;

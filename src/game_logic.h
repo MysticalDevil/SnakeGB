@@ -21,15 +21,15 @@ struct ReplayFrame {
     int frame;
     int dx;
     int dy;
-    friend QDataStream &operator<<(QDataStream &out, const ReplayFrame &f) { return out << f.frame << f.dx << f.dy; }
-    friend QDataStream &operator>>(QDataStream &in, ReplayFrame &f) { return in >> f.frame >> f.dx >> f.dy; }
+    friend auto operator<<(QDataStream &out, const ReplayFrame &f) -> QDataStream & { return out << f.frame << f.dx << f.dy; }
+    friend auto operator>>(QDataStream &in, ReplayFrame &f) -> QDataStream & { return in >> f.frame >> f.dx >> f.dy; }
 };
 
 struct ChoiceRecord {
     int frame;
     int index;
-    friend QDataStream &operator<<(QDataStream &out, const ChoiceRecord &c) { return out << c.frame << c.index; }
-    friend QDataStream &operator>>(QDataStream &in, ChoiceRecord &c) { return in >> c.frame >> c.index; }
+    friend auto operator<<(QDataStream &out, const ChoiceRecord &c) -> QDataStream & { return out << c.frame << c.index; }
+    friend auto operator>>(QDataStream &in, ChoiceRecord &c) -> QDataStream & { return in >> c.frame >> c.index; }
 };
 
 class SnakeModel final : public QAbstractListModel {
@@ -37,14 +37,14 @@ class SnakeModel final : public QAbstractListModel {
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-    int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override { return static_cast<int>(m_body.size()); }
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
+    [[nodiscard]] auto rowCount(const QModelIndex &parent = QModelIndex()) const noexcept -> int override { return static_cast<int>(m_body.size()); }
+    [[nodiscard]] auto data(const QModelIndex &index, int role = Qt::DisplayRole) const -> QVariant override {
         if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
         if (role == PositionRole) return m_body[static_cast<size_t>(index.row())];
         return {};
     }
-    QHash<int, QByteArray> roleNames() const override { return {{PositionRole, "pos"}}; }
-    const std::deque<QPoint> &body() const noexcept { return m_body; }
+    [[nodiscard]] auto roleNames() const -> QHash<int, QByteArray> override { return {{PositionRole, "pos"}}; }
+    [[nodiscard]] auto body() const noexcept -> const std::deque<QPoint> & { return m_body; }
     void reset(const std::deque<QPoint> &newBody) { beginResetModel(); m_body = newBody; endResetModel(); }
     void moveHead(const QPoint &newHead, bool grew) {
         beginInsertRows(QModelIndex(), 0, 0); m_body.emplace_front(newHead); endInsertRows();
@@ -106,19 +106,19 @@ public:
     void setInternalState(int s) override;
     Q_INVOKABLE void requestStateChange(int newState) override;
     
-    SnakeModel* snakeModel() override { return &m_snakeModel; }
-    QPoint& direction() override { return m_direction; }
-    std::deque<QPoint>& inputQueue() override { return m_inputQueue; }
-    QList<ReplayFrame>& currentInputHistory() override { return m_currentInputHistory; }
-    QList<ReplayFrame>& bestInputHistory() override { return m_bestInputHistory; }
-    QList<ChoiceRecord>& currentChoiceHistory() override { return m_currentChoiceHistory; }
-    QList<ChoiceRecord>& bestChoiceHistory() override { return m_bestChoiceHistory; }
-    int& gameTickCounter() override { return m_gameTickCounter; }
-    QPoint foodPos() const override { return m_food; }
-    bool hasSave() const override;
-    bool hasReplay() const noexcept override;
+    auto snakeModel() -> SnakeModel* override { return &m_snakeModel; }
+    auto direction() -> QPoint& override { return m_direction; }
+    auto inputQueue() -> std::deque<QPoint>& override { return m_inputQueue; }
+    auto currentInputHistory() -> QList<ReplayFrame>& override { return m_currentInputHistory; }
+    auto bestInputHistory() -> QList<ReplayFrame>& override { return m_bestInputHistory; }
+    auto currentChoiceHistory() -> QList<ChoiceRecord>& override { return m_currentChoiceHistory; }
+    auto bestChoiceHistory() -> QList<ChoiceRecord>& override { return m_bestChoiceHistory; }
+    auto gameTickCounter() -> int& override { return m_gameTickCounter; }
+    [[nodiscard]] auto foodPos() const -> QPoint override { return m_food; }
+    [[nodiscard]] auto hasSave() const -> bool override;
+    [[nodiscard]] auto hasReplay() const noexcept -> bool override;
 
-    bool checkCollision(const QPoint &head) override;
+    auto checkCollision(const QPoint &head) -> bool override;
     void handleFoodConsumption(const QPoint &head) override;
     void handlePowerUpConsumption(const QPoint &head) override;
     void applyMovement(const QPoint &newHead, bool grew) override;
@@ -141,16 +141,16 @@ public:
     
     void generateChoices() override;
     Q_INVOKABLE void selectChoice(int index) override;
-    int choiceIndex() const override { return m_choiceIndex; }
+    [[nodiscard]] auto choiceIndex() const -> int override { return m_choiceIndex; }
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
     
-    int libraryIndex() const override { return m_libraryIndex; }
+    [[nodiscard]] auto libraryIndex() const -> int override { return m_libraryIndex; }
     Q_INVOKABLE void setLibraryIndex(int index) override {
         if (m_libraryIndex == index) return;
         m_libraryIndex = index;
         emit libraryIndexChanged();
     }
-    int medalIndex() const override { return m_medalIndex; }
+    [[nodiscard]] auto medalIndex() const -> int override { return m_medalIndex; }
     Q_INVOKABLE void setMedalIndex(int index) override {
         if (m_medalIndex == index) return;
         m_medalIndex = index;
@@ -171,36 +171,36 @@ public:
     Q_INVOKABLE void deleteSave();
 
     // Property Getters
-    SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
-    QPoint food() const noexcept { return m_food; }
-    QPoint powerUpPos() const noexcept { return m_powerUpPos; }
-    int powerUpType() const noexcept { return static_cast<int>(m_powerUpType); }
-    int score() const noexcept { return m_score; }
-    int highScore() const;
-    State state() const noexcept { return m_state; }
-    int boardWidth() const noexcept { return BOARD_WIDTH; }
-    int boardHeight() const noexcept { return BOARD_HEIGHT; }
-    QVariantList palette() const;
-    QString paletteName() const;
-    QVariantList obstacles() const;
-    QColor shellColor() const;
-    int level() const noexcept { return m_levelIndex; }
-    QString currentLevelName() const noexcept { return m_currentLevelName; }
-    QVariantList ghost() const;
-    bool musicEnabled() const noexcept;
-    QVariantList achievements() const;
-    QVariantList medalLibrary() const;
-    float coverage() const noexcept;
-    float volume() const;
+    auto snakeModelPtr() noexcept -> SnakeModel* { return &m_snakeModel; }
+    [[nodiscard]] auto food() const noexcept -> QPoint { return m_food; }
+    [[nodiscard]] auto powerUpPos() const noexcept -> QPoint { return m_powerUpPos; }
+    [[nodiscard]] auto powerUpType() const noexcept -> int { return static_cast<int>(m_powerUpType); }
+    [[nodiscard]] auto score() const noexcept -> int { return m_score; }
+    [[nodiscard]] auto highScore() const -> int;
+    [[nodiscard]] auto state() const noexcept -> State { return m_state; }
+    [[nodiscard]] auto boardWidth() const noexcept -> int { return BOARD_WIDTH; }
+    [[nodiscard]] auto boardHeight() const noexcept -> int { return BOARD_HEIGHT; }
+    [[nodiscard]] auto palette() const -> QVariantList;
+    [[nodiscard]] auto paletteName() const -> QString;
+    [[nodiscard]] auto obstacles() const -> QVariantList;
+    [[nodiscard]] auto shellColor() const -> QColor;
+    [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
+    [[nodiscard]] auto currentLevelName() const noexcept -> QString { return m_currentLevelName; }
+    [[nodiscard]] auto ghost() const -> QVariantList;
+    [[nodiscard]] auto musicEnabled() const noexcept -> bool;
+    [[nodiscard]] auto achievements() const -> QVariantList;
+    [[nodiscard]] auto medalLibrary() const -> QVariantList;
+    [[nodiscard]] auto coverage() const noexcept -> float;
+    [[nodiscard]] auto volume() const -> float;
     void setVolume(float v);
-    QPointF reflectionOffset() const noexcept { return m_reflectionOffset; }
-    int activeBuff() const noexcept { return static_cast<int>(m_activeBuff); }
-    int buffTicksRemaining() const noexcept { return m_buffTicksRemaining; }
-    int buffTicksTotal() const noexcept { return m_buffTicksTotal; }
-    bool shieldActive() const noexcept { return m_shieldActive; }
-    QVariantList choices() const { return m_choices; }
-    bool choicePending() const noexcept { return m_choicePending; }
-    QVariantList fruitLibrary() const;
+    [[nodiscard]] auto reflectionOffset() const noexcept -> QPointF { return m_reflectionOffset; }
+    [[nodiscard]] auto activeBuff() const noexcept -> int { return static_cast<int>(m_activeBuff); }
+    [[nodiscard]] auto buffTicksRemaining() const noexcept -> int { return m_buffTicksRemaining; }
+    [[nodiscard]] auto buffTicksTotal() const noexcept -> int { return m_buffTicksTotal; }
+    [[nodiscard]] auto shieldActive() const noexcept -> bool { return m_shieldActive; }
+    [[nodiscard]] auto choices() const -> QVariantList { return m_choices; }
+    [[nodiscard]] auto choicePending() const noexcept -> bool { return m_choicePending; }
+    [[nodiscard]] auto fruitLibrary() const -> QVariantList;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -232,8 +232,8 @@ private:
     void loadLevelData(int index);
     void checkAchievements();
     void runLevelScript();
-    bool isOccupied(const QPoint &p) const;
-    static bool isOutOfBounds(const QPoint &p) noexcept;
+    [[nodiscard]] auto isOccupied(const QPoint &p) const -> bool;
+    static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;

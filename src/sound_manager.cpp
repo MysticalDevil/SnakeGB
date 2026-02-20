@@ -4,6 +4,7 @@
 #include <QRandomGenerator>
 #include <QtMath>
 #include <QTimer>
+#include <utility>
 
 namespace {
     constexpr int SampleRate = 44100;
@@ -103,7 +104,7 @@ auto SoundManager::stopMusic() -> void {
 
 auto SoundManager::playNextNote() -> void {
     if (!m_bgmLeadSink || !m_musicEnabled) return;
-    if (m_noteIndex >= static_cast<int>(m_richMelody.size())) m_noteIndex = 0;
+    if (std::cmp_greater_equal(m_noteIndex, m_richMelody.size())) m_noteIndex = 0;
 
     const auto [leadFreq, bassFreq, duration] = m_richMelody[m_noteIndex];
     m_noteIndex++;
@@ -173,14 +174,14 @@ void SoundManager::applyLowPassFilter(QByteArray &buffer) {
 void SoundManager::applyReverb(QByteArray &buffer) {
     double wet = std::min(0.4, m_currentScore * 0.02);
     if (wet <= 0.01) return;
-    for (int i = 0; i < buffer.size(); ++i) {
-        int sample = static_cast<unsigned char>(buffer[i]) - CenterVal;
+    for (char & i : buffer) {
+        int sample = static_cast<unsigned char>(i) - CenterVal;
         double delayed = m_reverbBuffer[m_reverbWriteHead];
         m_reverbBuffer[m_reverbWriteHead] = sample + delayed * 0.3;
         m_reverbWriteHead++;
-        if (m_reverbWriteHead >= static_cast<int>(m_reverbBuffer.size())) m_reverbWriteHead = 0;
+        if (std::cmp_greater_equal(m_reverbWriteHead, m_reverbBuffer.size())) m_reverbWriteHead = 0;
         int mixed = std::clamp(static_cast<int>(sample + delayed * wet), -127, 127);
-        buffer[i] = static_cast<char>(CenterVal + mixed);
+        i = static_cast<char>(CenterVal + mixed);
     }
 }
 

@@ -15,9 +15,9 @@ public:
     ~SoundManager() override;
 
     SoundManager(const SoundManager &) = delete;
-    SoundManager &operator=(const SoundManager &) = delete;
+    auto operator=(const SoundManager &) -> SoundManager & = delete;
     SoundManager(SoundManager &&) = delete;
-    SoundManager &operator=(SoundManager &&) = delete;
+    auto operator=(SoundManager &&) -> SoundManager & = delete;
 
     auto setMusicEnabled(bool enabled) -> void;
     auto setPaused(bool paused) -> void;
@@ -26,10 +26,10 @@ public:
     Q_INVOKABLE void playCrash(int durationMs);
     Q_INVOKABLE void startMusic();
     Q_INVOKABLE void stopMusic();
-    [[nodiscard]] bool musicEnabled() const { return m_musicEnabled; }
+    [[nodiscard]] auto musicEnabled() const -> bool { return m_musicEnabled; }
 
     void setVolume(float volume);
-    [[nodiscard]] float volume() const { return m_volume; }
+    [[nodiscard]] auto volume() const -> float { return m_volume; }
 
     void initAudioAsync();
     void setScore(int score);

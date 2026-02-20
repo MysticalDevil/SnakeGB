@@ -63,7 +63,7 @@ void PlayingState::update() {
         m_context.direction() = queue.front();
         queue.pop_front();
         m_context.currentInputHistory().append(
-            {m_context.gameTickCounter(), m_context.direction().x(), m_context.direction().y()});
+            {.frame=m_context.gameTickCounter(), .dx=m_context.direction().x(), .dy=m_context.direction().y()});
     }
 
     const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();

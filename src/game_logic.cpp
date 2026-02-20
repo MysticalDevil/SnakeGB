@@ -28,13 +28,13 @@ namespace {
     constexpr int BuffDurationTicks = 40; 
     constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B04;
 
-    QString getGhostFilePath() {
+    auto getGhostFilePath() -> QString {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
         QDir().mkpath(path);
         return path + u"/ghost.dat"_s;
     }
 
-    int readLevelCountFromResource(int fallbackCount) {
+    auto readLevelCountFromResource(int fallbackCount) -> int {
         QFile f(u"qrc:/src/levels/levels.json"_s);
         if (!f.open(QIODevice::ReadOnly)) {
             return fallbackCount;
@@ -56,7 +56,7 @@ GameLogic::GameLogic(QObject *parent)
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
 
     if (m_soundManager) {
-        connect(this, &GameLogic::foodEaten, m_soundManager.get(), [this](float pan) {
+        connect(this, &GameLogic::foodEaten, m_soundManager.get(), [this](float pan) -> void {
             if (m_soundManager) {
                 m_soundManager->setScore(m_score);
                 m_soundManager->playBeep(880, 100, pan);
@@ -64,35 +64,35 @@ GameLogic::GameLogic(QObject *parent)
             }
         });
 
-        connect(this, &GameLogic::powerUpEaten, m_soundManager.get(), [this]() {
+        connect(this, &GameLogic::powerUpEaten, m_soundManager.get(), [this]() -> void {
             if (m_soundManager) {
                 m_soundManager->playBeep(1200, 150);
                 triggerHaptic(6);
             }
         });
 
-        connect(this, &GameLogic::playerCrashed, m_soundManager.get(), [this]() {
+        connect(this, &GameLogic::playerCrashed, m_soundManager.get(), [this]() -> void {
             if (m_soundManager) {
                 m_soundManager->playCrash(500);
                 triggerHaptic(12);
             }
         });
 
-        connect(this, &GameLogic::uiInteractTriggered, m_soundManager.get(), [this]() {
+        connect(this, &GameLogic::uiInteractTriggered, m_soundManager.get(), [this]() -> void {
             if (m_soundManager) {
                 m_soundManager->playBeep(200, 50);
                 triggerHaptic(2);
             }
         });
 
-        connect(this, &GameLogic::stateChanged, m_soundManager.get(), [this]() {
+        connect(this, &GameLogic::stateChanged, m_soundManager.get(), [this]() -> void {
             if (!m_soundManager) {
                 return;
             }
 
             if (m_state == StartMenu) {
                 const int token = m_audioStateToken;
-                QTimer::singleShot(650, this, [this, token]() {
+                QTimer::singleShot(650, this, [this, token]() -> void {
                     if (!m_soundManager || token != m_audioStateToken) {
                         return;
                     }
@@ -108,7 +108,7 @@ GameLogic::GameLogic(QObject *parent)
 
     if (m_accelerometer) {
         m_accelerometer->setDataRate(30);
-        connect(m_accelerometer.get(), &QAccelerometer::readingChanged, this, [this]() {
+        connect(m_accelerometer.get(), &QAccelerometer::readingChanged, this, [this]() -> void {
             if (!m_accelerometer || !m_accelerometer->reading()) {
                 return;
             }
@@ -138,7 +138,7 @@ GameLogic::~GameLogic() {
 // --- IGameEngine Implementation ---
 
 void GameLogic::setInternalState(int s) {
-    State next = static_cast<State>(s);
+    auto next = static_cast<State>(s);
     if (m_state != next) {
         m_state = next;
         m_audioStateToken++;
@@ -153,7 +153,7 @@ void GameLogic::setInternalState(int s) {
 }
 
 void GameLogic::requestStateChange(int newState) {
-    State s = static_cast<State>(newState);
+    auto s = static_cast<State>(newState);
     switch (s) {
         case Splash:
             changeState(std::make_unique<SplashState>(*this));
@@ -187,18 +187,18 @@ void GameLogic::requestStateChange(int newState) {
     }
 }
 
-bool GameLogic::hasSave() const {
+auto GameLogic::hasSave() const -> bool {
     if (m_profileManager) {
         return m_profileManager->hasSession();
     }
     return false;
 }
 
-bool GameLogic::hasReplay() const noexcept {
+auto GameLogic::hasReplay() const noexcept -> bool {
     return !m_bestInputHistory.isEmpty();
 }
 
-bool GameLogic::checkCollision(const QPoint &head) {
+auto GameLogic::checkCollision(const QPoint &head) -> bool {
     QPoint p = head;
     p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
     p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
@@ -563,15 +563,15 @@ void GameLogic::generateChoices() {
     m_choices.clear();
     struct ChoiceInfo { int type; QString name; QString desc; };
     QList<ChoiceInfo> allChoices = {
-        {Ghost, u"Ghost"_s, u"Pass through self"_s},
-        {Slow, u"Slow"_s, u"Decrease speed"_s},
-        {Magnet, u"Magnet"_s, u"Attract food"_s},
-        {Shield, u"Shield"_s, u"One extra life"_s},
-        {Portal, u"Portal"_s, u"Phase through walls"_s},
-        {Double, u"Double"_s, u"Double points"_s},
-        {Rich, u"Diamond"_s, u"Triple points"_s},
-        {Laser, u"Laser"_s, u"Break obstacle"_s},
-        {Mini, u"Mini"_s, u"Shrink body"_s}
+        {.type=Ghost, .name=u"Ghost"_s, .desc=u"Pass through self"_s},
+        {.type=Slow, .name=u"Slow"_s, .desc=u"Decrease speed"_s},
+        {.type=Magnet, .name=u"Magnet"_s, .desc=u"Attract food"_s},
+        {.type=Shield, .name=u"Shield"_s, .desc=u"One extra life"_s},
+        {.type=Portal, .name=u"Portal"_s, .desc=u"Phase through walls"_s},
+        {.type=Double, .name=u"Double"_s, .desc=u"Double points"_s},
+        {.type=Rich, .name=u"Diamond"_s, .desc=u"Triple points"_s},
+        {.type=Laser, .name=u"Laser"_s, .desc=u"Break obstacle"_s},
+        {.type=Mini, .name=u"Mini"_s, .desc=u"Shrink body"_s}
     };
     
     std::shuffle(allChoices.begin(), allChoices.end(), 
@@ -593,7 +593,7 @@ void GameLogic::selectChoice(int index) {
     }
     
     if (m_state != Replaying) {
-        m_currentChoiceHistory.append({m_gameTickCounter, index});
+        m_currentChoiceHistory.append({.frame=m_gameTickCounter, .index=index});
     }
     
     int type = m_choices[index].toMap().value(u"type"_s).toInt();
@@ -634,7 +634,7 @@ void GameLogic::selectChoice(int index) {
 
     m_timer->setInterval(500);
 
-    QTimer::singleShot(500, this, [this]() {
+    QTimer::singleShot(500, this, [this]() -> void {
         if (m_state == Playing) {
             int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
             if (m_activeBuff == Slow) {
@@ -659,7 +659,7 @@ void GameLogic::move(int dx, int dy) {
         if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) {
             return;
         }
-        m_inputQueue.push_back({dx, dy});
+        m_inputQueue.emplace_back(dx, dy);
         emit uiInteractTriggered();
     }
 }
@@ -743,11 +743,11 @@ void GameLogic::deleteSave() {
 
 // --- Property Getters ---
 
-int GameLogic::highScore() const {
+auto GameLogic::highScore() const -> int {
     return m_profileManager ? m_profileManager->highScore() : 0;
 }
 
-QVariantList GameLogic::palette() const {
+auto GameLogic::palette() const -> QVariantList {
     static const QList<QVariantList> p = {
         {u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s},
         {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s},
@@ -759,7 +759,7 @@ QVariantList GameLogic::palette() const {
     return p[idx];
 }
 
-QString GameLogic::paletteName() const {
+auto GameLogic::paletteName() const -> QString {
     static const QStringList names = {
         u"Original DMG"_s,
         u"Pocket B&W"_s,
@@ -771,7 +771,7 @@ QString GameLogic::paletteName() const {
     return names[idx];
 }
 
-QVariantList GameLogic::obstacles() const {
+auto GameLogic::obstacles() const -> QVariantList {
     QVariantList list;
     for (const auto &p : m_obstacles) {
         QVariantMap item;
@@ -782,7 +782,7 @@ QVariantList GameLogic::obstacles() const {
     return list;
 }
 
-QColor GameLogic::shellColor() const {
+auto GameLogic::shellColor() const -> QColor {
     static const QList<QColor> colors = {
         u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s, 
         u"#ff0000"_s, u"#008080"_s, u"#ffd700"_s, u"#2f4f4f"_s
@@ -791,7 +791,7 @@ QColor GameLogic::shellColor() const {
     return colors[idx];
 }
 
-QVariantList GameLogic::ghost() const {
+auto GameLogic::ghost() const -> QVariantList {
     if (m_state == Replaying) {
         return {};
     }
@@ -804,11 +804,11 @@ QVariantList GameLogic::ghost() const {
     return list;
 }
 
-bool GameLogic::musicEnabled() const noexcept {
+auto GameLogic::musicEnabled() const noexcept -> bool {
     return m_soundManager ? m_soundManager->musicEnabled() : false;
 }
 
-QVariantList GameLogic::achievements() const {
+auto GameLogic::achievements() const -> QVariantList {
     QVariantList list;
     if (m_profileManager) {
         for (const auto &m : m_profileManager->unlockedMedals()) {
@@ -818,9 +818,9 @@ QVariantList GameLogic::achievements() const {
     return list;
 }
 
-QVariantList GameLogic::medalLibrary() const {
+auto GameLogic::medalLibrary() const -> QVariantList {
     QVariantList list;
-    auto createMedal = [](const QString &id, const QString &hint) {
+    auto createMedal = [](const QString &id, const QString &hint) -> QVariantMap {
         QVariantMap m;
         m.insert(u"id"_s, id);
         m.insert(u"hint"_s, hint);
@@ -836,11 +836,11 @@ QVariantList GameLogic::medalLibrary() const {
     return list;
 }
 
-float GameLogic::coverage() const noexcept { 
+auto GameLogic::coverage() const noexcept -> float { 
     return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); 
 }
 
-float GameLogic::volume() const { 
+auto GameLogic::volume() const -> float { 
     return m_profileManager ? m_profileManager->volume() : 1.0f; 
 }
 
@@ -854,11 +854,11 @@ void GameLogic::setVolume(float v) {
     emit volumeChanged();
 }
 
-QVariantList GameLogic::fruitLibrary() const {
+auto GameLogic::fruitLibrary() const -> QVariantList {
     QVariantList list;
     QList<int> discovered = m_profileManager ? 
                             m_profileManager->discoveredFruits() : QList<int>();
-    auto add = [&](int t, QString n, QString d) {
+    auto add = [&](int t, QString n, QString d) -> void {
         bool isDiscovered = discovered.contains(t);
         QVariantMap m;
         m.insert(u"type"_s, t);
@@ -892,12 +892,12 @@ void GameLogic::applyMagnetAttraction() {
         return;
     }
 
-    auto wrapAxis = [](int value, int size) {
+    auto wrapAxis = [](int value, int size) -> int {
         int v = value % size;
         if (v < 0) v += size;
         return v;
     };
-    auto axisStepToward = [](int from, int to, int size) {
+    auto axisStepToward = [](int from, int to, int size) -> int {
         if (from == to) return 0;
         const int forward = (to - from + size) % size;
         const int backward = (from - to + size) % size;
@@ -909,7 +909,7 @@ void GameLogic::applyMagnetAttraction() {
     const bool preferX = std::abs(head.x() - m_food.x()) >= std::abs(head.y() - m_food.y());
 
     QList<QPoint> candidates;
-    auto pushCandidate = [&](bool xAxis) {
+    auto pushCandidate = [&](bool xAxis) -> void {
         if (xAxis) {
             if (stepX == 0) return;
             candidates.append(QPoint(wrapAxis(m_food.x() + stepX, BOARD_WIDTH), m_food.y()));
@@ -1047,7 +1047,7 @@ void GameLogic::loadLevelData(int i) {
         u"function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = 4 + t; var right = 15 - t; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,y:13-t}]; }"_s,
         u"function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) * 2.0); var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"_s
     };
-    const auto applyFallbackLevel = [this](int levelIndex) {
+    const auto applyFallbackLevel = [this](int levelIndex) -> void {
         m_obstacles.clear();
         m_currentScript = fallbackScripts[levelIndex];
         if (!m_currentScript.isEmpty()) {
@@ -1132,7 +1132,7 @@ void GameLogic::checkAchievements() {
         return;
     }
 
-    auto unlock = [this](const QString &title) {
+    auto unlock = [this](const QString &title) -> void {
         if (m_profileManager->unlockMedal(title)) {
             emit achievementEarned(title);
             emit achievementsChanged();
@@ -1205,7 +1205,7 @@ void GameLogic::runLevelScript() {
     applyDynamicFallback();
 }
 
-bool GameLogic::isOccupied(const QPoint &p) const {
+auto GameLogic::isOccupied(const QPoint &p) const -> bool {
     for (const auto &bp : m_snakeModel.body()) {
         if (bp == p) {
             return true;
@@ -1219,7 +1219,7 @@ bool GameLogic::isOccupied(const QPoint &p) const {
     return false;
 }
 
-bool GameLogic::isOutOfBounds(const QPoint &p) noexcept {
+auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool {
     return !m_boardRect.contains(p);
 }
 
