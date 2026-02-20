@@ -83,7 +83,7 @@ void GameLogic::setInternalState(int s) {
     State next = static_cast<State>(s);
     if (m_state != next) {
         m_state = next;
-        if (m_soundManager) m_soundManager->setPaused(m_state == Paused || m_state == ChoiceSelection || m_state == Library || m_state == Ready);
+        if (m_soundManager) m_soundManager->setPaused(m_state == Paused || m_state == ChoiceSelection || m_state == Library);
         emit stateChanged();
     }
 }
@@ -98,7 +98,6 @@ void GameLogic::requestStateChange(int newState) {
     case Replaying: changeState(std::make_unique<ReplayingState>(*this)); break;
     case ChoiceSelection: changeState(std::make_unique<ChoiceState>(*this)); break;
     case Library: changeState(std::make_unique<LibraryState>(*this)); break;
-    case Ready: changeState(std::make_unique<ReadyState>(*this)); break;
     default: break;
     }
 }
@@ -388,7 +387,19 @@ void GameLogic::selectChoice(int index) {
         auto body = m_snakeModel.body(); std::deque<QPoint> nb; size_t half = std::max<size_t>(3, body.size()/2);
         for(size_t i=0; i<half; ++i) nb.push_back(body[i]); m_snakeModel.reset(nb); m_activeBuff = None;
     }
-    m_buffTicksRemaining = BuffDurationTicks * 2; emit buffChanged(); requestStateChange(Ready);
+    m_buffTicksRemaining = BuffDurationTicks * 2; emit buffChanged(); 
+    
+    // Soft Start: Slow for 500ms then restore normal
+    m_timer->setInterval(500); 
+    QTimer::singleShot(500, this, [this]() {
+        if (m_state == Playing) {
+            int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
+            if (m_activeBuff == Slow) normalInterval = 250;
+            m_timer->setInterval(normalInterval);
+        }
+    });
+    
+    requestStateChange(Playing);
 }
 
 QVariantList GameLogic::fruitLibrary() const {

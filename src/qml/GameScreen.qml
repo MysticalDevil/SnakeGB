@@ -416,29 +416,6 @@ Item {
                 }
             }
 
-            Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
-                visible: gameLogic.state === 8 // Ready
-                z: 130
-                
-                Text {
-                    anchors.centerIn: parent
-                    text: gameLogic.countdownValue > 0 ? gameLogic.countdownValue : "GO!"
-                    color: p3
-                    font.family: gameFont
-                    font.pixelSize: 64
-                    font.bold: true
-                    
-                    SequentialAnimation on scale {
-                        running: gameLogic.state === 8
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1.5; to: 1.0; duration: 200; easing.type: Easing.OutBack }
-                        PauseAnimation { duration: 800 }
-                    }
-                }
-            }
-
             MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
 
             // Fruit Encyclopedia Layer (Hidden)

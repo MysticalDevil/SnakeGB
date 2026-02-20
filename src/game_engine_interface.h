@@ -58,8 +58,6 @@ public:
     virtual void forceUpdate() = 0;
     
     // --- Roguelike Selection ---
-    virtual int countdownValue() const = 0;
-    virtual void setCountdownValue(int value) = 0;
     virtual int choiceIndex() const = 0;
     virtual void setChoiceIndex(int index) = 0;
     virtual void generateChoices() = 0;
