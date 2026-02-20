@@ -16,9 +16,13 @@ Window {
     readonly property string gameFont: "Monospace"
 
     property real elapsed: 0.0
-    NumberAnimation on elapsed { from: 0; to: 1000; duration: 1000000; loops: Animation.Infinite }
+    NumberAnimation on elapsed { 
+        from: 0
+        to: 1000
+        duration: 1000000
+        loops: Animation.Infinite 
+    }
 
-    // --- LONG PRESS SELECT TO CLEAR SAVE ---
     Timer {
         id: longPressTimer
         interval: 1500
@@ -32,9 +36,15 @@ Window {
 
     Connections {
         target: gameLogic
-        function onPaletteChanged() { screen.showOSD(gameLogic.paletteName) }
-        function onShellColorChanged() { screen.triggerPowerCycle() }
-        function onAchievementEarned(title) { screen.showOSD("UNLOCKED: " + title) }
+        function onPaletteChanged() { 
+            screen.showOSD(gameLogic.paletteName) 
+        }
+        function onShellColorChanged() { 
+            screen.triggerPowerCycle() 
+        }
+        function onAchievementEarned(title) { 
+            screen.showOSD("UNLOCKED: " + title) 
+        }
         function onBuffChanged() {
             if (gameLogic.activeBuff !== 0) {
                 var names = ["", "GHOST MODE", "SLOW DOWN", "MAGNET ON", "SHIELD ACTIVE", "PORTAL OPEN", "DOUBLE SCORE", "TRIPLE RICH", "LASER READY", "BODY MINI"]
@@ -44,7 +54,7 @@ Window {
             }
         }
         function onRequestFeedback(magnitude) {
-            console.log("Feedback Pulse:", magnitude)
+            console.log("Haptic Pulse:", magnitude)
         }
     }
 
@@ -73,14 +83,24 @@ Window {
                 }
                 Connections {
                     target: shell.dpad
-                    function onUpClicked() { gameLogic.move(0, -1) }
-                    function onDownClicked() { gameLogic.move(0, 1) }
-                    function onLeftClicked() { gameLogic.move(-1, 0) }
-                    function onRightClicked() { gameLogic.move(1, 0) }
+                    function onUpClicked() { 
+                        gameLogic.move(0, -1) 
+                    }
+                    function onDownClicked() { 
+                        gameLogic.move(0, 1) 
+                    }
+                    function onLeftClicked() { 
+                        gameLogic.move(-1, 0) 
+                    }
+                    function onRightClicked() { 
+                        gameLogic.move(1, 0) 
+                    }
                 }
                 Connections { 
                     target: shell.aButton
-                    function onClicked() { gameLogic.handleStart() } 
+                    function onClicked() { 
+                        gameLogic.handleStart() 
+                    } 
                 }
                 Connections { 
                     target: shell.bButton
@@ -96,7 +116,9 @@ Window {
                 }
                 Connections { 
                     target: shell.selectButton
-                    function onPressed() { longPressTimer.start() }
+                    function onPressed() { 
+                        longPressTimer.start() 
+                    }
                     function onReleased() { 
                         if (longPressTimer.running) { 
                             longPressTimer.stop()
@@ -106,7 +128,9 @@ Window {
                 }
                 Connections { 
                     target: shell.startButton
-                    function onClicked() { gameLogic.handleStart() } 
+                    function onClicked() { 
+                        gameLogic.handleStart() 
+                    } 
                 }
             }
         }
@@ -150,8 +174,12 @@ Window {
                 shell.selectButton.isPressed = true
                 longPressTimer.start() 
             }
-            else if (event.key === Qt.Key_M) { gameLogic.toggleMusic() }
-            else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) { gameLogic.quit() }
+            else if (event.key === Qt.Key_M) { 
+                gameLogic.toggleMusic() 
+            }
+            else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) { 
+                gameLogic.quit() 
+            }
             else if (event.key === Qt.Key_Back) { 
                 if (gameLogic.state === 1) { gameLogic.quit() }
                 else { gameLogic.quitToMenu() }
@@ -159,13 +187,13 @@ Window {
         }
         Keys.onReleased: (event) => {
             if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) shell.dpad.upPressed = false
-            else if (event.key === Qt.Key_Down) shell.dpad.downPressed = false
-            else if (event.key === Qt.Key_Left) shell.dpad.leftPressed = false
-            else if (event.key === Qt.Key_Right) shell.dpad.rightPressed = false
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shell.startButton.isPressed = false
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
+            if (event.key === Qt.Key_Up) { shell.dpad.upPressed = false }
+            else if (event.key === Qt.Key_Down) { shell.dpad.downPressed = false }
+            else if (event.key === Qt.Key_Left) { shell.dpad.leftPressed = false }
+            else if (event.key === Qt.Key_Right) { shell.dpad.rightPressed = false }
+            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { shell.startButton.isPressed = false }
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) { shell.aButton.isPressed = false }
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) { shell.bButton.isPressed = false }
             else if (event.key === Qt.Key_Shift) { 
                 shell.selectButton.isPressed = false
                 if (longPressTimer.running) { 

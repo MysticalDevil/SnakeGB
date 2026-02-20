@@ -19,7 +19,7 @@ Item {
         color: "black"
         clip: true
 
-        // --- 1. 内容源 ---
+        // --- 1. 内容源 (受 Shader 影响) ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -97,6 +97,7 @@ Item {
                 
                 // PowerUps (9 Styles)
                 Item {
+                    id: powerUpSlot
                     visible: gameLogic.powerUpPos.x !== -1
                     x: gameLogic.powerUpPos.x * (parent.width / gameLogic.boardWidth)
                     y: gameLogic.powerUpPos.y * (parent.height / gameLogic.boardHeight)
@@ -107,7 +108,8 @@ Item {
                         anchors.centerIn: parent
                         width: parent.width * 0.9
                         height: parent.height * 0.9
-                        // Ghost
+                        
+                        // Ghost (1)
                         Rectangle { 
                             anchors.fill: parent
                             color: "transparent"
@@ -124,7 +126,7 @@ Item {
                                 color: "transparent" 
                             }
                         }
-                        // Slow
+                        // Slow (2)
                         Rectangle { 
                             anchors.fill: parent
                             radius: width / 2
@@ -139,7 +141,7 @@ Item {
                                 anchors.centerIn: parent 
                             }
                         }
-                        // Magnet
+                        // Magnet (3)
                         Rectangle { 
                             anchors.centerIn: parent
                             width: parent.width * 0.8
@@ -155,7 +157,7 @@ Item {
                                 color: p0 
                             }
                         }
-                        // Shield
+                        // Shield (4)
                         Rectangle { 
                             anchors.fill: parent
                             radius: width / 2
@@ -163,10 +165,20 @@ Item {
                             border.color: p3
                             border.width: 2
                             visible: gameLogic.powerUpType === 4
-                            Rectangle { anchors.centerIn: parent; width: parent.width * 0.6; height: 2; color: p3 }
-                            Rectangle { anchors.centerIn: parent; height: parent.height * 0.6; width: 2; color: p3 }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: parent.width * 0.6
+                                height: 2
+                                color: p3 
+                            }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                height: parent.height * 0.6
+                                width: 2
+                                color: p3 
+                            }
                         }
-                        // Portal
+                        // Portal (5)
                         Rectangle { 
                             anchors.fill: parent
                             radius: width / 2
@@ -183,7 +195,7 @@ Item {
                                 border.width: 1 
                             }
                         }
-                        // Golden
+                        // Golden (6)
                         Rectangle { 
                             anchors.centerIn: parent
                             width: parent.width * 0.8
@@ -191,9 +203,14 @@ Item {
                             rotation: 45
                             color: "#ffd700"
                             visible: gameLogic.powerUpType === 6
-                            Rectangle { anchors.centerIn: parent; width: parent.width * 0.4; height: parent.height * 0.4; color: p0 }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: parent.width * 0.4
+                                height: parent.height * 0.4
+                                color: p0 
+                            }
                         }
-                        // Rich
+                        // Rich (7)
                         Rectangle { 
                             anchors.centerIn: parent
                             width: parent.width * 0.8
@@ -201,25 +218,40 @@ Item {
                             rotation: 45
                             color: "#00ffff"
                             visible: gameLogic.powerUpType === 7
-                            Rectangle { anchors.centerIn: parent; width: parent.width * 0.2; height: parent.height * 0.2; color: "white" }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: parent.width * 0.2
+                                height: parent.height * 0.2
+                                color: "white" 
+                            }
                         }
-                        // Laser
+                        // Laser (8)
                         Rectangle { 
                             anchors.fill: parent
                             color: "transparent"
                             border.color: "#ff0000"
                             border.width: 2
                             visible: gameLogic.powerUpType === 8
-                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "#ff0000" }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: 4
+                                height: 4
+                                color: "#ff0000" 
+                            }
                         }
-                        // Mini
+                        // Mini (9)
                         Rectangle { 
                             anchors.fill: parent
                             color: "transparent"
                             border.color: p3
                             border.width: 1
                             visible: gameLogic.powerUpType === 9
-                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: 4
+                                height: 4
+                                color: "white" 
+                            }
                         }
 
                         SequentialAnimation on scale { 
@@ -236,10 +268,21 @@ Item {
                     delegate: Rectangle {
                         x: model.pos.x * (gameWorld.width / gameLogic.boardWidth)
                         y: model.pos.y * (gameWorld.height / gameLogic.boardHeight)
-                        width: gameWorld.width / gameLogic.boardWidth; height: gameWorld.height / gameLogic.boardHeight
+                        width: gameWorld.width / gameLogic.boardWidth
+                        height: gameWorld.height / gameLogic.boardHeight
                         color: (gameLogic.activeBuff === 6) ? ((Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3) : (index === 0 ? p3 : p2)
-                        radius: index === 0 ? 2 : 1; opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0; z: 15
-                        Rectangle { anchors.fill: parent; anchors.margins: -2; color: "transparent"; border.color: "#00ffff"; border.width: 1; radius: parent.radius + 2; visible: index === 0 && gameLogic.shieldActive }
+                        radius: index === 0 ? 2 : 1
+                        opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0
+                        z: 15
+                        Rectangle { 
+                            anchors.fill: parent
+                            anchors.margins: -2
+                            color: "transparent"
+                            border.color: "#00ffff"
+                            border.width: 1
+                            radius: parent.radius + 2
+                            visible: index === 0 && gameLogic.shieldActive 
+                        }
                     }
                 }
 
@@ -300,7 +343,12 @@ Item {
                 color: p0
                 visible: gameLogic.state === 1 && !bootAnim.running
                 z: 50
-                Image { source: "qrc:/src/qml/icon.svg"; anchors.fill: parent; opacity: 0.05; fillMode: Image.Tile }
+                Image { 
+                    source: "qrc:/src/qml/icon.svg"
+                    anchors.fill: parent
+                    opacity: 0.05
+                    fillMode: Image.Tile 
+                }
                 Column {
                     anchors.centerIn: parent
                     spacing: 12
@@ -319,15 +367,13 @@ Item {
                             font.family: gameFont
                             font.pixelSize: 11
                             color: p3
-                            font.bold: true
-                            anchors.horizontalCenter: parent.horizontalCenter 
+                            font.bold: true 
                         }
                         Text { 
                             text: "HI-SCORE: " + gameLogic.highScore
                             font.family: gameFont
                             font.pixelSize: 13
-                            color: p3
-                            anchors.horizontalCenter: parent.horizontalCenter 
+                            color: p3 
                         }
                     }
                     Rectangle {
@@ -358,15 +404,13 @@ Item {
                             text: "UP: Medals | DOWN: Replay"
                             font.family: gameFont
                             font.pixelSize: 7
-                            color: p3
-                            anchors.horizontalCenter: parent.horizontalCenter 
+                            color: p3 
                         }
                         Text { 
-                            text: "SELECT: Switch Level (Long: Clear)"
+                            text: "SELECT: Level (Long: Clear)"
                             font.family: gameFont
                             font.pixelSize: 7
                             color: p3
-                            anchors.horizontalCenter: parent.horizontalCenter
                             opacity: 0.8 
                         }
                     }
@@ -380,14 +424,15 @@ Item {
                 p3: root.p3
                 gameFont: root.gameFont
                 visible: gameLogic.state === 8
-                z: 400 
+                z: 200 
             }
+            
             Rectangle {
                 id: libraryLayer
                 anchors.fill: parent
                 color: p0
                 visible: gameLogic.state === 7
-                z: 400
+                z: 200
                 Column {
                     anchors.fill: parent
                     anchors.margins: 15
@@ -422,16 +467,85 @@ Item {
                                         anchors.centerIn: parent
                                         width: 20
                                         height: 20
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 1 }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 2; Rectangle { width: 10; height: 2; color: p3; anchors.centerIn: parent } }
-                                        Rectangle { anchors.fill: parent; color: p3; visible: modelData.discovered && modelData.type === 3; clip: true; Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: p1 } }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 5; Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: p3; border.width: 1 } }
-                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#ffd700"; visible: modelData.discovered && modelData.type === 6 }
-                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#00ffff"; visible: modelData.discovered && modelData.type === 7 }
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2; visible: modelData.discovered && modelData.type === 8 }
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 9; Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" } }
-                                        Text { text: "?"; color: p0; visible: !modelData.discovered; anchors.centerIn: parent; font.bold: true; font.pixelSize: 12 }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: p3
+                                            border.width: 1
+                                            visible: modelData.discovered && modelData.type === 1 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            radius: 10
+                                            color: "transparent"
+                                            border.color: p3
+                                            border.width: 2
+                                            visible: modelData.discovered && modelData.type === 2
+                                            Rectangle { width: 10; height: 2; color: p3; anchors.centerIn: parent } 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            color: p3
+                                            visible: modelData.discovered && modelData.type === 3
+                                            clip: true
+                                            Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: p1 } 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            radius: 10
+                                            color: "transparent"
+                                            border.color: p3
+                                            border.width: 2
+                                            visible: modelData.discovered && modelData.type === 4 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            radius: 10
+                                            color: "transparent"
+                                            border.color: p3
+                                            border.width: 1
+                                            visible: modelData.discovered && modelData.type === 5
+                                            Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: p3; border.width: 1 } 
+                                        }
+                                        Rectangle { 
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            rotation: 45
+                                            color: "#ffd700"
+                                            visible: modelData.discovered && modelData.type === 6 
+                                        }
+                                        Rectangle { 
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            rotation: 45
+                                            color: "#00ffff"
+                                            visible: modelData.discovered && modelData.type === 7 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: "#ff0000"
+                                            border.width: 2
+                                            visible: modelData.discovered && modelData.type === 8 
+                                        }
+                                        Rectangle { 
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: p3
+                                            border.width: 1
+                                            visible: modelData.discovered && modelData.type === 9
+                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" } 
+                                        }
+                                        Text { 
+                                            text: "?"
+                                            color: p0
+                                            visible: !modelData.discovered
+                                            anchors.centerIn: parent
+                                            font.bold: true
+                                            font.pixelSize: 12 
+                                        }
                                     }
                                 }
                                 Column { 
@@ -458,7 +572,7 @@ Item {
             z: 20
         }
 
-        // --- 3. 覆盖层 ---
+        // --- 3. 顶层覆盖层 ---
         
         // HUD
         Column {
@@ -494,6 +608,7 @@ Item {
             }
         }
 
+        // Paused
         Rectangle {
             anchors.fill: parent
             color: Qt.rgba(p0.r, p0.g, p0.b, 0.85)
@@ -507,6 +622,7 @@ Item {
             }
         }
 
+        // Game Over
         Rectangle {
             anchors.fill: parent
             color: Qt.rgba(p3.r, p3.g, p3.b, 0.9)
@@ -548,7 +664,7 @@ Item {
 
         OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
 
-        // Power Cycle Flash
+        // Power Flash
         Rectangle {
             id: powerFlash
             anchors.fill: parent
@@ -563,7 +679,7 @@ Item {
             }
         }
 
-        // CRT (ABSOLUTE TOP)
+        // CRT PHYSICAL LAYER (ABS TOP)
         Item {
             id: crtLayer
             anchors.fill: parent
