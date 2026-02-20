@@ -57,7 +57,6 @@ Window {
             height: 550
             anchors.centerIn: parent
             
-            // Calculate scale based on fitting the shell to screen
             scale: {
                 var scaleX = window.width / width
                 var scaleY = window.height / height
@@ -66,28 +65,82 @@ Window {
 
             GameBoyShell {
                 id: shell
-                anchors.fill: parent
                 
+                // 1. The Game Render Layer
                 GameScreen {
-                    anchors.fill: parent
                     parent: shell.screenContainer
+                    anchors.fill: parent
                     p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3
                     gameFont: window.gameFont; elapsed: window.elapsed
                 }
 
+                // 2. The UI Overlay Layer (Must be parented to screenContainer explicitly)
                 Item {
-                    anchors.fill: shell.screenContainer
+                    parent: shell.screenContainer
+                    anchors.fill: parent
                     
-                    Rectangle { anchors.fill: parent; color: p0; visible: gameLogic.state === 0; Text { text: "S N A K E"; anchors.centerIn: parent; font.pixelSize: 32; color: p3 } }
+                    // --- Text UI ---
+                    Rectangle { 
+                        anchors.fill: parent; color: p0; visible: gameLogic.state === 0
+                        Text { text: "S N A K E"; anchors.centerIn: parent; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true } 
+                    }
                     
                     Rectangle {
                         anchors.fill: parent; color: p0; visible: gameLogic.state === 1
                         Column {
                             anchors.centerIn: parent; spacing: 6
-                            Text { text: "S N A K E"; font.pixelSize: 32; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: "LEVEL: " + gameLogic.currentLevelName; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: qsTr("UP: Medals | DOWN: Replay"); font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                            Text { text: gameLogic.hasSave ? qsTr("START to Continue") : qsTr("START to Play"); font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("HI-SCORE: ") + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            
+                            Row {
+                                anchors.horizontalCenter: parent.horizontalCenter; spacing: 4
+                                Repeater {
+                                    model: gameLogic.achievements
+                                    Rectangle { width: 8; height: 8; radius: 4; color: p3 }
+                                }
+                            }
+
+                            Text { text: qsTr("UP: Medals | DOWN: Replay"); font.family: gameFont; font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("SELECT to Cycle Levels"); font.family: gameFont; font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text {
+                                text: gameLogic.hasSave ? qsTr("START to Continue") : qsTr("START to Play")
+                                font.family: gameFont; font.pixelSize: 14; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter
+                                SequentialAnimation on opacity { loops: Animation.Infinite; NumberAnimation { from: 1; to: 0; duration: 800 }; NumberAnimation { from: 0; to: 1; duration: 800 } }
+                            }
+                        }
+                    }
+
+                    // Playing HUD
+                    Column {
+                        anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4
+                        visible: gameLogic.state >= 2
+                        z: 20
+                        Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
+                        Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 14; font.bold: true; anchors.right: parent.right }
+                        Text { text: gameLogic.state === 5 ? "REPLAY" : (gameLogic.musicEnabled ? "♪" : "×"); color: p3; font.family: gameFont; font.pixelSize: 14; anchors.right: parent.right }
+                        Text {
+                            text: gameLogic.activeBuff !== 0 ? "BUFF" : ""
+                            color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right
+                            SequentialAnimation on opacity { loops: Animation.Infinite; running: gameLogic.activeBuff !== 0; NumberAnimation { from: 1; to: 0; duration: 500 }; NumberAnimation { from: 0; to: 1; duration: 500 } }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent; color: Qt.rgba(p0.r, p0.g, p0.b, 0.6); visible: gameLogic.state === 3; z: 40
+                        Column {
+                            anchors.centerIn: parent; spacing: 15
+                            Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("Press B to Menu"); font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent; color: Qt.rgba(p3.r, p3.g, p3.b, 0.8); visible: gameLogic.state === 4; z: 40
+                        Column {
+                            anchors.centerIn: parent; spacing: 10
+                            Text { anchors.horizontalCenter: parent.horizontalCenter; color: p0; font.family: gameFont; font.pixelSize: 20; font.bold: true; text: qsTr("GAME OVER\nSCORE: %1").arg(gameLogic.score); horizontalAlignment: Text.AlignHCenter }
+                            Text { text: qsTr("Press B to Menu"); font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
                         }
                     }
 
