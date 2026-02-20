@@ -23,7 +23,7 @@ void SplashState::exit() {
 
 void SplashState::update() {
     static int frames = 0;
-    if (++frames > 30) { 
+    if (++frames > 50) { // Increased from 30 to 50 for better timing
         frames = 0;
         engine(*this).requestStateChange(GameLogic::StartMenu);
     }

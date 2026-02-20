@@ -114,48 +114,63 @@ Item {
                     height: parent.height / gameLogic.boardHeight
                     z: 30
                     
-                    // Specific Visuals for PowerUp Types
-                    Rectangle {
+                    Item {
                         anchors.centerIn: parent
-                        width: parent.width * 0.8
-                        height: parent.height * 0.8
-                        rotation: (gameLogic.activeBuff === 0) ? 45 : 0
-                        color: {
-                            var type = gameLogic.powerUpType
-                            if (type === 6) return "#ffd700" // Golden
-                            if (type === 7) return "#00ffff" // Diamond
-                            if (type === 8) return "#ff0000" // Laser
-                            if (type === 9) return "#ffffff" // Mini
-                            return p3
+                        width: parent.width * 0.9; height: parent.height * 0.9
+                        
+                        // Shield (Circle with cross)
+                        Rectangle {
+                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 2
+                            visible: gameLogic.powerUpType === 4
+                            Rectangle { width: parent.width*0.6; height: 2; color: p3; anchors.centerIn: parent }
+                            Rectangle { height: parent.height*0.6; width: 2; color: p3; anchors.centerIn: parent }
                         }
                         
-                        // Internal icon shape
+                        // Portal (Concentric Rings)
                         Rectangle {
-                            anchors.centerIn: parent
-                            width: parent.width * 0.4; height: parent.height * 0.4
-                            color: p0
-                            visible: gameLogic.powerUpType < 6
+                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 1
+                            visible: gameLogic.powerUpType === 5
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.5; height: parent.height*0.5; radius: width/2; border.color: p3; border.width: 1 }
                         }
-
-                        // Special Particle Effect for high-tier fruits
+                        
+                        // Golden/Double (Diamond)
                         Rectangle {
-                            anchors.fill: parent
-                            color: "transparent"
-                            border.color: parent.color
-                            border.width: 1
-                            scale: 1.5
-                            opacity: 0.5
-                            visible: gameLogic.powerUpType >= 6
-                            SequentialAnimation on opacity {
-                                loops: Animation.Infinite
-                                NumberAnimation { from: 0.5; to: 0; duration: 400 }
-                            }
+                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; rotation: 45; color: "#ffd700"
+                            visible: gameLogic.powerUpType === 6
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.4; height: parent.height*0.4; color: p0 }
+                        }
+                        
+                        // Rich/Diamond (Bright Diamond)
+                        Rectangle {
+                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; rotation: 45; color: "#00ffff"
+                            visible: gameLogic.powerUpType === 7
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.2; height: parent.height*0.2; color: "white" }
+                        }
+                        
+                        // Laser (Crosshair)
+                        Rectangle {
+                            anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2
+                            visible: gameLogic.powerUpType === 8
+                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "#ff0000" }
+                        }
+                        
+                        // Mini (Tiny point)
+                        Rectangle {
+                            anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1
+                            visible: gameLogic.powerUpType === 9
+                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
+                        }
+                        
+                        // Default Fallback
+                        Rectangle {
+                            anchors.centerIn: parent; width: parent.width*0.7; height: parent.height*0.7; color: p3; rotation: 45
+                            visible: gameLogic.powerUpType < 4 || gameLogic.powerUpType > 9
                         }
 
                         SequentialAnimation on scale {
                             loops: Animation.Infinite
-                            NumberAnimation { from: 0.7; to: 1.2; duration: 300 }
-                            NumberAnimation { from: 1.2; to: 0.7; duration: 300 }
+                            NumberAnimation { from: 0.8; to: 1.1; duration: 300 }
+                            NumberAnimation { from: 1.1; to: 0.8; duration: 300 }
                         }
                     }
                 }
@@ -506,17 +521,24 @@ Item {
                                 anchors.fill: parent
                                 anchors.margins: 5
                                 spacing: 10
-                                Rectangle {
+                                Item {
                                     width: 20; height: 20
-                                    color: {
-                                        if (!modelData.discovered) return p2
-                                        if (modelData.type === 6) return "#ffd700"
-                                        if (modelData.type === 7) return "#00ffff"
-                                        if (modelData.type === 8) return "#ff0000"
-                                        return p3
-                                    }
                                     anchors.verticalCenter: parent.verticalCenter
-                                    rotation: 45
+                                    
+                                    // Shield (Circle)
+                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
+                                    // Portal (Rings)
+                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 5; Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: p3; border.width: 1 } }
+                                    // Golden (Diamond)
+                                    Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#ffd700"; visible: modelData.discovered && modelData.type === 6 }
+                                    // Rich (Diamond)
+                                    Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#00ffff"; visible: modelData.discovered && modelData.type === 7 }
+                                    // Laser
+                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2; visible: modelData.discovered && modelData.type === 8 }
+                                    // Mini
+                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 9; Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" } }
+                                    // Unknown / Base
+                                    Rectangle { anchors.centerIn: parent; width: 14; height: 14; rotation: 45; color: modelData.discovered ? p3 : p2; visible: !modelData.discovered || modelData.type < 4 }
                                 }
                                 Column {
                                     width: parent.width - 40
