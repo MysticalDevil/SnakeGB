@@ -56,6 +56,14 @@ void SoundManager::setVolume(float volume) {
     if (m_bgmBassSink) m_bgmBassSink->setVolume(m_volume);
 }
 
+auto SoundManager::setPaused(bool paused) -> void {
+    m_isPaused = paused;
+    // When resuming, restart timer immediately to avoid silence
+    if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive()) {
+        startMusic();
+    }
+}
+
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
     m_musicEnabled = enabled;
     if (!m_musicEnabled) stopMusic();
@@ -64,7 +72,7 @@ auto SoundManager::setMusicEnabled(bool enabled) -> void {
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs) -> void {
     if (!m_sfxSink) return;
     QByteArray data;
-    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5); // Richer SFX
+    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5);
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
@@ -106,6 +114,7 @@ auto SoundManager::playNextNote() -> void {
     if (leadFreq > 0) {
         QByteArray leadData;
         generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25);
+        if (m_isPaused) applyLowPassFilter(leadData); // Apply Muffle effect
         m_bgmLeadSink->stop();
         m_bgmLeadBuffer.close();
         m_bgmLeadBuffer.setData(leadData);
@@ -114,7 +123,8 @@ auto SoundManager::playNextNote() -> void {
 
     if (bassFreq > 0) {
         QByteArray bassData;
-        generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5); // Bass uses 50% duty for rounder tone
+        generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5);
+        if (m_isPaused) applyLowPassFilter(bassData);
         m_bgmBassSink->stop();
         m_bgmBassBuffer.close();
         m_bgmBassBuffer.setData(bassData);
@@ -137,6 +147,18 @@ auto SoundManager::generateSquareWave(const int frequencyHz, const int durationM
         double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples)));
         const int val = (phase < duty) ? (CenterVal + amplitude) : (CenterVal - amplitude);
         buffer[i] = static_cast<char>(CenterVal + (val - CenterVal) * envelope);
+    }
+}
+
+// Simple Single-pole IIR Low-Pass Filter
+void SoundManager::applyLowPassFilter(QByteArray &buffer) {
+    double lastVal = 128.0;
+    for (int i = 0; i < buffer.size(); ++i) {
+        double current = static_cast<unsigned char>(buffer[i]);
+        // y[i] = y[i-1] + alpha * (x[i] - y[i-1])
+        double filtered = lastVal + m_lpfAlpha * (current - lastVal);
+        buffer[i] = static_cast<char>(static_cast<unsigned char>(filtered));
+        lastVal = filtered;
     }
 }
 

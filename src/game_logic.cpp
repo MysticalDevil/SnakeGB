@@ -109,7 +109,13 @@ void GameLogic::changeState(std::unique_ptr<GameState> newState) {
 }
 
 void GameLogic::setInternalState(State s) {
-    if (m_state != s) { m_state = s; emit stateChanged(); }
+    if (m_state != s) {
+        m_state = s;
+        if (m_soundManager) {
+            m_soundManager->setPaused(m_state == Paused);
+        }
+        emit stateChanged();
+    }
 }
 
 void GameLogic::startGame() { restart(); }
