@@ -5,34 +5,28 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Main Snake Head & Body Group -->
-    <group android:translateX="14" android:translateY="14">
-        <!-- Body segment -->
-        <path android:fillColor="#306230" android:pathData="M20,60h20v20h-20z" />
-        <path android:fillColor="#306230" android:pathData="M20,40h20v20h-20z" />
+    <!-- Bold Pixel Snake - Classic S-Shape -->
+    <group android:translateX="22" android:translateY="22">
+        <!-- Body (S-Curve) -->
+        <path android:fillColor="#306230" android:pathData="M10,50 h15 v15 h-15 z" />
+        <path android:fillColor="#306230" android:pathData="M25,50 h15 v15 h-15 z" />
+        <path android:fillColor="#306230" android:pathData="M40,50 h15 v15 h-15 z" />
+        <path android:fillColor="#306230" android:pathData="M40,35 h15 v15 h-15 z" />
+        <path android:fillColor="#306230" android:pathData="M40,20 h15 v15 h-15 z" />
+        <path android:fillColor="#306230" android:pathData="M55,20 h15 v15 h-15 z" />
         
-        <!-- Head segment -->
-        <path android:fillColor="#0f380f" android:pathData="M40,20h30v30h-30z" />
+        <!-- Head (Darker Green) -->
+        <path android:fillColor="#0f380f" android:pathData="M70,5 h20 v30 h-20 z" />
         
-        <!-- Eye -->
-        <path android:fillColor="#cadc9f" android:pathData="M55,28h8v8h-8z" />
+        <!-- Eye (Light Green) -->
+        <path android:fillColor="#cadc9f" android:pathData="M80,12 h6 v6 h-6 z" />
         
-        <!-- Open Mouth detail -->
-        <path android:fillColor="#000000" android:pathData="M65,40h5v5h-5z" />
-        
-        <!-- The Target Diamond Power-up -->
-        <group>
-            <path android:fillColor="#306230" android:pathData="M85,25 l10,10 l-10,10 l-10,-10 z" />
-            <!-- Pulsing aura inside icon (static part) -->
-            <path android:fillColor="#8bac0f" android:pathData="M85,30 l5,5 l-5,5 l-5,-5 z" />
-        </group>
+        <!-- Red Tongue (The Iconic Snake Detail) -->
+        <path android:fillColor="#aa0000" android:pathData="M90,20 h8 v4 h-8 z" />
     </group>
 
-    <!-- Glass Shine Overlay (Global) -->
+    <!-- Refined Glass Shine -->
     <path
-        android:fillColor="#40FFFFFF"
+        android:fillColor="#30FFFFFF"
         android:pathData="M0,0 L108,0 L0,108 Z" />
-    <path
-        android:fillColor="#15FFFFFF"
-        android:pathData="M108,108 L108,0 L0,108 Z" />
 </vector>
