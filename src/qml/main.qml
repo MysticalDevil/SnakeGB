@@ -49,8 +49,6 @@ Window {
             }
         }
         function onRequestFeedback(magnitude) {
-            // Signal received from C++, Android JNI will handle the physical vibration.
-            // This console log confirms the bridge is alive.
             console.log("Haptic Pulse:", magnitude)
         }
     }
@@ -92,13 +90,12 @@ Window {
 
                 Connections {
                     target: shell.aButton
-                    function onClicked() { gameLogic.requestFeedback(1); gameLogic.handleStart() }
+                    function onClicked() { gameLogic.handleStart() }
                 }
 
                 Connections {
                     target: shell.bButton
                     function onClicked() {
-                        gameLogic.requestFeedback(1)
                         if (gameLogic.state === 1) gameLogic.quit()
                         else if (gameLogic.state >= 3) gameLogic.quitToMenu()
                         else gameLogic.nextPalette()
@@ -107,13 +104,13 @@ Window {
 
                 Connections {
                     target: shell.selectButton
-                    function onPressed() { gameLogic.requestFeedback(1); longPressTimer.start() }
+                    function onPressed() { longPressTimer.start() }
                     function onReleased() { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
                 }
 
                 Connections {
                     target: shell.startButton
-                    function onClicked() { gameLogic.requestFeedback(1); gameLogic.handleStart() }
+                    function onClicked() { gameLogic.handleStart() }
                 }
             }
         }
