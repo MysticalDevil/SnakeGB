@@ -1,4 +1,6 @@
 build/
+build-android/
+build-android-local/
 .vscode/
 .idea/
 .cache/

@@ -87,6 +87,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
     Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
+    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
 public:
     enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying };
@@ -124,6 +125,8 @@ public:
     [[nodiscard]] auto musicEnabled() const noexcept -> bool;
     [[nodiscard]] auto achievements() const noexcept -> QVariantList;
     [[nodiscard]] auto medalLibrary() const noexcept -> QVariantList;
+    [[nodiscard]] auto volume() const noexcept -> float;
+    auto setVolume(float v) -> void;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -178,6 +181,7 @@ signals:
     void musicEnabledChanged();
     void achievementsChanged();
     void achievementEarned(QString title);
+    void volumeChanged();
 
 private slots:
     void update();

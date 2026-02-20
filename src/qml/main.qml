@@ -695,6 +695,65 @@ Window {
                     }
                 }
             }
+
+            // --- Physical Volume Knob (Side Wheel) ---
+            Rectangle {
+                id: volumeKnobTrack
+                anchors.right: parent.right
+                anchors.rightMargin: -8
+                anchors.top: parent.top
+                anchors.topMargin: 150
+                width: 16
+                height: 80
+                color: "#333"
+                radius: 4
+                clip: true
+                border.color: "#222"
+                border.width: 1
+
+                Rectangle {
+                    id: volumeWheel
+                    width: parent.width
+                    height: 30
+                    color: "#444"
+                    radius: 2
+                    y: (1.0 - gameLogic.volume) * (parent.height - height)
+
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 2
+                        Repeater {
+                            model: 5
+                            Rectangle {
+                                width: 12
+                                height: 1
+                                color: "#222"
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        drag.target: volumeWheel
+                        drag.axis: Drag.YAxis
+                        drag.minimumY: 0
+                        drag.maximumY: volumeKnobTrack.height - volumeWheel.height
+                        onPositionChanged: {
+                            var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
+                            gameLogic.volume = normalized
+                        }
+                    }
+                }
+                Text {
+                    anchors.bottom: parent.top
+                    anchors.bottomMargin: 5
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "VOL"
+                    color: "#666"
+                    font.pixelSize: 8
+                    font.bold: true
+                }
+            }
         }
     }
 

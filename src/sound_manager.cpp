@@ -34,6 +34,8 @@ void SoundManager::initAudioAsync() {
     if (!device.isNull()) {
         m_sfxSink = new QAudioSink(device, m_format, this);
         m_bgmSink = new QAudioSink(device, m_format, this);
+        m_sfxSink->setVolume(m_volume);
+        m_bgmSink->setVolume(m_volume);
     }
 }
 
@@ -44,6 +46,12 @@ SoundManager::~SoundManager() {
 
 void SoundManager::setScore(int score) {
     m_currentScore = score;
+}
+
+void SoundManager::setVolume(float volume) {
+    m_volume = std::clamp(volume, 0.0f, 1.0f);
+    if (m_sfxSink) m_sfxSink->setVolume(static_cast<qreal>(m_volume));
+    if (m_bgmSink) m_bgmSink->setVolume(static_cast<qreal>(m_volume));
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
@@ -95,14 +103,11 @@ auto SoundManager::playNextNote() -> void {
     const auto [freq, duration] = m_melody[m_noteIndex];
     m_noteIndex++;
 
-    // Calculate Dynamic Tempo: Scale from 1.0 down to 0.6 (faster)
-    // Every 5 points, the song gets ~10% faster, up to a limit
     double tempoScale = std::max(0.6, 1.0 - (m_currentScore / 5) * 0.05);
     int scaledDuration = static_cast<int>(duration * tempoScale);
 
     if (freq > 0) {
         QByteArray data;
-        // BGM synthesis length matches the scaled duration
         generateSquareWave(freq, scaledDuration - 5, data, BGM_Amplitude); 
         m_bgmSink->stop();
         m_bgmBuffer.close();

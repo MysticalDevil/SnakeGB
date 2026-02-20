@@ -358,3 +358,14 @@ void GameLogic::spawnFood() {
 }
 
 auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool { return !m_boardRect.contains(p); }
+
+auto GameLogic::volume() const noexcept -> float {
+    return m_soundManager ? m_soundManager->volume() : 1.0f;
+}
+
+auto GameLogic::setVolume(float v) -> void {
+    if (m_soundManager) {
+        m_soundManager->setVolume(v);
+        emit volumeChanged();
+    }
+}

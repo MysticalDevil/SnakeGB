@@ -26,9 +26,11 @@ public:
     Q_INVOKABLE void stopMusic();
     [[nodiscard]] bool musicEnabled() const { return m_musicEnabled; }
 
+    // Volume Control (0.0 to 1.0)
+    void setVolume(float volume);
+    [[nodiscard]] float volume() const { return m_volume; }
+
     void initAudioAsync();
-    
-    // Dynamic Tempo Control
     void setScore(int score);
 
 private slots:
@@ -45,6 +47,7 @@ private:
     QBuffer m_bgmBuffer;
     QTimer m_musicTimer;
     bool m_musicEnabled = true;
+    float m_volume = 1.0f;
     int m_noteIndex = 0;
     int m_currentScore = 0;
 
