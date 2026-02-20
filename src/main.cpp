@@ -5,6 +5,7 @@
 #include <QQmlContext>
 #include <QQuickWindow>
 #include <QTranslator>
+#include <QTimer>
 
 #include "game_logic.h"
 
@@ -23,7 +24,6 @@ auto main(int argc, char *argv[]) -> int {
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
 
     using namespace Qt::StringLiterals;
-    // Standard path matching CMake structure
     const QUrl url(u"qrc:/src/qml/main.qml"_s);
 
     QObject::connect(
@@ -37,8 +37,8 @@ auto main(int argc, char *argv[]) -> int {
 
     engine.load(url);
     
-    // Safety: Initialize FSM only after QML engine is up
-    QTimer::singleShot(100, &gameLogic, &GameLogic::lazyInitState);
+    // Safety delay for FSM to ensure QML engine is steady
+    QTimer::singleShot(200, &gameLogic, &GameLogic::lazyInitState);
 
     return QGuiApplication::exec();
 }

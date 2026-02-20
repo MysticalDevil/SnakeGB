@@ -5,7 +5,7 @@ project(SnakeGB VERSION 1.4.2 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Use standard Release for guaranteed stability on Android
+# Use standard Release for Android stability
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
@@ -26,8 +26,7 @@ qt_add_executable(SnakeGB
     src/game_engine_interface.h
 )
 
-# Robust Resource mapping: no prefixes, no BASE, just flat mapping via ALIAS
-# This ensures ":/main.qml" is ALWAYS valid.
+# Standard Resource mapping
 qt_add_resources(SnakeGB "res"
     PREFIX "/"
     FILES

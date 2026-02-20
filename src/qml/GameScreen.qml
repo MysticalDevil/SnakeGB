@@ -9,7 +9,6 @@ Item {
     property color p3
     property string gameFont
     property real elapsed
-    property bool showingMedals: false
 
     width: 240
     height: 216
@@ -20,582 +19,120 @@ Item {
         color: "black"
         clip: true
 
+        // 1. GAME WORLD & EFFECTS (Applied with Shader)
         Item {
             id: gameContent
             anchors.fill: parent
-
-            Rectangle {
-                anchors.fill: parent
-                color: p0
-                z: -1
-            }
-
+            
+            // Grid and Background
+            Rectangle { anchors.fill: parent; color: p0; z: -1 }
             Canvas {
                 id: backgroundGrid
                 anchors.fill: parent
                 z: 0
-                property color gridColor: {
-                    if (gameLogic.coverage > 0.5) {
-                        return Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3)
-                    }
-                    return p1
-                }
-                onPaint: {
-                    var ctx = getContext("2d");
-                    ctx.strokeStyle = gridColor;
-                    ctx.lineWidth = 1.5;
-                    ctx.beginPath();
-                    for (var i = 0; i <= gameLogic.boardWidth; i++) {
-                        var xPos = i * (width / gameLogic.boardWidth);
-                        ctx.moveTo(xPos, 0);
-                        ctx.lineTo(xPos, height);
-                    }
-                    for (var j = 0; j <= gameLogic.boardHeight; j++) {
-                        var yPos = j * (height / gameLogic.boardHeight);
-                        ctx.moveTo(0, yPos);
-                        ctx.lineTo(width, yPos);
-                    }
-                    ctx.stroke();
-                }
-                Connections {
-                    target: gameLogic
-                    function onPaletteChanged() { backgroundGrid.requestPaint(); }
-                    function onScoreChanged() { backgroundGrid.requestPaint(); }
-                }
-                onGridColorChanged: { if (gameLogic.coverage > 0.5) backgroundGrid.requestPaint(); }
+                property color gridColor: (gameLogic.coverage > 0.5) ? Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3) : p1
+                onPaint: { var ctx = getContext("2d"); ctx.strokeStyle = gridColor; ctx.lineWidth = 1.5; ctx.beginPath(); for (var i = 0; i <= gameLogic.boardWidth; i++) { var xPos = i * (width / gameLogic.boardWidth); ctx.moveTo(xPos, 0); ctx.lineTo(xPos, height); } for (var j = 0; j <= gameLogic.boardHeight; j++) { var yPos = j * (height / gameLogic.boardHeight); ctx.moveTo(0, yPos); ctx.lineTo(width, yPos); } ctx.stroke(); }
+                Connections { target: gameLogic; function onPaletteChanged() { backgroundGrid.requestPaint(); } }
             }
 
+            // Game World (Snake, Food, Obstacles)
             Item {
                 id: gameWorld
                 anchors.fill: parent
                 z: 10
-                visible: gameLogic.state >= 2
+                visible: gameLogic.state >= 2 && gameLogic.state <= 6
 
-                // Ghost Replay Layer (z: 5, behind snake)
-                Repeater {
-                    model: gameLogic.ghost
-                    visible: gameLogic.state === 2
-                    delegate: Rectangle {
-                        x: modelData.x * (gameWorld.width / gameLogic.boardWidth)
-                        y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
-                        width: gameWorld.width / gameLogic.boardWidth
-                        height: gameWorld.height / gameLogic.boardHeight
-                        color: p3
-                        opacity: 0.35
-                        radius: 1
-                        z: 5
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: 2
-                            color: "transparent"
-                            border.color: p1
-                            border.width: 1
-                        }
-                    }
-                }
+                // Food
+                Rectangle { x: gameLogic.food.x * (parent.width / gameLogic.boardWidth); y: gameLogic.food.y * (parent.height / gameLogic.boardHeight); width: parent.width / gameLogic.boardWidth; height: parent.height / gameLogic.boardHeight; color: p3; radius: width / 2; z: 20 }
 
-                Rectangle {
-                    visible: gameLogic.state >= 2
-                    x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
-                    y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
-                    width: parent.width / gameLogic.boardWidth
-                    height: parent.height / gameLogic.boardHeight
-                    color: p3
-                    radius: width / 2
-                    z: 20
-                }
-
-                Item {
-                    id: powerUpContainer
-                    visible: gameLogic.state >= 2 && gameLogic.powerUpPos.x !== -1
-                    x: gameLogic.powerUpPos.x * (parent.width / gameLogic.boardWidth)
-                    y: gameLogic.powerUpPos.y * (parent.height / gameLogic.boardHeight)
-                    width: parent.width / gameLogic.boardWidth
-                    height: parent.height / gameLogic.boardHeight
-                    z: 30
-                    
-                    Item {
-                        anchors.centerIn: parent
-                        width: parent.width * 0.9; height: parent.height * 0.9
-                        
-                        // Ghost (Dashed box with hollow center)
-                        Rectangle {
-                            anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; border.style: Qt.DashLine
-                            visible: gameLogic.powerUpType === 1
-                            Rectangle { anchors.centerIn: parent; width: parent.width*0.4; height: parent.height*0.4; rotation: 45; color: "transparent"; border.color: p3; border.width: 1 }
-                        }
-                        
-                        // Slow (Clock-like circle)
-                        Rectangle {
-                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 2
-                            visible: gameLogic.powerUpType === 2
-                            Rectangle { width: parent.width*0.5; height: 2; color: p3; anchors.centerIn: parent }
-                        }
-
-                        // Magnet (Inverted Triangle)
-                        Rectangle {
-                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; color: p3
-                            visible: gameLogic.powerUpType === 3
-                            clip: true; Rectangle { width: parent.width; height: parent.height; rotation: 45; y: parent.height*0.5; color: p0 }
-                        }
-
-                        // Shield (Circle with cross)
-                        Rectangle {
-                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 2
-                            visible: gameLogic.powerUpType === 4
-                            Rectangle { width: parent.width*0.6; height: 2; color: p3; anchors.centerIn: parent }
-                            Rectangle { height: parent.height*0.6; width: 2; color: p3; anchors.centerIn: parent }
-                        }
-                        
-                        // Portal (Concentric Rings)
-                        Rectangle {
-                            anchors.fill: parent; radius: width/2; color: "transparent"; border.color: p3; border.width: 1
-                            visible: gameLogic.powerUpType === 5
-                            Rectangle { anchors.centerIn: parent; width: parent.width*0.5; height: parent.height*0.5; radius: width/2; border.color: p3; border.width: 1 }
-                        }
-                        
-                        // Golden/Double (Diamond)
-                        Rectangle {
-                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; rotation: 45; color: "#ffd700"
-                            visible: gameLogic.powerUpType === 6
-                            Rectangle { anchors.centerIn: parent; width: parent.width*0.4; height: parent.height*0.4; color: p0 }
-                        }
-                        
-                        // Rich/Diamond (Bright Diamond)
-                        Rectangle {
-                            anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; rotation: 45; color: "#00ffff"
-                            visible: gameLogic.powerUpType === 7
-                            Rectangle { anchors.centerIn: parent; width: parent.width*0.2; height: parent.height*0.2; color: "white" }
-                        }
-                        
-                        // Laser (Crosshair)
-                        Rectangle {
-                            anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2
-                            visible: gameLogic.powerUpType === 8
-                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "#ff0000" }
-                        }
-                        
-                        // Mini (Tiny point)
-                        Rectangle {
-                            anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1
-                            visible: gameLogic.powerUpType === 9
-                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
-                        }
-                        
-                        // Default Fallback
-                        Rectangle {
-                            anchors.centerIn: parent; width: parent.width*0.7; height: parent.height*0.7; color: p3; rotation: 45
-                            visible: gameLogic.powerUpType < 4 || gameLogic.powerUpType > 9
-                        }
-
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.8; to: 1.1; duration: 300 }
-                            NumberAnimation { from: 1.1; to: 0.8; duration: 300 }
-                        }
-                    }
-                }
-
+                // Snake
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
-                        x: model.pos.x * (gameWorld.width / gameLogic.boardWidth)
-                        y: model.pos.y * (gameWorld.height / gameLogic.boardHeight)
-                        width: gameWorld.width / gameLogic.boardWidth
-                        height: gameWorld.height / gameLogic.boardHeight
-                        color: {
-                            if (gameLogic.activeBuff === 6) return (Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3
-                            if (gameLogic.activeBuff === 7) return (Math.floor(elapsed * 15) % 2 === 0) ? "#00ffff" : "#ffffff"
-                            if (gameLogic.activeBuff === 8) return "#ff4444"
-                            return index === 0 ? p3 : p2
-                        }
-                        radius: index === 0 ? 2 : 1
-                        opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0
-                        border.color: p0; border.width: index === 0 ? 1 : 0
-                        z: 15
-
-                        // Shield visual effect
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: -2
-                            color: "transparent"
-                            border.color: "#00ffff"
-                            border.width: 1
-                            radius: parent.radius + 2
-                            visible: index === 0 && gameLogic.shieldActive
-                            SequentialAnimation on opacity {
-                                loops: Animation.Infinite
-                                NumberAnimation { from: 0.2; to: 0.8; duration: 500 }
-                                NumberAnimation { from: 0.8; to: 0.2; duration: 500 }
-                            }
-                        }
+                        x: model.pos.x * (gameWorld.width / gameLogic.boardWidth); y: model.pos.y * (gameWorld.height / gameLogic.boardHeight); width: gameWorld.width / gameLogic.boardWidth; height: gameWorld.height / gameLogic.boardHeight
+                        color: (gameLogic.activeBuff === 6) ? ((Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3) : (index === 0 ? p3 : p2)
+                        radius: index === 0 ? 2 : 1; opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0; z: 15
+                        Rectangle { anchors.fill: parent; anchors.margins: -2; color: "transparent"; border.color: "#00ffff"; border.width: 1; radius: parent.radius + 2; visible: index === 0 && gameLogic.shieldActive }
                     }
                 }
 
+                // Obstacles
                 Repeater {
                     model: gameLogic.obstacles
-                    Rectangle {
-                        x: modelData.x * (gameWorld.width / gameLogic.boardWidth)
-                        y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
-                        width: gameWorld.width / gameLogic.boardWidth
-                        height: gameWorld.height / gameLogic.boardHeight
-                        color: p3; z: 12
-                        Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 }
-                    }
-                }
-            }
-
-            Rectangle { 
-                id: splashLayer
-                anchors.fill: parent
-                color: p0
-                visible: gameLogic.state === 0 || bootAnim.running
-                z: 200
-                Text { 
-                    id: bootText
-                    text: "S N A K E"
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    font.family: gameFont
-                    font.pixelSize: 32
-                    color: p3
-                    font.bold: true
-                    y: -50
-                }
-                SequentialAnimation {
-                    id: bootAnim
-                    running: gameLogic.state === 0
-                    PauseAnimation { duration: 200 }
-                    NumberAnimation { 
-                        target: bootText
-                        property: "y"
-                        from: -50
-                        to: 80
-                        duration: 600
-                        easing.type: Easing.OutBounce 
-                    }
-                }
-            }
-
-            Rectangle {
-                id: powerFlash
-                anchors.fill: parent
-                color: "black"
-                opacity: 0
-                z: 300
-                SequentialAnimation {
-                    id: flashEffect
-                    NumberAnimation { target: powerFlash; property: "opacity"; from: 0; to: 1; duration: 50 }
-                    PauseAnimation { duration: 100 }
-                    ScriptAction { script: bootAnim.restart() }
-                    NumberAnimation { target: powerFlash; property: "opacity"; from: 1; to: 0; duration: 300 }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: p0
-                visible: gameLogic.state === 1 && !bootAnim.running
-                z: 50
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 6
-                    Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { 
-                        text: "UP: Medals | DOWN: Replay"
-                        font.family: gameFont
-                        font.pixelSize: 8
-                        color: gameLogic.hasReplay ? p3 : Qt.rgba(p3.r, p3.g, p3.b, 0.3)
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
-                    Text { 
-                        text: gameLogic.hasSave ? "START to Continue" : "START to Play"
-                        font.family: gameFont
-                        font.pixelSize: 14
-                        color: p3
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        SequentialAnimation on opacity { 
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 1; to: 0; duration: 800 }
-                            NumberAnimation { from: 0; to: 1; duration: 800 }
-                        }
-                    }
-                }
-            }
-
-            Column {
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.margins: 4
-                visible: gameLogic.state >= 2
-                z: 60
-                Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right }
-                Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
-            }
-
-            // Active Effect Status Bar
-            Rectangle {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.margins: 4
-                width: 80; height: 12
-                color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
-                visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
-                z: 65
-                radius: 2
-                Text {
-                    id: statusText
-                    anchors.centerIn: parent
-                    font.family: gameFont
-                    font.pixelSize: 6
-                    font.bold: true
-                    color: p3
-                    text: {
-                        var names = ["", "GHOST", "SLOW", "MAGNET", "SHIELD", "PORTAL", "GOLD", "RICH", "LASER", "MINI"]
-                        return names[gameLogic.activeBuff] + " ACTIVE"
-                    }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
-                visible: gameLogic.state === 3
-                z: 70
-                Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.centerIn: parent }
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
-                visible: gameLogic.state === 4
-                z: 70
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 10
-                    Text { 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: p0
-                        font.family: gameFont
-                        font.pixelSize: 20
-                        font.bold: true
-                        text: "GAME OVER\nSCORE: " + gameLogic.score
-                        horizontalAlignment: Text.AlignHCenter 
-                    }
-                    Text { text: "Press B to Menu"; font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
-                }
-            }
-
-            OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 100 }
-
-            // Choice Selection Layer (Roguelike)
-            Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.9)
-                visible: gameLogic.state === 6 // ChoiceSelection
-                z: 105
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 8
-                    width: parent.width - 40
-
-                    Text {
-                        text: "LEVEL UP!"
-                        color: p3
-                        font.family: gameFont
-                        font.pixelSize: 16
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-
-                    Text {
-                        text: "DPAD to Select | START to Confirm"
-                        color: p3
-                        font.family: gameFont
-                        font.pixelSize: 7
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        opacity: 0.8
-                    }
-
-                    Repeater {
-                        model: gameLogic.choices
-                        delegate: Rectangle {
-                            id: choiceRect
-                            width: parent.width
-                            height: 40
-                            color: gameLogic.choiceIndex === index ? p2 : p1
-                            border.color: p3
-                            border.width: gameLogic.choiceIndex === index ? 3 : 1
-                            radius: 4
-
-                            // Selection Arrow Indicator
-                            Text {
-                                anchors.left: parent.left
-                                anchors.leftMargin: 5
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: ">"
-                                color: p3
-                                visible: gameLogic.choiceIndex === index
-                                font.family: gameFont
-                                font.bold: true
-                            }
-
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 1
-                                Text {
-                                    text: modelData.name
-                                    color: p3
-                                    font.family: gameFont
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                                Text {
-                                    text: modelData.desc
-                                    color: p3
-                                    font.family: gameFont
-                                    font.pixelSize: 7
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                }
-                            }
-
-                            MouseArea {
-                                id: mouseAreaChoice
-                                anchors.fill: parent
-                                onClicked: {
-                                    gameLogic.requestFeedback(5)
-                                    gameLogic.selectChoice(index)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Active Effect Status Bar
-            Rectangle {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.margins: 4
-                width: 80; height: 12
-                color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
-                visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
-                z: 102
-                radius: 2
-                Text {
-                    anchors.centerIn: parent
-                    font.family: gameFont
-                    font.pixelSize: 6
-                    font.bold: true
-                    color: p3
-                    text: {
-                        var names = ["", "GHOST", "SLOW", "MAGNET", "SHIELD", "PORTAL", "GOLD", "RICH", "LASER", "MINI"]
-                        return (gameLogic.activeBuff < names.length) ? (names[gameLogic.activeBuff] + " ACTIVE") : ""
-                    }
-                }
-            }
-
-            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 8; z: 110 }
-
-            // Fruit Encyclopedia Layer (Hidden)
-            Rectangle {
-                anchors.fill: parent
-                color: p0
-                visible: gameLogic.state === 7
-                z: 120
-
-                Column {
-                    anchors.fill: parent
-                    anchors.margins: 10
-                    spacing: 5
-
-                    Text {
-                        text: "FRUIT CATALOG"
-                        color: p3
-                        font.family: gameFont
-                        font.pixelSize: 14
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
-
-                    ListView {
-                        id: libraryList
-                        width: parent.width
-                        height: parent.height - 40
-                        model: gameLogic.fruitLibrary
-                        currentIndex: gameLogic.libraryIndex
-                        clip: true
-                        spacing: 4
-                        onCurrentIndexChanged: libraryList.positionViewAtIndex(currentIndex, ListView.Contain)
-                        delegate: Rectangle {
-                            width: parent.width
-                            height: 35
-                            color: gameLogic.libraryIndex === index ? p2 : (modelData.discovered ? p1 : Qt.darker(p1, 1.5))
-                            border.color: gameLogic.libraryIndex === index ? p3 : p2
-                            border.width: gameLogic.libraryIndex === index ? 2 : 1
-
-                            Row {
-                                anchors.fill: parent
-                                anchors.margins: 5
-                                spacing: 10
-                                Item {
-                                    width: 20; height: 20
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    
-                                    // Ghost (Dashed)
-                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; border.style: Qt.DashLine; visible: modelData.discovered && modelData.type === 1; Rectangle { anchors.centerIn: parent; width: 8; height: 8; rotation: 45; border.color: p3; border.width: 1; color: "transparent" } }
-                                    // Slow (Clock)
-                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 2; Rectangle { width: 8; height: 2; color: p3; anchors.centerIn: parent } }
-                                    // Magnet (Triangle)
-                                    Rectangle { anchors.fill: parent; color: p3; visible: modelData.discovered && modelData.type === 3; clip: true; Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: p1 } }
-                                    // Shield (Circle)
-                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
-                                    // Portal (Rings)
-                                    Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 5; Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: p3; border.width: 1 } }
-                                    // Golden (Diamond)
-                                    Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#ffd700"; visible: modelData.discovered && modelData.type === 6 }
-                                    // Rich (Diamond)
-                                    Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#00ffff"; visible: modelData.discovered && modelData.type === 7 }
-                                    // Laser
-                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2; visible: modelData.discovered && modelData.type === 8 }
-                                    // Mini
-                                    Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 9; Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" } }
-                                    // Unknown / Base
-                                    Rectangle { anchors.centerIn: parent; width: 14; height: 14; rotation: 45; color: modelData.discovered ? p3 : p2; visible: !modelData.discovered || modelData.type < 4 }
-                                }
-                                Column {
-                                    width: parent.width - 40
-                                    Text { text: modelData.name; color: p3; font.family: gameFont; font.pixelSize: 9; font.bold: true }
-                                    Text { text: modelData.desc; color: p3; font.family: gameFont; font.pixelSize: 7; width: parent.width; wrapMode: Text.WordWrap; opacity: 0.8 }
-                                }
-                            }
-                        }
-                    }
-
-                    Text {
-                        text: "START to Back"
-                        color: p3
-                        font.family: gameFont
-                        font.pixelSize: 8
-                        anchors.horizontalCenter: parent.horizontalCenter
-                    }
+                    Rectangle { x: modelData.x * (gameWorld.width / gameLogic.boardWidth); y: modelData.y * (gameWorld.height / gameLogic.boardHeight); width: gameWorld.width / gameLogic.boardWidth; height: gameWorld.height / gameLogic.boardHeight; color: p3; z: 12; Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 } }
                 }
             }
         }
 
+        // 2. LCD SHADER (Only applies to gameContent)
         ShaderEffect {
             anchors.fill: parent
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
-            property variant history: ShaderEffectSource { sourceItem: parent; live: true; recursive: true }
             property real time: root.elapsed
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
+            z: 20
         }
+
+        // 3. UI OVERLAYS (Outside Shader for clarity and input)
+        
+        // Splash Layer
+        Rectangle { id: splashLayer; anchors.fill: parent; color: p0; visible: gameLogic.state === 0; z: 100; Text { text: "S N A K E"; anchors.centerIn: parent; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true } }
+
+        // Start Menu
+        Rectangle {
+            anchors.fill: parent; color: p0; visible: gameLogic.state === 1; z: 100
+            Column {
+                anchors.centerIn: parent; spacing: 6
+                Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "UP: Medals | DOWN: Replay"; font.family: gameFont; font.pixelSize: 8; color: gameLogic.hasReplay ? p3 : Qt.rgba(p3.r, p3.g, p3.b, 0.3); anchors.horizontalCenter: parent.horizontalCenter }
+            }
+        }
+
+        // HUD (Score)
+        Column { anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4; visible: gameLogic.state >= 2 && gameLogic.state <= 6; z: 150; Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right } Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right } }
+
+        // Choice Selection (Roguelike)
+        Rectangle {
+            anchors.fill: parent; color: Qt.rgba(p0.r, p0.g, p0.b, 0.95); visible: gameLogic.state === 6; z: 200
+            Column {
+                anchors.centerIn: parent; spacing: 8; width: parent.width - 40
+                Text { text: "LEVEL UP!"; color: p3; font.family: gameFont; font.pixelSize: 16; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                Repeater {
+                    model: gameLogic.choices
+                    delegate: Rectangle {
+                        width: parent.width; height: 35; color: gameLogic.choiceIndex === index ? p2 : p1; border.color: p3; border.width: gameLogic.choiceIndex === index ? 2 : 1; radius: 4
+                        Text { anchors.left: parent.left; anchors.leftMargin: 5; anchors.verticalCenter: parent.verticalCenter; text: ">"; color: p3; visible: gameLogic.choiceIndex === index; font.bold: true }
+                        Column { anchors.centerIn: parent; Text { text: modelData.name; color: p3; font.family: gameFont; font.pixelSize: 9; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter } Text { text: modelData.desc; color: p3; font.family: gameFont; font.pixelSize: 6; anchors.horizontalCenter: parent.horizontalCenter } }
+                    }
+                }
+            }
+        }
+
+        // Medal Room
+        MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 8; z: 300 }
+
+        // Fruit Catalog
+        Rectangle {
+            anchors.fill: parent; color: p0; visible: gameLogic.state === 7; z: 300
+            Column {
+                anchors.fill: parent; anchors.margins: 10; spacing: 5
+                Text { text: "FRUIT CATALOG"; color: p3; font.family: gameFont; font.pixelSize: 14; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                ListView {
+                    id: libraryList; width: parent.width; height: parent.height - 40; model: gameLogic.fruitLibrary; currentIndex: gameLogic.libraryIndex; clip: true; spacing: 4
+                    onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+                    delegate: Rectangle {
+                        width: parent.width; height: 30; color: gameLogic.libraryIndex === index ? p2 : (modelData.discovered ? p1 : Qt.darker(p1, 1.5)); border.color: gameLogic.libraryIndex === index ? p3 : p2; border.width: 1
+                        Row { anchors.fill: parent; anchors.margins: 5; spacing: 10; Rectangle { width: 16; height: 16; rotation: 45; color: modelData.discovered ? p3 : p2; anchors.verticalCenter: parent.verticalCenter } Column { Text { text: modelData.name; color: p3; font.pixelSize: 8; font.bold: true } Text { text: modelData.desc; color: p3; font.pixelSize: 6; opacity: 0.8 } } }
+                    }
+                }
+            }
+        }
+
+        OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 500 }
     }
 
     function showOSD(text) { osd.show(text); }
-    function triggerPowerCycle() { flashEffect.restart(); }
+    function triggerPowerCycle() { /* Implementation if needed */ }
 }
