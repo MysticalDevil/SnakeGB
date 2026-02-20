@@ -25,9 +25,9 @@ Window {
 
     Timer {
         id: longPressTimer
-        interval: 1500
+        interval: 1000
         onTriggered: { 
-            if (gameLogic.state === 1 && gameLogic.hasSave) { 
+            if (gameLogic.state === 1) { 
                 gameLogic.deleteSave()
                 screen.showOSD(qsTr("Save Cleared")) 
             } 
