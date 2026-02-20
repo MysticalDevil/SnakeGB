@@ -14,16 +14,20 @@ namespace {
     constexpr int AttackMs = 5;
     constexpr int CenterVal = 128;
     constexpr int DeferMs = 100;
+    constexpr int ReverbDelayMs = 150;
 }
 
 SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_format.setSampleRate(SampleRate);
-    m_format.setChannelCount(1);
+    m_format.setChannelCount(2); // Stereo
     m_format.setSampleFormat(QAudioFormat::UInt8);
 
     m_sfxBuffer.open(QIODevice::ReadWrite);
     m_bgmLeadBuffer.open(QIODevice::ReadWrite);
     m_bgmBassBuffer.open(QIODevice::ReadWrite);
+    
+    // Initialize simple delay buffer (approx 150ms)
+    m_reverbBuffer.resize((SampleRate * ReverbDelayMs) / 1000 * 2, 0.0);
 
     connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
     QTimer::singleShot(DeferMs, this, &SoundManager::initAudioAsync);
@@ -58,10 +62,7 @@ void SoundManager::setVolume(float volume) {
 
 auto SoundManager::setPaused(bool paused) -> void {
     m_isPaused = paused;
-    // When resuming, restart timer immediately to avoid silence
-    if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive()) {
-        startMusic();
-    }
+    if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive()) startMusic();
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
@@ -69,10 +70,11 @@ auto SoundManager::setMusicEnabled(bool enabled) -> void {
     if (!m_musicEnabled) stopMusic();
 }
 
-auto SoundManager::playBeep(const int frequencyHz, const int durationMs) -> void {
+auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float pan) -> void {
     if (!m_sfxSink) return;
     QByteArray data;
-    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5);
+    // Stereo generation with panning
+    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5, pan);
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
@@ -113,8 +115,10 @@ auto SoundManager::playNextNote() -> void {
 
     if (leadFreq > 0) {
         QByteArray leadData;
-        generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25);
-        if (m_isPaused) applyLowPassFilter(leadData); // Apply Muffle effect
+        // BGM slightly panned right for lead
+        generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25, 0.2f);
+        if (m_isPaused) applyLowPassFilter(leadData);
+        else applyReverb(leadData); // Apply Reverb when NOT paused
         m_bgmLeadSink->stop();
         m_bgmLeadBuffer.close();
         m_bgmLeadBuffer.setData(leadData);
@@ -123,7 +127,8 @@ auto SoundManager::playNextNote() -> void {
 
     if (bassFreq > 0) {
         QByteArray bassData;
-        generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5);
+        // Bass slightly panned left
+        generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5, -0.2f);
         if (m_isPaused) applyLowPassFilter(bassData);
         m_bgmBassSink->stop();
         m_bgmBassBuffer.close();
@@ -134,43 +139,90 @@ auto SoundManager::playNextNote() -> void {
     m_musicTimer.start(scaledDuration);
 }
 
-auto SoundManager::generateSquareWave(const int frequencyHz, const int durationMs, QByteArray &buffer, int amplitude, double duty) -> void {
+// Generates Stereo Square Wave (Interleaved L/R)
+auto SoundManager::generateSquareWave(const int frequencyHz, const int durationMs, QByteArray &buffer, int amplitude, double duty, float pan) -> void {
     const int sampleRate = m_format.sampleRate();
     if (sampleRate <= 0) return;
-    const int sampleCount = (sampleRate * durationMs) / 1000;
-    if (sampleCount <= 0) return;
-    buffer.resize(sampleCount);
+    const int frames = (sampleRate * durationMs) / 1000;
+    if (frames <= 0) return;
+    
+    // Stereo = 2 samples per frame
+    buffer.resize(frames * 2); 
+    
     const double cycleLength = static_cast<double>(sampleRate) / frequencyHz;
     const int attackSamples = (sampleRate * AttackMs) / 1000;
-    for (int i = 0; i < sampleCount; ++i) {
+    
+    // Pan calculation (Constant Power)
+    // pan: -1.0 (Left) to 1.0 (Right)
+    float leftGain = 1.0f;
+    float rightGain = 1.0f;
+    if (pan < 0) rightGain = 1.0f + pan;
+    else leftGain = 1.0f - pan;
+
+    for (int i = 0; i < frames; ++i) {
         const double phase = fmod(i, cycleLength) / cycleLength;
-        double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples)));
-        const int val = (phase < duty) ? (CenterVal + amplitude) : (CenterVal - amplitude);
-        buffer[i] = static_cast<char>(CenterVal + (val - CenterVal) * envelope);
+        double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (frames - attackSamples)));
+        const int rawVal = (phase < duty) ? amplitude : -amplitude;
+        
+        // Stereo Interleaving
+        buffer[i * 2] = static_cast<char>(CenterVal + rawVal * envelope * leftGain);     // Left
+        buffer[i * 2 + 1] = static_cast<char>(CenterVal + rawVal * envelope * rightGain); // Right
     }
 }
 
-// Simple Single-pole IIR Low-Pass Filter
 void SoundManager::applyLowPassFilter(QByteArray &buffer) {
-    double lastVal = 128.0;
+    double lastValL = 128.0;
+    double lastValR = 128.0;
+    for (int i = 0; i < buffer.size(); i += 2) {
+        // Left
+        double currentL = static_cast<unsigned char>(buffer[i]);
+        double filteredL = lastValL + m_lpfAlpha * (currentL - lastValL);
+        buffer[i] = static_cast<char>(static_cast<unsigned char>(filteredL));
+        lastValL = filteredL;
+        
+        // Right
+        if (i + 1 < buffer.size()) {
+            double currentR = static_cast<unsigned char>(buffer[i + 1]);
+            double filteredR = lastValR + m_lpfAlpha * (currentR - lastValR);
+            buffer[i + 1] = static_cast<char>(static_cast<unsigned char>(filteredR));
+            lastValR = filteredR;
+        }
+    }
+}
+
+void SoundManager::applyReverb(QByteArray &buffer) {
+    // Wet mix increases with score (0.0 to 0.4 max)
+    double wet = std::min(0.4, m_currentScore * 0.02);
+    if (wet <= 0.01) return;
+
     for (int i = 0; i < buffer.size(); ++i) {
-        double current = static_cast<unsigned char>(buffer[i]);
-        // y[i] = y[i-1] + alpha * (x[i] - y[i-1])
-        double filtered = lastVal + m_lpfAlpha * (current - lastVal);
-        buffer[i] = static_cast<char>(static_cast<unsigned char>(filtered));
-        lastVal = filtered;
+        int sample = static_cast<unsigned char>(buffer[i]) - CenterVal;
+        
+        // Read from delay line
+        double delayed = m_reverbBuffer[m_reverbWriteHead];
+        
+        // Write to delay line (feedback)
+        m_reverbBuffer[m_reverbWriteHead] = sample + delayed * 0.3;
+        
+        // Increment write head
+        m_reverbWriteHead++;
+        if (m_reverbWriteHead >= static_cast<int>(m_reverbBuffer.size())) m_reverbWriteHead = 0;
+        
+        // Mix: Dry + Wet
+        int mixed = std::clamp(static_cast<int>(sample + delayed * wet), -127, 127);
+        buffer[i] = static_cast<char>(CenterVal + mixed);
     }
 }
 
 void SoundManager::generateNoise(const int durationMs, QByteArray &buffer) {
     const int sampleRate = m_format.sampleRate();
-    if (sampleRate <= 0) return;
-    const int sampleCount = (sampleRate * durationMs) / 1000;
-    if (sampleCount <= 0) return;
-    buffer.resize(sampleCount);
-    for (int i = 0; i < sampleCount; ++i) {
-        const double envelope = 1.0 - (static_cast<double>(i) / sampleCount);
+    const int frames = (sampleRate * durationMs) / 1000;
+    buffer.resize(frames * 2);
+    for (int i = 0; i < frames; ++i) {
+        const double envelope = 1.0 - (static_cast<double>(i) / frames);
         const int randVal = QRandomGenerator::global()->bounded(Noise_Amplitude * 2) - Noise_Amplitude;
-        buffer[i] = static_cast<char>(CenterVal + randVal * envelope);
+        char val = static_cast<char>(CenterVal + randVal * envelope);
+        buffer[i * 2] = val;     // Left
+        buffer[i * 2 + 1] = val; // Right
     }
 }

@@ -109,7 +109,9 @@ auto PlayingState::update() -> void {
         logic.logFoodEaten();
         if (logic.m_soundManager) {
             logic.m_soundManager->setScore(logic.m_score);
-            logic.m_soundManager->playBeep(880, 100);
+            // Panning based on horizontal position (-0.7 to 0.7)
+            float pan = (static_cast<float>(nextHead.x()) / GameLogic::BOARD_WIDTH - 0.5f) * 1.4f;
+            logic.m_soundManager->playBeep(880, 100, pan);
         }
         logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
         emit logic.scoreChanged();

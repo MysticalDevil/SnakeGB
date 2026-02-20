@@ -21,7 +21,8 @@ public:
 
     auto setMusicEnabled(bool enabled) -> void;
     auto setPaused(bool paused) -> void;
-    Q_INVOKABLE void playBeep(int frequencyHz, int durationMs);
+    // Updated: playBeep now accepts panning (-1.0 left to 1.0 right)
+    Q_INVOKABLE void playBeep(int frequencyHz, int durationMs, float pan = 0.0f);
     Q_INVOKABLE void playCrash(int durationMs);
     Q_INVOKABLE void startMusic();
     Q_INVOKABLE void stopMusic();
@@ -37,8 +38,10 @@ private slots:
     void playNextNote();
 
 private:
-    void generateSquareWave(int frequencyHz, int durationMs, QByteArray &buffer, int amplitude = 32, double duty = 0.25);
+    // Updated: generate functions now output Stereo (L/R interleaved)
+    void generateSquareWave(int frequencyHz, int durationMs, QByteArray &buffer, int amplitude = 32, double duty = 0.25, float pan = 0.0f);
     void applyLowPassFilter(QByteArray &buffer);
+    void applyReverb(QByteArray &buffer); // New: Dynamic Reverb
     void generateNoise(int durationMs, QByteArray &buffer);
 
     QAudioFormat m_format;
@@ -57,10 +60,14 @@ private:
     int m_noteIndex = 0;
     int m_currentScore = 0;
 
-    // Filter state for BGM channels
-    double m_lpfAlpha = 0.15; // Low alpha = more muffled
+    // Filter state
+    double m_lpfAlpha = 0.15;
     double m_lastLeadSample = 128.0;
     double m_lastBassSample = 128.0;
+    
+    // Reverb state (Delay Line)
+    std::vector<double> m_reverbBuffer;
+    int m_reverbWriteHead = 0;
 
     struct NotePair {
         int leadFreq;
