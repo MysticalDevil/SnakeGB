@@ -86,9 +86,9 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // --- IGameEngine Interface ---
-    void setInternalState(int s) override;
-    void requestStateChange(int newState) override;
+    // --- IGameEngine & QML API (Merged) ---
+    Q_INVOKABLE void setInternalState(int s) override;
+    Q_INVOKABLE void requestStateChange(int newState) override;
     
     SnakeModel* snakeModel() override { return &m_snakeModel; }
     QPoint& direction() override { return m_direction; }
@@ -104,10 +104,10 @@ public:
     void handlePowerUpConsumption(const QPoint &head) override;
     void applyMovement(const QPoint &newHead, bool grew) override;
 
-    void restart() override;
-    void loadLastSession() override;
-    void togglePause() override;
-    void nextLevel() override;
+    Q_INVOKABLE void restart() override;
+    Q_INVOKABLE void loadLastSession() override;
+    Q_INVOKABLE void togglePause() override;
+    Q_INVOKABLE void nextLevel() override;
     
     void startEngineTimer(int intervalMs = -1) override;
     void stopEngineTimer() override;
@@ -118,7 +118,7 @@ public:
     void lazyInit() override;
     void forceUpdate() override { update(); }
 
-    // --- QML API ---
+    // --- Extra QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void startReplay();
@@ -204,6 +204,7 @@ private:
     QList<ReplayFrame> m_bestInputHistory;
     uint m_randomSeed = 0;
     uint m_bestRandomSeed = 0;
+    int m_bestLevelIndex = 0;
     int m_gameTickCounter = 0;
     int m_ghostFrameIndex = 0;
     qint64 m_sessionStartTime = 0;
