@@ -116,12 +116,30 @@ Window {
         focus: true
         Keys.onPressed: (event) => {
             if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) { shell.dpad.upPressed = true; gameLogic.move(0, -1) }
-            else if (event.key === Qt.Key_Down) { shell.dpad.downPressed = true; gameLogic.move(0, 1) }
-            else if (event.key === Qt.Key_Left) { shell.dpad.leftPressed = true; gameLogic.move(-1, 0) }
-            else if (event.key === Qt.Key_Right) { shell.dpad.rightPressed = true; gameLogic.move(1, 0) }
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { shell.startButton.isPressed = true; gameLogic.handleStart() }
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) { shell.aButton.isPressed = true; gameLogic.handleStart() }
+            if (event.key === Qt.Key_Up) { 
+                shell.dpad.upPressed = true
+                gameLogic.move(0, -1) 
+            }
+            else if (event.key === Qt.Key_Down) { 
+                shell.dpad.downPressed = true
+                gameLogic.move(0, 1) 
+            }
+            else if (event.key === Qt.Key_Left) { 
+                shell.dpad.leftPressed = true
+                gameLogic.move(-1, 0) 
+            }
+            else if (event.key === Qt.Key_Right) { 
+                shell.dpad.rightPressed = true
+                gameLogic.move(1, 0) 
+            }
+            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { 
+                shell.startButton.isPressed = true
+                gameLogic.handleStart() 
+            }
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) { 
+                shell.aButton.isPressed = true
+                gameLogic.handleStart() 
+            }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) { 
                 shell.bButton.isPressed = true
                 if (gameLogic.state === 1) { gameLogic.quit() }
