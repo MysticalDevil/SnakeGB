@@ -19,6 +19,7 @@
 #include <QtCore/qnativeinterface.h>
 #endif
 #include <algorithm>
+#include <cmath>
 
 using namespace Qt::StringLiterals;
 
@@ -32,12 +33,22 @@ namespace {
         QDir().mkpath(path);
         return path + u"/ghost.dat"_s;
     }
+
+    int readLevelCountFromResource(int fallbackCount) {
+        QFile f(u"qrc:/src/levels/levels.json"_s);
+        if (!f.open(QIODevice::ReadOnly)) {
+            return fallbackCount;
+        }
+        const auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
+        return levels.isEmpty() ? fallbackCount : levels.size();
+    }
 }
 
 GameLogic::GameLogic(QObject *parent)
     : QObject(parent),
       m_rng(QRandomGenerator::securelySeeded()),
       m_timer(std::make_unique<QTimer>()),
+      m_accelerometer(std::make_unique<QAccelerometer>()),
       m_soundManager(std::make_unique<SoundManager>()),
       m_profileManager(std::make_unique<ProfileManager>()),
       m_fsmState(nullptr) {
@@ -95,10 +106,29 @@ GameLogic::GameLogic(QObject *parent)
         });
     }
 
+    if (m_accelerometer) {
+        m_accelerometer->setDataRate(30);
+        connect(m_accelerometer.get(), &QAccelerometer::readingChanged, this, [this]() {
+            if (!m_accelerometer || !m_accelerometer->reading()) {
+                return;
+            }
+            constexpr qreal MaxTilt = 6.0;
+            const qreal nx = std::clamp(static_cast<qreal>(m_accelerometer->reading()->y()) / MaxTilt, -1.0, 1.0);
+            const qreal ny = std::clamp(static_cast<qreal>(m_accelerometer->reading()->x()) / MaxTilt, -1.0, 1.0);
+            m_reflectionOffset = QPointF(nx * 0.02, -ny * 0.02);
+            m_hasAccelerometerReading = true;
+            emit reflectionOffsetChanged();
+        });
+        m_accelerometer->start();
+    }
+
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
 }
 
 GameLogic::~GameLogic() {
+    if (m_accelerometer) {
+        m_accelerometer->stop();
+    }
     if (m_timer) {
         m_timer->stop();
     }
@@ -170,21 +200,14 @@ bool GameLogic::hasReplay() const noexcept {
 
 bool GameLogic::checkCollision(const QPoint &head) {
     QPoint p = head;
-    if (m_activeBuff == Portal) {
-        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
-    } else if (isOutOfBounds(p)) {
-        if (m_shieldActive) {
-            m_shieldActive = false;
-            triggerHaptic(5);
-            emit buffChanged();
-            return false;
-        }
-        return true;
-    }
+    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
 
     for (int i = 0; i < m_obstacles.size(); ++i) {
         if (m_obstacles[i] == p) {
+            if (m_activeBuff == Portal) {
+                return false;
+            }
             if (m_activeBuff == Laser) {
                 m_obstacles.removeAt(i);
                 m_activeBuff = None;
@@ -221,10 +244,8 @@ bool GameLogic::checkCollision(const QPoint &head) {
 
 void GameLogic::handleFoodConsumption(const QPoint &head) {
     QPoint p = head;
-    if (m_activeBuff == Portal) {
-        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
-    }
+    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
 
     if (p != m_food) {
         return;
@@ -237,6 +258,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
         points = 3;
     }
 
+    const int previousScore = m_score;
     m_score += points;
     if (m_profileManager) {
         m_profileManager->logFoodEaten();
@@ -249,8 +271,13 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
     emit scoreChanged();
     spawnFood();
 
-    if (m_score > 0 && m_score % 10 == 0) {
-        requestStateChange(ChoiceSelection);
+    const bool crossedLevelUpThreshold = (previousScore / 10) < (m_score / 10);
+    if (m_score > 0 && crossedLevelUpThreshold) {
+        if (m_state == Replaying) {
+            generateChoices();
+        } else {
+            requestStateChange(ChoiceSelection);
+        }
     } else if (m_rng.bounded(100) < 15 && m_powerUpPos == QPoint(-1, -1)) {
         spawnPowerUp();
     }
@@ -260,10 +287,8 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
 
 void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     QPoint p = head;
-    if (m_activeBuff == Portal) {
-        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
-    }
+    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
 
     if (p != m_powerUpPos) {
         return;
@@ -293,6 +318,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
 
     m_powerUpPos = QPoint(-1, -1);
     m_buffTicksRemaining = (m_activeBuff == Rich) ? BuffDurationTicks / 2 : BuffDurationTicks;
+    m_buffTicksTotal = m_buffTicksRemaining;
 
     emit powerUpEaten();
     if (m_activeBuff == Slow) {
@@ -306,10 +332,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
 
 void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
     QPoint p = newHead;
-    if (m_activeBuff == Portal) {
-        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
-    }
+    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
     
     m_snakeModel.moveHead(p, grew);
     m_currentRecording.append(p);
@@ -318,6 +342,7 @@ void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
         m_ghostFrameIndex++;
         emit ghostChanged();
     }
+    applyMagnetAttraction();
     checkAchievements();
 }
 
@@ -328,6 +353,7 @@ void GameLogic::restart() {
     m_score = 0;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_buffTicksTotal = 0;
     m_shieldActive = false;
     m_powerUpPos = QPoint(-1, -1);
     m_choicePending = false;
@@ -368,6 +394,7 @@ void GameLogic::startReplay() {
     m_score = 0;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_buffTicksTotal = 0;
     m_shieldActive = false;
     m_powerUpPos = QPoint(-1, -1);
     
@@ -410,6 +437,10 @@ void GameLogic::loadLastSession() {
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();
+    m_activeBuff = None;
+    m_buffTicksRemaining = 0;
+    m_buffTicksTotal = 0;
+    m_shieldActive = false;
 
     for (const auto &p : body) {
         m_currentRecording.append(p);
@@ -434,8 +465,12 @@ void GameLogic::togglePause() {
 }
 
 void GameLogic::nextLevel() {
-    m_levelIndex = (m_levelIndex + 1) % 3;
+    const int levelCount = readLevelCountFromResource(6);
+    m_levelIndex = (m_levelIndex + 1) % levelCount;
     loadLevelData(m_levelIndex);
+    if (m_state == StartMenu && hasSave()) {
+        clearSavedState();
+    }
     emit levelChanged();
     if (m_profileManager) {
         m_profileManager->setLevelIndex(m_levelIndex);
@@ -532,7 +567,7 @@ void GameLogic::generateChoices() {
         {Slow, u"Slow"_s, u"Decrease speed"_s},
         {Magnet, u"Magnet"_s, u"Attract food"_s},
         {Shield, u"Shield"_s, u"One extra life"_s},
-        {Portal, u"Portal"_s, u"Screen wrap"_s},
+        {Portal, u"Portal"_s, u"Phase through walls"_s},
         {Double, u"Double"_s, u"Double points"_s},
         {Rich, u"Diamond"_s, u"Triple points"_s},
         {Laser, u"Laser"_s, u"Break obstacle"_s},
@@ -586,9 +621,19 @@ void GameLogic::selectChoice(int index) {
     }
     
     m_buffTicksRemaining = BuffDurationTicks * 2;
+    m_buffTicksTotal = m_buffTicksRemaining;
     emit buffChanged();
-    m_timer->setInterval(500); 
-    
+    if (m_state == Replaying) {
+        int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
+        if (m_activeBuff == Slow) {
+            normalInterval = 250;
+        }
+        m_timer->setInterval(normalInterval);
+        return;
+    }
+
+    m_timer->setInterval(500);
+
     QTimer::singleShot(500, this, [this]() {
         if (m_state == Playing) {
             int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
@@ -598,7 +643,7 @@ void GameLogic::selectChoice(int index) {
             m_timer->setInterval(normalInterval);
         }
     });
-    
+
     requestStateChange(Playing);
 }
 
@@ -637,6 +682,23 @@ void GameLogic::nextShellColor() {
     }
 }
 
+void GameLogic::handleBAction() {
+    if (m_state == Playing || m_state == ChoiceSelection) {
+        nextPalette();
+        return;
+    }
+
+    if (m_state == StartMenu) {
+        quit();
+        return;
+    }
+
+    if (m_state == Paused || m_state == GameOver || m_state == Replaying ||
+        m_state == Library || m_state == MedalRoom) {
+        quitToMenu();
+    }
+}
+
 void GameLogic::quitToMenu() {
     saveCurrentState();
     requestStateChange(StartMenu);
@@ -659,6 +721,10 @@ void GameLogic::quit() {
 }
 
 void GameLogic::handleSelect() {
+    if (m_state == StartMenu) {
+        nextLevel();
+        return;
+    }
     if (m_fsmState) {
         m_fsmState->handleSelect();
     }
@@ -708,7 +774,10 @@ QString GameLogic::paletteName() const {
 QVariantList GameLogic::obstacles() const {
     QVariantList list;
     for (const auto &p : m_obstacles) {
-        list.append(p);
+        QVariantMap item;
+        item.insert(u"x"_s, p.x());
+        item.insert(u"y"_s, p.y());
+        list.append(item);
     }
     return list;
 }
@@ -802,7 +871,7 @@ QVariantList GameLogic::fruitLibrary() const {
     add(Slow, u"Slow"_s, u"Slows the game down."_s);
     add(Magnet, u"Magnet"_s, u"Standard nutritious food."_s);
     add(Shield, u"Shield"_s, u"Survive one collision."_s);
-    add(Portal, u"Portal"_s, u"Allows screen wrapping."_s);
+    add(Portal, u"Portal"_s, u"Pass through obstacle walls."_s);
     add(Double, u"Golden"_s, u"2x points per food."_s);
     add(Rich, u"Diamond"_s, u"3x points per food."_s);
     add(Laser, u"Laser"_s, u"Breaks one obstacle."_s);
@@ -812,9 +881,70 @@ QVariantList GameLogic::fruitLibrary() const {
 
 // --- Private Helpers ---
 
+void GameLogic::applyMagnetAttraction() {
+    if (m_activeBuff != Magnet || m_food == QPoint(-1, -1) || m_snakeModel.body().empty()) {
+        return;
+    }
+
+    const QPoint head = m_snakeModel.body().front();
+    if (m_food == head) {
+        handleFoodConsumption(head);
+        return;
+    }
+
+    auto wrapAxis = [](int value, int size) {
+        int v = value % size;
+        if (v < 0) v += size;
+        return v;
+    };
+    auto axisStepToward = [](int from, int to, int size) {
+        if (from == to) return 0;
+        const int forward = (to - from + size) % size;
+        const int backward = (from - to + size) % size;
+        return (forward <= backward) ? 1 : -1;
+    };
+
+    const int stepX = axisStepToward(m_food.x(), head.x(), BOARD_WIDTH);
+    const int stepY = axisStepToward(m_food.y(), head.y(), BOARD_HEIGHT);
+    const bool preferX = std::abs(head.x() - m_food.x()) >= std::abs(head.y() - m_food.y());
+
+    QList<QPoint> candidates;
+    auto pushCandidate = [&](bool xAxis) {
+        if (xAxis) {
+            if (stepX == 0) return;
+            candidates.append(QPoint(wrapAxis(m_food.x() + stepX, BOARD_WIDTH), m_food.y()));
+        } else {
+            if (stepY == 0) return;
+            candidates.append(QPoint(m_food.x(), wrapAxis(m_food.y() + stepY, BOARD_HEIGHT)));
+        }
+    };
+    if (preferX) {
+        pushCandidate(true);
+        pushCandidate(false);
+    } else {
+        pushCandidate(false);
+        pushCandidate(true);
+    }
+
+    for (const QPoint &candidate : candidates) {
+        if (candidate == m_food) {
+            continue;
+        }
+        if (candidate == head || (!isOccupied(candidate) && candidate != m_powerUpPos)) {
+            m_food = candidate;
+            emit foodChanged();
+            if (m_food == head) {
+                handleFoodConsumption(head);
+            }
+            return;
+        }
+    }
+}
+
 void GameLogic::deactivateBuff() {
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_buffTicksTotal = 0;
     m_shieldActive = false;
     m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
     emit buffChanged();
@@ -901,12 +1031,70 @@ void GameLogic::clearSavedState() {
 }
 
 void GameLogic::loadLevelData(int i) {
+    static const QStringList fallbackNames = {
+        u"Classic"_s,
+        u"The Cage"_s,
+        u"Dynamic Pulse"_s,
+        u"Tunnel Run"_s,
+        u"Crossfire"_s,
+        u"Shifting Box"_s
+    };
+    static const QStringList fallbackScripts = {
+        u""_s,
+        u""_s,
+        u"function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"_s,
+        u""_s,
+        u"function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = 4 + t; var right = 15 - t; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,y:13-t}]; }"_s,
+        u"function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) * 2.0); var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"_s
+    };
+    const auto applyFallbackLevel = [this](int levelIndex) {
+        m_obstacles.clear();
+        m_currentScript = fallbackScripts[levelIndex];
+        if (!m_currentScript.isEmpty()) {
+            const QJSValue res = m_jsEngine.evaluate(m_currentScript);
+            if (!res.isError()) {
+                runLevelScript();
+            }
+        } else if (levelIndex == 1) {
+            m_obstacles = {
+                QPoint(5, 5), QPoint(6, 5), QPoint(14, 5), QPoint(15, 5),
+                QPoint(5, 12), QPoint(6, 12), QPoint(14, 12), QPoint(15, 12)
+            };
+        } else if (levelIndex == 3) {
+            m_obstacles = {
+                QPoint(9, 4), QPoint(9, 5), QPoint(9, 6), QPoint(9, 7), QPoint(9, 10), QPoint(9, 11), QPoint(9, 12), QPoint(9, 13),
+                QPoint(10, 4), QPoint(10, 5), QPoint(10, 6), QPoint(10, 7), QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)
+            };
+        } else if (levelIndex == 4) {
+            m_obstacles = {
+                QPoint(5, 8), QPoint(6, 8), QPoint(7, 8), QPoint(8, 8), QPoint(11, 8), QPoint(12, 8), QPoint(13, 8), QPoint(14, 8),
+                QPoint(5, 9), QPoint(6, 9), QPoint(7, 9), QPoint(8, 9), QPoint(11, 9), QPoint(12, 9), QPoint(13, 9), QPoint(14, 9)
+            };
+        } else if (levelIndex == 5) {
+            m_obstacles = {
+                QPoint(4, 4), QPoint(5, 4), QPoint(6, 4), QPoint(13, 4), QPoint(14, 4), QPoint(15, 4),
+                QPoint(4, 13), QPoint(5, 13), QPoint(6, 13), QPoint(13, 13), QPoint(14, 13), QPoint(15, 13),
+                QPoint(4, 5), QPoint(4, 12), QPoint(15, 5), QPoint(15, 12)
+            };
+        }
+        emit obstaclesChanged();
+    };
+
+    const int fallbackCount = fallbackNames.size();
+    const int safeIndex = ((i % fallbackCount) + fallbackCount) % fallbackCount;
+    m_currentLevelName = fallbackNames[safeIndex];
+
     QFile f(u"qrc:/src/levels/levels.json"_s);
     if (!f.open(QIODevice::ReadOnly)) {
+        applyFallbackLevel(safeIndex);
         return;
     }
 
     auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
+    if (levels.isEmpty()) {
+        applyFallbackLevel(safeIndex);
+        return;
+    }
     auto lvl = levels[i % levels.size()].toObject();
     
     m_currentLevelName = lvl.value(u"name"_s).toString();
@@ -914,14 +1102,26 @@ void GameLogic::loadLevelData(int i) {
     m_currentScript = lvl.value(u"script"_s).toString();
 
     if (!m_currentScript.isEmpty()) {
-        m_jsEngine.evaluate(m_currentScript);
+        const QJSValue res = m_jsEngine.evaluate(m_currentScript);
+        if (res.isError()) {
+            applyFallbackLevel(safeIndex);
+            return;
+        }
         runLevelScript();
+        if (m_obstacles.isEmpty()) {
+            applyFallbackLevel(safeIndex);
+            return;
+        }
     } else {
         for (const auto &w : lvl.value(u"walls"_s).toArray()) {
             m_obstacles.append(QPoint(
                 w.toObject().value(u"x"_s).toInt(), 
                 w.toObject().value(u"y"_s).toInt()
             ));
+        }
+        if (m_obstacles.isEmpty()) {
+            applyFallbackLevel(safeIndex);
+            return;
         }
     }
     emit obstaclesChanged();
@@ -948,6 +1148,41 @@ void GameLogic::checkAchievements() {
 }
 
 void GameLogic::runLevelScript() {
+    auto applyDynamicFallback = [this]() -> bool {
+        if (m_currentLevelName == u"Dynamic Pulse"_s) {
+            const int a = static_cast<int>(std::floor(std::abs(std::sin(m_gameTickCounter * 0.1)) * 10.0));
+            const int x1 = 5 + a;
+            const int x2 = 15 - a;
+            m_obstacles = {QPoint(x1, 5), QPoint(x1, 6), QPoint(x2, 12), QPoint(x2, 13)};
+            emit obstaclesChanged();
+            return true;
+        }
+        if (m_currentLevelName == u"Crossfire"_s) {
+            const int t = (m_gameTickCounter / 2) % 8;
+            const int left = 4 + t;
+            const int right = 15 - t;
+            m_obstacles = {
+                QPoint(left, 8), QPoint(left, 9), QPoint(right, 8), QPoint(right, 9),
+                QPoint(9, 4 + t), QPoint(10, 13 - t)
+            };
+            emit obstaclesChanged();
+            return true;
+        }
+        if (m_currentLevelName == u"Shifting Box"_s) {
+            const int d = static_cast<int>(std::floor((std::sin(m_gameTickCounter * 0.08) + 1.0) * 2.0));
+            const int min = 4 + d;
+            const int max = 15 - d;
+            m_obstacles = {
+                QPoint(min, min), QPoint(min + 1, min), QPoint(max - 1, min), QPoint(max, min),
+                QPoint(min, max), QPoint(min + 1, max), QPoint(max - 1, max), QPoint(max, max),
+                QPoint(min, min + 1), QPoint(min, max - 1), QPoint(max, min + 1), QPoint(max, max - 1)
+            };
+            emit obstaclesChanged();
+            return true;
+        }
+        return false;
+    };
+
     QJSValue onTick = m_jsEngine.globalObject().property(u"onTick"_s);
     if (onTick.isCallable()) {
         QJSValueList args;
@@ -964,8 +1199,10 @@ void GameLogic::runLevelScript() {
                 ));
             }
             emit obstaclesChanged();
+            return;
         }
     }
+    applyDynamicFallback();
 }
 
 bool GameLogic::isOccupied(const QPoint &p) const {
@@ -999,10 +1236,12 @@ void GameLogic::update() {
         }
         m_gameTickCounter++;
     }
-    float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f;
-    m_reflectionOffset = QPointF(
-        std::sin(t * 0.8f) * 0.01f, 
-        std::cos(t * 0.7f) * 0.01f
-    );
-    emit reflectionOffsetChanged();
+    if (!m_hasAccelerometerReading) {
+        float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f;
+        m_reflectionOffset = QPointF(
+            std::sin(t * 0.8f) * 0.01f,
+            std::cos(t * 0.7f) * 0.01f
+        );
+        emit reflectionOffsetChanged();
+    }
 }

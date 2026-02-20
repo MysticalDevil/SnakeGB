@@ -62,6 +62,7 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModelPtr CONSTANT)
     Q_PROPERTY(QPoint food READ food NOTIFY foodChanged)
     Q_PROPERTY(QPoint powerUpPos READ powerUpPos NOTIFY powerUpChanged)
+    Q_PROPERTY(int powerUpType READ powerUpType NOTIFY powerUpChanged)
     Q_PROPERTY(int score READ score NOTIFY scoreChanged)
     Q_PROPERTY(int highScore READ highScore NOTIFY highScoreChanged)
     Q_PROPERTY(State state READ state NOTIFY stateChanged)
@@ -78,6 +79,8 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
+    Q_PROPERTY(int buffTicksRemaining READ buffTicksRemaining NOTIFY buffChanged)
+    Q_PROPERTY(int buffTicksTotal READ buffTicksTotal NOTIFY buffChanged)
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
     Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
     Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
@@ -124,7 +127,7 @@ public:
     void startReplay() override;
     void loadLastSession() override;
     void togglePause() override;
-    void nextLevel() override;
+    Q_INVOKABLE void nextLevel() override;
     
     void startEngineTimer(int intervalMs = -1) override;
     void stopEngineTimer() override;
@@ -142,15 +145,24 @@ public:
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
     
     int libraryIndex() const override { return m_libraryIndex; }
-    void setLibraryIndex(int index) override { m_libraryIndex = index; emit libraryIndexChanged(); }
+    Q_INVOKABLE void setLibraryIndex(int index) override {
+        if (m_libraryIndex == index) return;
+        m_libraryIndex = index;
+        emit libraryIndexChanged();
+    }
     int medalIndex() const override { return m_medalIndex; }
-    void setMedalIndex(int index) override { m_medalIndex = index; emit medalIndexChanged(); }
+    Q_INVOKABLE void setMedalIndex(int index) override {
+        if (m_medalIndex == index) return;
+        m_medalIndex = index;
+        emit medalIndexChanged();
+    }
 
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void nextPalette();
     Q_INVOKABLE void nextShellColor();
+    Q_INVOKABLE void handleBAction();
     Q_INVOKABLE void quitToMenu();
     Q_INVOKABLE void toggleMusic();
     Q_INVOKABLE void quit();
@@ -162,6 +174,7 @@ public:
     SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
     QPoint food() const noexcept { return m_food; }
     QPoint powerUpPos() const noexcept { return m_powerUpPos; }
+    int powerUpType() const noexcept { return static_cast<int>(m_powerUpType); }
     int score() const noexcept { return m_score; }
     int highScore() const;
     State state() const noexcept { return m_state; }
@@ -182,6 +195,8 @@ public:
     void setVolume(float v);
     QPointF reflectionOffset() const noexcept { return m_reflectionOffset; }
     int activeBuff() const noexcept { return static_cast<int>(m_activeBuff); }
+    int buffTicksRemaining() const noexcept { return m_buffTicksRemaining; }
+    int buffTicksTotal() const noexcept { return m_buffTicksTotal; }
     bool shieldActive() const noexcept { return m_shieldActive; }
     QVariantList choices() const { return m_choices; }
     bool choicePending() const noexcept { return m_choicePending; }
@@ -206,6 +221,7 @@ private slots:
     void update();
 
 private:
+    void applyMagnetAttraction();
     void deactivateBuff();
     void changeState(std::unique_ptr<GameState> newState);
     void spawnFood();
@@ -226,6 +242,7 @@ private:
     PowerUp m_powerUpType = None;
     PowerUp m_activeBuff = None;
     int m_buffTicksRemaining = 0;
+    int m_buffTicksTotal = 0;
     bool m_shieldActive = false;
     QPoint m_direction = {0, -1};
     int m_score = 0;
@@ -244,6 +261,7 @@ private:
     QList<ReplayFrame> m_bestInputHistory;
     QList<ChoiceRecord> m_currentChoiceHistory;
     QList<ChoiceRecord> m_bestChoiceHistory;
+    bool m_hasAccelerometerReading = false;
     int m_audioStateToken = 0;
     uint m_randomSeed = 0;
     uint m_bestRandomSeed = 0;
@@ -256,6 +274,7 @@ private:
     QString m_currentScript;
 
     std::unique_ptr<QTimer> m_timer;
+    std::unique_ptr<QAccelerometer> m_accelerometer;
     std::unique_ptr<SoundManager> m_soundManager;
     std::unique_ptr<ProfileManager> m_profileManager;
     std::deque<QPoint> m_inputQueue;

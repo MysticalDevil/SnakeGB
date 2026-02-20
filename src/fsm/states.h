@@ -55,6 +55,7 @@ public:
     void handleStart() override;
 private:
     int m_historyIndex = 0;
+    int m_choiceHistoryIndex = 0;
 };
 
 class ChoiceState : public GameState {
@@ -69,6 +70,7 @@ class LibraryState : public GameState {
 public:
     explicit LibraryState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
+    void handleInput(int dx, int dy) override;
     void handleSelect() override;
 };
 
@@ -76,6 +78,7 @@ class MedalRoomState : public GameState {
 public:
     explicit MedalRoomState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
+    void handleInput(int dx, int dy) override;
     void handleSelect() override;
 };
 

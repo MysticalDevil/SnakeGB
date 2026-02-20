@@ -11,7 +11,7 @@ void SplashState::enter() {
 
 void SplashState::update() {
     m_frames++;
-    if (m_frames > 80) {
+    if (m_frames > 110) {
         m_context.playEventSound(3);
         m_context.requestStateChange(GameLogic::StartMenu);
     }
@@ -41,11 +41,14 @@ void MenuState::handleInput(int dx, int dy) {
     } else if (dy > 0) {
         if (m_context.hasReplay()) {
             m_context.startReplay();
+        } else {
+            m_context.playEventSound(3);
+            m_context.triggerHaptic(2);
         }
+    } else if (dx < 0) {
+        m_context.requestStateChange(GameLogic::Library);
     } else if (dx > 0) {
         m_context.nextPalette();
-    } else if (dx < 0) {
-        m_context.nextShellColor();
     }
 }
 
@@ -73,6 +76,13 @@ void PlayingState::update() {
 
     const bool grew = (nextHead == m_context.foodPos());
     m_context.handleFoodConsumption(nextHead);
+
+    // Eating food can switch state (e.g. LevelUp choice). Once state changed,
+    // this PlayingState instance may already be invalidated by FSM replacement.
+    if (m_context.state() != GameLogic::Playing) {
+        return;
+    }
+
     m_context.handlePowerUpConsumption(nextHead);
     m_context.applyMovement(nextHead, grew);
 }
@@ -128,9 +138,24 @@ void ChoiceState::handleStart() {
 void ReplayingState::enter() {
     m_context.setInternalState(GameLogic::Replaying);
     m_historyIndex = 0;
+    m_choiceHistoryIndex = 0;
 }
 
 void ReplayingState::update() {
+    auto &bestChoices = m_context.bestChoiceHistory();
+    while (m_choiceHistoryIndex < bestChoices.size()) {
+        const auto &choice = bestChoices[m_choiceHistoryIndex];
+        if (choice.frame == m_context.gameTickCounter()) {
+            m_context.selectChoice(choice.index);
+            m_choiceHistoryIndex++;
+            break;
+        } else if (choice.frame > m_context.gameTickCounter()) {
+            break;
+        } else {
+            m_choiceHistoryIndex++;
+        }
+    }
+
     auto &bestHistory = m_context.bestInputHistory();
     while (m_historyIndex < bestHistory.size()) {
         const auto &frame = bestHistory[m_historyIndex];
@@ -165,12 +190,32 @@ void LibraryState::enter() {
     m_context.setInternalState(GameLogic::Library);
 }
 
+void LibraryState::handleInput(int /*dx*/, int dy) {
+    const int count = m_context.fruitLibrary().size();
+    if (count <= 0 || dy == 0) {
+        return;
+    }
+    const int step = (dy > 0) ? 1 : -1;
+    const int next = (m_context.libraryIndex() + step + count) % count;
+    m_context.setLibraryIndex(next);
+}
+
 void LibraryState::handleSelect() {
     m_context.requestStateChange(GameLogic::StartMenu);
 }
 
 void MedalRoomState::enter() {
     m_context.setInternalState(GameLogic::MedalRoom);
+}
+
+void MedalRoomState::handleInput(int /*dx*/, int dy) {
+    const int count = m_context.medalLibrary().size();
+    if (count <= 0 || dy == 0) {
+        return;
+    }
+    const int step = (dy > 0) ? 1 : -1;
+    const int next = (m_context.medalIndex() + step + count) % count;
+    m_context.setMedalIndex(next);
 }
 
 void MedalRoomState::handleSelect() {

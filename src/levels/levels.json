@@ -14,6 +14,23 @@
         {
             "name": "Dynamic Pulse",
             "script": "function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"
+        },
+        {
+            "name": "Tunnel Run",
+            "walls": [
+                {"x": 9, "y": 4}, {"x": 9, "y": 5}, {"x": 9, "y": 6}, {"x": 9, "y": 7},
+                {"x": 9, "y": 10}, {"x": 9, "y": 11}, {"x": 9, "y": 12}, {"x": 9, "y": 13},
+                {"x": 10, "y": 4}, {"x": 10, "y": 5}, {"x": 10, "y": 6}, {"x": 10, "y": 7},
+                {"x": 10, "y": 10}, {"x": 10, "y": 11}, {"x": 10, "y": 12}, {"x": 10, "y": 13}
+            ]
+        },
+        {
+            "name": "Crossfire",
+            "script": "function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = 4 + t; var right = 15 - t; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,y:13-t}]; }"
+        },
+        {
+            "name": "Shifting Box",
+            "script": "function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) * 2.0); var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"
         }
     ]
 }
