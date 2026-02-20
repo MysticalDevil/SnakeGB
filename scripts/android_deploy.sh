@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-: "${QT_ANDROID_PREFIX:?Please set QT_ANDROID_PREFIX, e.g. ~/dev/build-qt-android/build-android-arm64/qt-android-install}"
+: "${QT_ANDROID_PREFIX:?Please set QT_ANDROID_PREFIX, e.g. ~/qt-toolchains/build-qt-android/build-android-arm64/qt-android-install}"
 
 QT_CMAKE_BIN="${QT_CMAKE_BIN:-${QT_ANDROID_PREFIX}/bin/qt-cmake}"
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${HOME}/Android/Sdk}"

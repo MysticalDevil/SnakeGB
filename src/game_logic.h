@@ -4,16 +4,17 @@
 #include <QColor>
 #include <QObject>
 #include <QRect>
-#include <QSettings>
 #include <QTimer>
 #include <QVariantList>
 #include <QRandomGenerator>
 #include <QJSEngine>
+#include <QAccelerometer>
 #include <deque>
 #include <memory>
 #include <queue>
 
 class SoundManager;
+class ProfileManager;
 class GameState;
 class SplashState;
 class MenuState;
@@ -111,7 +112,7 @@ public:
     [[nodiscard]] auto powerUpType() const noexcept -> int { return static_cast<int>(m_powerUpType); }
     [[nodiscard]] auto activeBuff() const noexcept -> int { return static_cast<int>(m_activeBuff); }
     [[nodiscard]] auto score() const noexcept -> int { return m_score; }
-    [[nodiscard]] auto highScore() const noexcept -> int { return m_highScore; }
+    [[nodiscard]] auto highScore() const noexcept -> int;
     [[nodiscard]] auto state() const noexcept -> State { return m_state; }
     [[nodiscard]] auto boardWidth() const noexcept -> int { return BOARD_WIDTH; }
     [[nodiscard]] auto boardHeight() const noexcept -> int { return BOARD_HEIGHT; }
@@ -127,8 +128,8 @@ public:
     [[nodiscard]] auto musicEnabled() const noexcept -> bool;
     [[nodiscard]] auto achievements() const noexcept -> QVariantList;
     [[nodiscard]] auto medalLibrary() const noexcept -> QVariantList;
-    [[nodiscard]] auto volume() const noexcept -> float;
     [[nodiscard]] auto coverage() const noexcept -> float { return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); }
+    [[nodiscard]] auto volume() const noexcept -> float;
     auto setVolume(float v) -> void;
     [[nodiscard]] auto reflectionOffset() const noexcept -> QPointF { return m_reflectionOffset; }
 
@@ -155,10 +156,11 @@ public:
     auto setInternalState(State s) -> void;
     auto lazyInit() -> void;
     auto checkAchievements() -> void;
-    auto incrementCrashes() -> void;
-    auto logFoodEaten() -> void;
-    auto logPowerUpTriggered(PowerUp type) -> void;
     
+    void incrementCrashes();
+    void logFoodEaten();
+    void logPowerUpTriggered(PowerUp type);
+
     void runLevelScript();
 
     friend class SplashState;
@@ -187,6 +189,11 @@ signals:
     void achievementEarned(QString title);
     void volumeChanged();
     void reflectionOffsetChanged();
+    
+    void foodEaten(float pan);
+    void powerUpEaten();
+    void playerCrashed();
+    void uiInteractTriggered();
 
 private slots:
     void update();
@@ -201,6 +208,7 @@ private:
     auto loadLevelData(int index) -> void;
     [[nodiscard]] static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
+    // --- ORDER MATTERS FOR INITIALIZATION ---
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;
     QPoint m_food = {0, 0};
@@ -209,10 +217,7 @@ private:
     PowerUp m_activeBuff = None;
     QPoint m_direction = {0, -1};
     int m_score = 0;
-    int m_highScore = 0;
     State m_state = Splash;
-    int m_paletteIndex = 0;
-    int m_shellIndex = 0;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");
     QList<QPoint> m_obstacles;
@@ -224,12 +229,7 @@ private:
     int m_gameTickCounter = 0;
     QList<ReplayFrame> m_currentInputHistory;
     QList<ReplayFrame> m_bestInputHistory;
-    int m_totalCrashes = 0;
-    int m_totalFoodEaten = 0;
-    int m_totalGhostTriggers = 0;
     qint64 m_sessionStartTime = 0;
-    QList<QString> m_unlockedMedals;
-    QSettings m_settings;
     QPointF m_reflectionOffset = {0.0, 0.0};
 
     QJSEngine m_jsEngine;
@@ -237,9 +237,10 @@ private:
 
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<SoundManager> m_soundManager;
-    std::unique_ptr<GameState> m_fsmState;
+    std::unique_ptr<ProfileManager> m_profileManager;
     std::deque<QPoint> m_inputQueue;
     std::unique_ptr<QTimer> m_buffTimer;
+    std::unique_ptr<GameState> m_fsmState; // FSM Last
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

@@ -1,0 +1,869 @@
+[
+    {
+        "classes": [
+            {
+                "className": "SnakeModel",
+                "lineNumber": 34,
+                "object": true,
+                "qualifiedClassName": "SnakeModel",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QAbstractListModel"
+                    }
+                ]
+            },
+            {
+                "className": "GameLogic",
+                "enums": [
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "lineNumber": 96,
+                        "name": "State",
+                        "values": [
+                            "Splash",
+                            "StartMenu",
+                            "Playing",
+                            "Paused",
+                            "GameOver",
+                            "Replaying"
+                        ]
+                    },
+                    {
+                        "isClass": false,
+                        "isFlag": false,
+                        "lineNumber": 97,
+                        "name": "PowerUp",
+                        "values": [
+                            "None",
+                            "Ghost",
+                            "Slow",
+                            "Magnet"
+                        ]
+                    }
+                ],
+                "lineNumber": 67,
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "dx",
+                                "type": "int"
+                            },
+                            {
+                                "name": "dy",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 24,
+                        "lineNumber": 139,
+                        "name": "move",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 25,
+                        "lineNumber": 140,
+                        "name": "startGame",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 26,
+                        "lineNumber": 141,
+                        "name": "startReplay",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 27,
+                        "lineNumber": 142,
+                        "name": "restart",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 28,
+                        "lineNumber": 143,
+                        "name": "togglePause",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 29,
+                        "lineNumber": 144,
+                        "name": "nextPalette",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 30,
+                        "lineNumber": 145,
+                        "name": "nextShellColor",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 31,
+                        "lineNumber": 146,
+                        "name": "loadLastSession",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 32,
+                        "lineNumber": 147,
+                        "name": "nextLevel",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 33,
+                        "lineNumber": 148,
+                        "name": "quitToMenu",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 34,
+                        "lineNumber": 149,
+                        "name": "toggleMusic",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 35,
+                        "lineNumber": 150,
+                        "name": "quit",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 36,
+                        "lineNumber": 151,
+                        "name": "handleSelect",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 37,
+                        "lineNumber": 152,
+                        "name": "handleStart",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 38,
+                        "lineNumber": 153,
+                        "name": "deleteSave",
+                        "returnType": "void"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "index": 0,
+                        "lineNumber": 69,
+                        "name": "snakeModel",
+                        "read": "snakeModel",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "SnakeModel*",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 1,
+                        "lineNumber": 70,
+                        "name": "food",
+                        "notify": "foodChanged",
+                        "read": "food",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QPoint",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 2,
+                        "lineNumber": 71,
+                        "name": "powerUpPos",
+                        "notify": "powerUpChanged",
+                        "read": "powerUpPos",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QPoint",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 3,
+                        "lineNumber": 72,
+                        "name": "powerUpType",
+                        "notify": "powerUpChanged",
+                        "read": "powerUpType",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 4,
+                        "lineNumber": 73,
+                        "name": "score",
+                        "notify": "scoreChanged",
+                        "read": "score",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 5,
+                        "lineNumber": 74,
+                        "name": "highScore",
+                        "notify": "highScoreChanged",
+                        "read": "highScore",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 6,
+                        "lineNumber": 75,
+                        "name": "state",
+                        "notify": "stateChanged",
+                        "read": "state",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "State",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "index": 7,
+                        "lineNumber": 76,
+                        "name": "boardWidth",
+                        "read": "boardWidth",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "index": 8,
+                        "lineNumber": 77,
+                        "name": "boardHeight",
+                        "read": "boardHeight",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 9,
+                        "lineNumber": 78,
+                        "name": "palette",
+                        "notify": "paletteChanged",
+                        "read": "palette",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariantList",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 10,
+                        "lineNumber": 79,
+                        "name": "paletteName",
+                        "notify": "paletteChanged",
+                        "read": "paletteName",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 11,
+                        "lineNumber": 80,
+                        "name": "obstacles",
+                        "notify": "obstaclesChanged",
+                        "read": "obstacles",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariantList",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 12,
+                        "lineNumber": 81,
+                        "name": "shellColor",
+                        "notify": "shellColorChanged",
+                        "read": "shellColor",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QColor",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 13,
+                        "lineNumber": 82,
+                        "name": "hasSave",
+                        "notify": "hasSaveChanged",
+                        "read": "hasSave",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 14,
+                        "lineNumber": 83,
+                        "name": "hasReplay",
+                        "notify": "highScoreChanged",
+                        "read": "hasReplay",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 15,
+                        "lineNumber": 84,
+                        "name": "level",
+                        "notify": "levelChanged",
+                        "read": "level",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 16,
+                        "lineNumber": 85,
+                        "name": "currentLevelName",
+                        "notify": "levelChanged",
+                        "read": "currentLevelName",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 17,
+                        "lineNumber": 86,
+                        "name": "ghost",
+                        "notify": "ghostChanged",
+                        "read": "ghost",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariantList",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 18,
+                        "lineNumber": 87,
+                        "name": "musicEnabled",
+                        "notify": "musicEnabledChanged",
+                        "read": "musicEnabled",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 19,
+                        "lineNumber": 88,
+                        "name": "activeBuff",
+                        "notify": "buffChanged",
+                        "read": "activeBuff",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 20,
+                        "lineNumber": 89,
+                        "name": "achievements",
+                        "notify": "achievementsChanged",
+                        "read": "achievements",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariantList",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "index": 21,
+                        "lineNumber": 90,
+                        "name": "medalLibrary",
+                        "read": "medalLibrary",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariantList",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 22,
+                        "lineNumber": 91,
+                        "name": "coverage",
+                        "notify": "scoreChanged",
+                        "read": "coverage",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "float",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 23,
+                        "lineNumber": 92,
+                        "name": "volume",
+                        "notify": "volumeChanged",
+                        "read": "volume",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "float",
+                        "user": false,
+                        "write": "setVolume"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "index": 24,
+                        "lineNumber": 93,
+                        "name": "reflectionOffset",
+                        "notify": "reflectionOffsetChanged",
+                        "read": "reflectionOffset",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QPointF",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "GameLogic",
+                "signals": [
+                    {
+                        "access": "public",
+                        "index": 0,
+                        "lineNumber": 174,
+                        "name": "foodChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 1,
+                        "lineNumber": 175,
+                        "name": "powerUpChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 2,
+                        "lineNumber": 176,
+                        "name": "buffChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 3,
+                        "lineNumber": 177,
+                        "name": "scoreChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "lineNumber": 178,
+                        "name": "highScoreChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 5,
+                        "lineNumber": 179,
+                        "name": "stateChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "magnitude",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 6,
+                        "lineNumber": 180,
+                        "name": "requestFeedback",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 7,
+                        "lineNumber": 181,
+                        "name": "paletteChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 8,
+                        "lineNumber": 182,
+                        "name": "obstaclesChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 9,
+                        "lineNumber": 183,
+                        "name": "shellColorChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 10,
+                        "lineNumber": 184,
+                        "name": "hasSaveChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 11,
+                        "lineNumber": 185,
+                        "name": "levelChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 12,
+                        "lineNumber": 186,
+                        "name": "ghostChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 13,
+                        "lineNumber": 187,
+                        "name": "musicEnabledChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 14,
+                        "lineNumber": 188,
+                        "name": "achievementsChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "title",
+                                "type": "QString"
+                            }
+                        ],
+                        "index": 15,
+                        "lineNumber": 189,
+                        "name": "achievementEarned",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 16,
+                        "lineNumber": 190,
+                        "name": "volumeChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 17,
+                        "lineNumber": 191,
+                        "name": "reflectionOffsetChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "pan",
+                                "type": "float"
+                            }
+                        ],
+                        "index": 18,
+                        "lineNumber": 193,
+                        "name": "foodEaten",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 19,
+                        "lineNumber": 194,
+                        "name": "powerUpEaten",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 20,
+                        "lineNumber": 195,
+                        "name": "playerCrashed",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 21,
+                        "lineNumber": 196,
+                        "name": "uiInteractTriggered",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "index": 22,
+                        "lineNumber": 199,
+                        "name": "update",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "index": 23,
+                        "lineNumber": 200,
+                        "name": "deactivateBuff",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "game_logic.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "ProfileManager",
+                "lineNumber": 10,
+                "object": true,
+                "qualifiedClassName": "ProfileManager",
+                "signals": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "title",
+                                "type": "QString"
+                            }
+                        ],
+                        "index": 0,
+                        "lineNumber": 44,
+                        "name": "medalUnlocked",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "profile_manager.h",
+        "outputRevision": 69
+    },
+    {
+        "classes": [
+            {
+                "className": "SoundManager",
+                "lineNumber": 11,
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "frequencyHz",
+                                "type": "int"
+                            },
+                            {
+                                "name": "durationMs",
+                                "type": "int"
+                            },
+                            {
+                                "name": "pan",
+                                "type": "float"
+                            }
+                        ],
+                        "index": 1,
+                        "lineNumber": 25,
+                        "name": "playBeep",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "frequencyHz",
+                                "type": "int"
+                            },
+                            {
+                                "name": "durationMs",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 2,
+                        "isCloned": true,
+                        "lineNumber": 25,
+                        "name": "playBeep",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "durationMs",
+                                "type": "int"
+                            }
+                        ],
+                        "index": 3,
+                        "lineNumber": 26,
+                        "name": "playCrash",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 4,
+                        "lineNumber": 27,
+                        "name": "startMusic",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "index": 5,
+                        "lineNumber": 28,
+                        "name": "stopMusic",
+                        "returnType": "void"
+                    }
+                ],
+                "object": true,
+                "qualifiedClassName": "SoundManager",
+                "slots": [
+                    {
+                        "access": "private",
+                        "index": 0,
+                        "lineNumber": 38,
+                        "name": "playNextNote",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "sound_manager.h",
+        "outputRevision": 69
+    }
+]

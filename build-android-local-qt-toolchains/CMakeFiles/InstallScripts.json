@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

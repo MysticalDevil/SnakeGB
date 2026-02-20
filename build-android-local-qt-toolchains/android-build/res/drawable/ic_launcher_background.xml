@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Minimal LCD base -->
+    <path
+        android:fillColor="#A9C95A"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- Very subtle pixel mesh -->
+    <path
+        android:fillColor="#133D6F2E"
+        android:pathData="M0,24h108v1h-108zM0,36h108v1h-108zM0,48h108v1h-108zM0,60h108v1h-108zM0,72h108v1h-108zM0,84h108v1h-108zM24,0h1v108h-1zM36,0h1v108h-1zM48,0h1v108h-1zM60,0h1v108h-1zM72,0h1v108h-1zM84,0h1v108h-1z" />
+</vector>

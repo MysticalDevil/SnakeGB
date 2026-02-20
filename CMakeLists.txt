@@ -19,6 +19,8 @@ set(PROJECT_SOURCES
     src/game_logic.cpp
     src/sound_manager.h
     src/sound_manager.cpp
+    src/profile_manager.h
+    src/profile_manager.cpp
     src/fsm/game_state.h
     src/fsm/states.h
     src/fsm/states.cpp
@@ -60,10 +62,18 @@ qt_add_shaders(SnakeGB "shaders"
         "src/qml/lcd.frag"
 )
 
+# Testing (Disabled for Android)
 if(NOT ANDROID)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     enable_testing()
-    add_executable(game-tests tests/test_game_logic.cpp src/game_logic.cpp src/sound_manager.cpp src/fsm/states.cpp)
+    # Fixed: Added profile_manager.cpp to test sources
+    add_executable(game-tests 
+        tests/test_game_logic.cpp 
+        src/game_logic.cpp 
+        src/sound_manager.cpp 
+        src/profile_manager.cpp 
+        src/fsm/states.cpp
+    )
     target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Network Qt6::Qml Qt6::Sensors)
     target_include_directories(game-tests PRIVATE src)
     add_test(NAME GameLogicTest COMMAND game-tests)
