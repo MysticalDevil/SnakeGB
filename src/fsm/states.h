@@ -1,94 +1,79 @@
-#pragma once
+#ifndef STATES_H
+#define STATES_H
+
 #include "game_state.h"
-#include <QTimer>
+#include <QPoint>
+
+class GameLogic;
 
 class SplashState : public GameState {
 public:
-    using GameState::GameState;
+    explicit SplashState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
     void update() override;
-    void handleInput(int dx, int dy) override;
-    void handleStart() override;
+private:
+    int m_frames = 0;
 };
 
 class MenuState : public GameState {
 public:
-    using GameState::GameState;
+    explicit MenuState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
     void handleStart() override;
     void handleSelect() override;
+    void handleInput(int dx, int dy) override;
 };
 
 class PlayingState : public GameState {
 public:
-    using GameState::GameState;
+    explicit PlayingState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
     void update() override;
-    void handleInput(int dx, int dy) override;
     void handleStart() override;
-};
-
-class ReplayingState : public GameState {
-public:
-    using GameState::GameState;
-    void enter() override;
-    void exit() override;
-    void update() override;
     void handleInput(int dx, int dy) override;
-    void handleStart() override;
 };
 
 class PausedState : public GameState {
 public:
-    using GameState::GameState;
+    explicit PausedState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
     void handleStart() override;
 };
 
 class GameOverState : public GameState {
 public:
-    using GameState::GameState;
+    explicit GameOverState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
+    void handleStart() override;
+};
+
+class ReplayingState : public GameState {
+public:
+    explicit ReplayingState(GameLogic &logic) : GameState(logic) {}
+    void enter() override;
     void handleStart() override;
 };
 
 class ChoiceState : public GameState {
 public:
-    using GameState::GameState;
+    explicit ChoiceState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
     void handleStart() override;
+    void handleInput(int dx, int dy) override;
 };
 
 class LibraryState : public GameState {
 public:
-    using GameState::GameState;
+    explicit LibraryState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
-    void handleStart() override;
+    void handleSelect() override;
 };
 
 class MedalRoomState : public GameState {
 public:
-    using GameState::GameState;
+    explicit MedalRoomState(GameLogic &logic) : GameState(logic) {}
     void enter() override;
-    void exit() override;
-    void update() override;
-    void handleInput(int dx, int dy) override;
-    void handleStart() override;
+    void handleSelect() override;
 };
+
+#endif // STATES_H
