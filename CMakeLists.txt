@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Network OpenGL)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Multimedia Network OpenGL Sensors)
 
 qt_standard_project_setup()
 
@@ -29,14 +29,12 @@ qt_add_executable(SnakeGB
     ${PROJECT_SOURCES}
 )
 
-# Standardize binary name across platforms
 set_target_properties(SnakeGB PROPERTIES
     OUTPUT_NAME "SnakeGB"
 )
 
 target_include_directories(SnakeGB PRIVATE src)
 
-# Set Android-specific properties
 if(ANDROID)
     set_target_properties(SnakeGB PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
@@ -52,9 +50,9 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Multimedia
     Qt6::Network
     Qt6::OpenGL
+    Qt6::Sensors
 )
 
-# Shader compilation
 find_package(Qt6ShaderTools REQUIRED)
 qt_add_shaders(SnakeGB "shaders"
     PREFIX "/shaders"
@@ -62,12 +60,11 @@ qt_add_shaders(SnakeGB "shaders"
         "src/qml/lcd.frag"
 )
 
-# Testing (Disabled for Android)
 if(NOT ANDROID)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     enable_testing()
     add_executable(game-tests tests/test_game_logic.cpp src/game_logic.cpp src/sound_manager.cpp src/fsm/states.cpp)
-    target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Network Qt6::Qml)
+    target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Multimedia Qt6::Network Qt6::Qml Qt6::Sensors)
     target_include_directories(game-tests PRIVATE src)
     add_test(NAME GameLogicTest COMMAND game-tests)
 endif()

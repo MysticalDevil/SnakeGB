@@ -12,6 +12,10 @@
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QJSValue>
+#include <QAccelerometer>
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#endif
 #include <algorithm>
 
 using namespace Qt::StringLiterals;
@@ -40,6 +44,7 @@ GameLogic::GameLogic(QObject *parent)
     m_buffTimer->setSingleShot(true);
     connect(m_buffTimer.get(), &QTimer::timeout, this, &GameLogic::deactivateBuff);
 
+    // Haptic Feedback Logic
     connect(this, &GameLogic::requestFeedback, this, [this](int magnitude) {
 #ifdef Q_OS_ANDROID
         int duration = 10;
@@ -60,6 +65,19 @@ GameLogic::GameLogic(QObject *parent)
         }
 #endif
     });
+
+    // Initialize Accelerometer for Dynamic Glare
+    auto* sensor = new QAccelerometer(this);
+    connect(sensor, &QAccelerometer::readingChanged, this, [this, sensor]() {
+        auto* reading = sensor->reading();
+        // Map tilt to small offset (-0.05 to 0.05)
+        m_reflectionOffset = QPointF(
+            std::clamp(reading->x() * 0.005, -0.05, 0.05),
+            std::clamp(reading->y() * 0.005, -0.05, 0.05)
+        );
+        emit reflectionOffsetChanged();
+    });
+    sensor->start();
 
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
@@ -310,5 +328,6 @@ auto GameLogic::obstacles() const noexcept -> QVariantList { QVariantList list; 
 auto GameLogic::shellColor() const noexcept -> QColor { static const QList<QColor> colors = {u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s, u"#ffd700"_s, u"#32cd32"_s}; return colors[m_shellIndex]; }
 void GameLogic::updateHighScore() { if (m_score > m_highScore) { m_highScore = m_score; m_settings.setValue(u"highScore"_s, m_highScore); m_bestRecording = m_currentRecording; m_bestRandomSeed = m_randomSeed; m_bestInputHistory = m_currentInputHistory; QFile file(getGhostFilePath()); if (file.open(QIODevice::WriteOnly)) { QDataStream out(&file); out << m_bestRecording << m_bestRandomSeed << m_bestInputHistory; } m_settings.sync(); emit highScoreChanged(); } }
 auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool { return !m_boardRect.contains(p); }
+
 auto GameLogic::volume() const noexcept -> float { return m_soundManager ? m_soundManager->volume() : 1.0f; }
 auto GameLogic::setVolume(float v) -> void { if (m_soundManager) { m_soundManager->setVolume(v); emit volumeChanged(); } }
