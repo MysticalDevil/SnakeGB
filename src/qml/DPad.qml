@@ -16,12 +16,6 @@ Item {
     signal leftClicked
     signal rightClicked
 
-    // 监听状态变化，强制重绘视觉效果
-    onUpPressedChanged: { dpadBody.requestPaint() }
-    onDownPressedChanged: { dpadBody.requestPaint() }
-    onLeftPressedChanged: { dpadBody.requestPaint() }
-    onRightPressedChanged: { dpadBody.requestPaint() }
-
     // 1. 底部投影层
     Canvas {
         id: dpadShadow
@@ -92,16 +86,16 @@ Item {
             drawCross(false)
 
             ctx.fillStyle = activeColor
-            if (upPressed) { 
+            if (dpad.upPressed) { 
                 ctx.fillRect(33, 5, 34, 28) 
             }
-            if (downPressed) { 
+            if (dpad.downPressed) { 
                 ctx.fillRect(33, 67, 34, 28) 
             }
-            if (leftPressed) { 
+            if (dpad.leftPressed) { 
                 ctx.fillRect(5, 33, 28, 34) 
             }
-            if (rightPressed) { 
+            if (dpad.rightPressed) { 
                 ctx.fillRect(67, 33, 28, 34) 
             }
 
@@ -109,8 +103,16 @@ Item {
         }
 
         transform: Translate {
-            x: (rightPressed ? 2 : 0) - (leftPressed ? 2 : 0)
-            y: (downPressed ? 2 : 0) - (upPressed ? 2 : 0)
+            x: (dpad.rightPressed ? 2 : 0) - (dpad.leftPressed ? 2 : 0)
+            y: (dpad.downPressed ? 2 : 0) - (dpad.upPressed ? 2 : 0)
+        }
+
+        Connections {
+            target: dpad
+            function onUpPressedChanged() { dpadBody.requestPaint() }
+            function onDownPressedChanged() { dpadBody.requestPaint() }
+            function onLeftPressedChanged() { dpadBody.requestPaint() }
+            function onRightPressedChanged() { dpadBody.requestPaint() }
         }
     }
 
@@ -125,12 +127,12 @@ Item {
         border.width: 1
         
         transform: Translate {
-            x: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
-            y: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
+            x: (dpad.rightPressed ? 1 : 0) - (dpad.leftPressed ? 1 : 0)
+            y: (dpad.downPressed ? 1 : 0) - (dpad.upPressed ? 1 : 0)
         }
     }
 
-    // 4. 交互层与矢量箭头
+    // 4. 交互区域
     Item {
         anchors.fill: parent
         
@@ -141,6 +143,7 @@ Item {
             width: 34
             height: 34
             Canvas {
+                id: upArrow
                 anchors.centerIn: parent
                 width: 12
                 height: 10
@@ -155,9 +158,7 @@ Item {
                 }
                 Connections { 
                     target: dpad
-                    function onUpPressedChanged() { 
-                        parent.requestPaint() 
-                    } 
+                    function onUpPressedChanged() { upArrow.requestPaint() } 
                 }
             }
             MouseArea {
@@ -179,6 +180,7 @@ Item {
             width: 34
             height: 34
             Canvas {
+                id: downArrow
                 anchors.centerIn: parent
                 width: 12
                 height: 10
@@ -193,9 +195,7 @@ Item {
                 }
                 Connections { 
                     target: dpad
-                    function onDownPressedChanged() { 
-                        parent.requestPaint() 
-                    } 
+                    function onDownPressedChanged() { downArrow.requestPaint() } 
                 }
             }
             MouseArea {
@@ -217,6 +217,7 @@ Item {
             width: 34
             height: 34
             Canvas {
+                id: leftArrow
                 anchors.centerIn: parent
                 width: 10
                 height: 12
@@ -231,9 +232,7 @@ Item {
                 }
                 Connections { 
                     target: dpad
-                    function onLeftPressedChanged() { 
-                        parent.requestPaint() 
-                    } 
+                    function onLeftPressedChanged() { leftArrow.requestPaint() } 
                 }
             }
             MouseArea {
@@ -255,6 +254,7 @@ Item {
             width: 34
             height: 34
             Canvas {
+                id: rightArrow
                 anchors.centerIn: parent
                 width: 10
                 height: 12
@@ -269,9 +269,7 @@ Item {
                 }
                 Connections { 
                     target: dpad
-                    function onRightPressedChanged() { 
-                        parent.requestPaint() 
-                    } 
+                    function onRightPressedChanged() { rightArrow.requestPaint() } 
                 }
             }
             MouseArea {

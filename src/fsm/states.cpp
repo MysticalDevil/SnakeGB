@@ -5,6 +5,8 @@
 void SplashState::enter() {
     m_context.setInternalState(GameLogic::Splash);
     m_frames = 0;
+    // CRITICAL FIX: Must start timer for update() to be called
+    m_context.startEngineTimer(16); // ~60fps logic
 }
 
 void SplashState::update() {
@@ -17,6 +19,7 @@ void SplashState::update() {
 // --- Menu State ---
 void MenuState::enter() {
     m_context.setInternalState(GameLogic::StartMenu);
+    m_context.stopEngineTimer();
 }
 
 void MenuState::handleStart() {
@@ -51,9 +54,11 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
+    // Movement logic handled by timer connection in GameLogic
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
+    // Movement handled via queue in GameLogic
 }
 
 void PlayingState::handleStart() {

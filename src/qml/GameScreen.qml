@@ -29,13 +29,19 @@ Item {
                 z: -1 
             }
 
-            // Splash 层 (仅在 state 0 显示)
+            // Splash 层 (State 0)
             Rectangle {
                 id: splashLayer
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 0
+                visible: opacity > 0
+                opacity: gameLogic.state === 0 ? 1 : 0
                 z: 1000
+                
+                Behavior on opacity {
+                    NumberAnimation { duration: 300 }
+                }
+
                 Text {
                     id: bootText
                     text: "S N A K E"
@@ -55,7 +61,7 @@ Item {
                 }
             }
 
-            // 开始菜单层 (仅在 state 1 显示)
+            // 开始菜单层 (State 1)
             Rectangle {
                 id: menuLayer
                 anchors.fill: parent
@@ -117,7 +123,7 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter 
                         }
                         Text { 
-                            text: "SELECT: Level"
+                            text: "SELECT: Switch Level"
                             color: p3
                             font.pixelSize: 7
                             opacity: 0.6
@@ -127,7 +133,7 @@ Item {
                 }
             }
 
-            // World
+            // 游戏世界 (State 2+)
             Item {
                 id: gameWorld
                 anchors.fill: parent
@@ -156,7 +162,7 @@ Item {
                 }
             }
 
-            // Game Over
+            // GameOver (State 4)
             Rectangle {
                 id: gameOverLayer
                 anchors.fill: parent
@@ -192,6 +198,7 @@ Item {
             }
         }
 
+        // Shader
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent
@@ -210,6 +217,7 @@ Item {
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 
+        // CRT Scanlines
         Item {
             id: crtLayer
             anchors.fill: parent
