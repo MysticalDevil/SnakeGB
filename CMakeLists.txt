@@ -5,14 +5,18 @@ project(SnakeGB VERSION 1.3.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Use standard Release for stability
+# 1. Force MinSizeRel for binary optimization
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+    set(CMAKE_BUILD_TYPE "MinSizeRel" CACHE STRING "" FORCE)
 endif()
 
-# Basic optimizations without breaking metadata
+# 2. Global compiler flags for size
 if(NOT MSVC)
-    add_compile_options(-O3 -fdata-sections -ffunction-sections)
+    add_compile_options(-Os -fdata-sections -ffunction-sections -fvisibility=hidden)
+    if(NOT APPLE)
+        # Linker optimizations
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--gc-sections")
+    endif()
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
@@ -33,7 +37,8 @@ qt_add_executable(SnakeGB
     src/game_engine_interface.h
 )
 
-# Standard resource mapping (no flattening to avoid confusion)
+# 3. Resource Compression (Crucial for size)
+# Using standard prefix but enabling compression
 qt_add_resources(SnakeGB "resources"
     PREFIX "/"
     FILES
@@ -66,10 +71,11 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Sensors
 )
 
-# Strip symbols for size reduction (Safe optimization)
-if(NOT MSVC)
-    if(NOT APPLE)
-        target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections")
+# 4. Aggressive symbol stripping for Android
+if(ANDROID)
+    set_property(TARGET SnakeGB PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+    if(NOT MSVC)
+        target_link_options(SnakeGB PRIVATE "-Wl,--strip-all")
     endif()
 endif()
 
@@ -79,10 +85,6 @@ install(TARGETS SnakeGB
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-
-if(ANDROID)
-    set_property(TARGET SnakeGB PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-endif()
 
 enable_testing()
 add_executable(game-tests
