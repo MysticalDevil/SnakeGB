@@ -77,10 +77,13 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
+    Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
+    Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
+    Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying };
-    enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3 };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection };
+    enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6 };
     Q_ENUM(State)
 
     explicit GameLogic(QObject *parent = nullptr);
@@ -130,6 +133,7 @@ public:
     Q_INVOKABLE void handleSelect();
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
+    Q_INVOKABLE void selectChoice(int index);
 
     // Property Getters
     SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
@@ -156,6 +160,9 @@ public:
     void setVolume(float v);
     QPointF reflectionOffset() const noexcept { return m_reflectionOffset; }
     int activeBuff() const noexcept { return static_cast<int>(m_activeBuff); }
+    bool shieldActive() const noexcept { return m_shieldActive; }
+    QVariantList choices() const { return m_choices; }
+    bool choicePending() const noexcept { return m_choicePending; }
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -167,6 +174,7 @@ signals:
     void hasSaveChanged(); void levelChanged(); void ghostChanged();
     void musicEnabledChanged(); void achievementsChanged(); void achievementEarned(QString title);
     void volumeChanged(); void reflectionOffsetChanged();
+    void choicesChanged(); void choicePendingChanged();
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
 
@@ -184,6 +192,7 @@ private:
     void loadLevelData(int index);
     void checkAchievements();
     void runLevelScript();
+    void generateChoices();
     bool isOccupied(const QPoint &p) const;
     static bool isOutOfBounds(const QPoint &p) noexcept;
 
@@ -194,9 +203,12 @@ private:
     PowerUp m_powerUpType = None;
     PowerUp m_activeBuff = None;
     int m_buffTicksRemaining = 0;
+    bool m_shieldActive = false;
     QPoint m_direction = {0, -1};
     int m_score = 0;
     State m_state = Splash;
+    bool m_choicePending = false;
+    QVariantList m_choices;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");
     QList<QPoint> m_obstacles;

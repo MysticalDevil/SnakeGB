@@ -53,4 +53,5 @@ public:
     virtual void updatePersistence() = 0;
     virtual void lazyInit() = 0;
     virtual void forceUpdate() = 0;
+    virtual void generateChoices() = 0;
 };

@@ -23,7 +23,6 @@ using namespace Qt::StringLiterals;
 
 namespace {
     constexpr int InitialInterval = 200;
-    constexpr int MaxSpawnAttempts = 200;
     constexpr int BuffDurationTicks = 40; 
     constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B03;
 
@@ -84,7 +83,7 @@ void GameLogic::setInternalState(int s) {
     State next = static_cast<State>(s);
     if (m_state != next) {
         m_state = next;
-        if (m_soundManager) m_soundManager->setPaused(m_state == Paused);
+        if (m_soundManager) m_soundManager->setPaused(m_state == Paused || m_state == ChoiceSelection);
         emit stateChanged();
     }
 }
@@ -97,47 +96,93 @@ void GameLogic::requestStateChange(int newState) {
     case Paused:    changeState(std::make_unique<PausedState>(*this)); break;
     case GameOver:  changeState(std::make_unique<GameOverState>(*this)); break;
     case Replaying: changeState(std::make_unique<ReplayingState>(*this)); break;
+    case ChoiceSelection: changeState(std::make_unique<ChoiceState>(*this)); break;
     default: break;
     }
 }
 
 bool GameLogic::checkCollision(const QPoint &head) {
-    if (isOutOfBounds(head)) return true;
-    for (const auto &p : m_obstacles) { if (p == head) return true; }
+    QPoint p = head;
+    if (m_activeBuff == Portal) {
+        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    } else if (isOutOfBounds(p)) {
+        if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; }
+        return true;
+    }
+
+    for (const auto &obs : m_obstacles) { if (obs == p) { if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; } return true; } }
+    
     if (m_activeBuff != Ghost) {
-        for (const auto &p : m_snakeModel.body()) { if (p == head) return true; }
+        for (const auto &body : m_snakeModel.body()) { 
+            if (body == p) { 
+                if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; }
+                return true; 
+            } 
+        }
     }
     return false;
 }
 
 void GameLogic::handleFoodConsumption(const QPoint &head) {
-    if (head != m_food) return;
-    m_score++;
+    QPoint p = head;
+    if (m_activeBuff == Portal) {
+        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    }
+
+    if (p != m_food) return;
+    
+    int points = (m_activeBuff == Double) ? 2 : 1;
+    m_score += points;
+    
     if (m_profileManager) m_profileManager->logFoodEaten();
-    float pan = (static_cast<float>(head.x()) / BOARD_WIDTH - 0.5f) * 1.4f;
+    float pan = (static_cast<float>(p.x()) / BOARD_WIDTH - 0.5f) * 1.4f;
     emit foodEaten(pan);
+    
     m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
     emit scoreChanged();
     spawnFood();
-    if (m_rng.bounded(100) < 15 && m_powerUpPos == QPoint(-1, -1)) spawnPowerUp();
+    
+    if (m_score > 0 && m_score % 10 == 0) {
+        requestStateChange(ChoiceSelection);
+    } else if (m_rng.bounded(100) < 15 && m_powerUpPos == QPoint(-1, -1)) {
+        spawnPowerUp();
+    }
+    
     triggerHaptic(std::min(5, 2 + (m_score / 10)));
 }
 
 void GameLogic::handlePowerUpConsumption(const QPoint &head) {
-    if (head != m_powerUpPos) return;
+    QPoint p = head;
+    if (m_activeBuff == Portal) {
+        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    }
+
+    if (p != m_powerUpPos) return;
+    
     m_activeBuff = m_powerUpType;
-    if (m_activeBuff == Ghost && m_profileManager) m_profileManager->logGhostTrigger();
+    if (m_activeBuff == Shield) m_shieldActive = true;
+    
     m_powerUpPos = QPoint(-1, -1);
     m_buffTicksRemaining = BuffDurationTicks;
     emit powerUpEaten();
+    
     if (m_activeBuff == Slow) m_timer->setInterval(250);
+    
     emit buffChanged();
     emit powerUpChanged();
 }
 
 void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
-    m_snakeModel.moveHead(newHead, grew);
-    m_currentRecording.append(newHead);
+    QPoint p = newHead;
+    if (m_activeBuff == Portal) {
+        p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
+        p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    }
+    m_snakeModel.moveHead(p, grew);
+    m_currentRecording.append(p);
     if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
         m_ghostFrameIndex++;
         emit ghostChanged();
@@ -155,7 +200,10 @@ void GameLogic::playEventSound(int type, float pan) {
 void GameLogic::updatePersistence() { updateHighScore(); if (m_profileManager) m_profileManager->incrementCrashes(); clearSavedState(); }
 void GameLogic::startEngineTimer(int intervalMs) { if (intervalMs > 0) m_timer->setInterval(intervalMs); m_timer->start(); }
 void GameLogic::stopEngineTimer() { m_timer->stop(); }
-void GameLogic::togglePause() { if (m_state == Playing) requestStateChange(Paused); else if (m_state == Paused) requestStateChange(Playing); }
+void GameLogic::togglePause() { 
+    if (m_state == Playing) requestStateChange(Paused); 
+    else if (m_state == Paused) requestStateChange(Playing); 
+}
 
 void GameLogic::nextPalette() {
     if (m_profileManager) {
@@ -203,21 +251,13 @@ void GameLogic::checkAchievements() {
 void GameLogic::deactivateBuff() {
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_shieldActive = false;
     m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
     emit buffChanged();
 }
 
-void GameLogic::saveCurrentState() {
-    if (m_profileManager) {
-        m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction);
-    }
-}
-
-void GameLogic::clearSavedState() {
-    if (m_profileManager) {
-        m_profileManager->clearSession();
-    }
-}
+void GameLogic::saveCurrentState() { if (m_profileManager) m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction); }
+void GameLogic::clearSavedState() { if (m_profileManager) m_profileManager->clearSession(); }
 
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
@@ -226,9 +266,10 @@ void GameLogic::restart() {
     m_score = 0;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_shieldActive = false;
     m_powerUpPos = QPoint(-1, -1);
+    m_choicePending = false;
     
-    // Deterministic Seeding Sequence
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);
     m_gameTickCounter = 0;
@@ -258,6 +299,7 @@ void GameLogic::startReplay() {
     m_score = 0;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
+    m_shieldActive = false;
     m_powerUpPos = QPoint(-1, -1);
     
     loadLevelData(m_bestLevelIndex);
@@ -312,6 +354,39 @@ void GameLogic::update() {
     emit reflectionOffsetChanged();
 }
 
+void GameLogic::generateChoices() {
+    m_choices.clear();
+    struct ChoiceInfo { int type; QString name; QString desc; };
+    QList<ChoiceInfo> allChoices = {
+        {Ghost, u"Ghost"_s, u"Pass through self"_s},
+        {Slow, u"Slow"_s, u"Decrease speed"_s},
+        {Magnet, u"Magnet"_s, u"Attract food"_s},
+        {Shield, u"Shield"_s, u"One extra life"_s},
+        {Portal, u"Portal"_s, u"Screen wrap"_s},
+        {Double, u"Double"_s, u"Double points"_s}
+    };
+    
+    std::shuffle(allChoices.begin(), allChoices.end(), std::default_random_engine(m_rng.generate()));
+    for (int i = 0; i < 3; ++i) {
+        QVariantMap m;
+        m.insert(u"type"_s, allChoices[i].type);
+        m.insert(u"name"_s, allChoices[i].name);
+        m.insert(u"desc"_s, allChoices[i].desc);
+        m_choices.append(m);
+    }
+    emit choicesChanged();
+}
+
+void GameLogic::selectChoice(int index) {
+    if (index < 0 || index >= m_choices.size()) return;
+    int type = m_choices[index].toMap().value(u"type"_s).toInt();
+    m_activeBuff = static_cast<PowerUp>(type);
+    if (m_activeBuff == Shield) m_shieldActive = true;
+    m_buffTicksRemaining = BuffDurationTicks * 2; // Selection buffs last longer
+    emit buffChanged();
+    requestStateChange(Playing);
+}
+
 int GameLogic::highScore() const { return m_profileManager ? m_profileManager->highScore() : 0; }
 bool GameLogic::hasSave() const { return m_profileManager ? m_profileManager->hasSession() : false; }
 bool GameLogic::hasReplay() const noexcept { return !m_bestInputHistory.isEmpty(); }
@@ -351,7 +426,7 @@ void GameLogic::spawnPowerUp() {
     }
     if (!freeSpots.isEmpty()) {
         m_powerUpPos = freeSpots[m_rng.bounded(freeSpots.size())];
-        m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 4));
+        m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 7)); // Expanded range
         emit powerUpChanged();
     }
 }
@@ -409,9 +484,7 @@ void GameLogic::loadLevelData(int i) {
 }
 
 void GameLogic::move(int dx, int dy) {
-    if (m_fsmState) {
-        m_fsmState->handleInput(dx, dy);
-    }
+    if (m_fsmState) { m_fsmState->handleInput(dx, dy); }
     if (m_state == Playing && m_inputQueue.size() < 2) {
         QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
         if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) return;

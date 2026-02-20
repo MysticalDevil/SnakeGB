@@ -170,3 +170,14 @@ void GameOverState::handleInput(int, int) {}
 void GameOverState::handleStart() { 
     engine(*this).restart(); 
 }
+
+// --- ChoiceState ---
+void ChoiceState::enter() { 
+    auto& e = engine(*this);
+    e.setInternalState(GameLogic::ChoiceSelection); 
+    e.generateChoices();
+}
+void ChoiceState::exit() {}
+void ChoiceState::update() {}
+void ChoiceState::handleInput(int, int) {}
+void ChoiceState::handleStart() {}

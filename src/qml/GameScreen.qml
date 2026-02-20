@@ -135,11 +135,32 @@ Item {
                         y: model.pos.y * (gameWorld.height / gameLogic.boardHeight)
                         width: gameWorld.width / gameLogic.boardWidth
                         height: gameWorld.height / gameLogic.boardHeight
-                        color: index === 0 ? p3 : p2
+                        color: {
+                            if (gameLogic.activeBuff === 6) { // Double Points
+                                return (Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3
+                            }
+                            return index === 0 ? p3 : p2
+                        }
                         radius: index === 0 ? 2 : 1
                         opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0
                         border.color: p0; border.width: index === 0 ? 1 : 0
                         z: 15
+
+                        // Shield visual effect
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -2
+                            color: "transparent"
+                            border.color: "#00ffff"
+                            border.width: 1
+                            radius: parent.radius + 2
+                            visible: index === 0 && gameLogic.shieldActive
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.2; to: 0.8; duration: 500 }
+                                NumberAnimation { from: 0.8; to: 0.2; duration: 500 }
+                            }
+                        }
                     }
                 }
 
@@ -276,6 +297,71 @@ Item {
             }
 
             OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 100 }
+
+            // Choice Selection Layer (Roguelike)
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(p0.r, p0.g, p0.b, 0.9)
+                visible: gameLogic.state === 6 // ChoiceSelection
+                z: 105
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 8
+                    width: parent.width - 40
+
+                    Text {
+                        text: "LEVEL UP!"
+                        color: p3
+                        font.family: gameFont
+                        font.pixelSize: 16
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    Repeater {
+                        model: gameLogic.choices
+                        delegate: Rectangle {
+                            width: parent.width
+                            height: 40
+                            color: mouseAreaChoice.pressed ? p2 : p1
+                            border.color: p3
+                            border.width: 2
+                            radius: 4
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 1
+                                Text {
+                                    text: modelData.name
+                                    color: p3
+                                    font.family: gameFont
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                                Text {
+                                    text: modelData.desc
+                                    color: p3
+                                    font.family: gameFont
+                                    font.pixelSize: 7
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
+                            }
+
+                            MouseArea {
+                                id: mouseAreaChoice
+                                anchors.fill: parent
+                                onClicked: {
+                                    gameLogic.requestFeedback(5)
+                                    gameLogic.selectChoice(index)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
         }
 
