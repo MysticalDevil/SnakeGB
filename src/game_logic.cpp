@@ -398,7 +398,7 @@ void GameLogic::lazyInit() {
 }
 
 void GameLogic::loadLevelData(int i) {
-    QFile f(u"qrc:/src/levels/levels.json"_s); if (!f.open(QIODevice::ReadOnly)) return;
+    QFile f(u":/src/levels/levels.json"_s); if (!f.open(QIODevice::ReadOnly)) return;
     auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
     auto lvl = levels[i % levels.size()].toObject();
     m_currentLevelName = lvl.value(u"name"_s).toString();
