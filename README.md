@@ -41,7 +41,7 @@ ninja
 - **UP**: Open Medal Collection
 - **DOWN**: Watch Best High-Score Replay
 - **B / X**: Back / Cycle Color Palettes
-- **Y / C**: Cycle Console Shell Colors
+- **Y / C / Tap Logo**: Cycle Console Shell Colors
 - **M**: Toggle Music | **Esc**: Quit App
 
 ## License

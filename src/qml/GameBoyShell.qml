@@ -39,6 +39,28 @@ Rectangle {
         }
     }
 
+    // --- Branding / Color Toggle ---
+    Text {
+        anchors.top: screenBorder.bottom
+        anchors.topMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        text: "SnakeGB"
+        color: Qt.darker(shell.color, 2.0)
+        font.family: "Monospace"
+        font.pixelSize: 14
+        font.bold: true
+        font.letterSpacing: 2
+        opacity: 0.6
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                gameLogic.requestFeedback(5)
+                gameLogic.nextShellColor()
+            }
+        }
+    }
+
     // --- Controls ---
     DPad {
         id: dpadUI
@@ -83,44 +105,45 @@ Rectangle {
         border.color: "#222"
         border.width: 1
 
-        Rectangle {
-            id: volumeWheel
-            width: parent.width
-            height: 30
-            color: "#444"
-            radius: 2
-            y: (1.0 - gameLogic.volume) * (parent.height - height)
+            Rectangle {
+                id: volumeWheel
+                width: parent.width
+                height: 30
+                color: "#444"
+                radius: 2
+                y: (1.0 - gameLogic.volume) * (parent.height - height)
 
-            Column {
-                anchors.centerIn: parent
-                spacing: 2
-                Repeater {
-                    model: 5
-                    Rectangle { width: 12; height: 1; color: "#222" }
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 2
+                    Repeater {
+                        model: 5
+                        Rectangle { width: 12; height: 1; color: "#222" }
+                    }
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    drag.target: volumeWheel
+                    drag.axis: Drag.YAxis
+                    drag.minimumY: 0
+                    drag.maximumY: volumeKnobTrack.height - volumeWheel.height
+                    
+                    property int lastStep: 0
+                    
+                    onPositionChanged: {
+                        var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
+                        gameLogic.volume = normalized
+                        
+                        // Haptic feedback every 10% volume change
+                        var currentStep = Math.floor(normalized * 10)
+                        if (currentStep !== lastStep) {
+                            gameLogic.requestFeedback(1)
+                            lastStep = currentStep
+                        }
+                    }
                 }
             }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    drag.target: volumeWheel
-                                    drag.axis: Drag.YAxis
-                                    drag.minimumY: 0
-                                    drag.maximumY: volumeKnobTrack.height - volumeWheel.height
-                                    
-                                    property int lastStep: 0
-                                    
-                                    onPositionChanged: {
-                                        var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
-                                        gameLogic.volume = normalized
-                                        
-                                        // Haptic feedback every 10% volume change
-                                        var currentStep = Math.floor(normalized * 10)
-                                        if (currentStep !== lastStep) {
-                                            gameLogic.requestFeedback(1)
-                                            lastStep = currentStep
-                                        }
-                                    }
-                                }        }
         Text {
             anchors.bottom: parent.top
             anchors.bottomMargin: 5
