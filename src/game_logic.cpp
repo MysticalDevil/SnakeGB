@@ -146,7 +146,12 @@ void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
 }
 
 void GameLogic::triggerHaptic(int magnitude) { emit requestFeedback(magnitude); }
-void GameLogic::playEventSound(int type, float pan) { if (type == 0) emit foodEaten(pan); else if (type == 1) emit playerCrashed(); else if (type == 2) emit uiInteractTriggered(); }
+void GameLogic::playEventSound(int type, float pan) {
+    if (type == 0) emit foodEaten(pan);
+    else if (type == 1) emit playerCrashed();
+    else if (type == 2) emit uiInteractTriggered();
+    else if (type == 3 && m_soundManager) m_soundManager->playBeep(150, 100); // Low error beep
+}
 void GameLogic::updatePersistence() { updateHighScore(); if (m_profileManager) m_profileManager->incrementCrashes(); clearSavedState(); }
 void GameLogic::startEngineTimer(int intervalMs) { if (intervalMs > 0) m_timer->setInterval(intervalMs); m_timer->start(); }
 void GameLogic::stopEngineTimer() { m_timer->stop(); }

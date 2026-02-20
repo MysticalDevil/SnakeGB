@@ -213,7 +213,13 @@ Item {
                     Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "UP: Medals | DOWN: Replay"; font.family: gameFont; font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { 
+                        text: "UP: Medals | DOWN: Replay"
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        color: gameLogic.hasReplay ? p3 : Qt.rgba(p3.r, p3.g, p3.b, 0.3)
+                        anchors.horizontalCenter: parent.horizontalCenter 
+                    }
                     Text { 
                         text: gameLogic.hasSave ? "START to Continue" : "START to Play"
                         font.family: gameFont

@@ -81,7 +81,7 @@ Window {
                 Connections {
                     target: shell.dpad
                     function onUpClicked() { gameLogic.requestFeedback(1); if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
-                    function onDownClicked() { gameLogic.requestFeedback(1); if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
+                    function onDownClicked() { gameLogic.move(0, 1) }
                     function onLeftClicked() { gameLogic.requestFeedback(1); gameLogic.move(-1, 0) }
                     function onRightClicked() { gameLogic.requestFeedback(1); gameLogic.move(1, 0) }
                 }
@@ -121,7 +121,7 @@ Window {
         Keys.onPressed: (event) => {
             if (event.isAutoRepeat) return
             if (event.key === Qt.Key_Up) { shell.dpad.upPressed = true; if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
-            else if (event.key === Qt.Key_Down) { shell.dpad.downPressed = true; if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
+            else if (event.key === Qt.Key_Down) { shell.dpad.downPressed = true; gameLogic.move(0, 1) }
             else if (event.key === Qt.Key_Left) { shell.dpad.leftPressed = true; gameLogic.move(-1, 0) }
             else if (event.key === Qt.Key_Right) { shell.dpad.rightPressed = true; gameLogic.move(1, 0) }
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { shell.startButton.isPressed = true; gameLogic.handleStart() }

@@ -46,6 +46,9 @@ void MenuState::handleInput(int dx, int dy) {
         auto& e = engine(*this);
         if (e.hasReplay()) {
             e.startReplay();
+        } else {
+            e.playEventSound(3); // Error beep
+            e.triggerHaptic(2);  // Minor vibration pulse
         }
     }
 }
