@@ -4,6 +4,22 @@
 
 class TestGameLogic : public QObject {
     Q_OBJECT
+private:
+    static auto pickBuff(GameLogic &game, int buffType) -> bool {
+        for (int attempt = 0; attempt < 80; ++attempt) {
+            game.generateChoices();
+            const auto currentChoices = game.choices();
+            for (int i = 0; i < currentChoices.size(); ++i) {
+                const auto map = currentChoices[i].toMap();
+                if (map.value("type").toInt() == buffType) {
+                    game.selectChoice(i);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 private slots:
     void testInitialState() {
         GameLogic game;
@@ -111,14 +127,64 @@ private slots:
         game.handleStart();
 
         game.snakeModelPtr()->reset({QPoint(19, 10), QPoint(18, 10), QPoint(17, 10)});
-        game.direction() = QPoint(1, 0);
+        game.setDirection(QPoint(1, 0));
 
         game.forceUpdate();
         const QPoint head = game.snakeModelPtr()->body().front();
         QCOMPARE(head, QPoint(0, 10));
     }
 
-    
+    void testDoubleBuffCrossesTenThresholdTriggersChoiceState() {
+        GameLogic game;
+        game.startGame();
+
+        for (int i = 0; i < 9; ++i) {
+            game.handleFoodConsumption(game.food());
+        }
+        QCOMPARE(game.score(), 9);
+
+        QVERIFY2(pickBuff(game, GameLogic::Double), "Failed to pick Double buff from generated choices");
+        QCOMPARE(game.activeBuff(), static_cast<int>(GameLogic::Double));
+
+        game.handleFoodConsumption(game.food());
+        QCOMPARE(game.score(), 11);
+        QCOMPARE(game.state(), GameLogic::ChoiceSelection);
+    }
+
+    void testLatestBuffSelectionOverridesPreviousBuff() {
+        GameLogic game;
+        game.startGame();
+
+        QVERIFY2(pickBuff(game, GameLogic::Ghost), "Failed to pick Ghost buff");
+        QCOMPARE(game.activeBuff(), static_cast<int>(GameLogic::Ghost));
+
+        QVERIFY2(pickBuff(game, GameLogic::Slow), "Failed to pick Slow buff");
+        QCOMPARE(game.activeBuff(), static_cast<int>(GameLogic::Slow));
+    }
+
+    void testReplayAppliesRecordedInputOnMatchingFrame() {
+        GameLogic game;
+        game.startGame();
+
+        game.move(1, 0);
+        game.forceUpdate();
+
+        game.handleFoodConsumption(game.food());
+        QVERIFY(game.score() > 0);
+
+        game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
+        game.setDirection(QPoint(1, 0));
+        game.forceUpdate();
+        QCOMPARE(game.state(), GameLogic::GameOver);
+        QVERIFY2(game.hasReplay(), "Replay should be available after a new high score run");
+
+        game.requestStateChange(GameLogic::StartMenu);
+        game.startReplay();
+        QCOMPARE(game.state(), GameLogic::Replaying);
+
+        game.forceUpdate();
+        QCOMPARE(game.snakeModelPtr()->body().front(), QPoint(11, 10));
+    }
 };
 
 QTEST_MAIN(TestGameLogic)
