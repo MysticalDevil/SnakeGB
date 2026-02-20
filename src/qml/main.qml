@@ -9,12 +9,14 @@ Window {
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
 
+    // Detect if we are on a mobile platform
+    readonly property bool isMobile: Qt.platform.os === "android" || Qt.platform.os === "ios"
+    
     readonly property color p0: gameLogic.palette[0]
     readonly property color p1: gameLogic.palette[1]
     readonly property color p2: gameLogic.palette[2]
     readonly property color p3: gameLogic.palette[3]
     readonly property string gameFont: "Monospace"
-    readonly property bool isAndroid: Qt.platform.os === "android"
 
     property real elapsed: 0.0
     property bool showingMedals: false
@@ -44,65 +46,76 @@ Window {
         }
     }
 
+    // --- Main Container with Smart Scaling ---
     Item {
         id: rootContainer
-        anchors.centerIn: parent
-        width: 350; height: 550
-        scale: Math.min(window.width / 350, window.height / 550)
-
-        GameBoyShell {
-            id: shell
+        anchors.fill: parent
+        
+        Item {
+            id: scaledWrapper
+            width: 350
+            height: 550
+            anchors.centerIn: parent
             
-            GameScreen {
-                anchors.fill: parent
-                parent: shell.screenContainer
-                p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3
-                gameFont: window.gameFont; elapsed: window.elapsed
+            // Calculate scale based on fitting the shell to screen
+            scale: {
+                var scaleX = window.width / width
+                var scaleY = window.height / height
+                return Math.min(scaleX, scaleY)
             }
 
-            // Overlay UI
-            Item {
-                anchors.fill: shell.screenContainer
+            GameBoyShell {
+                id: shell
+                anchors.fill: parent
                 
-                // Splash / Menu / Pause / GameOver UI
-                Rectangle { anchors.fill: parent; color: p0; visible: gameLogic.state === 0; Text { text: "S N A K E"; anchors.centerIn: parent; font.pixelSize: 32; color: p3 } }
-                
-                Rectangle {
-                    anchors.fill: parent; color: p0; visible: gameLogic.state === 1
-                    Column {
-                        anchors.centerIn: parent; spacing: 6
-                        Text { text: "S N A K E"; font.pixelSize: 32; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "LEVEL: " + gameLogic.currentLevelName; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: qsTr("UP: Medals | DOWN: Replay"); font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: gameLogic.hasSave ? qsTr("START to Continue") : qsTr("START to Play"); font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                GameScreen {
+                    anchors.fill: parent
+                    parent: shell.screenContainer
+                    p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3
+                    gameFont: window.gameFont; elapsed: window.elapsed
+                }
+
+                Item {
+                    anchors.fill: shell.screenContainer
+                    
+                    Rectangle { anchors.fill: parent; color: p0; visible: gameLogic.state === 0; Text { text: "S N A K E"; anchors.centerIn: parent; font.pixelSize: 32; color: p3 } }
+                    
+                    Rectangle {
+                        anchors.fill: parent; color: p0; visible: gameLogic.state === 1
+                        Column {
+                            anchors.centerIn: parent; spacing: 6
+                            Text { text: "S N A K E"; font.pixelSize: 32; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: "LEVEL: " + gameLogic.currentLevelName; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: qsTr("UP: Medals | DOWN: Replay"); font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                            Text { text: gameLogic.hasSave ? qsTr("START to Continue") : qsTr("START to Play"); font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                        }
+                    }
+
+                    OSDLayer { id: osd; p0: window.p0; p3: window.p3; gameFont: window.gameFont }
+                    
+                    MedalRoom {
+                        p0: window.p0; p3: window.p3; gameFont: window.gameFont
+                        visible: showingMedals
+                        onCloseRequested: showingMedals = false
                     }
                 }
 
-                OSDLayer { id: osd; p0: window.p0; p3: window.p3; gameFont: window.gameFont }
-                
-                MedalRoom {
-                    p0: window.p0; p3: window.p3; gameFont: window.gameFont
-                    visible: showingMedals
-                    onCloseRequested: showingMedals = false
+                // Interaction
+                dpad.onUpClicked: { if (gameLogic.state === 1) showingMedals = true; else gameLogic.move(0, -1) }
+                dpad.onDownClicked: { if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
+                dpad.onLeftClicked: gameLogic.move(-1, 0)
+                dpad.onRightClicked: gameLogic.move(1, 0)
+                aButton.onClicked: { if (showingMedals) showingMedals = false; else gameLogic.handleStart() }
+                bButton.onClicked: {
+                    if (showingMedals) showingMedals = false
+                    else if (gameLogic.state === 1) gameLogic.quit()
+                    else if (gameLogic.state >= 3) gameLogic.quitToMenu()
+                    else gameLogic.nextPalette()
                 }
+                selectButton.onPressed: longPressTimer.start()
+                selectButton.onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
+                startButton.onClicked: gameLogic.handleStart()
             }
-
-            // Button Logic
-            dpad.onUpClicked: { if (gameLogic.state === 1) showingMedals = true; else gameLogic.move(0, -1) }
-            dpad.onDownClicked: { if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
-            dpad.onLeftClicked: gameLogic.move(-1, 0)
-            dpad.onRightClicked: gameLogic.move(1, 0)
-            
-            aButton.onClicked: { if (showingMedals) showingMedals = false; else gameLogic.handleStart() }
-            bButton.onClicked: {
-                if (showingMedals) showingMedals = false
-                else if (gameLogic.state === 1) gameLogic.quit()
-                else if (gameLogic.state >= 3) gameLogic.quitToMenu()
-                else gameLogic.nextPalette()
-            }
-            selectButton.onPressed: longPressTimer.start()
-            selectButton.onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
-            startButton.onClicked: gameLogic.handleStart()
         }
     }
 
@@ -116,9 +129,10 @@ Window {
             else if (event.key === Qt.Key_Right) { shell.dpad.rightPressed = true; gameLogic.move(1, 0) }
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) { shell.startButton.isPressed = true; gameLogic.handleStart() }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) { shell.aButton.isPressed = true; gameLogic.handleStart() }
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) { shell.bButton.isPressed = true; if (gameLogic.state === 1) gameLogic.quit(); else gameLogic.nextPalette(); }
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) { shell.bButton.isPressed = true; if (gameLogic.state === 1) gameLogic.quit(); else if (gameLogic.state >= 3) gameLogic.quitToMenu(); else gameLogic.nextPalette(); }
             else if (event.key === Qt.Key_Shift) { shell.selectButton.isPressed = true; longPressTimer.start() }
             else if (event.key === Qt.Key_M) gameLogic.toggleMusic()
+            else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Q) gameLogic.quit()
             else if (event.key === Qt.Key_Back) { if (showingMedals) showingMedals = false; else if (gameLogic.state === 1) gameLogic.quit(); else gameLogic.quitToMenu(); }
         }
         Keys.onReleased: (event) => {
