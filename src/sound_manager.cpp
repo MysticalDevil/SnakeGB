@@ -27,7 +27,8 @@ SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_bgmLeadBuffer.open(QIODevice::ReadWrite);
     m_bgmBassBuffer.open(QIODevice::ReadWrite);
     
-    m_reverbBuffer.resize((SampleRate * ReverbDelayMs) / 1000 * 2, 0.0);
+    const auto reverbFrames = ((static_cast<std::size_t>(SampleRate) * ReverbDelayMs) / 1000U) * 2U;
+    m_reverbBuffer.resize(reverbFrames, 0.0);
 
     connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
     QTimer::singleShot(DeferMs, this, &SoundManager::initAudioAsync);
@@ -46,18 +47,18 @@ void SoundManager::initAudioAsync() {
 }
 
 SoundManager::~SoundManager() {
-    if (m_sfxSink) m_sfxSink->stop();
-    if (m_bgmLeadSink) m_bgmLeadSink->stop();
-    if (m_bgmBassSink) m_bgmBassSink->stop();
+    if (m_sfxSink != nullptr) m_sfxSink->stop();
+    if (m_bgmLeadSink != nullptr) m_bgmLeadSink->stop();
+    if (m_bgmBassSink != nullptr) m_bgmBassSink->stop();
 }
 
 void SoundManager::setScore(int score) { m_currentScore = score; }
 
 void SoundManager::setVolume(float volume) {
     m_volume = std::clamp(volume, 0.0f, 1.0f);
-    if (m_sfxSink) m_sfxSink->setVolume(m_volume);
-    if (m_bgmLeadSink) m_bgmLeadSink->setVolume(m_volume);
-    if (m_bgmBassSink) m_bgmBassSink->setVolume(m_volume);
+    if (m_sfxSink != nullptr) m_sfxSink->setVolume(m_volume);
+    if (m_bgmLeadSink != nullptr) m_bgmLeadSink->setVolume(m_volume);
+    if (m_bgmBassSink != nullptr) m_bgmBassSink->setVolume(m_volume);
 }
 
 auto SoundManager::setPaused(bool paused) -> void {
@@ -71,7 +72,7 @@ auto SoundManager::setMusicEnabled(bool enabled) -> void {
 }
 
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float pan) -> void {
-    if (!m_sfxSink) return;
+    if (m_sfxSink == nullptr) return;
     QByteArray data;
     generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5, pan);
     m_sfxSink->stop();
@@ -81,7 +82,7 @@ auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float p
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
-    if (!m_sfxSink) return;
+    if (m_sfxSink == nullptr) return;
     QByteArray data;
     generateNoise(durationMs, data);
     m_sfxSink->stop();
@@ -91,28 +92,28 @@ auto SoundManager::playCrash(const int durationMs) -> void {
 }
 
 auto SoundManager::startMusic() -> void {
-    if (!m_musicEnabled || !m_bgmLeadSink) return;
+    if (!m_musicEnabled || m_bgmLeadSink == nullptr) return;
     m_noteIndex = 0;
     playNextNote();
 }
 
 auto SoundManager::stopMusic() -> void {
     m_musicTimer.stop();
-    if (m_bgmLeadSink) m_bgmLeadSink->stop();
-    if (m_bgmBassSink) m_bgmBassSink->stop();
+    if (m_bgmLeadSink != nullptr) m_bgmLeadSink->stop();
+    if (m_bgmBassSink != nullptr) m_bgmBassSink->stop();
 }
 
 auto SoundManager::playNextNote() -> void {
-    if (!m_bgmLeadSink || !m_musicEnabled) return;
+    if (m_bgmLeadSink == nullptr || !m_musicEnabled) return;
     if (std::cmp_greater_equal(m_noteIndex, m_richMelody.size())) m_noteIndex = 0;
 
     const auto [leadFreq, bassFreq, duration] = m_richMelody[m_noteIndex];
     m_noteIndex++;
 
-    double tempoScale = std::max(0.6, 1.0 - (m_currentScore / 5) * 0.05);
+    double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
     int scaledDuration = static_cast<int>(duration * tempoScale);
 
-    if (leadFreq > 0 && m_bgmLeadSink) {
+    if (leadFreq > 0 && m_bgmLeadSink != nullptr) {
         QByteArray leadData;
         generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25, 0.2f);
         if (m_isPaused) applyLowPassFilter(leadData);
@@ -123,7 +124,7 @@ auto SoundManager::playNextNote() -> void {
         if (m_bgmLeadBuffer.open(QIODevice::ReadOnly)) m_bgmLeadSink->start(&m_bgmLeadBuffer);
     }
 
-    if (bassFreq > 0 && m_bgmBassSink) {
+    if (bassFreq > 0 && m_bgmBassSink != nullptr) {
         QByteArray bassData;
         generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5, -0.2f);
         if (m_isPaused) applyLowPassFilter(bassData);
@@ -141,7 +142,7 @@ auto SoundManager::generateSquareWave(const int frequencyHz, const int durationM
     if (sampleRate <= 0) return;
     const int frames = (sampleRate * durationMs) / 1000;
     if (frames <= 0) return;
-    buffer.resize(frames * 2); 
+    buffer.resize(static_cast<qsizetype>(frames) * 2); 
     const double cycleLength = static_cast<double>(sampleRate) / frequencyHz;
     const int attackSamples = (sampleRate * AttackMs) / 1000;
     float leftGain = 1.0f; float rightGain = 1.0f;
@@ -150,8 +151,8 @@ auto SoundManager::generateSquareWave(const int frequencyHz, const int durationM
         const double phase = fmod(i, cycleLength) / cycleLength;
         double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (frames - attackSamples)));
         const int rawVal = (phase < duty) ? amplitude : -amplitude;
-        buffer[i * 2] = static_cast<char>(CenterVal + rawVal * envelope * leftGain);
-        buffer[i * 2 + 1] = static_cast<char>(CenterVal + rawVal * envelope * rightGain);
+        buffer[static_cast<qsizetype>(i) * 2] = static_cast<char>(CenterVal + (rawVal * envelope * leftGain));
+        buffer[(static_cast<qsizetype>(i) * 2) + 1] = static_cast<char>(CenterVal + (rawVal * envelope * rightGain));
     }
 }
 
@@ -159,12 +160,12 @@ void SoundManager::applyLowPassFilter(QByteArray &buffer) {
     double lastValL = 128.0; double lastValR = 128.0;
     for (int i = 0; i < buffer.size(); i += 2) {
         double currentL = static_cast<unsigned char>(buffer[i]);
-        double filteredL = lastValL + m_lpfAlpha * (currentL - lastValL);
+        double filteredL = lastValL + (m_lpfAlpha * (currentL - lastValL));
         buffer[i] = static_cast<char>(static_cast<unsigned char>(filteredL));
         lastValL = filteredL;
         if (i + 1 < buffer.size()) {
             double currentR = static_cast<unsigned char>(buffer[i + 1]);
-            double filteredR = lastValR + m_lpfAlpha * (currentR - lastValR);
+            double filteredR = lastValR + (m_lpfAlpha * (currentR - lastValR));
             buffer[i + 1] = static_cast<char>(static_cast<unsigned char>(filteredR));
             lastValR = filteredR;
         }
@@ -177,10 +178,10 @@ void SoundManager::applyReverb(QByteArray &buffer) {
     for (char & i : buffer) {
         int sample = static_cast<unsigned char>(i) - CenterVal;
         double delayed = m_reverbBuffer[m_reverbWriteHead];
-        m_reverbBuffer[m_reverbWriteHead] = sample + delayed * 0.3;
+        m_reverbBuffer[m_reverbWriteHead] = sample + (delayed * 0.3);
         m_reverbWriteHead++;
         if (std::cmp_greater_equal(m_reverbWriteHead, m_reverbBuffer.size())) m_reverbWriteHead = 0;
-        int mixed = std::clamp(static_cast<int>(sample + delayed * wet), -127, 127);
+        int mixed = std::clamp(static_cast<int>(sample + (delayed * wet)), -127, 127);
         i = static_cast<char>(CenterVal + mixed);
     }
 }
@@ -189,11 +190,12 @@ void SoundManager::generateNoise(const int durationMs, QByteArray &buffer) {
     const int sampleRate = m_format.sampleRate();
     const int frames = (sampleRate * durationMs) / 1000;
     if (frames <= 0) return;
-    buffer.resize(frames * 2);
+    buffer.resize(static_cast<qsizetype>(frames) * 2);
     for (int i = 0; i < frames; ++i) {
         const double envelope = 1.0 - (static_cast<double>(i) / frames);
         const int randVal = QRandomGenerator::global()->bounded(Noise_Amplitude * 2) - Noise_Amplitude;
-        char val = static_cast<char>(CenterVal + randVal * envelope);
-        buffer[i * 2] = val; buffer[i * 2 + 1] = val;
+        char val = static_cast<char>(CenterVal + (randVal * envelope));
+        buffer[static_cast<qsizetype>(i) * 2] = val;
+        buffer[(static_cast<qsizetype>(i) * 2) + 1] = val;
     }
 }

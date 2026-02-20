@@ -40,7 +40,7 @@ namespace {
             return fallbackCount;
         }
         const auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
-        return levels.isEmpty() ? fallbackCount : levels.size();
+        return levels.isEmpty() ? fallbackCount : static_cast<int>(levels.size());
     }
 }
 
@@ -113,8 +113,8 @@ GameLogic::GameLogic(QObject *parent)
                 return;
             }
             constexpr qreal MaxTilt = 6.0;
-            const qreal nx = std::clamp(static_cast<qreal>(m_accelerometer->reading()->y()) / MaxTilt, -1.0, 1.0);
-            const qreal ny = std::clamp(static_cast<qreal>(m_accelerometer->reading()->x()) / MaxTilt, -1.0, 1.0);
+            const qreal nx = std::clamp(m_accelerometer->reading()->y() / MaxTilt, -1.0, 1.0);
+            const qreal ny = std::clamp(m_accelerometer->reading()->x() / MaxTilt, -1.0, 1.0);
             m_reflectionOffset = QPointF(nx * 0.02, -ny * 0.02);
             m_hasAccelerometerReading = true;
             emit reflectionOffsetChanged();
@@ -267,7 +267,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
     float pan = (static_cast<float>(p.x()) / BOARD_WIDTH - 0.5f) * 1.4f;
     emit foodEaten(pan);
 
-    m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
+    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
     emit scoreChanged();
     spawnFood();
 
@@ -446,7 +446,7 @@ void GameLogic::loadLastSession() {
         m_currentRecording.append(p);
     }
 
-    m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
+    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
     m_timer->start();
 
     emit scoreChanged();
@@ -624,7 +624,7 @@ void GameLogic::selectChoice(int index) {
     m_buffTicksTotal = m_buffTicksRemaining;
     emit buffChanged();
     if (m_state == Replaying) {
-        int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
+        int normalInterval = std::max(60, 200 - ((m_score / 5) * 8));
         if (m_activeBuff == Slow) {
             normalInterval = 250;
         }
@@ -636,7 +636,7 @@ void GameLogic::selectChoice(int index) {
 
     QTimer::singleShot(500, this, [this]() -> void {
         if (m_state == Playing) {
-            int normalInterval = std::max(60, 200 - (m_score / 5) * 8);
+            int normalInterval = std::max(60, 200 - ((m_score / 5) * 8));
             if (m_activeBuff == Slow) {
                 normalInterval = 250;
             }
@@ -656,7 +656,7 @@ void GameLogic::move(int dx, int dy) {
 
     if (m_state == Playing && m_inputQueue.size() < 2) {
         QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
-        if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) {
+        if (((dx != 0) && last.x() == -dx) || ((dy != 0) && last.y() == -dy)) {
             return;
         }
         m_inputQueue.emplace_back(dx, dy);
@@ -946,7 +946,7 @@ void GameLogic::deactivateBuff() {
     m_buffTicksRemaining = 0;
     m_buffTicksTotal = 0;
     m_shieldActive = false;
-    m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
+    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
     emit buffChanged();
 }
 
@@ -1190,7 +1190,7 @@ void GameLogic::runLevelScript() {
         QJSValue result = onTick.call(args);
         if (result.isArray()) {
             m_obstacles.clear();
-            int len = result.property(u"length"_s).toInt();
+            const int len = result.property(u"length"_s).toInt();
             for (int i = 0; i < len; ++i) {
                 QJSValue item = result.property(i);
                 m_obstacles.append(QPoint(
