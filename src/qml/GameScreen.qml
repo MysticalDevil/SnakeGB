@@ -299,6 +299,30 @@ Item {
                 Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
             }
 
+            // Active Effect Status Bar
+            Rectangle {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.margins: 4
+                width: 80; height: 12
+                color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
+                visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
+                z: 65
+                radius: 2
+                Text {
+                    id: statusText
+                    anchors.centerIn: parent
+                    font.family: gameFont
+                    font.pixelSize: 6
+                    font.bold: true
+                    color: p3
+                    text: {
+                        var names = ["", "GHOST", "SLOW", "MAGNET", "SHIELD", "PORTAL", "GOLD", "RICH", "LASER", "MINI"]
+                        return names[gameLogic.activeBuff] + " ACTIVE"
+                    }
+                }
+            }
+
             Rectangle {
                 anchors.fill: parent
                 color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
@@ -448,8 +472,8 @@ Item {
                         delegate: Rectangle {
                             width: parent.width
                             height: 35
-                            color: p1
-                            border.color: p3
+                            color: modelData.discovered ? p1 : Qt.darker(p1, 1.5)
+                            border.color: modelData.discovered ? p3 : p2
                             border.width: 1
 
                             Row {
@@ -459,6 +483,7 @@ Item {
                                 Rectangle {
                                     width: 20; height: 20
                                     color: {
+                                        if (!modelData.discovered) return p2
                                         if (modelData.type === 6) return "#ffd700"
                                         if (modelData.type === 7) return "#00ffff"
                                         if (modelData.type === 8) return "#ff0000"

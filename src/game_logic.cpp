@@ -180,6 +180,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     if (p != m_powerUpPos) return;
     
     m_activeBuff = m_powerUpType;
+    if (m_profileManager) m_profileManager->discoverFruit(static_cast<int>(m_activeBuff));
     
     // OSD Notification
     static const QStringList buffNames = {
@@ -382,6 +383,7 @@ void GameLogic::selectChoice(int index) {
     if (m_state != Replaying) m_currentChoiceHistory.append({m_gameTickCounter, index});
     int type = m_choices[index].toMap().value(u"type"_s).toInt();
     m_activeBuff = static_cast<PowerUp>(type);
+    if (m_profileManager) m_profileManager->discoverFruit(type);
     if (m_activeBuff == Shield) m_shieldActive = true;
     if (m_activeBuff == Mini) {
         auto body = m_snakeModel.body(); std::deque<QPoint> nb; size_t half = std::max<size_t>(3, body.size()/2);
@@ -404,10 +406,21 @@ void GameLogic::selectChoice(int index) {
 
 QVariantList GameLogic::fruitLibrary() const {
     QVariantList list;
-    auto add = [&](int t, QString n, QString d) { QVariantMap m; m.insert(u"type"_s, t); m.insert(u"name"_s, n); m.insert(u"desc"_s, d); list << m; };
+    QList<int> discovered = m_profileManager ? m_profileManager->discoveredFruits() : QList<int>();
+    
+    auto add = [&](int t, QString n, QString d) {
+        bool isDiscovered = discovered.contains(t);
+        QVariantMap m;
+        m.insert(u"type"_s, t);
+        m.insert(u"name"_s, isDiscovered ? n : u"??????"_s);
+        m.insert(u"desc"_s, isDiscovered ? d : u"Eat this fruit in-game to unlock its data."_s);
+        m.insert(u"discovered"_s, isDiscovered);
+        list << m;
+    };
+    
     add(Ghost, u"Ghost"_s, u"Pass through yourself."_s);
     add(Slow, u"Slow"_s, u"Slows the game down."_s);
-    add(Magnet, u"Magnet"_s, u"Currently standard food."_s);
+    add(Magnet, u"Magnet"_s, u"Standard nutritious food."_s);
     add(Shield, u"Shield"_s, u"Survive one collision."_s);
     add(Portal, u"Portal"_s, u"Allows screen wrapping."_s);
     add(Double, u"Golden"_s, u"2x points per food."_s);

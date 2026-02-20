@@ -30,6 +30,9 @@ public:
 
     QStringList unlockedMedals() const { return m_unlockedMedals; }
     bool unlockMedal(const QString &title);
+
+    void discoverFruit(int type);
+    QList<int> discoveredFruits() const { return m_discoveredFruits; }
     
     void saveSession(int score, const std::deque<QPoint> &body, const QList<QPoint> &obstacles, QPoint food, QPoint dir);
     void clearSession();
@@ -55,4 +58,5 @@ private:
     int m_totalFoodEaten = 0;
     int m_totalGhostTriggers = 0;
     QStringList m_unlockedMedals;
+    QList<int> m_discoveredFruits;
 };
