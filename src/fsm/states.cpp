@@ -199,6 +199,37 @@ void LibraryState::handleStart() {
     engine(*this).requestStateChange(GameLogic::StartMenu); 
 }
 
+// --- ReadyState ---
+void ReadyState::enter() {
+    auto& e = engine(*this);
+    e.setInternalState(GameLogic::Ready);
+    e.setCountdownValue(3);
+    e.startEngineTimer(1000); // 1 tick per second
+}
+void ReadyState::exit() {
+    engine(*this).stopEngineTimer();
+}
+void ReadyState::update() {
+    auto& e = engine(*this);
+    int current = e.countdownValue();
+    e.setCountdownValue(current - 1);
+    
+    if (e.countdownValue() <= 0) {
+        e.requestStateChange(GameLogic::Playing);
+        e.startEngineTimer(-1); // Restore normal speed
+    } else {
+        e.playEventSound(2); // Tick sound
+    }
+}
+void ReadyState::handleInput(int dx, int dy) {
+    // Allow buffering the next direction during countdown
+    if (dx != 0 || dy != 0) {
+        auto& e = engine(*this);
+        e.direction() = QPoint(dx, dy);
+    }
+}
+void ReadyState::handleStart() {}
+
 // --- PausedState ---
 
 void PausedState::enter() { 

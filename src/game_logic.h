@@ -87,11 +87,12 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
     Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
     Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
+    Q_PROPERTY(int countdownValue READ countdownValue NOTIFY countdownChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
     Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library, Ready };
     enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6, Rich = 7, Laser = 8, Mini = 9 };
     Q_ENUM(State)
 
@@ -138,6 +139,8 @@ public:
     Q_INVOKABLE void selectChoice(int index) override;
     int choiceIndex() const override { return m_choiceIndex; }
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
+    int countdownValue() const override { return m_countdownValue; }
+    void setCountdownValue(int value) override { m_countdownValue = value; emit countdownChanged(); }
 
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
@@ -191,6 +194,7 @@ signals:
     void musicEnabledChanged(); void achievementsChanged(); void achievementEarned(QString title);
     void volumeChanged(); void reflectionOffsetChanged();
     void choicesChanged(); void choicePendingChanged(); void choiceIndexChanged();
+    void countdownChanged();
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
 
@@ -224,6 +228,7 @@ private:
     State m_state = Splash;
     bool m_choicePending = false;
     int m_choiceIndex = 0;
+    int m_countdownValue = 0;
     QVariantList m_choices;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");
