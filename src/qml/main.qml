@@ -162,6 +162,9 @@ Window {
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 handleBButton()
             }
+            else if (event.key === Qt.Key_C || event.key === Qt.Key_Y) {
+                gameLogic.nextShellColor()
+            }
             else if (event.key === Qt.Key_Shift) {
                 shell.selectButton.isPressed = true
                 longPressTimer.start()

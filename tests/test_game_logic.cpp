@@ -21,6 +21,23 @@ private slots:
         QVERIFY(game.state() != GameLogic::Splash);
         QVERIFY(game.state() == GameLogic::Playing || game.state() == GameLogic::GameOver);
     }
+
+    void testSnakeMovesAfterStart() {
+        GameLogic game;
+        game.startGame();
+        const QPoint before = game.snakeModelPtr()->body().front();
+        game.forceUpdate();
+        const QPoint after = game.snakeModelPtr()->body().front();
+        QVERIFY(before != after);
+    }
+
+    void testSplashTransitionRequest() {
+        GameLogic game;
+        game.requestStateChange(GameLogic::StartMenu);
+        QVERIFY(game.state() == GameLogic::StartMenu);
+        game.requestStateChange(GameLogic::Splash);
+        QVERIFY(game.state() == GameLogic::Splash);
+    }
 };
 
 QTEST_MAIN(TestGameLogic)
