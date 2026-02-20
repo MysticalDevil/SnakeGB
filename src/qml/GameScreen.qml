@@ -65,7 +65,7 @@ Item {
                 z: 10
                 visible: gameLogic.state >= 2
 
-                // Normal Food
+                // Normal Food (Circle)
                 Rectangle {
                     visible: gameLogic.state >= 2
                     x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
@@ -75,46 +75,55 @@ Item {
                     color: p3
                     radius: width / 2
                     z: 20
-                    
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.width * 1.5
-                        height: parent.height * 1.5
-                        radius: width / 2
-                        color: p3
-                        opacity: 0.3
-                        z: -1
-                        SequentialAnimation on scale {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.8; to: 1.2; duration: 500 }
-                            NumberAnimation { from: 1.2; to: 0.8; duration: 500 }
-                        }
-                    }
                 }
 
-                // --- Power-Up Special Fruit ---
-                Rectangle {
-                    id: powerUpRect
+                // --- POWER-UP: Diamond with pulsing aura ---
+                Item {
+                    id: powerUpContainer
                     visible: gameLogic.state >= 2 && gameLogic.powerUpPos.x !== -1
                     x: gameLogic.powerUpPos.x * (parent.width / gameLogic.boardWidth)
                     y: gameLogic.powerUpPos.y * (parent.height / gameLogic.boardHeight)
                     width: parent.width / gameLogic.boardWidth
                     height: parent.height / gameLogic.boardHeight
-                    color: p3
-                    radius: 2
                     z: 30
-                    
+
+                    // Rotating diamond shape
                     Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 2
-                        color: p0
-                        radius: 1
+                        anchors.centerIn: parent
+                        width: parent.width * 0.8
+                        height: parent.height * 0.8
+                        color: p3
+                        rotation: 45
+                        
+                        // Inner core
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width * 0.5
+                            height: parent.height * 0.5
+                            color: p0
+                        }
+
+                        SequentialAnimation on scale {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.7; to: 1.3; duration: 300 }
+                            NumberAnimation { from: 1.3; to: 0.7; duration: 300 }
+                        }
                     }
 
-                    SequentialAnimation on opacity {
-                        loops: Animation.Infinite
-                        NumberAnimation { from: 1; to: 0.2; duration: 200 }
-                        NumberAnimation { from: 0.2; to: 1; duration: 200 }
+                    // Outer sparkle aura
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: parent.width * 1.5
+                        height: parent.height * 1.5
+                        radius: 2
+                        color: p3
+                        opacity: 0.2
+                        rotation: -45
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0.1; to: 0.5; duration: 150 }
+                            NumberAnimation { from: 0.5; to: 0.1; duration: 150 }
+                        }
                     }
                 }
 
@@ -149,6 +158,7 @@ Item {
                     }
                 }
 
+                // Obstacles (Solid Squares - unchanged for contrast)
                 Repeater {
                     model: gameLogic.obstacles
                     Rectangle {
