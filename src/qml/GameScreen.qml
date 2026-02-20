@@ -448,10 +448,9 @@ Item {
                 width: 80; height: 12
                 color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
                 visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
-                z: 65
+                z: 102
                 radius: 2
                 Text {
-                    id: statusText
                     anchors.centerIn: parent
                     font.family: gameFont
                     font.pixelSize: 6
@@ -459,12 +458,12 @@ Item {
                     color: p3
                     text: {
                         var names = ["", "GHOST", "SLOW", "MAGNET", "SHIELD", "PORTAL", "GOLD", "RICH", "LASER", "MINI"]
-                        return names[gameLogic.activeBuff] + " ACTIVE"
+                        return (gameLogic.activeBuff < names.length) ? (names[gameLogic.activeBuff] + " ACTIVE") : ""
                     }
                 }
             }
 
-            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
+            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 9; z: 110 }
 
             // Fruit Encyclopedia Layer (Hidden)
             Rectangle {

@@ -149,7 +149,8 @@ void ChoiceState::update() {}
 void ChoiceState::handleInput(int dx, int dy) {
     if (dy != 0) {
         auto& e = engine(*this);
-        int next = (e.choiceIndex() + (dy > 0 ? 1 : 2)) % 3;
+        int current = e.choiceIndex();
+        int next = (current + (dy > 0 ? 1 : 2)) % 3;
         e.setChoiceIndex(next);
         e.triggerHaptic(1);
     }
@@ -157,29 +158,29 @@ void ChoiceState::handleInput(int dx, int dy) {
 void ChoiceState::handleStart() { auto& e = engine(*this); e.selectChoice(e.choiceIndex()); }
 
 // --- LibraryState ---
-void LibraryState::enter() { engine(*this).setInternalState(GameLogic::Library); static_cast<GameLogic&>(engine(*this)).setLibraryIndex(0); }
+void LibraryState::enter() { engine(*this).setInternalState(GameLogic::Library); engine(*this).setLibraryIndex(0); }
 void LibraryState::exit() {}
 void LibraryState::update() {}
 void LibraryState::handleInput(int dx, int dy) {
     if (dy != 0) {
-        auto& logic = static_cast<GameLogic&>(engine(*this));
-        int next = std::clamp(logic.libraryIndex() + dy, 0, 8);
-        logic.setLibraryIndex(next);
-        logic.triggerHaptic(1);
+        auto& e = engine(*this);
+        int next = std::clamp(e.libraryIndex() + dy, 0, 8);
+        e.setLibraryIndex(next);
+        e.triggerHaptic(1);
     }
 }
 void LibraryState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
 
 // --- MedalRoomState ---
-void MedalRoomState::enter() { engine(*this).setInternalState(GameLogic::MedalRoom); static_cast<GameLogic&>(engine(*this)).setMedalIndex(0); }
+void MedalRoomState::enter() { engine(*this).setInternalState(GameLogic::MedalRoom); engine(*this).setMedalIndex(0); }
 void MedalRoomState::exit() {}
 void MedalRoomState::update() {}
 void MedalRoomState::handleInput(int dx, int dy) {
     if (dy != 0) {
-        auto& logic = static_cast<GameLogic&>(engine(*this));
-        int next = std::clamp(logic.medalIndex() + dy, 0, 6);
-        logic.setMedalIndex(next);
-        logic.triggerHaptic(1);
+        auto& e = engine(*this);
+        int next = std::clamp(e.medalIndex() + dy, 0, 6);
+        e.setMedalIndex(next);
+        e.triggerHaptic(1);
     }
 }
 void MedalRoomState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }

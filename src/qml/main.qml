@@ -48,13 +48,10 @@ Window {
                 }
             }
         }
-        // Restore Android Adaptive Haptics Bridge
         function onRequestFeedback(magnitude) {
-            if (magnitude > 0) {
-                console.log("Haptic request:", magnitude)
-                // Here we usually call a global Haptics object if available
-                // For this project, we assume the signal is the primary carrier.
-            }
+            // Signal received from C++, Android JNI will handle the physical vibration.
+            // This console log confirms the bridge is alive.
+            console.log("Haptic Pulse:", magnitude)
         }
     }
 

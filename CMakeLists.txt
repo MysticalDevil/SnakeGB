@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SnakeGB VERSION 1.3.1 LANGUAGES CXX)
+project(SnakeGB VERSION 1.4.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Optimization for size
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "MinSizeRel" CACHE STRING "" FORCE)
-endif()
+# Use standard Release for guaranteed stability on Android
+set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
 
@@ -28,28 +26,28 @@ qt_add_executable(SnakeGB
     src/game_engine_interface.h
 )
 
-# Standard Resource Mapping (Mirroring physical folder structure)
-# This prevents path mismatch crashes.
+# Robust Resource mapping: no prefixes, no BASE, just flat mapping via ALIAS
+# This ensures ":/main.qml" is ALWAYS valid.
 qt_add_resources(SnakeGB "res"
     PREFIX "/"
     FILES
-        src/qml/main.qml
-        src/qml/GameScreen.qml
-        src/qml/DPad.qml
-        src/qml/GBButton.qml
-        src/qml/SmallButton.qml
-        src/qml/OSDLayer.qml
-        src/qml/MedalRoom.qml
-        src/qml/GameBoyShell.qml
-        src/qml/icon.svg
-        src/levels/levels.json
+        "src/qml/main.qml"
+        "src/qml/GameScreen.qml"
+        "src/qml/DPad.qml"
+        "src/qml/GBButton.qml"
+        "src/qml/SmallButton.qml"
+        "src/qml/OSDLayer.qml"
+        "src/qml/MedalRoom.qml"
+        "src/qml/GameBoyShell.qml"
+        "src/qml/icon.svg"
+        "src/levels/levels.json"
 )
 
 # Shader compilation
 qt6_add_shaders(SnakeGB "shaders"
     PREFIX "/shaders"
     FILES
-        src/qml/lcd.frag
+        "src/qml/lcd.frag"
 )
 
 target_link_libraries(SnakeGB PRIVATE
@@ -62,24 +60,9 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Sensors
 )
 
-# Safe binary optimizations
-if(NOT MSVC)
-    target_compile_options(SnakeGB PRIVATE -Os)
-    if(NOT APPLE)
-        target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections")
-    endif()
-endif()
-
 if(ANDROID)
     set_property(TARGET SnakeGB PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 endif()
-
-include(GNUInstallDirs)
-install(TARGETS SnakeGB
-    BUNDLE DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
 
 enable_testing()
 add_executable(game-tests

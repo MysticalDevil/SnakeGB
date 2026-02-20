@@ -15,18 +15,7 @@ auto main(int argc, char *argv[]) -> int {
     QCoreApplication::setOrganizationDomain("org.devil");
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QGuiApplication::setApplicationVersion("1.3.1");
-    QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
-
-    QTranslator translator;
-    const QStringList uiLanguages = QLocale::system().uiLanguages();
-    for (const QString &locale : uiLanguages) {
-        const QString baseName = "SnakeGB_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
-            app.installTranslator(&translator);
-            break;
-        }
-    }
+    QGuiApplication::setApplicationVersion("1.4.2");
 
     GameLogic gameLogic;
 
@@ -34,6 +23,7 @@ auto main(int argc, char *argv[]) -> int {
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
 
     using namespace Qt::StringLiterals;
+    // Standard path matching CMake structure
     const QUrl url(u"qrc:/src/qml/main.qml"_s);
 
     QObject::connect(
@@ -46,6 +36,9 @@ auto main(int argc, char *argv[]) -> int {
         Qt::QueuedConnection);
 
     engine.load(url);
+    
+    // Safety: Initialize FSM only after QML engine is up
+    QTimer::singleShot(100, &gameLogic, &GameLogic::lazyInitState);
 
     return QGuiApplication::exec();
 }

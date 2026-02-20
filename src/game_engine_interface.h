@@ -55,6 +55,7 @@ public:
     virtual void playEventSound(int type, float pan = 0.0f) = 0;
     virtual void updatePersistence() = 0;
     virtual void lazyInit() = 0;
+    virtual void lazyInitState() = 0;
     virtual void forceUpdate() = 0;
     
     // --- Roguelike Selection ---

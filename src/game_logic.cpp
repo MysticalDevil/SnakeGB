@@ -67,9 +67,10 @@ GameLogic::GameLogic(QObject *parent)
     }
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
-    m_fsmState = std::make_unique<SplashState>(*this);
-    QTimer::singleShot(0, this, [this]() {
-        if (m_fsmState) m_fsmState->enter();
+    
+    // Defer FSM entry to ensure objects are ready
+    QTimer::singleShot(50, this, [this]() {
+        changeState(std::make_unique<SplashState>(*this));
     });
 }
 
@@ -152,7 +153,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     m_activeBuff = m_powerUpType; if (m_profileManager) m_profileManager->discoverFruit(static_cast<int>(m_activeBuff));
     if (m_activeBuff == Shield) m_shieldActive = true;
     if (m_activeBuff == Mini) {
-        auto body = m_snakeModel.body(); if (body.size() > 3) { std::deque<QPoint> newBody; size_t half = std::max<size_t>(3, body.size() / 2); for (size_t i = 0; i < half; ++i) newBody.push_back(body[i]); m_snakeModel.reset(newBody); }
+        auto body = m_snakeModel.body(); if (body.size() > 3) { std::deque<QPoint> nb; size_t half = std::max<size_t>(3, body.size() / 2); for (size_t i = 0; i < half; ++i) nb.push_back(body[i]); m_snakeModel.reset(nb); }
         m_activeBuff = None;
     }
     m_powerUpPos = QPoint(-1, -1); m_buffTicksRemaining = (m_activeBuff == Rich) ? BuffDurationTicks / 2 : BuffDurationTicks;
@@ -284,6 +285,7 @@ void GameLogic::loadLevelData(int i) {
     emit obstaclesChanged();
 }
 
+void GameLogic::lazyInitState() { if (m_fsmState) return; changeState(std::make_unique<SplashState>(*this)); }
 void GameLogic::move(int dx, int dy) { if (m_fsmState) { m_fsmState->handleInput(dx, dy); } if (m_state == Playing && m_inputQueue.size() < 2) { QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back(); if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) return; m_inputQueue.push_back({dx, dy}); emit uiInteractTriggered(); } }
 void GameLogic::quit() { saveCurrentState(); QCoreApplication::quit(); }
 void GameLogic::handleSelect() { if (m_fsmState) m_fsmState->handleSelect(); }

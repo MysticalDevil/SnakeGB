@@ -133,6 +133,7 @@ public:
     void playEventSound(int type, float pan = 0.0f) override;
     void updatePersistence() override;
     void lazyInit() override;
+    void lazyInitState() override;
     void forceUpdate() override { update(); }
     
     void generateChoices() override;
