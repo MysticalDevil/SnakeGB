@@ -86,9 +86,9 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // --- IGameEngine & QML API (Merged) ---
-    Q_INVOKABLE void setInternalState(int s) override;
-    Q_INVOKABLE void requestStateChange(int newState) override;
+    // --- IGameEngine Interface ---
+    void setInternalState(int s) override;
+    void requestStateChange(int newState) override;
     
     SnakeModel* snakeModel() override { return &m_snakeModel; }
     QPoint& direction() override { return m_direction; }
@@ -104,10 +104,10 @@ public:
     void handlePowerUpConsumption(const QPoint &head) override;
     void applyMovement(const QPoint &newHead, bool grew) override;
 
-    Q_INVOKABLE void restart() override;
-    Q_INVOKABLE void loadLastSession() override;
-    Q_INVOKABLE void togglePause() override;
-    Q_INVOKABLE void nextLevel() override;
+    void restart() override;
+    void loadLastSession() override;
+    void togglePause() override;
+    void nextLevel() override;
     
     void startEngineTimer(int intervalMs = -1) override;
     void stopEngineTimer() override;
@@ -118,7 +118,7 @@ public:
     void lazyInit() override;
     void forceUpdate() override { update(); }
 
-    // --- Extra QML API ---
+    // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void startReplay();
@@ -172,9 +172,9 @@ signals:
 
 private slots:
     void update();
-    void deactivateBuff();
 
 private:
+    void deactivateBuff();
     void changeState(std::unique_ptr<GameState> newState);
     void spawnFood();
     void spawnPowerUp();
@@ -192,6 +192,7 @@ private:
     QPoint m_powerUpPos = {-1, -1};
     PowerUp m_powerUpType = None;
     PowerUp m_activeBuff = None;
+    int m_buffTicksRemaining = 0;
     QPoint m_direction = {0, -1};
     int m_score = 0;
     State m_state = Splash;
@@ -216,7 +217,6 @@ private:
     std::unique_ptr<SoundManager> m_soundManager;
     std::unique_ptr<ProfileManager> m_profileManager;
     std::deque<QPoint> m_inputQueue;
-    std::unique_ptr<QTimer> m_buffTimer;
     std::unique_ptr<GameState> m_fsmState;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
