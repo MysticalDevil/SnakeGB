@@ -19,7 +19,7 @@ Item {
         color: "black"
         clip: true
 
-        // --- 1. GAME CONTENT (Under Shader) ---
+        // --- 1. 底层：游戏画面源 (受 Shader 影响) ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -57,9 +57,18 @@ Item {
                 z: 10
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
 
-                // Food & PowerUps
-                Rectangle { x: gameLogic.food.x * (parent.width / gameLogic.boardWidth); y: gameLogic.food.y * (parent.height / gameLogic.boardHeight); width: parent.width / gameLogic.boardWidth; height: parent.height / gameLogic.boardHeight; color: p3; radius: width / 2; z: 20 }
+                // Food
+                Rectangle { 
+                    x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
+                    y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
+                    width: parent.width / gameLogic.boardWidth
+                    height: parent.height / gameLogic.boardHeight
+                    color: p3
+                    radius: width / 2
+                    z: 20 
+                }
                 
+                // Special PowerUps
                 Item {
                     id: powerUpItem
                     visible: gameLogic.powerUpPos.x !== -1
@@ -68,12 +77,13 @@ Item {
                     y: gameLogic.powerUpPos.y * (parent.height / gameLogic.boardHeight)
                     width: parent.width / gameLogic.boardWidth
                     height: parent.height / gameLogic.boardHeight
+                    
                     Rectangle { 
                         anchors.centerIn: parent
                         width: parent.width * 0.8
                         height: parent.height * 0.8
                         rotation: 45
-                        color: p3
+                        color: (gameLogic.powerUpType === 7) ? "#00ffff" : ((gameLogic.powerUpType === 6) ? "#ffd700" : p3)
                         SequentialAnimation on scale { 
                             loops: Animation.Infinite
                             NumberAnimation { from: 0.7; to: 1.2; duration: 300 }
@@ -82,7 +92,7 @@ Item {
                     }
                 }
 
-                // Snake body
+                // Snake
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
@@ -121,7 +131,7 @@ Item {
             }
         }
 
-        // --- 2. LCD SHADER LAYER ---
+        // --- 2. 中层：LCD 像素着色器 ---
         ShaderEffect {
             anchors.fill: parent
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
@@ -130,9 +140,56 @@ Item {
             z: 20
         }
 
-        // --- 3. OVERLAY UI (Above Shader) ---
+        // --- 3. 顶层：CRT 物理特效 ---
+        Item {
+            id: crtLayer
+            anchors.fill: parent
+            z: 50
+            
+            // Scanlines (JS Fixed)
+            Canvas {
+                anchors.fill: parent
+                opacity: 0.15
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.strokeStyle = "black"
+                    ctx.lineWidth = 1
+                    for (var i = 0; i < height; i += 3) {
+                        ctx.beginPath()
+                        ctx.moveTo(0, i)
+                        ctx.lineTo(width, i)
+                        ctx.stroke()
+                    }
+                }
+            }
+            
+            // Vignette (Gradient Fixed)
+            Rectangle {
+                anchors.fill: parent
+                opacity: 0.3
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "black" }
+                    GradientStop { position: 0.2; color: "transparent" }
+                    GradientStop { position: 0.8; color: "transparent" }
+                    GradientStop { position: 1.0; color: "black" }
+                }
+            }
+            Rectangle {
+                anchors.fill: parent
+                opacity: 0.3
+                rotation: 90
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "black" }
+                    GradientStop { position: 0.2; color: "transparent" }
+                    GradientStop { position: 0.8; color: "transparent" }
+                    GradientStop { position: 1.0; color: "black" }
+                }
+            }
+        }
+
+        // --- 4. 功能覆盖层 ---
         
-        // Splash Animation
+        // Splash
         Rectangle {
             id: splashLayer
             anchors.fill: parent
@@ -173,15 +230,43 @@ Item {
             }
         }
 
-        // HUD (Play State)
-        Column { 
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.margins: 4
+        // Paused Overlay
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
+            visible: gameLogic.state === 3
             z: 150
-            visible: gameLogic.state >= 2 && gameLogic.state <= 6
-            Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
-            Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right }
+            Text { text: "PAUSED"; anchors.centerIn: parent; color: p3; font.family: gameFont; font.pixelSize: 20; font.bold: true }
+            Text { text: "Press START to Resume"; anchors.top: parent.verticalCenter; anchors.topMargin: 20; anchors.horizontalCenter: parent.horizontalCenter; color: p3; font.family: gameFont; font.pixelSize: 8 }
+        }
+
+        // Game Over Overlay
+        Rectangle {
+            anchors.fill: parent
+            color: Qt.rgba(p0.r, p0.g, p0.b, 0.85)
+            visible: gameLogic.state === 4
+            z: 150
+            Column {
+                anchors.centerIn: parent
+                spacing: 10
+                Text { text: "GAME OVER"; color: p3; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "FINAL SCORE: " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "Press START to Restart"; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+            }
+        }
+
+        // Replaying Indicator
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.margins: 5
+            width: 60
+            height: 12
+            radius: 2
+            color: "red"
+            visible: gameLogic.state === 5
+            z: 160
+            Text { text: "REPLAYING"; color: "white"; font.pixelSize: 6; anchors.centerIn: parent; font.bold: true }
         }
 
         // Choice Selection
