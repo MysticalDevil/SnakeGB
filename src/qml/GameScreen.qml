@@ -19,7 +19,7 @@ Item {
         color: "black"
         clip: true
 
-        // --- 1. 底层：内容源 (全量内容) ---
+        // --- 1. 底层内容源 ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -41,14 +41,14 @@ Item {
                     ctx.lineWidth = 1.5
                     ctx.beginPath()
                     for (var i = 0; i <= gameLogic.boardWidth; i++) { 
-                        var x = i * (width / gameLogic.boardWidth)
-                        ctx.moveTo(x, 0)
-                        ctx.lineTo(x, height)
+                        var xPos = i * (width / gameLogic.boardWidth)
+                        ctx.moveTo(xPos, 0)
+                        ctx.lineTo(xPos, height)
                     } 
                     for (var j = 0; j <= gameLogic.boardHeight; j++) { 
-                        var y = j * (height / gameLogic.boardHeight)
-                        ctx.moveTo(0, y)
-                        ctx.lineTo(width, y)
+                        var yPos = j * (height / gameLogic.boardHeight)
+                        ctx.moveTo(0, yPos)
+                        ctx.lineTo(width, yPos)
                     } 
                     ctx.stroke() 
                 }
@@ -59,7 +59,7 @@ Item {
                 }
             }
 
-            // Game Elements
+            // Game World
             Item {
                 id: gameWorld
                 anchors.fill: parent
@@ -134,16 +134,48 @@ Item {
                 }
             }
 
-            // Menu (STREIGHT SNAKE TITLE)
+            // Splash
+            Rectangle {
+                id: splashLayer
+                anchors.fill: parent
+                color: p0
+                visible: gameLogic.state === 0 || bootAnim.running
+                z: 100
+                Text { 
+                    id: bootText
+                    text: "S N A K E"
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.family: gameFont
+                    font.pixelSize: 32
+                    color: p3
+                    font.bold: true
+                    y: -50 
+                }
+                SequentialAnimation {
+                    id: bootAnim
+                    running: gameLogic.state === 0
+                    PauseAnimation { duration: 200 }
+                    NumberAnimation { 
+                        target: bootText
+                        property: "y"
+                        from: -50
+                        to: 80
+                        duration: 600
+                        easing.type: Easing.OutBounce 
+                    }
+                }
+            }
+
+            // Menu
             Rectangle {
                 anchors.fill: parent
                 color: p0
                 visible: gameLogic.state === 1 && !bootAnim.running
-                z: 100
+                z: 50
                 Image { source: "qrc:/src/qml/icon.svg"; anchors.fill: parent; opacity: 0.05; fillMode: Image.Tile }
                 Column {
                     anchors.centerIn: parent
-                    spacing: 15
+                    spacing: 12
                     Text { 
                         text: "S N A K E"
                         font.family: gameFont
@@ -152,10 +184,10 @@ Item {
                         font.bold: true 
                     }
                     Column {
-                        spacing: 5
+                        spacing: 4
                         anchors.horizontalCenter: parent.horizontalCenter
-                        Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 12; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 14; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 11; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 13; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     }
                     Rectangle {
                         width: 160
@@ -176,6 +208,13 @@ Item {
                                 NumberAnimation { from: 0.3; to: 1; duration: 500 } 
                             } 
                         }
+                    }
+                    Column {
+                        spacing: 2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        Text { text: "UP: Medals"; font.family: gameFont; font.pixelSize: 7; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "DOWN: Replay"; font.family: gameFont; font.pixelSize: 7; color: gameLogic.hasReplay ? p3 : Qt.rgba(p3.r, p3.g, p3.b, 0.3); anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "SELECT: Switch Level"; font.family: gameFont; font.pixelSize: 7; color: p3; anchors.horizontalCenter: parent.horizontalCenter; opacity: 0.8 }
                     }
                 }
             }
@@ -209,7 +248,7 @@ Item {
                         currentIndex: gameLogic.libraryIndex
                         clip: true
                         spacing: 6
-                        onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+                        onCurrentIndexChanged: libraryList.positionViewAtIndex(currentIndex, ListView.Contain)
                         delegate: Rectangle {
                             width: parent.width
                             height: 40
@@ -231,6 +270,7 @@ Item {
                                         rotation: 45
                                         color: modelData.discovered ? p3 : p2 
                                     }
+                                    Text { text: "?"; color: p0; visible: !modelData.discovered; anchors.centerIn: parent; font.bold: true } 
                                 }
                                 Column { 
                                     width: parent.width - 50
@@ -256,7 +296,7 @@ Item {
             z: 20
         }
 
-        // --- 3. 顶层：全局覆盖层 (暂停/结算 + CRT 扫描线) ---
+        // --- 3. 覆盖层 ---
         
         Rectangle {
             anchors.fill: parent
@@ -279,28 +319,6 @@ Item {
             }
         }
 
-        // CRT PHYSICAL LAYER (ABS TOP)
-        Item {
-            id: crtLayer
-            anchors.fill: parent
-            z: 2000
-            opacity: 0.15
-            Canvas {
-                anchors.fill: parent
-                onPaint: { 
-                    var ctx = getContext("2d")
-                    ctx.strokeStyle = "black"
-                    ctx.lineWidth = 1
-                    for (var i = 0; i < height; i += 3) { 
-                        ctx.beginPath()
-                        ctx.moveTo(0, i)
-                        ctx.lineTo(width, i)
-                        ctx.stroke() 
-                    } 
-                }
-            }
-        }
-
         OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
 
         Rectangle {
@@ -317,27 +335,25 @@ Item {
             }
         }
 
-        Rectangle {
-            id: splashLayer
+        // CRT LAYER (ABSOLUTE TOP)
+        Item {
+            id: crtLayer
             anchors.fill: parent
-            color: p0
-            visible: gameLogic.state === 0 || bootAnim.running
-            z: 5000
-            Text { 
-                id: bootText
-                text: "S N A K E"
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.family: gameFont
-                font.pixelSize: 32
-                color: p3
-                font.bold: true
-                y: -50 
-            }
-            SequentialAnimation {
-                id: bootAnim
-                running: gameLogic.state === 0
-                PauseAnimation { duration: 200 }
-                NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
+            z: 10000
+            opacity: 0.15
+            Canvas {
+                anchors.fill: parent
+                onPaint: { 
+                    var ctx = getContext("2d")
+                    ctx.strokeStyle = "black"
+                    ctx.lineWidth = 1
+                    for (var i = 0; i < height; i += 3) { 
+                        ctx.beginPath()
+                        ctx.moveTo(0, i)
+                        ctx.lineTo(width, i)
+                        ctx.stroke() 
+                    } 
+                }
             }
         }
     }
