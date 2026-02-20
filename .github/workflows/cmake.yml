@@ -24,7 +24,7 @@ jobs:
           libvulkan-dev \
           libasound2-dev \
           libpulse-dev \
-          libsensors5-dev \
+          libsensors-dev \
           xvfb \
           libxcb-cursor0 \
           libxcb-xinerama0 \
