@@ -1,27 +1,19 @@
 #include "states.h"
 #include "../game_logic.h"
-#include "../sound_manager.h"
 #include <QRandomGenerator>
 #include <algorithm>
 #include <ranges>
 
 namespace {
     constexpr int SplashFramesMax = 10;
-    constexpr int BootBeepFreq = 1046;
-    constexpr int BootBeepDuration = 100;
     constexpr int BuffDurationMs = 8000;
 }
 
 // --- SplashState ---
 auto SplashState::enter() -> void {
     m_context.setInternalState(GameLogic::Splash);
-    GameLogic& logic = m_context;
-    QTimer::singleShot(100, [&logic]() { logic.lazyInit(); });
+    QTimer::singleShot(100, [this]() { m_context.lazyInit(); });
     m_context.m_timer->start(150); 
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
-        QTimer::singleShot(150, [this]() { m_context.m_soundManager->playBeep(1318, 150); }); // E6 high note
-    }
 }
 
 auto SplashState::update() -> void {
@@ -36,20 +28,11 @@ auto SplashState::update() -> void {
 // --- MenuState ---
 auto MenuState::enter() -> void {
     m_context.setInternalState(GameLogic::StartMenu);
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->startMusic();
-    }
 }
 
 auto MenuState::handleStart() -> void {
-    if (m_context.m_soundManager) {
-        m_context.m_soundManager->stopMusic();
-    }
-    if (m_context.hasSave()) {
-        m_context.loadLastSession();
-    } else {
-        m_context.startGame();
-    }
+    if (m_context.hasSave()) m_context.loadLastSession();
+    else m_context.startGame();
 }
 
 auto MenuState::handleSelect() -> void {
@@ -79,9 +62,12 @@ auto PlayingState::update() -> void {
         }
     }
 
-    bool collision = GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(logic.m_obstacles, nextHead);
-    if (logic.m_activeBuff != GameLogic::Ghost) {
-        collision = collision || std::ranges::contains(body, nextHead);
+    bool collision = GameLogic::isOutOfBounds(nextHead);
+    if (!collision) {
+        for (const auto &p : logic.m_obstacles) { if (p == nextHead) { collision = true; break; } }
+    }
+    if (!collision && logic.m_activeBuff != GameLogic::Ghost) {
+        for (const auto &p : body) { if (p == nextHead) { collision = true; break; } }
     }
 
     if (collision) {
@@ -90,7 +76,7 @@ auto PlayingState::update() -> void {
         logic.updateHighScore();
         logic.incrementCrashes();
         logic.clearSavedState();
-        if (logic.m_soundManager) logic.m_soundManager->playCrash(500);
+        emit logic.playerCrashed(); // Signal replaces direct call
         emit logic.requestFeedback(8);
         logic.changeState(std::make_unique<GameOverState>(logic));
         return;
@@ -108,16 +94,14 @@ auto PlayingState::update() -> void {
     if (ateFood) {
         logic.m_score++;
         logic.logFoodEaten();
-        if (logic.m_soundManager) {
-            logic.m_soundManager->setScore(logic.m_score);
-            // Panning based on horizontal position (-0.7 to 0.7)
-            float pan = (static_cast<float>(nextHead.x()) / GameLogic::BOARD_WIDTH - 0.5f) * 1.4f;
-            logic.m_soundManager->playBeep(880, 100, pan);
-        }
+        
+        // Panning based on horizontal position (-0.7 to 0.7)
+        float pan = (static_cast<float>(nextHead.x()) / GameLogic::BOARD_WIDTH - 0.5f) * 1.4f;
+        emit logic.foodEaten(pan); // Signal replaces direct call
+        
         logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
         emit logic.scoreChanged();
         logic.spawnFood();
-        // Rare spawn chance (15%)
         if (logic.m_rng.bounded(100) < 15 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
@@ -130,7 +114,7 @@ auto PlayingState::update() -> void {
         logic.logPowerUpTriggered(pType);
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
-        if (logic.m_soundManager) logic.m_soundManager->playBeep(1200, 150);
+        emit logic.powerUpEaten(); // Signal replaces direct call
         if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
         emit logic.buffChanged();
         emit logic.powerUpChanged();
@@ -162,20 +146,17 @@ auto ReplayingState::update() -> void {
     if (body.empty()) return;
     const QPoint nextHead = body.front() + logic.m_direction;
 
-    if (logic.m_activeBuff == GameLogic::Magnet) {
-        if (std::abs(logic.m_food.x() - nextHead.x()) <= 1 && std::abs(logic.m_food.y() - nextHead.y()) <= 1) {
-            logic.m_food = nextHead;
-        }
+    bool collision = GameLogic::isOutOfBounds(nextHead);
+    if (!collision) {
+        for (const auto &p : logic.m_obstacles) { if (p == nextHead) { collision = true; break; } }
     }
-
-    bool collision = GameLogic::isOutOfBounds(nextHead) || std::ranges::contains(logic.m_obstacles, nextHead);
-    if (logic.m_activeBuff != GameLogic::Ghost) {
-        collision = collision || std::ranges::contains(body, nextHead);
+    if (!collision && logic.m_activeBuff != GameLogic::Ghost) {
+        for (const auto &p : body) { if (p == nextHead) { collision = true; break; } }
     }
 
     if (collision) {
         logic.m_timer->stop();
-        logic.m_soundManager->playCrash(500);
+        emit logic.playerCrashed();
         logic.changeState(std::make_unique<MenuState>(logic));
         return;
     }
@@ -185,11 +166,11 @@ auto ReplayingState::update() -> void {
 
     if (ateFood) {
         logic.m_score++;
-        logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
+        emit logic.foodEaten(0.0f);
+        logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
         emit logic.scoreChanged();
         logic.spawnFood();
-        // Matching replay spawn logic
-        if (logic.m_rng.bounded(100) < 50 && logic.m_powerUpPos == QPoint(-1, -1)) {
+        if (logic.m_rng.bounded(100) < 15 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
     }
@@ -198,6 +179,7 @@ auto ReplayingState::update() -> void {
         logic.m_activeBuff = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
         logic.m_powerUpPos = QPoint(-1, -1);
         logic.m_buffTimer->start(BuffDurationMs);
+        emit logic.powerUpEaten();
         if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
         emit logic.buffChanged();
         emit logic.powerUpChanged();
