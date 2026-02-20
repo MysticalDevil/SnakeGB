@@ -1,3 +1,0 @@
-/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/SnakeGB_autogen/include/../UVLADIE3JM/moc_game_logic.cpp.json
-/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/SnakeGB_autogen/include/../UVLADIE3JM/moc_profile_manager.cpp.json
-/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/SnakeGB_autogen/include/../UVLADIE3JM/moc_sound_manager.cpp.json

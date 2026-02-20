@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/shaders">
-    <file alias="src/qml/lcd.frag.qsb">/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/.qsb/src/qml/lcd.frag.qsb</file>
-  </qresource>
-</RCC>
-

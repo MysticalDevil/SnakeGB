@@ -5,8 +5,11 @@ project(SnakeGB VERSION 1.4.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Use standard Release for Android stability
-set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+endif()
+
+option(SNAKEGB_OPTIMIZE_SIZE "Enable binary size optimizations" ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
 
@@ -58,6 +61,18 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Multimedia
     Qt6::Sensors
 )
+
+if(SNAKEGB_OPTIMIZE_SIZE)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(SnakeGB PRIVATE -ffunction-sections -fdata-sections)
+        target_link_options(SnakeGB PRIVATE -Wl,--gc-sections)
+        if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
+            target_compile_options(SnakeGB PRIVATE -Oz)
+        endif()
+    endif()
+endif()
 
 if(ANDROID)
     set_property(TARGET SnakeGB PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")

@@ -5,14 +5,14 @@
 ## 1. Target Fulfillment
 
 ### 1.1 God Object 风险（GameLogic 过载）
-状态：部分达成
+状态：已达成（阶段目标）
 
 现状：
-- `GameLogic` 仍是核心协调者，负责状态切换、游戏规则、存档桥接、音频触发、传感器桥接、QML API 暴露。
-- 对比早期版本，已有明显改进：`ProfileManager`、`SoundManager`、FSM 已拆出；但 `GameLogic` 仍承担太多“跨层”职责。
+- `GameLogic` 仍是核心协调者，但已将音频实现控制权外移到应用层装配（`main.cpp`），逻辑层仅发领域事件。
+- 对比早期版本，`ProfileManager`、`SoundManager`、FSM 已拆出，核心职责已收敛到“规则协调 + 状态驱动 + QML API”。
 
 结论：
-- 比 v1.3.x 更好，但“单一职责”尚未达标。
+- 针对本阶段 ARCH_REVIEW 第一部分目标，已完成关键拆分；后续可继续细化为 `BuffSystem/LevelRuntime`。
 
 ### 1.2 FSM 解耦目标（Interface-based FSM）
 状态：已达成（核心目标）
@@ -20,23 +20,24 @@
 现状：
 - 已有 `IGameEngine` 接口，状态类不直接依赖 `GameLogic` 具体实现中的大部分细节。
 - `states.cpp` 的行为由接口驱动，状态切换和输入处理基本符合黑盒状态机思路。
+- `GameState` 基类上下文已从 `GameLogic&` 切换为 `IGameEngine&`，完成类型层解耦。
 
 剩余问题：
-- `GameState` 基类仍以 `GameLogic&` 作为上下文类型，类型层面还未彻底变为 `IGameEngine&`。
 - 接口仍暴露大量可变引用（如 `direction()`, `inputQueue()`），封装性一般。
 
 结论：
-- 方向正确，架构目标实质已达成；还可进一步“收口接口”。
+- 核心目标已闭环，下一步应聚焦接口收口（命令式 API 替代可变容器暴露）。
 
 ### 1.3 音频系统反应式（Reactive Audio）
-状态：部分达成
+状态：已达成（核心目标）
 
 现状：
 - 主要音效触发通过 signal/slot 机制已建立（`foodEaten`, `playerCrashed`, `uiInteractTriggered`）。
-- 但 `GameLogic` 仍持有 `SoundManager` 并直接调用多个音频控制接口（如 `startMusic/stopMusic/setPaused/playBeep` 等）。
+- `GameLogic` 不再持有 `SoundManager`，仅发送音频事件（`audioPlayBeep/audioStartMusic/audioSetPaused` 等）。
+- 音频策略与具体播放器连接在 `main.cpp` 完成，实现逻辑层与设备/播放器层解耦。
 
 结论：
-- 已从“完全主动调用”进化到“混合模式”；尚未完全反应式。
+- 已实现反应式音频链路，后续只需在事件域模型上继续细分语义。
 
 ### 1.4 数据与持久化分离（Profile Separation）
 状态：已达成（主要目标）
@@ -118,11 +119,10 @@
 相对 ARCH_REVIEW 初版目标，项目在 v1.4.0 已完成关键架构升级：
 - FSM 接口化路径成立
 - 持久化分离完成
-- 音频进入半反应式
+- 音频反应式链路落地（逻辑层不再持有 SoundManager）
 
 未完全达成的核心项是：
 - `GameLogic` 仍偏重
-- 音频未彻底反应式
 - 接口封装粒度仍可收紧
 
 建议按本报告 P1 -> P2 顺序推进。完成 P1 后，架构可稳定进入 `8/10` 可维护水平，并为后续功能增长（更多关卡/更多 buff/联网）提供更低风险的演进路径。

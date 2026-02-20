@@ -4,11 +4,9 @@
 #include "game_state.h"
 #include <QPoint>
 
-class GameLogic;
-
 class SplashState : public GameState {
 public:
-    explicit SplashState(GameLogic &logic) : GameState(logic) {}
+    explicit SplashState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void update() override;
 private:
@@ -17,7 +15,7 @@ private:
 
 class MenuState : public GameState {
 public:
-    explicit MenuState(GameLogic &logic) : GameState(logic) {}
+    explicit MenuState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
     void handleSelect() override;
@@ -26,7 +24,7 @@ public:
 
 class PlayingState : public GameState {
 public:
-    explicit PlayingState(GameLogic &logic) : GameState(logic) {}
+    explicit PlayingState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void update() override;
     void handleStart() override;
@@ -35,21 +33,21 @@ public:
 
 class PausedState : public GameState {
 public:
-    explicit PausedState(GameLogic &logic) : GameState(logic) {}
+    explicit PausedState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
 };
 
 class GameOverState : public GameState {
 public:
-    explicit GameOverState(GameLogic &logic) : GameState(logic) {}
+    explicit GameOverState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
 };
 
 class ReplayingState : public GameState {
 public:
-    explicit ReplayingState(GameLogic &logic) : GameState(logic) {}
+    explicit ReplayingState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void update() override;
     void handleStart() override;
@@ -60,7 +58,7 @@ private:
 
 class ChoiceState : public GameState {
 public:
-    explicit ChoiceState(GameLogic &logic) : GameState(logic) {}
+    explicit ChoiceState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
     void handleInput(int dx, int dy) override;
@@ -68,7 +66,7 @@ public:
 
 class LibraryState : public GameState {
 public:
-    explicit LibraryState(GameLogic &logic) : GameState(logic) {}
+    explicit LibraryState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleInput(int dx, int dy) override;
     void handleSelect() override;
@@ -76,7 +74,7 @@ public:
 
 class MedalRoomState : public GameState {
 public:
-    explicit MedalRoomState(GameLogic &logic) : GameState(logic) {}
+    explicit MedalRoomState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleInput(int dx, int dy) override;
     void handleSelect() override;

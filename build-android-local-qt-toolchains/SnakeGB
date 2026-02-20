@@ -1,8 +1,0 @@
-#!/bin/sh
-
-/home/omega/qt-toolchains/build-qt-android/build-android-arm64/qtbase/libexec/qt-android-runner.py \
-    --adb "/home/omega/Android/Sdk/platform-tools/adb" \
-    --build-path "/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/android-build" \
-    --apk "/home/omega/ai-workspace/gameboy-snack/build-android-local-qt-toolchains/android-build/SnakeGB.apk" \
-    $@
-

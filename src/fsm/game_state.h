@@ -1,13 +1,13 @@
 #pragma once
 
-class GameLogic;
+#include "../game_engine_interface.h"
 
 /**
  * @brief Abstract base class for Game States.
  */
 class GameState {
 public:
-    explicit GameState(GameLogic& context) : m_context(context) {}
+    explicit GameState(IGameEngine& context) : m_context(context) {}
     virtual ~GameState() = default;
 
     virtual void enter() {}
@@ -17,8 +17,8 @@ public:
     virtual void handleStart() {}
     virtual void handleSelect() {}
 
-    [[nodiscard]] auto context() noexcept -> GameLogic& { return m_context; }
+    [[nodiscard]] auto context() noexcept -> IGameEngine& { return m_context; }
 
 protected:
-    GameLogic& m_context;
+    IGameEngine& m_context;
 };

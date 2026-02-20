@@ -3,7 +3,7 @@
 
 // --- Splash State ---
 void SplashState::enter() {
-    m_context.setInternalState(GameLogic::Splash);
+    m_context.setInternalState(IGameEngine::Splash);
     m_frames = 0;
     m_context.lazyInit();
     m_context.startEngineTimer(16); // ~60fps logic
@@ -13,13 +13,13 @@ void SplashState::update() {
     m_frames++;
     if (m_frames > 110) {
         m_context.playEventSound(3);
-        m_context.requestStateChange(GameLogic::StartMenu);
+        m_context.requestStateChange(IGameEngine::StartMenu);
     }
 }
 
 // --- Menu State ---
 void MenuState::enter() {
-    m_context.setInternalState(GameLogic::StartMenu);
+    m_context.setInternalState(IGameEngine::StartMenu);
     m_context.stopEngineTimer();
 }
 
@@ -37,7 +37,7 @@ void MenuState::handleSelect() {
 
 void MenuState::handleInput(int dx, int dy) {
     if (dy < 0) {
-        m_context.requestStateChange(GameLogic::MedalRoom);
+        m_context.requestStateChange(IGameEngine::MedalRoom);
     } else if (dy > 0) {
         if (m_context.hasReplay()) {
             m_context.startReplay();
@@ -46,7 +46,7 @@ void MenuState::handleInput(int dx, int dy) {
             m_context.triggerHaptic(2);
         }
     } else if (dx < 0) {
-        m_context.requestStateChange(GameLogic::Library);
+        m_context.requestStateChange(IGameEngine::Library);
     } else if (dx > 0) {
         m_context.nextPalette();
     }
@@ -54,7 +54,7 @@ void MenuState::handleInput(int dx, int dy) {
 
 // --- Playing State ---
 void PlayingState::enter() {
-    m_context.setInternalState(GameLogic::Playing);
+    m_context.setInternalState(IGameEngine::Playing);
 }
 
 void PlayingState::update() {
@@ -70,7 +70,7 @@ void PlayingState::update() {
     if (m_context.checkCollision(nextHead)) {
         m_context.triggerHaptic(8);
         m_context.playEventSound(1);
-        m_context.requestStateChange(GameLogic::GameOver);
+        m_context.requestStateChange(IGameEngine::GameOver);
         return;
     }
 
@@ -79,7 +79,7 @@ void PlayingState::update() {
 
     // Eating food can switch state (e.g. LevelUp choice). Once state changed,
     // this PlayingState instance may already be invalidated by FSM replacement.
-    if (m_context.state() != GameLogic::Playing) {
+    if (m_context.currentState() != IGameEngine::Playing) {
         return;
     }
 
@@ -92,21 +92,21 @@ void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
 }
 
 void PlayingState::handleStart() {
-    m_context.requestStateChange(GameLogic::Paused);
+    m_context.requestStateChange(IGameEngine::Paused);
 }
 
 // --- Paused State ---
 void PausedState::enter() {
-    m_context.setInternalState(GameLogic::Paused);
+    m_context.setInternalState(IGameEngine::Paused);
 }
 
 void PausedState::handleStart() {
-    m_context.requestStateChange(GameLogic::Playing);
+    m_context.requestStateChange(IGameEngine::Playing);
 }
 
 // --- GameOver State ---
 void GameOverState::enter() {
-    m_context.setInternalState(GameLogic::GameOver);
+    m_context.setInternalState(IGameEngine::GameOver);
     m_context.updatePersistence();
 }
 
@@ -116,7 +116,7 @@ void GameOverState::handleStart() {
 
 // --- Choice State ---
 void ChoiceState::enter() {
-    m_context.setInternalState(GameLogic::ChoiceSelection);
+    m_context.setInternalState(IGameEngine::ChoiceSelection);
     m_context.generateChoices();
 }
 
@@ -136,7 +136,7 @@ void ChoiceState::handleStart() {
 
 // --- Replaying State ---
 void ReplayingState::enter() {
-    m_context.setInternalState(GameLogic::Replaying);
+    m_context.setInternalState(IGameEngine::Replaying);
     m_historyIndex = 0;
     m_choiceHistoryIndex = 0;
 }
@@ -171,7 +171,7 @@ void ReplayingState::update() {
 
     const QPoint nextHead = m_context.snakeModel()->body().front() + m_context.direction();
     if (m_context.checkCollision(nextHead)) {
-        m_context.requestStateChange(GameLogic::StartMenu);
+        m_context.requestStateChange(IGameEngine::StartMenu);
         return;
     }
 
@@ -182,16 +182,16 @@ void ReplayingState::update() {
 }
 
 void ReplayingState::handleStart() {
-    m_context.requestStateChange(GameLogic::StartMenu);
+    m_context.requestStateChange(IGameEngine::StartMenu);
 }
 
 // --- Library & Medal Room ---
 void LibraryState::enter() {
-    m_context.setInternalState(GameLogic::Library);
+    m_context.setInternalState(IGameEngine::Library);
 }
 
 void LibraryState::handleInput(int /*dx*/, int dy) {
-    const int count = m_context.fruitLibrary().size();
+    const int count = m_context.fruitLibrarySize();
     if (count <= 0 || dy == 0) {
         return;
     }
@@ -201,15 +201,15 @@ void LibraryState::handleInput(int /*dx*/, int dy) {
 }
 
 void LibraryState::handleSelect() {
-    m_context.requestStateChange(GameLogic::StartMenu);
+    m_context.requestStateChange(IGameEngine::StartMenu);
 }
 
 void MedalRoomState::enter() {
-    m_context.setInternalState(GameLogic::MedalRoom);
+    m_context.setInternalState(IGameEngine::MedalRoom);
 }
 
 void MedalRoomState::handleInput(int /*dx*/, int dy) {
-    const int count = m_context.medalLibrary().size();
+    const int count = m_context.medalLibrarySize();
     if (count <= 0 || dy == 0) {
         return;
     }
@@ -219,5 +219,5 @@ void MedalRoomState::handleInput(int /*dx*/, int dy) {
 }
 
 void MedalRoomState::handleSelect() {
-    m_context.requestStateChange(GameLogic::StartMenu);
+    m_context.requestStateChange(IGameEngine::StartMenu);
 }

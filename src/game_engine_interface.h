@@ -14,6 +14,18 @@ struct ChoiceRecord;
  */
 class IGameEngine {
 public:
+    enum StateId {
+        Splash = 0,
+        StartMenu = 1,
+        Playing = 2,
+        Paused = 3,
+        GameOver = 4,
+        Replaying = 5,
+        ChoiceSelection = 6,
+        Library = 7,
+        MedalRoom = 8
+    };
+
     virtual ~IGameEngine() = default;
 
     // --- State Transitions ---
@@ -30,6 +42,7 @@ public:
     virtual auto bestChoiceHistory() -> QList<ChoiceRecord>& = 0;
     virtual auto gameTickCounter() -> int& = 0;
     [[nodiscard]] virtual auto foodPos() const -> QPoint = 0;
+    [[nodiscard]] virtual auto currentState() const -> int = 0;
     [[nodiscard]] virtual auto hasSave() const -> bool = 0;
     [[nodiscard]] virtual auto hasReplay() const -> bool = 0;
 
@@ -45,6 +58,7 @@ public:
     virtual void loadLastSession() = 0;
     virtual void togglePause() = 0;
     virtual void nextLevel() = 0;
+    virtual void nextPalette() = 0;
     
     // --- Timer Control ---
     virtual void startEngineTimer(int intervalMs = -1) = 0;
@@ -62,8 +76,10 @@ public:
     [[nodiscard]] virtual auto choiceIndex() const -> int = 0;
     virtual void setChoiceIndex(int index) = 0;
     [[nodiscard]] virtual auto libraryIndex() const -> int = 0;
+    [[nodiscard]] virtual auto fruitLibrarySize() const -> int = 0;
     virtual void setLibraryIndex(int index) = 0;
     [[nodiscard]] virtual auto medalIndex() const -> int = 0;
+    [[nodiscard]] virtual auto medalLibrarySize() const -> int = 0;
     virtual void setMedalIndex(int index) = 0;
     virtual void generateChoices() = 0;
     virtual void selectChoice(int index) = 0;

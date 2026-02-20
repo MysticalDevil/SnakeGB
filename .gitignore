@@ -1,4 +1,15 @@
 build*/
+cmake-build-*/
+android-build/
+*.apk
+*.aab
+*.apks
+*.keystore
+.gradle/
+.qt/
+.qsb/
+.cxx/
+android/local.properties
 .vscode/
 .idea/
 .cache/

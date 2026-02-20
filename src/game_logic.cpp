@@ -1,6 +1,5 @@
 #include "game_logic.h"
 #include "fsm/states.h"
-#include "sound_manager.h"
 #include "profile_manager.h"
 #include <QCoreApplication>
 #include <QDataStream>
@@ -49,62 +48,47 @@ GameLogic::GameLogic(QObject *parent)
       m_rng(QRandomGenerator::securelySeeded()),
       m_timer(std::make_unique<QTimer>()),
       m_accelerometer(std::make_unique<QAccelerometer>()),
-      m_soundManager(std::make_unique<SoundManager>()),
       m_profileManager(std::make_unique<ProfileManager>()),
       m_fsmState(nullptr) {
 
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
 
-    if (m_soundManager) {
-        connect(this, &GameLogic::foodEaten, m_soundManager.get(), [this](float pan) -> void {
-            if (m_soundManager) {
-                m_soundManager->setScore(m_score);
-                m_soundManager->playBeep(880, 100, pan);
-                triggerHaptic(3);
-            }
-        });
+    connect(this, &GameLogic::foodEaten, this, [this](float pan) -> void {
+        emit audioSetScore(m_score);
+        emit audioPlayBeep(880, 100, pan);
+        triggerHaptic(3);
+    });
 
-        connect(this, &GameLogic::powerUpEaten, m_soundManager.get(), [this]() -> void {
-            if (m_soundManager) {
-                m_soundManager->playBeep(1200, 150);
-                triggerHaptic(6);
-            }
-        });
+    connect(this, &GameLogic::powerUpEaten, this, [this]() -> void {
+        emit audioPlayBeep(1200, 150, 0.0f);
+        triggerHaptic(6);
+    });
 
-        connect(this, &GameLogic::playerCrashed, m_soundManager.get(), [this]() -> void {
-            if (m_soundManager) {
-                m_soundManager->playCrash(500);
-                triggerHaptic(12);
-            }
-        });
+    connect(this, &GameLogic::playerCrashed, this, [this]() -> void {
+        emit audioPlayCrash(500);
+        triggerHaptic(12);
+    });
 
-        connect(this, &GameLogic::uiInteractTriggered, m_soundManager.get(), [this]() -> void {
-            if (m_soundManager) {
-                m_soundManager->playBeep(200, 50);
-                triggerHaptic(2);
-            }
-        });
+    connect(this, &GameLogic::uiInteractTriggered, this, [this]() -> void {
+        emit audioPlayBeep(200, 50, 0.0f);
+        triggerHaptic(2);
+    });
 
-        connect(this, &GameLogic::stateChanged, m_soundManager.get(), [this]() -> void {
-            if (!m_soundManager) {
-                return;
-            }
-
-            if (m_state == StartMenu) {
-                const int token = m_audioStateToken;
-                QTimer::singleShot(650, this, [this, token]() -> void {
-                    if (!m_soundManager || token != m_audioStateToken) {
-                        return;
-                    }
-                    if (m_state == StartMenu && m_soundManager->musicEnabled()) {
-                        m_soundManager->startMusic();
-                    }
-                });
-            } else if (m_state == Playing || m_state == Replaying || m_state == GameOver) {
-                m_soundManager->stopMusic();
-            }
-        });
-    }
+    connect(this, &GameLogic::stateChanged, this, [this]() -> void {
+        if (m_state == StartMenu) {
+            const int token = m_audioStateToken;
+            QTimer::singleShot(650, this, [this, token]() -> void {
+                if (token != m_audioStateToken) {
+                    return;
+                }
+                if (m_state == StartMenu && m_musicEnabled) {
+                    emit audioStartMusic();
+                }
+            });
+        } else if (m_state == Playing || m_state == Replaying || m_state == GameOver) {
+            emit audioStopMusic();
+        }
+    });
 
     if (m_accelerometer) {
         m_accelerometer->setDataRate(30);
@@ -142,12 +126,8 @@ void GameLogic::setInternalState(int s) {
     if (m_state != next) {
         m_state = next;
         m_audioStateToken++;
-        if (m_soundManager) {
-            m_soundManager->setPaused(m_state == Paused || 
-                                     m_state == ChoiceSelection || 
-                                     m_state == Library || 
-                                     m_state == MedalRoom);
-        }
+        emit audioSetPaused(m_state == Paused || m_state == ChoiceSelection || m_state == Library ||
+                            m_state == MedalRoom);
         emit stateChanged();
     }
 }
@@ -513,8 +493,8 @@ void GameLogic::playEventSound(int type, float pan) {
         emit playerCrashed();
     } else if (type == 2) {
         emit uiInteractTriggered();
-    } else if (type == 3 && m_soundManager) {
-        m_soundManager->playBeep(1046, 140);
+    } else if (type == 3) {
+        emit audioPlayBeep(1046, 140, 0.0f);
     }
 }
 
@@ -529,9 +509,7 @@ void GameLogic::updatePersistence() {
 void GameLogic::lazyInit() {
     if (m_profileManager) {
         m_levelIndex = m_profileManager->levelIndex();
-        if (m_soundManager) {
-            m_soundManager->setVolume(m_profileManager->volume());
-        }
+        emit audioSetVolume(m_profileManager->volume());
     }
 
     QFile f(getGhostFilePath());
@@ -705,14 +683,14 @@ void GameLogic::quitToMenu() {
 }
 
 void GameLogic::toggleMusic() {
-    if (m_soundManager) {
-        bool enabled = !m_soundManager->musicEnabled();
-        m_soundManager->setMusicEnabled(enabled);
-        if (enabled && m_state != Splash) {
-            m_soundManager->startMusic();
-        }
-        emit musicEnabledChanged();
+    m_musicEnabled = !m_musicEnabled;
+    emit audioSetMusicEnabled(m_musicEnabled);
+    if (m_musicEnabled && m_state != Splash) {
+        emit audioStartMusic();
+    } else if (!m_musicEnabled) {
+        emit audioStopMusic();
     }
+    emit musicEnabledChanged();
 }
 
 void GameLogic::quit() {
@@ -805,7 +783,7 @@ auto GameLogic::ghost() const -> QVariantList {
 }
 
 auto GameLogic::musicEnabled() const noexcept -> bool {
-    return m_soundManager ? m_soundManager->musicEnabled() : false;
+    return m_musicEnabled;
 }
 
 auto GameLogic::achievements() const -> QVariantList {
@@ -848,9 +826,7 @@ void GameLogic::setVolume(float v) {
     if (m_profileManager) {
         m_profileManager->setVolume(v);
     }
-    if (m_soundManager) {
-        m_soundManager->setVolume(v);
-    }
+    emit audioSetVolume(v);
     emit volumeChanged();
 }
 

@@ -13,7 +13,6 @@
 #include <deque>
 #include <memory>
 
-class SoundManager;
 class ProfileManager;
 class GameState;
 
@@ -115,6 +114,7 @@ public:
     auto bestChoiceHistory() -> QList<ChoiceRecord>& override { return m_bestChoiceHistory; }
     auto gameTickCounter() -> int& override { return m_gameTickCounter; }
     [[nodiscard]] auto foodPos() const -> QPoint override { return m_food; }
+    [[nodiscard]] auto currentState() const -> int override { return static_cast<int>(m_state); }
     [[nodiscard]] auto hasSave() const -> bool override;
     [[nodiscard]] auto hasReplay() const noexcept -> bool override;
 
@@ -128,6 +128,7 @@ public:
     void loadLastSession() override;
     void togglePause() override;
     Q_INVOKABLE void nextLevel() override;
+    Q_INVOKABLE void nextPalette() override;
     
     void startEngineTimer(int intervalMs = -1) override;
     void stopEngineTimer() override;
@@ -145,12 +146,14 @@ public:
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
     
     [[nodiscard]] auto libraryIndex() const -> int override { return m_libraryIndex; }
+    [[nodiscard]] auto fruitLibrarySize() const -> int override { return fruitLibrary().size(); }
     Q_INVOKABLE void setLibraryIndex(int index) override {
         if (m_libraryIndex == index) return;
         m_libraryIndex = index;
         emit libraryIndexChanged();
     }
     [[nodiscard]] auto medalIndex() const -> int override { return m_medalIndex; }
+    [[nodiscard]] auto medalLibrarySize() const -> int override { return medalLibrary().size(); }
     Q_INVOKABLE void setMedalIndex(int index) override {
         if (m_medalIndex == index) return;
         m_medalIndex = index;
@@ -160,7 +163,6 @@ public:
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
-    Q_INVOKABLE void nextPalette();
     Q_INVOKABLE void nextShellColor();
     Q_INVOKABLE void handleBAction();
     Q_INVOKABLE void quitToMenu();
@@ -216,6 +218,14 @@ signals:
     void libraryIndexChanged(); void medalIndexChanged();
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
+    void audioPlayBeep(int frequencyHz, int durationMs, float pan);
+    void audioPlayCrash(int durationMs);
+    void audioStartMusic();
+    void audioStopMusic();
+    void audioSetPaused(bool paused);
+    void audioSetMusicEnabled(bool enabled);
+    void audioSetVolume(float volume);
+    void audioSetScore(int score);
 
 private slots:
     void update();
@@ -275,10 +285,10 @@ private:
 
     std::unique_ptr<QTimer> m_timer;
     std::unique_ptr<QAccelerometer> m_accelerometer;
-    std::unique_ptr<SoundManager> m_soundManager;
     std::unique_ptr<ProfileManager> m_profileManager;
     std::deque<QPoint> m_inputQueue;
     std::unique_ptr<GameState> m_fsmState;
+    bool m_musicEnabled = true;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

@@ -8,6 +8,7 @@
 #include <QTimer>
 
 #include "game_logic.h"
+#include "sound_manager.h"
 
 auto main(int argc, char *argv[]) -> int {
     QGuiApplication app(argc, argv);
@@ -19,6 +20,17 @@ auto main(int argc, char *argv[]) -> int {
     QGuiApplication::setApplicationVersion("1.4.0");
 
     GameLogic gameLogic;
+    SoundManager soundManager;
+    soundManager.setVolume(gameLogic.volume());
+
+    QObject::connect(&gameLogic, &GameLogic::audioPlayBeep, &soundManager, &SoundManager::playBeep);
+    QObject::connect(&gameLogic, &GameLogic::audioPlayCrash, &soundManager, &SoundManager::playCrash);
+    QObject::connect(&gameLogic, &GameLogic::audioStartMusic, &soundManager, &SoundManager::startMusic);
+    QObject::connect(&gameLogic, &GameLogic::audioStopMusic, &soundManager, &SoundManager::stopMusic);
+    QObject::connect(&gameLogic, &GameLogic::audioSetPaused, &soundManager, &SoundManager::setPaused);
+    QObject::connect(&gameLogic, &GameLogic::audioSetMusicEnabled, &soundManager, &SoundManager::setMusicEnabled);
+    QObject::connect(&gameLogic, &GameLogic::audioSetVolume, &soundManager, &SoundManager::setVolume);
+    QObject::connect(&gameLogic, &GameLogic::audioSetScore, &soundManager, &SoundManager::setScore);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
