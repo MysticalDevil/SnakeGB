@@ -5,19 +5,14 @@ project(SnakeGB VERSION 1.3.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "MinSizeRel" CACHE STRING "" FORCE)
+# Use standard Release for stability
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 endif()
 
-if(MSVC)
-    add_compile_options(/Os /GL)
-else()
-    add_compile_options(-Os -fdata-sections -ffunction-sections -fvisibility=hidden)
-    include(CheckIPOSupported)
-    check_ipo_supported(RESULT ipo_supported OUTPUT error)
-    if(ipo_supported)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-    endif()
+# Basic optimizations without breaking metadata
+if(NOT MSVC)
+    add_compile_options(-O3 -fdata-sections -ffunction-sections)
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
@@ -38,10 +33,9 @@ qt_add_executable(SnakeGB
     src/game_engine_interface.h
 )
 
-# Optimized resource mapping
+# Standard resource mapping (no flattening to avoid confusion)
 qt_add_resources(SnakeGB "resources"
     PREFIX "/"
-    BASE_RESOURCES_PATH "src/qml"
     FILES
         src/qml/main.qml
         src/qml/GameScreen.qml
@@ -52,15 +46,10 @@ qt_add_resources(SnakeGB "resources"
         src/qml/MedalRoom.qml
         src/qml/GameBoyShell.qml
         src/qml/icon.svg
-)
-
-qt_add_resources(SnakeGB "levels"
-    PREFIX "/"
-    BASE_RESOURCES_PATH "src/levels"
-    FILES
         src/levels/levels.json
 )
 
+# Shader compilation
 qt6_add_shaders(SnakeGB "shaders"
     PREFIX "/shaders"
     FILES
@@ -77,11 +66,10 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Sensors
 )
 
+# Strip symbols for size reduction (Safe optimization)
 if(NOT MSVC)
-    if(APPLE)
-        target_link_options(SnakeGB PRIVATE "-Wl,-dead_strip")
-    else()
-        target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections" "-Wl,--strip-all")
+    if(NOT APPLE)
+        target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections")
     endif()
 endif()
 
