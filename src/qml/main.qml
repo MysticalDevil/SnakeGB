@@ -23,12 +23,18 @@ Window {
         loops: Animation.Infinite 
     }
 
+    // --- 核心导航逻辑 (彻底垂直展开) ---
     function handleDirection(dx, dy) {
         gameLogic.move(dx, dy)
-        if (dy < 0) shell.dpad.upPressed = true
-        else if (dy > 0) shell.dpad.downPressed = true
-        else if (dx < 0) shell.dpad.leftPressed = true
-        else if (dx > 0) shell.dpad.rightPressed = true
+        if (dy < 0) {
+            shell.dpad.upPressed = true
+        } else if (dy > 0) {
+            shell.dpad.downPressed = true
+        } else if (dx < 0) {
+            shell.dpad.leftPressed = true
+        } else if (dx > 0) {
+            shell.dpad.rightPressed = true
+        }
     }
 
     function clearDpadVisuals() {
@@ -36,6 +42,18 @@ Window {
         shell.dpad.downPressed = false
         shell.dpad.leftPressed = false
         shell.dpad.rightPressed = false
+    }
+
+    // 核心修复：B 键逻辑
+    function handleBButton() {
+        shell.bButton.isPressed = true
+        if (gameLogic.state === 1) {
+            // 菜单界面：切换调色板
+            gameLogic.nextPalette()
+        } else if (gameLogic.state >= 3) {
+            // 暂停/结算/选择界面：返回主菜单
+            gameLogic.quitToMenu()
+        }
     }
 
     Timer {
@@ -103,11 +121,7 @@ Window {
 
                 Connections { 
                     target: shell.bButton
-                    function onClicked() { 
-                        if (gameLogic.state === 1) gameLogic.quit()
-                        else if (gameLogic.state >= 3) gameLogic.quitToMenu()
-                        else gameLogic.nextPalette()
-                    } 
+                    function onClicked() { handleBButton() } 
                 }
 
                 Connections { 
@@ -133,39 +147,42 @@ Window {
         focus: true
         Keys.onPressed: (event) => {
             if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) handleDirection(0, -1)
-            else if (event.key === Qt.Key_Down) handleDirection(0, 1)
-            else if (event.key === Qt.Key_Left) handleDirection(-1, 0)
-            else if (event.key === Qt.Key_Right) handleDirection(1, 0)
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+            if (event.key === Qt.Key_Up) {
+                handleDirection(0, -1)
+            } else if (event.key === Qt.Key_Down) {
+                handleDirection(0, 1)
+            } else if (event.key === Qt.Key_Left) {
+                handleDirection(-1, 0)
+            } else if (event.key === Qt.Key_Right) {
+                handleDirection(1, 0)
+            } else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
                 shell.startButton.isPressed = true
                 gameLogic.handleStart()
-            }
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
+            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 shell.aButton.isPressed = true
                 gameLogic.handleStart()
-            }
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                shell.bButton.isPressed = true
-                if (gameLogic.state === 1) gameLogic.quit()
-                else if (gameLogic.state >= 3) gameLogic.quitToMenu()
-                else gameLogic.nextPalette()
-            }
-            else if (event.key === Qt.Key_Shift) {
+            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                handleBButton()
+            } else if (event.key === Qt.Key_Shift) {
                 shell.selectButton.isPressed = true
                 longPressTimer.start()
+            } else if (event.key === Qt.Key_M) {
+                gameLogic.toggleMusic()
+            } else if (event.key === Qt.Key_Escape) {
+                gameLogic.quit()
             }
-            else if (event.key === Qt.Key_M) gameLogic.toggleMusic()
-            else if (event.key === Qt.Key_Escape) gameLogic.quit()
         }
         
         Keys.onReleased: (event) => {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shell.startButton.isPressed = false
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
-            else if (event.key === Qt.Key_Shift) {
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                shell.startButton.isPressed = false
+            } else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
+                shell.aButton.isPressed = false
+            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                shell.bButton.isPressed = false
+            } else if (event.key === Qt.Key_Shift) {
                 shell.selectButton.isPressed = false
                 if (longPressTimer.running) {
                     longPressTimer.stop()

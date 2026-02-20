@@ -19,6 +19,7 @@ Item {
         color: "black"
         clip: true
 
+        // --- 1. 核心层 ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -54,8 +55,9 @@ Item {
                 }
             }
 
-            // Menu
+            // Start Menu
             Rectangle {
+                id: menuLayer
                 anchors.fill: parent
                 color: p0
                 visible: gameLogic.state === 1 && !bootAnim.running
@@ -91,6 +93,12 @@ Item {
                             font.bold: true
                         }
                     }
+                    Column {
+                        spacing: 2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        Text { text: "UP: Medals | B: Palette"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "SELECT: Switch Level"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
+                    }
                 }
             }
 
@@ -102,136 +110,6 @@ Item {
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
                 
                 Repeater {
-                    model: gameLogic.ghost
-                    visible: gameLogic.state === 2
-                    delegate: Rectangle {
-                        x: modelData.x * (240 / gameLogic.boardWidth)
-                        y: modelData.y * (216 / gameLogic.boardHeight)
-                        width: 240 / gameLogic.boardWidth
-                        height: 216 / gameLogic.boardHeight
-                        color: p3
-                        opacity: 0.2
-                    }
-                }
-
-                Item {
-                    visible: gameLogic.powerUpPos.x !== -1
-                    x: gameLogic.powerUpPos.x * (240 / gameLogic.boardWidth)
-                    y: gameLogic.powerUpPos.y * (216 / gameLogic.boardHeight)
-                    width: 240 / gameLogic.boardWidth
-                    height: 216 / gameLogic.boardHeight
-                    z: 30
-                    Item {
-                        anchors.centerIn: parent
-                        width: parent.width * 0.9
-                        height: parent.height * 0.9
-                        
-                        // Icon Type 1
-                        Rectangle { 
-                            anchors.fill: parent
-                            border.color: p3
-                            color: "transparent"
-                            visible: gameLogic.powerUpType === 1
-                            Rectangle { 
-                                anchors.centerIn: parent
-                                width: 6
-                                height: 6
-                                rotation: 45
-                                border.color: p3
-                            } 
-                        }
-                        
-                        // Icon Type 2
-                        Rectangle { 
-                            anchors.fill: parent
-                            radius: 10
-                            border.color: p3
-                            color: "transparent"
-                            border.width: 2
-                            visible: gameLogic.powerUpType === 2
-                        }
-                        
-                        // Icon Type 3
-                        Rectangle { 
-                            anchors.centerIn: parent
-                            width: 14
-                            height: 14
-                            color: p3
-                            visible: gameLogic.powerUpType === 3
-                        }
-                        
-                        // Icon Type 4
-                        Rectangle { 
-                            anchors.fill: parent
-                            radius: 10
-                            color: p3
-                            visible: gameLogic.powerUpType === 4
-                        }
-                        
-                        // Icon Type 5
-                        Rectangle { 
-                            anchors.fill: parent
-                            radius: 10
-                            border.color: p3
-                            color: "transparent"
-                            visible: gameLogic.powerUpType === 5
-                        }
-                        
-                        // Icon Type 6
-                        Rectangle { 
-                            anchors.centerIn: parent
-                            width: 14
-                            height: 14
-                            rotation: 45
-                            color: "#ffd700"
-                            visible: gameLogic.powerUpType === 6
-                        }
-                        
-                        // Icon Type 7
-                        Rectangle { 
-                            anchors.centerIn: parent
-                            width: 14
-                            height: 14
-                            rotation: 45
-                            color: "#00ffff"
-                            visible: gameLogic.powerUpType === 7
-                        }
-                        
-                        // Icon Type 8
-                        Rectangle { 
-                            anchors.fill: parent
-                            border.color: "#ff0000"
-                            color: "transparent"
-                            border.width: 2
-                            visible: gameLogic.powerUpType === 8
-                        }
-                        
-                        // Icon Type 9
-                        Rectangle { 
-                            anchors.fill: parent
-                            border.color: p3
-                            color: "transparent"
-                            visible: gameLogic.powerUpType === 9
-                        }
-
-                        SequentialAnimation on scale { 
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.8; to: 1.1; duration: 300 }
-                            NumberAnimation { from: 1.1; to: 0.8; duration: 300 } 
-                        }
-                    }
-                }
-
-                Rectangle { 
-                    x: gameLogic.food.x * (240 / gameLogic.boardWidth)
-                    y: gameLogic.food.y * (216 / gameLogic.boardHeight)
-                    width: 240 / gameLogic.boardWidth
-                    height: 216 / gameLogic.boardHeight
-                    color: p3
-                    radius: width / 2
-                }
-
-                Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
                         x: model.pos.x * (240 / gameLogic.boardWidth)
@@ -242,15 +120,72 @@ Item {
                         radius: index === 0 ? 2 : 0
                     }
                 }
+                
+                Rectangle {
+                    x: gameLogic.food.x * (240 / gameLogic.boardWidth)
+                    y: gameLogic.food.y * (216 / gameLogic.boardHeight)
+                    width: 240 / gameLogic.boardWidth
+                    height: 216 / gameLogic.boardHeight
+                    color: p3
+                    radius: width / 2
+                }
+            }
+
+            // Game Over
+            Rectangle {
+                id: gameOverLayer
+                anchors.fill: parent
+                color: Qt.rgba(p3.r, p3.g, p3.b, 0.95)
+                visible: gameLogic.state === 4
+                z: 700
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 10
+                    Text { text: "GAME OVER"; color: p0; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "SCORE: " + gameLogic.score; color: p0; font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "START to RESTART"; color: p0; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                }
             }
         }
 
+        // --- 2. 特效层 (严禁一行流) ---
         ShaderEffect {
-            id: lcdShader; anchors.fill: parent; z: 20
-            property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
-            property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
+            id: lcdShader
+            anchors.fill: parent
+            z: 20
+            property variant source: ShaderEffectSource { 
+                sourceItem: gameContent
+                hideSource: true
+                live: true 
+            }
+            property variant history: ShaderEffectSource { 
+                sourceItem: lcdShader
+                live: true
+                recursive: true 
+            }
             property real time: root.elapsed
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
+        }
+
+        Item {
+            id: crtLayer
+            anchors.fill: parent
+            z: 10000
+            opacity: 0.1
+            Canvas {
+                anchors.fill: parent
+                onPaint: { 
+                    var ctx = getContext("2d")
+                    ctx.strokeStyle = "black"
+                    ctx.lineWidth = 1
+                    for (var i = 0; i < height; i = i + 3) { 
+                        ctx.beginPath()
+                        ctx.moveTo(0, i)
+                        ctx.lineTo(width, i)
+                        ctx.stroke() 
+                    } 
+                }
+            }
         }
 
         Column {
@@ -263,9 +198,20 @@ Item {
             Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
         }
         
-        OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
+        OSDLayer { 
+            id: osd
+            p0: root.p0
+            p3: root.p3
+            gameFont: root.gameFont
+            z: 3000 
+        }
     }
 
-    function showOSD(t) { osd.show(t) }
-    function triggerPowerCycle() { bootAnim.restart() }
+    function showOSD(t) { 
+        osd.show(t) 
+    }
+    
+    function triggerPowerCycle() { 
+        bootAnim.restart() 
+    }
 }
