@@ -17,10 +17,16 @@ Window {
 
     property real elapsed: 0.0
 
-    NumberAnimation on elapsed { from: 0; to: 1000; duration: 1000000; loops: Animation.Infinite }
+    NumberAnimation on elapsed { 
+        from: 0 
+        to: 1000 
+        duration: 1000000 
+        loops: Animation.Infinite 
+    }
 
     Timer {
-        id: longPressTimer; interval: 1500
+        id: longPressTimer
+        interval: 1500
         onTriggered: {
             if (gameLogic.state === 1 && gameLogic.hasSave) {
                 gameLogic.deleteSave()
@@ -61,27 +67,49 @@ Window {
                     id: screen
                     parent: shell.screenContainer
                     anchors.fill: parent
-                    p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3
-                    gameFont: window.gameFont; elapsed: window.elapsed
+                    p0: window.p0
+                    p1: window.p1
+                    p2: window.p2
+                    p3: window.p3
+                    gameFont: window.gameFont
+                    elapsed: window.elapsed
                 }
 
-                // Interaction
-                shell.dpad.onUpClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
-                shell.dpad.onDownClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
-                shell.dpad.onLeftClicked: { gameLogic.requestFeedback(1); gameLogic.move(-1, 0) }
-                shell.dpad.onRightClicked: { gameLogic.requestFeedback(1); gameLogic.move(1, 0) }
-                
-                shell.aButton.onClicked: { gameLogic.requestFeedback(1); if (screen.showingMedals) screen.showingMedals = false; else gameLogic.handleStart() }
-                shell.bButton.onClicked: {
-                    gameLogic.requestFeedback(1)
-                    if (screen.showingMedals) screen.showingMedals = false
-                    else if (gameLogic.state === 1) gameLogic.quit()
-                    else if (gameLogic.state >= 3) gameLogic.quitToMenu()
-                    else gameLogic.nextPalette()
+                // Correct way to handle nested signals: Connections
+                Connections {
+                    target: shell.dpad
+                    function onUpClicked() { gameLogic.requestFeedback(1); if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
+                    function onDownClicked() { gameLogic.requestFeedback(1); if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
+                    function onLeftClicked() { gameLogic.requestFeedback(1); gameLogic.move(-1, 0) }
+                    function onRightClicked() { gameLogic.requestFeedback(1); gameLogic.move(1, 0) }
                 }
-                shell.selectButton.onPressed: { gameLogic.requestFeedback(1); longPressTimer.start() }
-                shell.selectButton.onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
-                shell.startButton.onClicked: { gameLogic.requestFeedback(1); gameLogic.handleStart() }
+
+                Connections {
+                    target: shell.aButton
+                    function onClicked() { gameLogic.requestFeedback(1); if (screen.showingMedals) screen.showingMedals = false; else gameLogic.handleStart() }
+                }
+
+                Connections {
+                    target: shell.bButton
+                    function onClicked() {
+                        gameLogic.requestFeedback(1)
+                        if (screen.showingMedals) screen.showingMedals = false
+                        else if (gameLogic.state === 1) gameLogic.quit()
+                        else if (gameLogic.state >= 3) gameLogic.quitToMenu()
+                        else gameLogic.nextPalette()
+                    }
+                }
+
+                Connections {
+                    target: shell.selectButton
+                    function onPressed() { gameLogic.requestFeedback(1); longPressTimer.start() }
+                    function onReleased() { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
+                }
+
+                Connections {
+                    target: shell.startButton
+                    function onClicked() { gameLogic.requestFeedback(1); gameLogic.handleStart() }
+                }
             }
         }
     }
