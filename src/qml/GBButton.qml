@@ -18,12 +18,12 @@ Item {
         border.color: Qt.darker(color, 1.5)
         border.width: 3
 
-        // 下压位移效果
+        // Pressed-state offset
         transform: Translate {
             y: mouseArea.pressed || root.isPressed ? 3 : 0
         }
 
-        // 顶部高光
+        // Top highlight
         Rectangle {
             anchors.fill: parent
             anchors.margins: 4
@@ -44,7 +44,7 @@ Item {
         }
     }
 
-    // 底部投影
+    // Bottom drop shadow
     Rectangle {
         anchors.fill: buttonBody
         radius: buttonBody.radius

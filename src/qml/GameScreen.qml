@@ -607,7 +607,7 @@ Item {
             }
         }
 
-        // --- 2. 特效层 ---
+        // --- 2. FX layer ---
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent

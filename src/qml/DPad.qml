@@ -16,7 +16,7 @@ Item {
     signal leftClicked
     signal rightClicked
 
-    // 1. 底部投影层
+    // 1. Bottom shadow layer
     Canvas {
         id: dpadShadow
         anchors.fill: parent
@@ -44,7 +44,7 @@ Item {
         }
     }
 
-    // 2. 十字键主体
+    // 2. D-pad body
     Canvas {
         id: dpadBody
         anchors.fill: parent
@@ -116,7 +116,7 @@ Item {
         }
     }
 
-    // 3. 中心细节
+    // 3. Center detail
     Rectangle {
         anchors.centerIn: parent
         width: 24
@@ -132,7 +132,7 @@ Item {
         }
     }
 
-    // 4. 交互区域
+    // 4. Interactive hit areas
     Item {
         anchors.fill: parent
         
