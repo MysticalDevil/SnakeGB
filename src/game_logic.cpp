@@ -250,22 +250,33 @@ void GameLogic::restart() {
 
 void GameLogic::startReplay() {
     if (m_bestInputHistory.isEmpty()) return;
+    
+    // Set internal state first so ghost() returns {} immediately
+    setInternalState(Replaying);
+    
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_currentRecording.clear();
     m_direction = {0, -1};
     m_inputQueue.clear();
     m_score = 0;
+    m_activeBuff = None;
+    m_powerUpPos = QPoint(-1, -1);
+    m_buffTimer->stop();
+    
+    loadLevelData(m_bestLevelIndex);
     m_rng.seed(m_bestRandomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
-    loadLevelData(m_bestLevelIndex);
     m_timer->setInterval(InitialInterval);
     m_timer->start();
     spawnFood();
+    
     emit scoreChanged();
     emit foodChanged();
     emit ghostChanged();
-    requestStateChange(Replaying);
+    
+    // Force FSM transition to ReplayingState class
+    changeState(std::make_unique<ReplayingState>(*this));
 }
 
 void GameLogic::loadLastSession() {
