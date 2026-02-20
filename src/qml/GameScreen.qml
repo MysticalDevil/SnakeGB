@@ -29,12 +29,12 @@ Item {
                 z: -1 
             }
 
-            // Splash
+            // Splash 层 (仅在 state 0 显示)
             Rectangle {
                 id: splashLayer
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 0 || bootAnim.running
+                visible: gameLogic.state === 0
                 z: 1000
                 Text {
                     id: bootText
@@ -44,31 +44,23 @@ Item {
                     font.pixelSize: 32
                     color: p3
                     font.bold: true
-                    y: -50
-                }
-                SequentialAnimation {
-                    id: bootAnim
-                    running: gameLogic.state === 0
-                    PauseAnimation { 
-                        duration: 200 
-                    }
-                    NumberAnimation { 
-                        target: bootText
-                        property: "y"
-                        from: -50
-                        to: 80
-                        duration: 600
-                        easing.type: Easing.OutBounce 
+                    y: gameLogic.state === 0 ? 80 : -50
+                    
+                    Behavior on y {
+                        NumberAnimation { 
+                            duration: 600
+                            easing.type: Easing.OutBounce 
+                        }
                     }
                 }
             }
 
-            // Menu
+            // 开始菜单层 (仅在 state 1 显示)
             Rectangle {
                 id: menuLayer
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 1 && !bootAnim.running
+                visible: gameLogic.state === 1
                 z: 500
                 Column {
                     anchors.centerIn: parent
@@ -278,6 +270,6 @@ Item {
     }
     
     function triggerPowerCycle() { 
-        bootAnim.restart() 
+        gameLogic.requestStateChange(0)
     }
 }

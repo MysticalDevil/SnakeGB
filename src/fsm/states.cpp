@@ -28,7 +28,6 @@ void MenuState::handleStart() {
 }
 
 void MenuState::handleSelect() {
-    // 关键修复：SELECT 在菜单界面切换关卡
     m_context.nextLevel();
 }
 
@@ -52,11 +51,9 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    // Movement logic handled by timer connection
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
-    // Movement handled via queue in GameLogic
 }
 
 void PlayingState::handleStart() {
