@@ -12,9 +12,6 @@
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QJSValue>
-#ifdef Q_OS_ANDROID
-#include <QJniObject>
-#endif
 #include <algorithm>
 
 using namespace Qt::StringLiterals;
@@ -43,25 +40,18 @@ GameLogic::GameLogic(QObject *parent)
     m_buffTimer->setSingleShot(true);
     connect(m_buffTimer.get(), &QTimer::timeout, this, &GameLogic::deactivateBuff);
 
-    // Fine-tuned Haptic Feedback
     connect(this, &GameLogic::requestFeedback, this, [this](int magnitude) {
 #ifdef Q_OS_ANDROID
         int duration = 10;
         int amplitude = 50;
-
-        if (magnitude == 1) { // Tick / Button
-            duration = 10; amplitude = 60;
-        } else if (magnitude <= 5) { // Pop / Food
-            duration = 25; amplitude = 120;
-        } else { // Shock / Death
-            duration = 80; amplitude = 200;
-        }
+        if (magnitude == 1) { duration = 10; amplitude = 60; }
+        else if (magnitude <= 5) { duration = 25; amplitude = 120; }
+        else { duration = 80; amplitude = 200; }
 
         QJniObject systemService = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative", "activity", "()Landroid/app/Activity;");
         if (systemService.isValid()) {
             QJniObject vibrator = systemService.callObjectMethod("getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;", QJniObject::fromString("vibrator").object<jstring>());
             if (vibrator.isValid()) {
-                // VibrationEffect.createOneShot(long milliseconds, int amplitude)
                 QJniObject effect = QJniObject::callStaticObjectMethod("android/os/VibrationEffect", "createOneShot", "(JI)Landroid/os/VibrationEffect;", static_cast<jlong>(duration), static_cast<jint>(amplitude));
                 if (effect.isValid()) {
                     vibrator.callMethod<void>("vibrate", "(Landroid/os/VibrationEffect;)V", effect.object<jobject>());
@@ -111,9 +101,7 @@ void GameLogic::changeState(std::unique_ptr<GameState> newState) {
 void GameLogic::setInternalState(State s) {
     if (m_state != s) {
         m_state = s;
-        if (m_soundManager) {
-            m_soundManager->setPaused(m_state == Paused);
-        }
+        if (m_soundManager) m_soundManager->setPaused(m_state == Paused);
         emit stateChanged();
     }
 }

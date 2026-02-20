@@ -40,7 +40,6 @@ target_include_directories(SnakeGB PRIVATE src)
 if(ANDROID)
     set_target_properties(SnakeGB PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
-        # This will influence the .so name and deployment metadata
         OUTPUT_NAME "SnakeGB"
     )
 endif()

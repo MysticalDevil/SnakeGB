@@ -88,6 +88,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
     Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
 
 public:
     enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying };
@@ -127,6 +128,7 @@ public:
     [[nodiscard]] auto medalLibrary() const noexcept -> QVariantList;
     [[nodiscard]] auto volume() const noexcept -> float;
     auto setVolume(float v) -> void;
+    [[nodiscard]] auto reflectionOffset() const noexcept -> QPointF { return m_reflectionOffset; }
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
@@ -182,6 +184,7 @@ signals:
     void achievementsChanged();
     void achievementEarned(QString title);
     void volumeChanged();
+    void reflectionOffsetChanged();
 
 private slots:
     void update();
@@ -225,6 +228,7 @@ private:
     qint64 m_sessionStartTime = 0;
     QList<QString> m_unlockedMedals;
     QSettings m_settings;
+    QPointF m_reflectionOffset = {0.0, 0.0};
 
     QJSEngine m_jsEngine;
     QString m_currentScript;
