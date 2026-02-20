@@ -4,30 +4,18 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    
-    <!-- Centered Composition (Inside 66dp Safe Zone) -->
-    <group android:translateX="24" android:translateY="24">
-        <!-- Classic Snake Body (L-Shape) -->
-        <!-- Tail -->
-        <path android:fillColor="#306230" android:pathData="M10,40 h15 v15 h-15 z" />
-        <!-- Corner -->
-        <path android:fillColor="#306230" android:pathData="M25,40 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M25,25 h15 v15 h-15 z" />
-        
-        <!-- Head -->
-        <path android:fillColor="#0f380f" android:pathData="M25,10 h20 v15 h-20 z" />
-        
-        <!-- Eye -->
-        <path android:fillColor="#ffffff" android:pathData="M38,14 h4 v4 h-4 z" />
-        
-        <!-- THE APPLE (Classic Round Red Fruit) -->
-        <path android:fillColor="#aa0000" android:pathData="M50,15 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0" />
-        <!-- Apple Stem -->
-        <path android:fillColor="#0f380f" android:pathData="M55,8 h2 v4 h-2 z" />
-    </group>
+    <!-- Snake aligned to 12px LCD grid and facing the apple -->
+    <path android:fillColor="#0A4F25" android:pathData="M37,61h10v10h-10z" />
+    <path android:fillColor="#0A4F25" android:pathData="M49,61h10v10h-10z" />
+    <path android:fillColor="#0A4F25" android:pathData="M61,61h10v10h-10z" />
+    <path android:fillColor="#0A4F25" android:pathData="M61,49h10v10h-10z" />
+    <path android:fillColor="#0A4F25" android:pathData="M61,37h10v10h-10z" />
+    <path android:fillColor="#083E1D" android:pathData="M49,37h10v10h-10z" />
 
-    <!-- Clean Glass Shine (Optional but professional) -->
-    <path
-        android:fillColor="#25FFFFFF"
-        android:pathData="M0,0 L108,0 L0,108 Z" />
+    <!-- Eye on left side to indicate head direction -->
+    <path android:fillColor="#D7EEA9" android:pathData="M51,40h2v2h-2z" />
+
+    <!-- Simplified apple directly ahead of the head -->
+    <path android:fillColor="#8B1126" android:pathData="M37,37h10v10h-10z" />
+    <path android:fillColor="#4D7B21" android:pathData="M41,33h2v4h-2z" />
 </vector>

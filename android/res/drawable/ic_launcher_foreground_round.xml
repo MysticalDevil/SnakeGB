@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Snake kept in round safe zone -->
+    <path android:fillColor="#0B5429" android:pathData="M30,61h10v10h-10z" />
+    <path android:fillColor="#0B5429" android:pathData="M41,61h10v10h-10z" />
+    <path android:fillColor="#0B5429" android:pathData="M52,61h10v10h-10z" />
+    <path android:fillColor="#0B5429" android:pathData="M63,61h10v10h-10z" />
+    <path android:fillColor="#0B5429" android:pathData="M63,50h10v10h-10z" />
+    <path android:fillColor="#0B5429" android:pathData="M63,39h10v10h-10z" />
+    <path android:fillColor="#09431F" android:pathData="M63,28h10v10h-10z" />
+
+    <!-- Eye -->
+    <path android:fillColor="#D7EEA8" android:pathData="M67,31h2v2h-2z" />
+
+    <!-- Apple -->
+    <path android:fillColor="#8A1126" android:pathData="M33,33h10v10h-10z" />
+    <path android:fillColor="#4E7C20" android:pathData="M37,29h2v4h-2z" />
+
+    <!-- Refined top sheen -->
+    <path android:fillColor="#08FFFFFF" android:pathData="M22,24q16,-6 32,-6q16,0 32,6v2q-16,-5 -32,-5q-16,0 -32,5z" />
+</vector>

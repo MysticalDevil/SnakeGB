@@ -4,15 +4,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Base Color -->
+    <!-- Minimal LCD base -->
     <path
-        android:fillColor="#8bac0f"
+        android:fillColor="#A9C95A"
         android:pathData="M0,0h108v108h-108z" />
-    <!-- LCD Grid Pattern (Subtle) -->
+
+    <!-- Very subtle pixel mesh -->
     <path
-        android:fillColor="#80a000"
-        android:pathData="M0,0h1v108h-1zM4,0h1v108h-1zM8,0h1v108h-1zM12,0h1v108h-1zM16,0h1v108h-1zM20,0h1v108h-1zM24,0h1v108h-1zM28,0h1v108h-1zM32,0h1v108h-1zM36,0h1v108h-1zM40,0h1v108h-1zM44,0h1v108h-1zM48,0h1v108h-1zM52,0h1v108h-1zM56,0h1v108h-1zM60,0h1v108h-1zM64,0h1v108h-1zM68,0h1v108h-1zM72,0h1v108h-1zM76,0h1v108h-1zM80,0h1v108h-1zM84,0h1v108h-1zM88,0h1v108h-1zM92,0h1v108h-1zM96,0h1v108h-1zM100,0h1v108h-1zM104,0h1v108h-1z" />
-    <path
-        android:fillColor="#80a000"
-        android:pathData="M0,0v1h108v-1zM0,4v1h108v-1zM0,8v1h108v-1zM0,12v1h108v-1zM0,16v1h108v-1zM0,20v1h108v-1zM0,24v1h108v-1zM0,28v1h108v-1zM0,32v1h108v-1zM0,36v1h108v-1zM0,40v1h108v-1zM0,44v1h108v-1zM0,48v1h108v-1zM0,52v1h108v-1zM0,56v1h108v-1zM0,60v1h108v-1zM0,64v1h108v-1zM0,68v1h108v-1zM0,72v1h108v-1zM0,76v1h108v-1zM0,80v1h108v-1zM0,84v1h108v-1zM0,88v1h108v-1zM0,92v1h108v-1zM0,96v1h108v-1zM0,100v1h108v-1zM0,104v1h108v-1z" />
+        android:fillColor="#133D6F2E"
+        android:pathData="M0,24h108v1h-108zM0,36h108v1h-108zM0,48h108v1h-108zM0,60h108v1h-108zM0,72h108v1h-108zM0,84h108v1h-108zM24,0h1v108h-1zM36,0h1v108h-1zM48,0h1v108h-1zM60,0h1v108h-1zM72,0h1v108h-1zM84,0h1v108h-1z" />
 </vector>
