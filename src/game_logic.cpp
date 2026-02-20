@@ -22,269 +22,94 @@
 using namespace Qt::StringLiterals;
 
 namespace {
-constexpr int InitialInterval = 200;
-constexpr int MaxSpawnAttempts = 200;
-constexpr int BuffDurationMs = 8000;
-constexpr int PacifistThresholdMs = 60000;
-
-QString getGhostFilePath() {
-    const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir().mkpath(path);
-    return path + u"/ghost.dat"_s;
+    constexpr int InitialInterval = 200;
+    constexpr int MaxSpawnAttempts = 200;
+    constexpr int BuffDurationMs = 8000;
+    constexpr int PacifistThresholdMs = 60000;
+    QString getGhostFilePath() {
+        const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        QDir().mkpath(path); return path + u"/ghost.dat"_s;
+    }
 }
-} // namespace
 
 GameLogic::GameLogic(QObject *parent)
-    : QObject(parent),
-      m_rng(QRandomGenerator::securelySeeded()),
-      m_timer(std::make_unique<QTimer>()),
-      m_soundManager(std::make_unique<SoundManager>()),
-      m_profileManager(std::make_unique<ProfileManager>()),
-      m_buffTimer(std::make_unique<QTimer>()),
-      m_fsmState(nullptr) {
-    
+    : QObject(parent), m_rng(QRandomGenerator::securelySeeded()), m_timer(std::make_unique<QTimer>()),
+      m_soundManager(std::make_unique<SoundManager>()), m_profileManager(std::make_unique<ProfileManager>()),
+      m_buffTimer(std::make_unique<QTimer>()), m_fsmState(nullptr) {
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     m_buffTimer->setSingleShot(true);
     connect(m_buffTimer.get(), &QTimer::timeout, this, &GameLogic::deactivateBuff);
-
     if (m_soundManager) {
         connect(this, &GameLogic::foodEaten, m_soundManager.get(), [this](float pan) {
             if (m_soundManager) { m_soundManager->setScore(m_score); m_soundManager->playBeep(880, 100, pan); }
         });
-        connect(this, &GameLogic::powerUpEaten, m_soundManager.get(), [this]() {
-            if (m_soundManager) m_soundManager->playBeep(1200, 150);
-        });
-        connect(this, &GameLogic::playerCrashed, m_soundManager.get(), [this]() {
-            if (m_soundManager) m_soundManager->playCrash(500);
-        });
-        connect(this, &GameLogic::uiInteractTriggered, m_soundManager.get(), [this]() {
-            if (m_soundManager) m_soundManager->playBeep(200, 50);
-        });
+        connect(this, &GameLogic::powerUpEaten, m_soundManager.get(), [this]() { if (m_soundManager) m_soundManager->playBeep(1200, 150); });
+        connect(this, &GameLogic::playerCrashed, m_soundManager.get(), [this]() { if (m_soundManager) m_soundManager->playCrash(500); });
+        connect(this, &GameLogic::uiInteractTriggered, m_soundManager.get(), [this]() { if (m_soundManager) m_soundManager->playBeep(200, 50); });
         connect(this, &GameLogic::stateChanged, m_soundManager.get(), [this]() {
             if (!m_soundManager) return;
             if (m_state == StartMenu) m_soundManager->startMusic();
             else if (m_state == Playing) m_soundManager->stopMusic();
         });
     }
-
-    connect(this, &GameLogic::requestFeedback, this, [this](int magnitude) {
-#ifdef Q_OS_ANDROID
-        int duration = magnitude * 15;
-        QJniObject systemService = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative", "activity", "()Landroid/app/Activity;");
-        if (systemService.isValid()) {
-            QJniObject vibrator = systemService.callObjectMethod("getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;", QJniObject::fromString("vibrator").object<jstring>());
-            if (vibrator.isValid()) {
-                QJniObject effect = QJniObject::callStaticObjectMethod("android/os/VibrationEffect", "createOneShot", "(JI)Landroid/os/VibrationEffect;", static_cast<jlong>(duration), static_cast<jint>(150));
-                if (effect.isValid()) vibrator.callMethod<void>("vibrate", "(Landroid/os/VibrationEffect;)V", effect.object<jobject>());
-            }
-        }
-#endif
-    });
-
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_fsmState = std::make_unique<SplashState>(*this);
     QTimer::singleShot(0, this, [this]() { if (m_fsmState) m_fsmState->enter(); });
 }
 
-void GameLogic::lazyInit() {
-    if (!m_profileManager) return;
-    m_levelIndex = m_profileManager->levelIndex();
-    if (m_soundManager) m_soundManager->setVolume(m_profileManager->volume());
-    if (!QCoreApplication::applicationName().contains(u"test"_s)) {
-        auto* sensor = new QAccelerometer(this);
-        connect(sensor, &QAccelerometer::readingChanged, this, [this, sensor]() {
-            auto* reading = sensor->reading();
-            if (reading) {
-                m_reflectionOffset = QPointF(std::clamp(reading->x() * 0.005, -0.05, 0.05), std::clamp(reading->y() * 0.005, -0.05, 0.05));
-                emit reflectionOffsetChanged();
-            }
-        });
-        sensor->start();
-    }
-    QFile file(getGhostFilePath());
-    if (file.open(QIODevice::ReadOnly)) {
-        QDataStream in(&file); in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory;
-    }
-    loadLevelData(m_levelIndex); spawnFood();
-    emit paletteChanged(); emit shellColorChanged();
-}
+GameLogic::~GameLogic() { m_timer->stop(); m_buffTimer->stop(); m_fsmState.reset(); if (m_state == Playing || m_state == Paused) saveCurrentState(); }
 
-GameLogic::~GameLogic() { if (m_timer) m_timer->stop(); if (m_buffTimer) m_buffTimer->stop(); m_fsmState.reset(); if (m_state == Playing || m_state == Paused) saveCurrentState(); }
-void GameLogic::changeState(std::unique_ptr<GameState> newState) { if (m_fsmState) m_fsmState->exit(); m_fsmState = std::move(newState); if (m_fsmState) m_fsmState->enter(); }
+// --- IGameEngine Implementation ---
+void GameLogic::setInternalState(int s) { State next = static_cast<State>(s); if (m_state != next) { m_state = next; if (m_soundManager) m_soundManager->setPaused(m_state == Paused); emit stateChanged(); } }
+void GameLogic::requestStateChange(int newState) { State s = static_cast<State>(newState); switch (s) { case StartMenu: changeState(std::make_unique<MenuState>(*this)); break; case Playing: changeState(std::make_unique<PlayingState>(*this)); break; case Paused: changeState(std::make_unique<PausedState>(*this)); break; case GameOver: changeState(std::make_unique<GameOverState>(*this)); break; case Replaying: changeState(std::make_unique<ReplayingState>(*this)); break; default: break; } }
+bool GameLogic::checkCollision(const QPoint &head) { if (isOutOfBounds(head)) return true; for (const auto &p : m_obstacles) { if (p == head) return true; } if (m_activeBuff != Ghost) { for (const auto &p : m_snakeModel.body()) { if (p == head) return true; } } return false; }
+void GameLogic::handleFoodConsumption(const QPoint &head) { if (head != m_food) return; m_score++; if (m_profileManager) m_profileManager->logFoodEaten(); float pan = (static_cast<float>(head.x()) / BOARD_WIDTH - 0.5f) * 1.4f; emit foodEaten(pan); m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8)); emit scoreChanged(); spawnFood(); if (m_rng.bounded(100) < 15 && m_powerUpPos == QPoint(-1, -1)) spawnPowerUp(); triggerHaptic(std::min(5, 2 + (m_score / 10))); }
+void GameLogic::handlePowerUpConsumption(const QPoint &head) { if (head != m_powerUpPos) return; m_activeBuff = m_powerUpType; if (m_activeBuff == Ghost && m_profileManager) m_profileManager->logGhostTrigger(); m_powerUpPos = QPoint(-1, -1); m_buffTimer->start(BuffDurationMs); emit powerUpEaten(); if (m_activeBuff == Slow) m_timer->setInterval(250); emit buffChanged(); emit powerUpChanged(); }
+void GameLogic::applyMovement(const QPoint &newHead, bool grew) { m_snakeModel.moveHead(newHead, grew); m_currentRecording.append(newHead); if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) { m_ghostFrameIndex++; emit ghostChanged(); } checkAchievements(); }
+void GameLogic::triggerHaptic(int magnitude) { emit requestFeedback(magnitude); }
+void GameLogic::playEventSound(int type, float pan) { if (type == 0) emit foodEaten(pan); else if (type == 1) emit playerCrashed(); else if (type == 2) emit uiInteractTriggered(); }
+void GameLogic::updatePersistence() { updateHighScore(); if (m_profileManager) m_profileManager->incrementCrashes(); clearSavedState(); }
 
-void GameLogic::setInternalState(State s) {
-    if (m_state != s) {
-        m_state = s;
-        if (m_soundManager) m_soundManager->setPaused(m_state == Paused);
-        emit stateChanged();
-    }
-}
+void GameLogic::restart() { m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}}); m_direction = {0, -1}; m_inputQueue.clear(); m_score = 0; m_activeBuff = None; m_powerUpPos = QPoint(-1, -1); m_buffTimer->stop(); m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch()); m_rng.seed(m_randomSeed); m_gameTickCounter = 0; m_ghostFrameIndex = 0; m_currentInputHistory.clear(); m_currentRecording.clear(); m_sessionStartTime = QDateTime::currentMSecsSinceEpoch(); loadLevelData(m_levelIndex); clearSavedState(); m_timer->setInterval(InitialInterval); spawnFood(); emit buffChanged(); emit powerUpChanged(); emit scoreChanged(); emit foodChanged(); requestStateChange(Playing); }
+void GameLogic::togglePause() { if (m_state == Playing) requestStateChange(Paused); else if (m_state == Paused) requestStateChange(Playing); }
+void GameLogic::update() { if (m_fsmState) { m_fsmState->update(); if (!m_currentScript.isEmpty()) runLevelScript(); m_gameTickCounter++; } float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f; m_reflectionOffset = QPointF(std::sin(t * 0.8f) * 0.01f, std::cos(t * 0.7f) * 0.01f); emit reflectionOffsetChanged(); }
 
-void GameLogic::startGame() { restart(); }
-void GameLogic::startReplay() {
-    if (m_bestInputHistory.isEmpty()) return;
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
-    m_direction = {0, -1}; m_inputQueue.clear(); m_score = 0;
-    m_rng.seed(m_bestRandomSeed); m_gameTickCounter = 0;
-    loadLevelData(m_levelIndex); m_timer->setInterval(InitialInterval); spawnFood();
-    changeState(std::make_unique<ReplayingState>(*this));
-}
-
-void GameLogic::restart() {
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
-    m_direction = {0, -1}; m_inputQueue.clear(); m_score = 0;
-    m_activeBuff = None; m_powerUpPos = QPoint(-1, -1); m_buffTimer->stop();
-    m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
-    m_rng.seed(m_randomSeed); m_gameTickCounter = 0;
-    m_currentInputHistory.clear(); m_currentRecording.clear();
-    m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
-    emit buffChanged(); emit powerUpChanged();
-    loadLevelData(m_levelIndex); clearSavedState();
-    m_timer->setInterval(InitialInterval); spawnFood();
-    emit foodEaten(0.0f);
-    emit scoreChanged(); emit foodChanged(); emit ghostChanged();
-    changeState(std::make_unique<PlayingState>(*this));
-}
-
-void GameLogic::togglePause() { if (m_state == Playing) changeState(std::make_unique<PausedState>(*this)); else if (m_state == Paused) changeState(std::make_unique<PlayingState>(*this)); }
-
-void GameLogic::loadLastSession() {
-    if (!m_profileManager || !m_profileManager->hasSession()) return;
-    QVariantMap data = m_profileManager->loadSession();
-    m_score = data[u"score"_s].toInt();
-    std::deque<QPoint> body; for (const auto &v : data[u"body"_s].toList()) body.emplace_back(v.toPoint());
-    m_food = data[u"food"_s].toPoint(); m_direction = data[u"dir"_s].toPoint();
-    m_obstacles.clear(); for (const auto &v : data[u"obstacles"_s].toList()) m_obstacles.append(v.toPoint());
-    m_snakeModel.reset(body); m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
-    m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
-    emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
-    changeState(std::make_unique<PausedState>(*this));
-}
-
-void GameLogic::saveCurrentState() { if (m_profileManager) { m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction); m_profileManager->setLevelIndex(m_levelIndex); if (m_soundManager) m_profileManager->setVolume(m_soundManager->volume()); } emit hasSaveChanged(); }
-void GameLogic::clearSavedState() { if (m_profileManager) m_profileManager->clearSession(); emit hasSaveChanged(); }
-bool GameLogic::hasSave() const noexcept { return m_profileManager ? m_profileManager->hasSession() : false; }
+int GameLogic::highScore() const { return m_profileManager ? m_profileManager->highScore() : 0; }
+bool GameLogic::hasSave() const { return m_profileManager ? m_profileManager->hasSession() : false; }
 bool GameLogic::hasReplay() const noexcept { return !m_bestInputHistory.isEmpty(); }
+bool GameLogic::musicEnabled() const noexcept { return m_soundManager ? m_soundManager->musicEnabled() : false; }
+QVariantList GameLogic::achievements() const { QVariantList list; if (m_profileManager) { for (const auto &m : m_profileManager->unlockedMedals()) list.append(m); } return list; }
+QVariantList GameLogic::palette() const { static const QList<QVariantList> p = {{u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s}, {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s}, {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s}}; return p[m_profileManager ? m_profileManager->paletteIndex() % 3 : 0]; }
+QString GameLogic::paletteName() const { static const QStringList n = {u"Original"_s, u"Pocket"_s, u"Golden"_s}; return n[m_profileManager ? m_profileManager->paletteIndex() % 3 : 0]; }
+QVariantList GameLogic::obstacles() const { QVariantList list; for (const auto &p : m_obstacles) list.append(p); return list; }
+QColor GameLogic::shellColor() const { static const QList<QColor> c = {u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s}; return c[m_profileManager ? m_profileManager->shellIndex() % 3 : 0]; }
+QVariantList GameLogic::ghost() const { QVariantList list; int len = m_snakeModel.rowCount(); int start = std::max(0, m_ghostFrameIndex - len + 1); for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) list.append(m_bestRecording[i]); return list; }
+QVariantList GameLogic::medalLibrary() const { QVariantList list; auto createMedal = [](const QString &id, const QString &hint) { QVariantMap m; m.insert(u"id"_s, id); m.insert(u"hint"_s, hint); return m; }; list << createMedal(u"Gold Medal (50 Pts)"_s, u"Reach 50 points"_s) << createMedal(u"Silver Medal (20 Pts)"_s, u"Reach 20 points"_s) << createMedal(u"Centurion (100 Crashes)"_s, u"Crash 100 times"_s) << createMedal(u"Gourmet (500 Food)"_s, u"Eat 500 food"_s) << createMedal(u"Untouchable"_s, u"20 Ghost triggers"_s) << createMedal(u"Speed Demon"_s, u"Max speed reached"_s) << createMedal(u"Pacifist (60s No Food)"_s, u"60s no food"_s); return list; }
+float GameLogic::coverage() const noexcept { return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); }
+float GameLogic::volume() const { return m_profileManager ? m_profileManager->volume() : 1.0f; }
+void GameLogic::setVolume(float v) { if (m_profileManager) m_profileManager->setVolume(v); if (m_soundManager) m_soundManager->setVolume(v); emit volumeChanged(); }
 
-void GameLogic::move(int dx, int dy) {
-    if (m_inputQueue.size() < 2) {
-        const QPoint lastDir = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
-        if ((dx != 0 && lastDir.x() == -dx) || (dy != 0 && lastDir.y() == -dy)) return;
-        m_inputQueue.push_back({dx, dy});
-        emit uiInteractTriggered();
-    }
-}
-
-void GameLogic::update() {
-    if (m_fsmState) {
-        m_fsmState->update();
-        if (!m_currentScript.isEmpty()) runLevelScript();
-        m_gameTickCounter++;
-    }
-    if (std::abs(m_reflectionOffset.x()) < 0.001 && std::abs(m_reflectionOffset.y()) < 0.001) {
-        float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f;
-        m_reflectionOffset = QPointF(std::sin(t * 0.8f) * 0.01f, std::cos(t * 0.7f) * 0.01f);
-        emit reflectionOffsetChanged();
-    }
-}
-
-void GameLogic::runLevelScript() {
-    QJSValue onTick = m_jsEngine.globalObject().property(u"onTick"_s);
-    if (onTick.isCallable()) {
-        QJSValueList args; args << m_gameTickCounter; QJSValue result = onTick.call(args);
-        if (result.isArray()) {
-            m_obstacles.clear(); int len = result.property(u"length"_s).toInt();
-            for (int i = 0; i < len; ++i) { QJSValue item = result.property(i); m_obstacles.append(QPoint(item.property(u"x"_s).toInt(), item.property(u"y"_s).toInt())); }
-            emit obstaclesChanged();
-        }
-    }
-}
-
-void GameLogic::nextPalette() { if (!m_profileManager) return; int next = (m_profileManager->paletteIndex() + 1) % 6; m_profileManager->setPaletteIndex(next); emit paletteChanged(); emit uiInteractTriggered(); }
-void GameLogic::nextShellColor() { if (!m_profileManager) return; int next = (m_profileManager->shellIndex() + 1) % 5; m_profileManager->setShellIndex(next); emit shellColorChanged(); emit uiInteractTriggered(); }
-void GameLogic::nextLevel() { m_levelIndex = (m_levelIndex + 1) % 3; if (m_profileManager) m_profileManager->setLevelIndex(m_levelIndex); loadLevelData(m_levelIndex); emit levelChanged(); }
-void GameLogic::quitToMenu() { m_timer->stop(); m_buffTimer->stop(); saveCurrentState(); changeState(std::make_unique<MenuState>(*this)); }
-void GameLogic::toggleMusic() { if (!m_soundManager) return; const bool nextEnabled = !m_soundManager->musicEnabled(); m_soundManager->setMusicEnabled(nextEnabled); if (nextEnabled && m_state != Splash) m_soundManager->startMusic(); emit musicEnabledChanged(); }
-
-void GameLogic::quit() {
-    saveCurrentState();
-#ifdef Q_OS_WASM
-    emit paletteChanged();
-#else
-    QCoreApplication::quit();
-#endif
-}
-
+void GameLogic::spawnFood() { int attempts = 0; while (attempts++ < MaxSpawnAttempts) { m_food = {m_rng.bounded(BOARD_WIDTH), m_rng.bounded(BOARD_HEIGHT)}; bool hit = false; for (const auto &p : m_snakeModel.body()) if (p == m_food) hit = true; for (const auto &p : m_obstacles) if (p == m_food) hit = true; if (!hit && m_food != m_powerUpPos) { emit foodChanged(); return; } } }
+void GameLogic::spawnPowerUp() { int attempts = 0; while (attempts++ < MaxSpawnAttempts) { m_powerUpPos = {m_rng.bounded(BOARD_WIDTH), m_rng.bounded(BOARD_HEIGHT)}; bool hit = false; for (const auto &p : m_snakeModel.body()) if (p == m_powerUpPos) hit = true; for (const auto &p : m_obstacles) if (p == m_powerUpPos) hit = true; if (!hit && m_powerUpPos != m_food) { m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 4)); emit powerUpChanged(); return; } } }
+void GameLogic::updateHighScore() { if (m_profileManager && m_score > m_profileManager->highScore()) { m_profileManager->updateHighScore(m_score); m_bestInputHistory = m_currentInputHistory; m_bestRecording = m_currentRecording; m_bestRandomSeed = m_randomSeed; QFile file(getGhostFilePath()); if (file.open(QIODevice::WriteOnly)) { QDataStream out(&file); out << m_bestRecording << m_bestRandomSeed << m_bestInputHistory; } emit highScoreChanged(); } }
+void GameLogic::saveCurrentState() { if (m_profileManager) m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction); }
+void GameLogic::clearSavedState() { if (m_profileManager) m_profileManager->clearSession(); }
+void GameLogic::loadLastSession() { if (!m_profileManager || !m_profileManager->hasSession()) return; auto d = m_profileManager->loadSession(); m_score = d[u"score"_s].toInt(); m_food = d[u"food"_s].toPoint(); m_direction = d[u"dir"_s].toPoint(); m_obstacles.clear(); for (const auto &v : d[u"obstacles"_s].toList()) m_obstacles.append(v.toPoint()); std::deque<QPoint> b; for (const auto &v : d[u"body"_s].toList()) b.emplace_back(v.toPoint()); m_snakeModel.reset(b); m_timer->setInterval(std::max(60, 200 - (m_score/5)*8)); requestStateChange(Paused); }
+void GameLogic::loadLevelData(int i) { QFile f(u":/levels.json"_s); if (!f.open(QIODevice::ReadOnly)) return; auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray(); auto lvl = levels[i % levels.size()].toObject(); m_currentLevelName = lvl.value(u"name"_s).toString(); m_obstacles.clear(); m_currentScript = lvl.value(u"script"_s).toString(); if (!m_currentScript.isEmpty()) m_jsEngine.evaluate(m_currentScript); else { for (const auto &w : lvl.value(u"walls"_s).toArray()) { QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()); m_obstacles.append(p); } } emit obstaclesChanged(); }
+void GameLogic::checkAchievements() { if (!m_profileManager) return; auto unlock = [this](const QString &t) { if (m_profileManager->unlockMedal(t)) { emit achievementEarned(t); emit achievementsChanged(); } }; if (m_score >= 50) unlock(u"Gold Medal (50 Pts)"_s); if (m_timer->interval() <= 60) unlock(u"Speed Demon"_s); }
+bool GameLogic::isOutOfBounds(const QPoint &p) noexcept { return !m_boardRect.contains(p); }
+void GameLogic::move(int dx, int dy) { if (m_inputQueue.size() < 2) { QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back(); if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) return; m_inputQueue.push_back({dx, dy}); emit uiInteractTriggered(); } }
+void GameLogic::nextPalette() { if (m_profileManager) { m_profileManager->setPaletteIndex((m_profileManager->paletteIndex() + 1) % 3); emit paletteChanged(); emit uiInteractTriggered(); } }
+void GameLogic::nextShellColor() { if (m_profileManager) { m_profileManager->setShellIndex((m_profileManager->shellIndex() + 1) % 3); emit shellColorChanged(); emit uiInteractTriggered(); } }
+void GameLogic::nextLevel() { m_levelIndex = (m_levelIndex + 1) % 3; loadLevelData(m_levelIndex); emit levelChanged(); }
+void GameLogic::toggleMusic() { if (m_soundManager) { bool e = !m_soundManager->musicEnabled(); m_soundManager->setMusicEnabled(e); if (e && m_state != Splash) m_soundManager->startMusic(); emit musicEnabledChanged(); } }
+void GameLogic::quit() { saveCurrentState(); QCoreApplication::quit(); }
 void GameLogic::handleSelect() { if (m_fsmState) m_fsmState->handleSelect(); }
 void GameLogic::handleStart() { if (m_fsmState) m_fsmState->handleStart(); }
-void GameLogic::deleteSave() { clearSavedState(); emit playerCrashed(); emit paletteChanged(); }
-bool GameLogic::musicEnabled() const noexcept { return m_soundManager ? m_soundManager->musicEnabled() : false; }
-
-void GameLogic::loadLevelData(int index) {
-    QFile file(u":/levels.json"_s); if (!file.open(QIODevice::ReadOnly)) return;
-    const QJsonObject docObj = QJsonDocument::fromJson(file.readAll()).object();
-    const QJsonArray levels = docObj.value(u"levels"_s).toArray();
-    if (index >= levels.size()) index = 0;
-    const QJsonObject lvl = levels[index].toObject();
-    m_currentLevelName = lvl.value(u"name"_s).toString(); m_obstacles.clear();
-    m_currentScript = lvl.value(u"script"_s).toString();
-    if (!m_currentScript.isEmpty()) m_jsEngine.evaluate(m_currentScript);
-    else { for (const auto &w : lvl.value(u"walls"_s).toArray()) { const QPoint p(w.toObject().value(u"x"_s).toInt(), w.toObject().value(u"y"_s).toInt()); if (std::abs(p.x() - 10) <= 2 && std::abs(p.y() - 10) <= 2) continue; m_obstacles.append(p); } }
-    emit obstaclesChanged();
-}
-
-void GameLogic::spawnFood() {
-    const auto &body = m_snakeModel.body(); int attempts = 0;
-    while (attempts < MaxSpawnAttempts) {
-        m_food = QPoint(m_rng.bounded(BOARD_WIDTH), m_rng.bounded(BOARD_HEIGHT));
-        bool collision = false; for (const auto &p : body) { if (p == m_food) { collision = true; break; } }
-        if (!collision) { for (const auto &p : m_obstacles) { if (p == m_food) { collision = true; break; } } }
-        const bool inSafeZone = std::abs(m_food.x() - 10) <= 2 && std::abs(m_food.y() - 10) <= 2;
-        if (!collision && !inSafeZone && m_food != m_powerUpPos) { emit foodChanged(); return; }
-        attempts++;
-    }
-}
-
-void GameLogic::spawnPowerUp() {
-    const auto &body = m_snakeModel.body(); int attempts = 0;
-    while (attempts < MaxSpawnAttempts) {
-        m_powerUpPos = QPoint(m_rng.bounded(BOARD_WIDTH), m_rng.bounded(BOARD_HEIGHT));
-        bool collision = false; for (const auto &p : body) { if (p == m_powerUpPos) { collision = true; break; } }
-        if (!collision) { for (const auto &p : m_obstacles) { if (p == m_powerUpPos) { collision = true; break; } } }
-        const bool inSafeZone = std::abs(m_powerUpPos.x() - 10) <= 2 && std::abs(m_powerUpPos.y() - 10) <= 2;
-        if (!collision && !inSafeZone && m_powerUpPos != m_food) { m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 4)); emit powerUpChanged(); return; }
-        attempts++;
-    }
-}
-
-void GameLogic::deactivateBuff() { m_activeBuff = None; m_timer->setInterval(std::max(50, 150 - (m_score / 5) * 10)); emit buffChanged(); }
-auto GameLogic::achievements() const noexcept -> QVariantList { QVariantList list; if (m_profileManager) { for (const auto &m : m_profileManager->unlockedMedals()) list.append(m); } return list; }
-auto GameLogic::medalLibrary() const noexcept -> QVariantList { QVariantList list; auto createMedal = [](const QString &id, const QString &hint) { QVariantMap m; m.insert(u"id"_s, id); m.insert(u"hint"_s, hint); return m; }; list << createMedal(u"Gold Medal (50 Pts)"_s, u"Reach 50 points"_s) << createMedal(u"Silver Medal (20 Pts)"_s, u"Reach 20 points"_s) << createMedal(u"Centurion (100 Crashes)"_s, u"Crash 100 times"_s) << createMedal(u"Gourmet (500 Food)"_s, u"Eat 500 food"_s) << createMedal(u"Untouchable"_s, u"20 Ghost triggers"_s) << createMedal(u"Speed Demon"_s, u"Max speed reached"_s) << createMedal(u"Pacifist (60s No Food)"_s, u"60s no food"_s); return list; }
-void GameLogic::checkAchievements() { if (!m_profileManager) return; auto unlock = [this](const QString &title) { if (m_profileManager->unlockMedal(title)) { emit achievementEarned(title); emit achievementsChanged(); } }; if (m_score >= 50) unlock(u"Gold Medal (50 Pts)"_s); if (m_score >= 20) unlock(u"Silver Medal (20 Pts)"_s); if (m_profileManager->totalCrashes() >= 100) unlock(u"Centurion (100 Crashes)"_s); if (m_profileManager->totalFoodEaten() >= 500) unlock(u"Gourmet (500 Food)"_s); if (m_profileManager->totalGhostTriggers() >= 20) unlock(u"Untouchable"_s); if (m_timer->interval() <= 60) unlock(u"Speed Demon"_s); if (m_score == 0 && m_state == Playing) { const qint64 now = QDateTime::currentMSecsSinceEpoch(); if ((now - m_sessionStartTime) > PacifistThresholdMs) unlock(u"Pacifist (60s No Food)"_s); } }
-
-void GameLogic::updateHighScore() {
-    if (!m_profileManager) return;
-    if (m_score > m_profileManager->highScore()) {
-        m_profileManager->updateHighScore(m_score);
-        m_bestRecording = m_currentRecording; m_bestRandomSeed = m_randomSeed; m_bestInputHistory = m_currentInputHistory;
-        QFile file(getGhostFilePath());
-        if (file.open(QIODevice::WriteOnly)) {
-            QDataStream out(&file);
-            out << m_bestRecording << m_bestRandomSeed << m_bestInputHistory;
-        }
-        emit highScoreChanged();
-    }
-}
-
-void GameLogic::incrementCrashes() { if (m_profileManager) { m_profileManager->incrementCrashes(); checkAchievements(); } }
-void GameLogic::logFoodEaten() { if (m_profileManager) { m_profileManager->logFoodEaten(); checkAchievements(); } }
-void GameLogic::logPowerUpTriggered(PowerUp type) { if (type == Ghost && m_profileManager) { m_profileManager->logGhostTrigger(); checkAchievements(); } }
-int GameLogic::highScore() const noexcept { return m_profileManager ? m_profileManager->highScore() : 0; }
-QVariantList GameLogic::palette() const noexcept { static const QList<QVariantList> palettes = {{u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s}, {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s}, {u"#70a0d0"_s, u"#4070a0"_s, u"#204060"_s, u"#001020"_s}, {u"#ffffff"_s, u"#aaaaaa"_s, u"#555555"_s, u"#000000"_s}, {u"#200000"_s, u"#550000"_s, u"#aa0000"_s, u"#ff0000"_s}, {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s}}; return palettes[m_profileManager ? m_profileManager->paletteIndex() : 0]; }
-QString GameLogic::paletteName() const noexcept { static const QStringList names = {u"Original"_s, u"Pocket"_s, u"Blue Light"_s, u"Mono"_s, u"Virtual Red"_s, u"Golden"_s}; return names[m_profileManager ? m_profileManager->paletteIndex() : 0]; }
-QVariantList GameLogic::obstacles() const noexcept { QVariantList list; for (const auto &p : m_obstacles) list.append(p); return list; }
-QColor GameLogic::shellColor() const noexcept { static const QList<QColor> colors = {u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s, u"#ffd700"_s, u"#32cd32"_s}; return colors[m_profileManager ? m_profileManager->shellIndex() : 0]; }
-auto GameLogic::ghost() const noexcept -> QVariantList { QVariantList list; const int ghostLength = static_cast<int>(m_snakeModel.body().size()); const int start = std::max(0, m_ghostFrameIndex - ghostLength + 1); for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) list.append(m_bestRecording[i]); return list; }
-auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool { return !m_boardRect.contains(p); }
-auto GameLogic::volume() const noexcept -> float { return m_soundManager ? m_soundManager->volume() : 1.0f; }
-auto GameLogic::setVolume(float v) -> void { if (m_soundManager) { m_soundManager->setVolume(v); emit volumeChanged(); } }
+void GameLogic::deleteSave() { clearSavedState(); emit paletteChanged(); }
+void GameLogic::lazyInit() { if (m_profileManager) { m_levelIndex = m_profileManager->levelIndex(); if (m_soundManager) m_soundManager->setVolume(m_profileManager->volume()); } QFile f(getGhostFilePath()); if (f.open(QIODevice::ReadOnly)) { QDataStream in(&f); in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory; } loadLevelData(m_levelIndex); spawnFood(); emit paletteChanged(); emit shellColorChanged(); }
+void GameLogic::deactivateBuff() { m_activeBuff = None; m_timer->setInterval(std::max(60, 200 - (m_score/5)*8)); emit buffChanged(); }
+void GameLogic::changeState(std::unique_ptr<GameState> newState) { if (m_fsmState) m_fsmState->exit(); m_fsmState = std::move(newState); if (m_fsmState) m_fsmState->enter(); }
+void GameLogic::quitToMenu() { saveCurrentState(); requestStateChange(StartMenu); }
+void GameLogic::runLevelScript() { QJSValue onTick = m_jsEngine.globalObject().property(u"onTick"_s); if (onTick.isCallable()) { QJSValueList args; args << m_gameTickCounter; QJSValue result = onTick.call(args); if (result.isArray()) { m_obstacles.clear(); int len = result.property(u"length"_s).toInt(); for (int i = 0; i < len; ++i) { QJSValue item = result.property(i); m_obstacles.append(QPoint(item.property(u"x"_s).toInt(), item.property(u"y"_s).toInt())); } emit obstaclesChanged(); } } }
+void GameLogic::startReplay() { if (m_bestInputHistory.isEmpty()) return; m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}}); m_direction = {0, -1}; m_inputQueue.clear(); m_score = 0; m_rng.seed(m_bestRandomSeed); m_gameTickCounter = 0; m_ghostFrameIndex = 0; loadLevelData(m_levelIndex); m_timer->setInterval(InitialInterval); spawnFood(); requestStateChange(Replaying); }

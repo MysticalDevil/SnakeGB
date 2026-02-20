@@ -2,229 +2,87 @@
 #include "../game_logic.h"
 #include <QRandomGenerator>
 #include <algorithm>
-#include <ranges>
 
-namespace {
-    constexpr int SplashFramesMax = 10;
-    constexpr int BuffDurationMs = 8000;
-}
+static auto& engine(GameState& s) { return static_cast<IGameEngine&>(s.context()); }
 
 // --- SplashState ---
-auto SplashState::enter() -> void {
-    m_context.setInternalState(GameLogic::Splash);
-    QTimer::singleShot(100, [this]() { m_context.lazyInit(); });
-    m_context.m_timer->start(150); 
+void SplashState::enter() { engine(*this).setInternalState(GameLogic::Splash); }
+void SplashState::exit() {}
+void SplashState::update() {
+    static int frames = 0;
+    if (++frames > 10) { frames = 0; engine(*this).requestStateChange(GameLogic::StartMenu); }
 }
-
-auto SplashState::update() -> void {
-    static int splashFrames = 0;
-    splashFrames++;
-    if (splashFrames > SplashFramesMax) {
-        splashFrames = 0;
-        m_context.changeState(std::make_unique<MenuState>(m_context));
-    }
-}
+void SplashState::handleInput(int, int) {}
+void SplashState::handleStart() {}
 
 // --- MenuState ---
-auto MenuState::enter() -> void {
-    m_context.setInternalState(GameLogic::StartMenu);
+void MenuState::enter() { engine(*this).setInternalState(GameLogic::StartMenu); }
+void MenuState::exit() {}
+void MenuState::update() {}
+void MenuState::handleInput(int, int) {}
+void MenuState::handleStart() {
+    auto& e = engine(*this);
+    if (e.hasSave()) e.loadLastSession();
+    else e.restart();
 }
-
-auto MenuState::handleStart() -> void {
-    if (m_context.hasSave()) m_context.loadLastSession();
-    else m_context.startGame();
-}
-
-auto MenuState::handleSelect() -> void {
-    m_context.nextLevel();
-}
+void MenuState::handleSelect() { engine(*this).nextLevel(); }
 
 // --- PlayingState ---
-auto PlayingState::enter() -> void {
-    m_context.setInternalState(GameLogic::Playing);
-    m_context.m_timer->start();
-    m_context.m_ghostFrameIndex = 0; // Reset ghost index on start
+void PlayingState::enter() { engine(*this).setInternalState(GameLogic::Playing); }
+void PlayingState::exit() {}
+void PlayingState::update() {
+    auto& e = engine(*this);
+    auto& queue = e.inputQueue();
+    if (!queue.empty()) {
+        e.direction() = queue.front();
+        queue.pop_front();
+        e.currentInputHistory().append({e.gameTickCounter(), e.direction().x(), e.direction().y()});
+    }
+    const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
+    if (e.checkCollision(nextHead)) {
+        e.triggerHaptic(8); e.playEventSound(1); e.updatePersistence();
+        e.requestStateChange(GameLogic::GameOver); return;
+    }
+    e.handleFoodConsumption(nextHead);
+    e.handlePowerUpConsumption(nextHead);
+    bool grew = (nextHead == e.foodPos());
+    e.applyMovement(nextHead, grew);
 }
-
-auto PlayingState::update() -> void {
-    auto& logic = m_context;
-    
-    // Apply buffered input from queue
-    if (!logic.m_inputQueue.empty()) {
-        logic.m_direction = logic.m_inputQueue.front();
-        logic.m_inputQueue.pop_front();
-        // Record EXACTLY when input is consumed/applied
-        logic.m_currentInputHistory.append({logic.m_gameTickCounter, logic.m_direction.x(), logic.m_direction.y()});
-    }
-
-    const auto &body = logic.m_snakeModel.body();
-    if (body.empty()) return;
-    const QPoint nextHead = body.front() + logic.m_direction;
-
-    if (logic.m_activeBuff == GameLogic::Magnet) {
-        if (std::abs(logic.m_food.x() - nextHead.x()) <= 1 && std::abs(logic.m_food.y() - nextHead.y()) <= 1) {
-            logic.m_food = nextHead;
-        }
-    }
-
-    bool collision = GameLogic::isOutOfBounds(nextHead);
-    if (!collision) {
-        for (const auto &p : logic.m_obstacles) { if (p == nextHead) { collision = true; break; } }
-    }
-    if (!collision && logic.m_activeBuff != GameLogic::Ghost) {
-        for (const auto &p : body) { if (p == nextHead) { collision = true; break; } }
-    }
-
-    if (collision) {
-        logic.m_timer->stop();
-        logic.m_buffTimer->stop();
-        logic.updateHighScore();
-        logic.incrementCrashes();
-        logic.clearSavedState();
-        emit logic.playerCrashed();
-        emit logic.requestFeedback(8);
-        logic.changeState(std::make_unique<GameOverState>(logic));
-        return;
-    }
-
-    // Record position for Ghost rendering
-    logic.m_currentRecording.append(nextHead);
-    if (logic.m_ghostFrameIndex < static_cast<int>(logic.m_bestRecording.size())) {
-        logic.m_ghostFrameIndex++;
-        emit logic.ghostChanged();
-    }
-
-    const bool ateFood = (nextHead == logic.m_food);
-    const bool atePowerUp = (nextHead == logic.m_powerUpPos);
-
-    if (ateFood) {
-        logic.m_score++;
-        logic.logFoodEaten();
-        float pan = (static_cast<float>(nextHead.x()) / GameLogic::BOARD_WIDTH - 0.5f) * 1.4f;
-        emit logic.foodEaten(pan);
-        logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
-        emit logic.scoreChanged();
-        logic.spawnFood();
-        if (logic.m_rng.bounded(100) < 15 && logic.m_powerUpPos == QPoint(-1, -1)) {
-            logic.spawnPowerUp();
-        }
-        emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
-    }
-
-    if (atePowerUp) {
-        auto pType = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
-        logic.m_activeBuff = pType;
-        logic.logPowerUpTriggered(pType);
-        logic.m_powerUpPos = QPoint(-1, -1);
-        logic.m_buffTimer->start(BuffDurationMs);
-        emit logic.powerUpEaten();
-        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
-        emit logic.buffChanged();
-        emit logic.powerUpChanged();
-    }
-
-    logic.checkAchievements();
-    logic.m_snakeModel.moveHead(nextHead, ateFood);
-}
-
-auto PlayingState::handleInput(int /*dx*/, int /*dy*/) -> void {}
-auto PlayingState::handleStart() -> void { m_context.togglePause(); }
+void PlayingState::handleInput(int, int) {}
+void PlayingState::handleStart() { engine(*this).togglePause(); }
 
 // --- ReplayingState ---
-auto ReplayingState::enter() -> void {
-    m_context.setInternalState(GameLogic::Replaying);
-    m_context.m_timer->start();
-}
-
-auto ReplayingState::update() -> void {
-    auto& logic = m_context;
-    
-    // Optimized playback: No full scan per frame
+void ReplayingState::enter() { engine(*this).setInternalState(GameLogic::Replaying); }
+void ReplayingState::exit() {}
+void ReplayingState::update() {
+    auto& e = engine(*this);
     static int historyIdx = 0;
-    if (logic.m_gameTickCounter == 0) historyIdx = 0;
-
-    while (historyIdx < logic.m_bestInputHistory.size()) {
-        const auto &f = logic.m_bestInputHistory[historyIdx];
-        if (f.frame == logic.m_gameTickCounter) {
-            logic.m_direction = QPoint(f.dx, f.dy);
-            historyIdx++;
-        } else if (f.frame > logic.m_gameTickCounter) {
-            break; // Not time yet
-        } else {
-            historyIdx++; // Skip missed frame
-        }
+    if (e.gameTickCounter() == 0) historyIdx = 0;
+    auto& bestHistory = e.bestInputHistory();
+    while (historyIdx < bestHistory.size()) {
+        const auto &f = bestHistory[historyIdx];
+        if (f.frame == e.gameTickCounter()) { e.direction() = QPoint(f.dx, f.dy); historyIdx++; }
+        else if (f.frame > e.gameTickCounter()) break;
+        else historyIdx++;
     }
-
-    const auto &body = logic.m_snakeModel.body();
-    if (body.empty()) return;
-    const QPoint nextHead = body.front() + logic.m_direction;
-
-    // No collisions should occur in a valid replay
-    // But we check for safety or if logic version changed
-    bool collision = GameLogic::isOutOfBounds(nextHead);
-    if (!collision) {
-        for (const auto &p : logic.m_obstacles) { if (p == nextHead) { collision = true; break; } }
-    }
-    if (!collision && logic.m_activeBuff != GameLogic::Ghost) {
-        for (const auto &p : body) { if (p == nextHead) { collision = true; break; } }
-    }
-
-    if (collision) {
-        logic.m_timer->stop();
-        emit logic.playerCrashed();
-        logic.changeState(std::make_unique<MenuState>(logic));
-        return;
-    }
-
-    const bool ateFood = (nextHead == logic.m_food);
-    const bool atePowerUp = (nextHead == logic.m_powerUpPos);
-
-    if (ateFood) {
-        logic.m_score++;
-        emit logic.foodEaten(0.0f);
-        logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
-        emit logic.scoreChanged();
-        logic.spawnFood();
-        if (logic.m_rng.bounded(100) < 15 && logic.m_powerUpPos == QPoint(-1, -1)) {
-            logic.spawnPowerUp();
-        }
-    }
-
-    if (atePowerUp) {
-        logic.m_activeBuff = static_cast<GameLogic::PowerUp>(logic.m_powerUpType);
-        logic.m_powerUpPos = QPoint(-1, -1);
-        logic.m_buffTimer->start(BuffDurationMs);
-        emit logic.powerUpEaten();
-        if (logic.m_activeBuff == GameLogic::Slow) logic.m_timer->setInterval(250);
-        emit logic.buffChanged();
-        emit logic.powerUpChanged();
-    }
-
-    logic.m_snakeModel.moveHead(nextHead, ateFood);
+    const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
+    if (e.checkCollision(nextHead)) { engine(*this).requestStateChange(GameLogic::StartMenu); return; }
+    bool grew = (nextHead == e.foodPos());
+    e.handleFoodConsumption(nextHead); e.handlePowerUpConsumption(nextHead); e.applyMovement(nextHead, grew);
 }
-
-auto ReplayingState::handleStart() -> void {
-    m_context.changeState(std::make_unique<MenuState>(m_context));
-}
+void ReplayingState::handleInput(int, int) {}
+void ReplayingState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
 
 // --- PausedState ---
-auto PausedState::enter() -> void {
-    m_context.setInternalState(GameLogic::Paused);
-    m_context.m_timer->stop();
-    m_context.m_buffTimer->stop();
-    m_context.saveCurrentState();
-    emit m_context.requestFeedback(2);
-}
-
-auto PausedState::handleStart() -> void {
-    m_context.togglePause();
-}
+void PausedState::enter() { engine(*this).setInternalState(GameLogic::Paused); }
+void PausedState::exit() {}
+void PausedState::update() {}
+void PausedState::handleInput(int, int) {}
+void PausedState::handleStart() { engine(*this).togglePause(); }
 
 // --- GameOverState ---
-void GameOverState::enter() {
-    m_context.setInternalState(GameLogic::GameOver);
-}
-
-void GameOverState::handleStart() {
-    m_context.restart();
-}
+void GameOverState::enter() { engine(*this).setInternalState(GameLogic::GameOver); }
+void GameOverState::exit() {}
+void GameOverState::update() {}
+void GameOverState::handleInput(int, int) {}
+void GameOverState::handleStart() { engine(*this).restart(); }

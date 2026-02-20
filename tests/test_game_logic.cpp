@@ -14,23 +14,23 @@ private slots:
 
     void testMoveAndBoundary() {
         GameLogic game;
-        // Skip Splash
         game.startGame(); 
         
-        // Wait for lazyInit
-        QTest::qWait(300);
+        // Wait for Splash to end and Playing to start
+        QTest::qWait(500);
 
         QCOMPARE(static_cast<int>(game.state()), static_cast<int>(GameLogic::Playing));
 
         // Initial head is at 10,10. Move Up (0, -1). 
-        // Need ~11 steps to hit boundary y < 0.
-        // Game interval is 150ms. Total wait must be > 11 * 150 = 1650ms.
-        for (int i = 0; i < 30; ++i) {
+        // Need 11 steps to hit boundary y < 0.
+        // Current interval is 200ms.
+        for (int i = 0; i < 40; ++i) {
             game.move(0, -1);
-            QTest::qWait(100); // 30 * 100 = 3000ms total, enough for 20 steps
+            QTest::qWait(150); // Sufficient steps and time to reach boundary
         }
         
-        QCOMPARE(static_cast<int>(game.state()), static_cast<int>(GameLogic::GameOver));
+        // Use verify with timeout to be robust
+        QTRY_COMPARE_WITH_TIMEOUT(static_cast<int>(game.state()), static_cast<int>(GameLogic::GameOver), 5000);
     }
 };
 

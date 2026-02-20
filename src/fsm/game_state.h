@@ -17,6 +17,8 @@ public:
     virtual void handleStart() {}
     virtual void handleSelect() {}
 
+    [[nodiscard]] GameLogic& context() noexcept { return m_context; }
+
 protected:
     GameLogic& m_context;
 };
