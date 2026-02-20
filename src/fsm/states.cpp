@@ -111,11 +111,11 @@ auto PlayingState::update() -> void {
             logic.m_soundManager->setScore(logic.m_score);
             logic.m_soundManager->playBeep(880, 100);
         }
-        logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
+        logic.m_timer->setInterval(std::max(60, 200 - (logic.m_score / 5) * 8));
         emit logic.scoreChanged();
         logic.spawnFood();
-        // High spawn chance for verification (50%)
-        if (logic.m_rng.bounded(100) < 50 && logic.m_powerUpPos == QPoint(-1, -1)) {
+        // Rare spawn chance (15%)
+        if (logic.m_rng.bounded(100) < 15 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));

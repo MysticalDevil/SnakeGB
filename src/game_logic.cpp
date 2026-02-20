@@ -20,7 +20,7 @@
 using namespace Qt::StringLiterals;
 
 namespace {
-constexpr int InitialInterval = 150;
+constexpr int InitialInterval = 200;
 constexpr int MaxSpawnAttempts = 200;
 constexpr int BuffDurationMs = 8000;
 constexpr int PacifistThresholdMs = 60000;
