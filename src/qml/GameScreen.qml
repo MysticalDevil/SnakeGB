@@ -440,6 +440,30 @@ Item {
                 }
             }
 
+            // Active Effect Status Bar
+            Rectangle {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.margins: 4
+                width: 80; height: 12
+                color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
+                visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
+                z: 65
+                radius: 2
+                Text {
+                    id: statusText
+                    anchors.centerIn: parent
+                    font.family: gameFont
+                    font.pixelSize: 6
+                    font.bold: true
+                    color: p3
+                    text: {
+                        var names = ["", "GHOST", "SLOW", "MAGNET", "SHIELD", "PORTAL", "GOLD", "RICH", "LASER", "MINI"]
+                        return names[gameLogic.activeBuff] + " ACTIVE"
+                    }
+                }
+            }
+
             MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
 
             // Fruit Encyclopedia Layer (Hidden)

@@ -108,11 +108,10 @@ bool GameLogic::checkCollision(const QPoint &head) {
         p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
         p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
     } else if (isOutOfBounds(p)) {
-        if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; }
+        if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); emit buffChanged(); return false; }
         return true;
     }
 
-    // Laser buff can break one obstacle
     for (int i = 0; i < m_obstacles.size(); ++i) {
         if (m_obstacles[i] == p) {
             if (m_activeBuff == Laser) {
@@ -123,7 +122,7 @@ bool GameLogic::checkCollision(const QPoint &head) {
                 emit buffChanged();
                 return false;
             }
-            if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; }
+            if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); emit buffChanged(); return false; }
             return true;
         }
     }
@@ -131,7 +130,7 @@ bool GameLogic::checkCollision(const QPoint &head) {
     if (m_activeBuff != Ghost) {
         for (const auto &body : m_snakeModel.body()) { 
             if (body == p) { 
-                if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); return false; }
+                if (m_shieldActive) { m_shieldActive = false; triggerHaptic(5); emit buffChanged(); return false; }
                 return true; 
             } 
         }
@@ -182,13 +181,6 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     m_activeBuff = m_powerUpType;
     if (m_profileManager) m_profileManager->discoverFruit(static_cast<int>(m_activeBuff));
     
-    // OSD Notification
-    static const QStringList buffNames = {
-        "", "GHOST MODE", "SLOW DOWN", "MAGNET ON", "SHIELD ACTIVE", 
-        "PORTAL OPEN", "DOUBLE SCORE", "TRIPLE RICH", "LASER READY", "BODY MINI"
-    };
-    if (m_activeBuff > 0) emit buffChanged(); // Trigger OSD via QML connection
-
     if (m_activeBuff == Shield) m_shieldActive = true;
     
     if (m_activeBuff == Mini) {
@@ -208,7 +200,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     
     if (m_activeBuff == Slow) m_timer->setInterval(250);
     
-    triggerHaptic(5); // Tactile confirmation for power-up
+    triggerHaptic(5);
+    emit buffChanged();
     emit powerUpChanged();
 }
 
