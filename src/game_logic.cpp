@@ -181,9 +181,16 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     if (p != m_powerUpPos) return;
     
     m_activeBuff = m_powerUpType;
+    
+    // OSD Notification
+    static const QStringList buffNames = {
+        "", "GHOST MODE", "SLOW DOWN", "MAGNET ON", "SHIELD ACTIVE", 
+        "PORTAL OPEN", "DOUBLE SCORE", "TRIPLE RICH", "LASER READY", "BODY MINI"
+    };
+    if (m_activeBuff > 0) emit buffChanged(); // Trigger OSD via QML connection
+
     if (m_activeBuff == Shield) m_shieldActive = true;
     
-    // Special Mini logic: immediate effect
     if (m_activeBuff == Mini) {
         auto body = m_snakeModel.body();
         if (body.size() > 3) {
@@ -192,7 +199,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
             for (size_t i = 0; i < half; ++i) newBody.push_back(body[i]);
             m_snakeModel.reset(newBody);
         }
-        m_activeBuff = None; // Mini is instant, no duration
+        m_activeBuff = None;
     }
     
     m_powerUpPos = QPoint(-1, -1);
@@ -201,7 +208,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     
     if (m_activeBuff == Slow) m_timer->setInterval(250);
     
-    emit buffChanged();
+    triggerHaptic(5); // Tactile confirmation for power-up
     emit powerUpChanged();
 }
 

@@ -44,8 +44,10 @@ Window {
         function onAchievementEarned(title) { screen.showOSD("UNLOCKED: " + title) }
         function onBuffChanged() {
             if (gameLogic.activeBuff !== 0) {
-                var names = ["", "GHOST MODE", "SLOW DOWN", "MAGNET ON"]
-                screen.showOSD(names[gameLogic.activeBuff])
+                var names = ["", "GHOST MODE", "SLOW DOWN", "MAGNET ON", "SHIELD ACTIVE", "PORTAL OPEN", "DOUBLE SCORE", "TRIPLE RICH", "LASER READY", "BODY MINI"]
+                if (gameLogic.activeBuff < names.length) {
+                    screen.showOSD(names[gameLogic.activeBuff])
+                }
             }
         }
     }
