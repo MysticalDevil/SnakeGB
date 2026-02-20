@@ -1,48 +1,51 @@
 import QtQuick
 
-Rectangle {
+Item {
     id: root
-    property alias text: label.text
-    property color buttonColor: "#a01040"
+    width: 50
+    height: 50
+    property string text: ""
     property bool isPressed: false
-    signal clicked
+    signal clicked()
 
-    width: 45
-    height: 45
-    radius: 22.5
-    color: (mouseArea.pressed || isPressed) ? Qt.darker(buttonColor, 1.2) : buttonColor
-    border.color: "#333"
-    border.width: 2
+    Rectangle {
+        id: body
+        anchors.fill: parent
+        radius: width / 2
+        color: root.isPressed ? "#800020" : "#a81830" // Sinking color
+        border.color: Qt.darker(color, 1.2)
+        border.width: 2
 
-    scale: (mouseArea.pressed || isPressed) ? 0.9 : 1.0
-    
-    Behavior on scale { 
-        NumberAnimation {
-            duration: 50
-            easing.type: Easing.OutQuad
-        } 
-    }
-    Behavior on color {
-        ColorAnimation {
-            duration: 50
+        // Outer Glow when pressed
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: -4
+            radius: width / 2
+            color: gameLogic.palette[2]
+            opacity: root.isPressed ? 0.3 : 0
+            z: -1
+            Behavior on opacity { NumberAnimation { duration: 50 } }
         }
-    }
 
-    Text {
-        id: label
-        anchors.top: parent.bottom
-        anchors.topMargin: 4
-        anchors.horizontalCenter: parent.horizontalCenter
-        font.bold: true
-        color: "#333"
-        font.pixelSize: 12
+        Text {
+            anchors.centerIn: parent
+            text: root.text
+            color: "white"
+            font.bold: true
+            font.pixelSize: 18
+        }
+
+        // Translation for "Physical" feel
+        transform: Translate { 
+            x: root.isPressed ? 1 : 0
+            y: root.isPressed ? 2 : 0 
+        }
     }
 
     MouseArea {
-        id: mouseArea
         anchors.fill: parent
-        onClicked: {
-            root.clicked()
-        }
+        onPressed: { root.isPressed = true; root.clicked() }
+        onReleased: root.isPressed = false
+        onCanceled: root.isPressed = false
     }
 }

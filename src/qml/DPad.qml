@@ -10,117 +10,71 @@ Item {
     property bool leftPressed: false
     property bool rightPressed: false
 
-    signal upClicked
-    signal downClicked
-    signal leftClicked
-    signal rightClicked
+    signal upClicked()
+    signal downClicked()
+    signal leftClicked()
+    signal rightClicked()
 
+    // Cross Base
     Rectangle {
-        width: 110
-        height: 35
-        color: "#222"
         anchors.centerIn: parent
-        radius: 5
+        width: 100
+        height: 30
+        color: "#222"
+        radius: 4
     }
-
     Rectangle {
-        width: 35
-        height: 110
+        anchors.centerIn: parent
+        width: 30
+        height: 100
         color: "#222"
-        anchors.centerIn: parent
-        radius: 5
+        radius: 4
     }
 
-    component DPadButton : Rectangle {
-        property bool active: false
-        signal pressAction
-        width: 35
-        height: 35
-        color: (mouseArea.pressed || active) ? "#555" : "transparent"
-        radius: 5
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            onClicked: {
-                pressAction()
-            }
+    // Directional Segments with Feedback
+    component DPadButton: Rectangle {
+        property bool isPressed: false
+        width: 30
+        height: 30
+        color: isPressed ? "#444" : "transparent"
+        radius: 2
+        
+        // Inner Arrow Glow
+        Rectangle {
+            anchors.centerIn: parent
+            width: 10; height: 10
+            color: parent.isPressed ? gameLogic.palette[3] : "#111"
+            rotation: 45
+            opacity: parent.isPressed ? 0.8 : 0.3
+            Behavior on color { ColorAnimation { duration: 50 } }
         }
-    }
 
-    component ArrowGlyph : Canvas {
-        property int direction: 0 // 0 up, 1 down, 2 left, 3 right
-        width: 14
-        height: 14
-        anchors.centerIn: parent
-        opacity: 0.55
-        onPaint: {
-            var ctx = getContext("2d")
-            ctx.clearRect(0, 0, width, height)
-            ctx.fillStyle = "#111"
-            ctx.beginPath()
-            if (direction === 0) {
-                ctx.moveTo(width / 2, 2)
-                ctx.lineTo(2, height - 2)
-                ctx.lineTo(width - 2, height - 2)
-            } else if (direction === 1) {
-                ctx.moveTo(2, 2)
-                ctx.lineTo(width - 2, 2)
-                ctx.lineTo(width / 2, height - 2)
-            } else if (direction === 2) {
-                ctx.moveTo(2, height / 2)
-                ctx.lineTo(width - 2, 2)
-                ctx.lineTo(width - 2, height - 2)
-            } else {
-                ctx.moveTo(2, 2)
-                ctx.lineTo(width - 2, height / 2)
-                ctx.lineTo(2, height - 2)
-            }
-            ctx.closePath()
-            ctx.fill()
-        }
+        // Physical Sinking Effect
+        transform: Translate { y: isPressed ? 2 : 0 }
     }
 
     DPadButton {
         id: upBtn
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        active: root.upPressed
-        onPressAction: {
-            upClicked()
-        }
-        ArrowGlyph { direction: 0 }
+        anchors.top: parent.top; anchors.horizontalCenter: parent.horizontalCenter
+        isPressed: root.upPressed
+        MouseArea { anchors.fill: parent; onPressed: root.upClicked() }
     }
-
     DPadButton {
         id: downBtn
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        active: root.downPressed
-        onPressAction: {
-            downClicked()
-        }
-        ArrowGlyph { direction: 1 }
+        anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter
+        isPressed: root.downPressed
+        MouseArea { anchors.fill: parent; onPressed: root.downClicked() }
     }
-
     DPadButton {
         id: leftBtn
-        anchors.left: parent.left
-        anchors.verticalCenter: parent.verticalCenter
-        active: root.leftPressed
-        onPressAction: {
-            leftClicked()
-        }
-        ArrowGlyph { direction: 2 }
+        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter
+        isPressed: root.leftPressed
+        MouseArea { anchors.fill: parent; onPressed: root.leftClicked() }
     }
-
     DPadButton {
         id: rightBtn
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        active: root.rightPressed
-        onPressAction: {
-            rightClicked()
-        }
-        ArrowGlyph { direction: 3 }
+        anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+        isPressed: root.rightPressed
+        MouseArea { anchors.fill: parent; onPressed: root.rightClicked() }
     }
 }

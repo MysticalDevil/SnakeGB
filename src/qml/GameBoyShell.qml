@@ -100,18 +100,27 @@ Rectangle {
                 }
             }
 
-            MouseArea {
-                anchors.fill: parent
-                drag.target: volumeWheel
-                drag.axis: Drag.YAxis
-                drag.minimumY: 0
-                drag.maximumY: volumeKnobTrack.height - volumeWheel.height
-                onPositionChanged: {
-                    var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
-                    gameLogic.volume = normalized
-                }
-            }
-        }
+                                MouseArea {
+                                    anchors.fill: parent
+                                    drag.target: volumeWheel
+                                    drag.axis: Drag.YAxis
+                                    drag.minimumY: 0
+                                    drag.maximumY: volumeKnobTrack.height - volumeWheel.height
+                                    
+                                    property int lastStep: 0
+                                    
+                                    onPositionChanged: {
+                                        var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
+                                        gameLogic.volume = normalized
+                                        
+                                        // Haptic feedback every 10% volume change
+                                        var currentStep = Math.floor(normalized * 10)
+                                        if (currentStep !== lastStep) {
+                                            gameLogic.requestFeedback(1)
+                                            lastStep = currentStep
+                                        }
+                                    }
+                                }        }
         Text {
             anchors.bottom: parent.top
             anchors.bottomMargin: 5

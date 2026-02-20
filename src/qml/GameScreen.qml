@@ -34,9 +34,18 @@ Item {
                 id: backgroundGrid
                 anchors.fill: parent
                 z: 0
+                
+                // Pulsing color logic for High Coverage Warning
+                property color gridColor: {
+                    if (gameLogic.coverage > 0.5) {
+                        return Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3)
+                    }
+                    return p1
+                }
+
                 onPaint: {
                     var ctx = getContext("2d");
-                    ctx.strokeStyle = p1;
+                    ctx.strokeStyle = gridColor;
                     ctx.lineWidth = 1.5;
                     ctx.beginPath();
                     for (var i = 0; i <= gameLogic.boardWidth; i++) {
@@ -51,9 +60,16 @@ Item {
                     }
                     ctx.stroke();
                 }
+                
                 Connections {
                     target: gameLogic
-                    function onPaletteChanged() {
+                    function onPaletteChanged() { backgroundGrid.requestPaint(); }
+                    function onScoreChanged() { backgroundGrid.requestPaint(); }
+                }
+                
+                // Refresh grid on animation ticks if in warning mode
+                onGridColorChanged: {
+                    if (gameLogic.coverage > 0.5) {
                         backgroundGrid.requestPaint();
                     }
                 }

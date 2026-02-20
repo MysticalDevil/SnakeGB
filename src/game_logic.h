@@ -87,6 +87,7 @@ class GameLogic final : public QObject {
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
     Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
+    Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
 
@@ -127,6 +128,7 @@ public:
     [[nodiscard]] auto achievements() const noexcept -> QVariantList;
     [[nodiscard]] auto medalLibrary() const noexcept -> QVariantList;
     [[nodiscard]] auto volume() const noexcept -> float;
+    [[nodiscard]] auto coverage() const noexcept -> float { return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); }
     auto setVolume(float v) -> void;
     [[nodiscard]] auto reflectionOffset() const noexcept -> QPointF { return m_reflectionOffset; }
 
