@@ -19,40 +19,46 @@ Item {
         color: "black"
         clip: true
 
-        // 1. GAME WORLD & EFFECTS (Applied with Shader)
+        // --- 1. GAME CONTENT (Under Shader) ---
         Item {
             id: gameContent
             anchors.fill: parent
             
-            // Grid and Background
             Rectangle { anchors.fill: parent; color: p0; z: -1 }
+            
             Canvas {
                 id: backgroundGrid
-                anchors.fill: parent
-                z: 0
+                anchors.fill: parent; z: 0
                 property color gridColor: (gameLogic.coverage > 0.5) ? Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3) : p1
-                onPaint: { var ctx = getContext("2d"); ctx.strokeStyle = gridColor; ctx.lineWidth = 1.5; ctx.beginPath(); for (var i = 0; i <= gameLogic.boardWidth; i++) { var xPos = i * (width / gameLogic.boardWidth); ctx.moveTo(xPos, 0); ctx.lineTo(xPos, height); } for (var j = 0; j <= gameLogic.boardHeight; j++) { var yPos = j * (height / gameLogic.boardHeight); ctx.moveTo(0, yPos); ctx.lineTo(width, yPos); } ctx.stroke(); }
-                Connections { target: gameLogic; function onPaletteChanged() { backgroundGrid.requestPaint(); } }
+                onPaint: { var ctx = getContext("2d"); ctx.strokeStyle = gridColor; ctx.lineWidth = 1.5; ctx.beginPath(); for (var i = 0; i <= gameLogic.boardWidth; i++) { var x = i * (width / gameLogic.boardWidth); ctx.moveTo(x, 0); ctx.lineTo(x, height); } for (var j = 0; j <= gameLogic.boardHeight; j++) { var y = j * (height / gameLogic.boardHeight); ctx.moveTo(0, y); ctx.lineTo(width, y); } ctx.stroke(); }
+                Connections { target: gameLogic; function onPaletteChanged() { backgroundGrid.requestPaint() } }
             }
 
-            // Game World (Snake, Food, Obstacles)
             Item {
                 id: gameWorld
-                anchors.fill: parent
-                z: 10
+                anchors.fill: parent; z: 10
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
 
-                // Food
+                // Food & PowerUps
                 Rectangle { x: gameLogic.food.x * (parent.width / gameLogic.boardWidth); y: gameLogic.food.y * (parent.height / gameLogic.boardHeight); width: parent.width / gameLogic.boardWidth; height: parent.height / gameLogic.boardHeight; color: p3; radius: width / 2; z: 20 }
+                
+                Item {
+                    id: powerUpItem; visible: gameLogic.powerUpPos.x !== -1; z: 30
+                    x: gameLogic.powerUpPos.x * (parent.width / gameLogic.boardWidth); y: gameLogic.powerUpPos.y * (parent.height / gameLogic.boardHeight); width: parent.width / gameLogic.boardWidth; height: parent.height / gameLogic.boardHeight
+                    Rectangle { 
+                        anchors.centerIn: parent; width: parent.width*0.8; height: parent.height*0.8; rotation: 45; color: p3
+                        SequentialAnimation on scale { loops: Animation.Infinite; NumberAnimation { from: 0.7; to: 1.2; duration: 300 }; NumberAnimation { from: 1.2; to: 0.7; duration: 300 } }
+                    }
+                }
 
-                // Snake
+                // Snake body
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
                         x: model.pos.x * (gameWorld.width / gameLogic.boardWidth); y: model.pos.y * (gameWorld.height / gameLogic.boardHeight); width: gameWorld.width / gameLogic.boardWidth; height: gameWorld.height / gameLogic.boardHeight
                         color: (gameLogic.activeBuff === 6) ? ((Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3) : (index === 0 ? p3 : p2)
                         radius: index === 0 ? 2 : 1; opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0; z: 15
-                        Rectangle { anchors.fill: parent; anchors.margins: -2; color: "transparent"; border.color: "#00ffff"; border.width: 1; radius: parent.radius + 2; visible: index === 0 && gameLogic.shieldActive }
+                        Rectangle { anchors.fill: parent; anchors.margins: -2; color: "transparent"; border.color: "#00ffff"; border.width: 1; radius: parent.radius+2; visible: index === 0 && gameLogic.shieldActive }
                     }
                 }
 
@@ -64,7 +70,7 @@ Item {
             }
         }
 
-        // 2. LCD SHADER (Only applies to gameContent)
+        // --- 2. LCD SHADER LAYER ---
         ShaderEffect {
             anchors.fill: parent
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
@@ -73,14 +79,22 @@ Item {
             z: 20
         }
 
-        // 3. UI OVERLAYS (Outside Shader for clarity and input)
+        // --- 3. OVERLAY UI (Above Shader) ---
         
-        // Splash Layer
-        Rectangle { id: splashLayer; anchors.fill: parent; color: p0; visible: gameLogic.state === 0; z: 100; Text { text: "S N A K E"; anchors.centerIn: parent; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true } }
-
-        // Start Menu
+        // Splash Animation
         Rectangle {
-            anchors.fill: parent; color: p0; visible: gameLogic.state === 1; z: 100
+            id: splashLayer; anchors.fill: parent; color: p0; visible: gameLogic.state === 0 || bootAnim.running; z: 100
+            Text { id: bootText; text: "S N A K E"; anchors.centerIn: parent; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; y: -50 }
+            SequentialAnimation {
+                id: bootAnim; running: gameLogic.state === 0
+                PauseAnimation { duration: 200 }
+                NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
+            }
+        }
+
+        // Main Menu
+        Rectangle {
+            anchors.fill: parent; color: p0; visible: gameLogic.state === 1 && !bootAnim.running; z: 100
             Column {
                 anchors.centerIn: parent; spacing: 6
                 Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
@@ -90,10 +104,15 @@ Item {
             }
         }
 
-        // HUD (Score)
-        Column { anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4; visible: gameLogic.state >= 2 && gameLogic.state <= 6; z: 150; Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right } Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right } }
+        // HUD (Play State)
+        Column { 
+            anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4; z: 150
+            visible: gameLogic.state >= 2 && gameLogic.state <= 6
+            Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
+            Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right }
+        }
 
-        // Choice Selection (Roguelike)
+        // Choice Selection
         Rectangle {
             anchors.fill: parent; color: Qt.rgba(p0.r, p0.g, p0.b, 0.95); visible: gameLogic.state === 6; z: 200
             Column {
@@ -110,12 +129,11 @@ Item {
             }
         }
 
-        // Medal Room
+        // Secondary Screens
         MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 8; z: 300 }
-
-        // Fruit Catalog
+        
         Rectangle {
-            anchors.fill: parent; color: p0; visible: gameLogic.state === 7; z: 300
+            id: libraryLayer; anchors.fill: parent; color: p0; visible: gameLogic.state === 7; z: 300
             Column {
                 anchors.fill: parent; anchors.margins: 10; spacing: 5
                 Text { text: "FRUIT CATALOG"; color: p3; font.family: gameFont; font.pixelSize: 14; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
@@ -133,6 +151,6 @@ Item {
         OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 500 }
     }
 
-    function showOSD(text) { osd.show(text); }
-    function triggerPowerCycle() { /* Implementation if needed */ }
+    function showOSD(text) { osd.show(text) }
+    function triggerPowerCycle() { /* Placeholder for future hardware effects */ }
 }

@@ -92,7 +92,7 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library, MedalRoom };
+    enum State { Splash=0, StartMenu=1, Playing=2, Paused=3, GameOver=4, Replaying=5, ChoiceSelection=6, Library=7, MedalRoom=8 };
     enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6, Rich = 7, Laser = 8, Mini = 9 };
     Q_ENUM(State)
 
@@ -141,10 +141,10 @@ public:
     int choiceIndex() const override { return m_choiceIndex; }
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
     
-    int libraryIndex() const { return m_libraryIndex; }
-    void setLibraryIndex(int index) { m_libraryIndex = index; emit libraryIndexChanged(); }
-    int medalIndex() const { return m_medalIndex; }
-    void setMedalIndex(int index) { m_medalIndex = index; emit medalIndexChanged(); }
+    int libraryIndex() const override { return m_libraryIndex; }
+    void setLibraryIndex(int index) override { m_libraryIndex = index; emit libraryIndexChanged(); }
+    int medalIndex() const override { return m_medalIndex; }
+    void setMedalIndex(int index) override { m_medalIndex = index; emit medalIndexChanged(); }
 
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);

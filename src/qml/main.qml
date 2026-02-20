@@ -16,23 +16,11 @@ Window {
     readonly property string gameFont: "Monospace"
 
     property real elapsed: 0.0
-
-    NumberAnimation on elapsed { 
-        from: 0 
-        to: 1000 
-        duration: 1000000 
-        loops: Animation.Infinite 
-    }
+    NumberAnimation on elapsed { from: 0; to: 1000; duration: 1000000; loops: Animation.Infinite }
 
     Timer {
-        id: longPressTimer
-        interval: 1500
-        onTriggered: {
-            if (gameLogic.state === 1 && gameLogic.hasSave) {
-                gameLogic.deleteSave()
-                screen.showOSD(qsTr("Save Cleared"))
-            }
-        }
+        id: longPressTimer; interval: 1500
+        onTriggered: { if (gameLogic.state === 1 && gameLogic.hasSave) { gameLogic.deleteSave(); screen.showOSD(qsTr("Save Cleared")) } }
     }
 
     Connections {
@@ -43,43 +31,26 @@ Window {
         function onBuffChanged() {
             if (gameLogic.activeBuff !== 0) {
                 var names = ["", "GHOST MODE", "SLOW DOWN", "MAGNET ON", "SHIELD ACTIVE", "PORTAL OPEN", "DOUBLE SCORE", "TRIPLE RICH", "LASER READY", "BODY MINI"]
-                if (gameLogic.activeBuff < names.length) {
-                    screen.showOSD(names[gameLogic.activeBuff])
-                }
+                if (gameLogic.activeBuff < names.length) screen.showOSD(names[gameLogic.activeBuff])
             }
         }
         function onRequestFeedback(magnitude) {
-            console.log("Haptic Pulse:", magnitude)
+            // Signal received from C++.
+            // Console log ensures the path is monitored during build.
+            console.log("Feedback magnitude:", magnitude)
         }
     }
 
     Item {
-        id: rootContainer
-        anchors.fill: parent
-        
+        id: rootContainer; anchors.fill: parent
         Item {
-            id: scaledWrapper
-            width: 350
-            height: 550
-            anchors.centerIn: parent
-            scale: Math.min(window.width / 350, window.height / 550)
-
+            id: scaledWrapper; width: 350; height: 550; anchors.centerIn: parent; scale: Math.min(window.width / 350, window.height / 550)
             GameBoyShell {
-                id: shell
-                anchors.fill: parent
-                
+                id: shell; anchors.fill: parent
                 GameScreen {
-                    id: screen
-                    parent: shell.screenContainer
-                    anchors.fill: parent
-                    p0: window.p0
-                    p1: window.p1
-                    p2: window.p2
-                    p3: window.p3
-                    gameFont: window.gameFont
-                    elapsed: window.elapsed
+                    id: screen; parent: shell.screenContainer; anchors.fill: parent
+                    p0: window.p0; p1: window.p1; p2: window.p2; p3: window.p3; gameFont: window.gameFont; elapsed: window.elapsed
                 }
-
                 Connections {
                     target: shell.dpad
                     function onUpClicked() { gameLogic.move(0, -1) }
@@ -87,31 +58,10 @@ Window {
                     function onLeftClicked() { gameLogic.move(-1, 0) }
                     function onRightClicked() { gameLogic.move(1, 0) }
                 }
-
-                Connections {
-                    target: shell.aButton
-                    function onClicked() { gameLogic.handleStart() }
-                }
-
-                Connections {
-                    target: shell.bButton
-                    function onClicked() {
-                        if (gameLogic.state === 1) gameLogic.quit()
-                        else if (gameLogic.state >= 3) gameLogic.quitToMenu()
-                        else gameLogic.nextPalette()
-                    }
-                }
-
-                Connections {
-                    target: shell.selectButton
-                    function onPressed() { longPressTimer.start() }
-                    function onReleased() { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
-                }
-
-                Connections {
-                    target: shell.startButton
-                    function onClicked() { gameLogic.handleStart() }
-                }
+                Connections { target: shell.aButton; onClicked: { gameLogic.handleStart() } }
+                Connections { target: shell.bButton; onClicked: { if (gameLogic.state === 1) gameLogic.quit(); else if (gameLogic.state >= 3) gameLogic.quitToMenu(); else gameLogic.nextPalette(); } }
+                Connections { target: shell.selectButton; onPressed: { longPressTimer.start() }; onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } } }
+                Connections { target: shell.startButton; onClicked: { gameLogic.handleStart() } }
             }
         }
     }
