@@ -114,7 +114,8 @@ auto PlayingState::update() -> void {
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         emit logic.scoreChanged();
         logic.spawnFood();
-        if (QRandomGenerator::global()->bounded(100) < 20 && logic.m_powerUpPos == QPoint(-1, -1)) {
+        // High spawn chance for verification (50%)
+        if (logic.m_rng.bounded(100) < 50 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
         emit logic.requestFeedback(std::min(5, 2 + (logic.m_score / 10)));
@@ -148,7 +149,6 @@ auto ReplayingState::enter() -> void {
 auto ReplayingState::update() -> void {
     auto& logic = m_context;
     
-    // Inject historical input
     for (const auto &f : logic.m_bestInputHistory) {
         if (f.frame == logic.m_gameTickCounter) {
             logic.m_direction = QPoint(f.dx, f.dy);
@@ -185,7 +185,8 @@ auto ReplayingState::update() -> void {
         logic.m_timer->setInterval(std::max(50, 150 - (logic.m_score / 5) * 10));
         emit logic.scoreChanged();
         logic.spawnFood();
-        if (QRandomGenerator::global()->bounded(100) < 20 && logic.m_powerUpPos == QPoint(-1, -1)) {
+        // Matching replay spawn logic
+        if (logic.m_rng.bounded(100) < 50 && logic.m_powerUpPos == QPoint(-1, -1)) {
             logic.spawnPowerUp();
         }
     }
