@@ -37,7 +37,6 @@ class SnakeModel final : public QAbstractListModel {
 public:
     enum Roles { PositionRole = Qt::UserRole + 1 };
     explicit SnakeModel(QObject *parent = nullptr) : QAbstractListModel(parent) {}
-    ~SnakeModel() override = default;
     int rowCount(const QModelIndex &parent = QModelIndex()) const noexcept override { return static_cast<int>(m_body.size()); }
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override {
         if (!index.isValid() || index.row() < 0 || index.row() >= static_cast<int>(m_body.size())) return {};
@@ -87,11 +86,13 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
     Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
     Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
+    Q_PROPERTY(int libraryIndex READ libraryIndex NOTIFY libraryIndexChanged)
+    Q_PROPERTY(int medalIndex READ medalIndex NOTIFY medalIndexChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
     Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library, MedalRoom };
     enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6, Rich = 7, Laser = 8, Mini = 9 };
     Q_ENUM(State)
 
@@ -138,6 +139,11 @@ public:
     Q_INVOKABLE void selectChoice(int index) override;
     int choiceIndex() const override { return m_choiceIndex; }
     void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
+    
+    int libraryIndex() const { return m_libraryIndex; }
+    void setLibraryIndex(int index) { m_libraryIndex = index; emit libraryIndexChanged(); }
+    int medalIndex() const { return m_medalIndex; }
+    void setMedalIndex(int index) { m_medalIndex = index; emit medalIndexChanged(); }
 
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
@@ -191,6 +197,7 @@ signals:
     void musicEnabledChanged(); void achievementsChanged(); void achievementEarned(QString title);
     void volumeChanged(); void reflectionOffsetChanged();
     void choicesChanged(); void choicePendingChanged(); void choiceIndexChanged();
+    void libraryIndexChanged(); void medalIndexChanged();
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
 
@@ -224,6 +231,8 @@ private:
     State m_state = Splash;
     bool m_choicePending = false;
     int m_choiceIndex = 0;
+    int m_libraryIndex = 0;
+    int m_medalIndex = 0;
     QVariantList m_choices;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");

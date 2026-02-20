@@ -82,3 +82,13 @@ public:
     void handleInput(int dx, int dy) override;
     void handleStart() override;
 };
+
+class MedalRoomState : public GameState {
+public:
+    using GameState::GameState;
+    void enter() override;
+    void exit() override;
+    void update() override;
+    void handleInput(int dx, int dy) override;
+    void handleStart() override;
+};

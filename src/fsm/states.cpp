@@ -44,14 +44,12 @@ void MenuState::update() {}
 void MenuState::handleInput(int dx, int dy) {
     auto& e = engine(*this);
     if (dx == 0 && dy == 1) { // DOWN
-        if (e.hasReplay()) {
-            e.startReplay();
-        } else {
-            e.playEventSound(3); // Error beep
-            e.triggerHaptic(2);  // Minor vibration pulse
-        }
+        if (e.hasReplay()) { e.startReplay(); } 
+        else { e.playEventSound(3); e.triggerHaptic(2); }
     } else if (dx == -1 && dy == 0) { // LEFT (Hidden Encyclopedia)
         e.requestStateChange(GameLogic::Library);
+    } else if (dx == 0 && dy == -1) { // UP (Medal Room)
+        e.requestStateChange(GameLogic::MedalRoom);
     }
 }
 
@@ -75,7 +73,6 @@ void PlayingState::exit() {}
 
 void PlayingState::update() {
     auto& e = engine(*this);
-    
     auto& queue = e.inputQueue();
     if (!queue.empty()) {
         e.direction() = queue.front();
@@ -84,7 +81,6 @@ void PlayingState::update() {
     }
 
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
-
     if (e.checkCollision(nextHead)) {
         e.triggerHaptic(8);
         e.playEventSound(1); 
@@ -118,7 +114,6 @@ void ReplayingState::update() {
     static int choiceIdx = 0;
     if (e.gameTickCounter() == 0) { inputIdx = 0; choiceIdx = 0; }
 
-    // 1. Process Choices (Roguelike Auto-selection)
     auto& bestChoices = e.bestChoiceHistory();
     while (choiceIdx < bestChoices.size()) {
         const auto &c = bestChoices[choiceIdx];
@@ -127,100 +122,78 @@ void ReplayingState::update() {
             e.selectChoice(c.index);
             choiceIdx++;
             return; 
-        } else if (c.frame > e.gameTickCounter()) {
-            break;
-        } else {
-            choiceIdx++;
-        }
+        } else if (c.frame > e.gameTickCounter()) { break; } 
+        else { choiceIdx++; }
     }
 
-    // 2. Process Movement
     auto& bestHistory = e.bestInputHistory();
     while (inputIdx < bestHistory.size()) {
         const auto &f = bestHistory[inputIdx];
-        if (f.frame == e.gameTickCounter()) {
-            e.direction() = QPoint(f.dx, f.dy);
-            inputIdx++;
-        } else if (f.frame > e.gameTickCounter()) {
-            break; 
-        } else {
-            inputIdx++;
-        }
+        if (f.frame == e.gameTickCounter()) { e.direction() = QPoint(f.dx, f.dy); inputIdx++; } 
+        else if (f.frame > e.gameTickCounter()) { break; } 
+        else { inputIdx++; }
     }
 
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
-    if (e.checkCollision(nextHead)) {
-        engine(*this).requestStateChange(GameLogic::StartMenu);
-        return;
-    }
-
-    bool grew = (nextHead == e.foodPos());
-    e.handleFoodConsumption(nextHead);
-    e.handlePowerUpConsumption(nextHead);
-    e.applyMovement(nextHead, grew);
+    if (e.checkCollision(nextHead)) { engine(*this).requestStateChange(GameLogic::StartMenu); return; }
+    bool grew = (nextHead == e.foodPos()); e.handleFoodConsumption(nextHead); e.handlePowerUpConsumption(nextHead); e.applyMovement(nextHead, grew);
 }
 
 void ReplayingState::handleInput(int, int) {}
-void ReplayingState::handleStart() { 
-    engine(*this).requestStateChange(GameLogic::StartMenu); 
-}
+void ReplayingState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
 
 // --- ChoiceState ---
-void ChoiceState::enter() { 
-    auto& e = engine(*this);
-    e.setInternalState(GameLogic::ChoiceSelection); 
-    e.setChoiceIndex(0);
-    e.generateChoices();
-}
+void ChoiceState::enter() { auto& e = engine(*this); e.setInternalState(GameLogic::ChoiceSelection); e.setChoiceIndex(0); e.generateChoices(); }
 void ChoiceState::exit() {}
 void ChoiceState::update() {}
 void ChoiceState::handleInput(int dx, int dy) {
     if (dy != 0) {
         auto& e = engine(*this);
-        int current = e.choiceIndex();
-        int next = (current + (dy > 0 ? 1 : 2)) % 3;
+        int next = (e.choiceIndex() + (dy > 0 ? 1 : 2)) % 3;
         e.setChoiceIndex(next);
         e.triggerHaptic(1);
     }
 }
-void ChoiceState::handleStart() {
-    auto& e = engine(*this);
-    e.selectChoice(e.choiceIndex());
-}
+void ChoiceState::handleStart() { auto& e = engine(*this); e.selectChoice(e.choiceIndex()); }
 
 // --- LibraryState ---
-void LibraryState::enter() { 
-    engine(*this).setInternalState(GameLogic::Library); 
-}
+void LibraryState::enter() { engine(*this).setInternalState(GameLogic::Library); static_cast<GameLogic&>(engine(*this)).setLibraryIndex(0); }
 void LibraryState::exit() {}
 void LibraryState::update() {}
-void LibraryState::handleInput(int, int) {}
-void LibraryState::handleStart() { 
-    engine(*this).requestStateChange(GameLogic::StartMenu); 
+void LibraryState::handleInput(int dx, int dy) {
+    if (dy != 0) {
+        auto& logic = static_cast<GameLogic&>(engine(*this));
+        int next = std::clamp(logic.libraryIndex() + dy, 0, 8);
+        logic.setLibraryIndex(next);
+        logic.triggerHaptic(1);
+    }
 }
+void LibraryState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
+
+// --- MedalRoomState ---
+void MedalRoomState::enter() { engine(*this).setInternalState(GameLogic::MedalRoom); static_cast<GameLogic&>(engine(*this)).setMedalIndex(0); }
+void MedalRoomState::exit() {}
+void MedalRoomState::update() {}
+void MedalRoomState::handleInput(int dx, int dy) {
+    if (dy != 0) {
+        auto& logic = static_cast<GameLogic&>(engine(*this));
+        int next = std::clamp(logic.medalIndex() + dy, 0, 6);
+        logic.setMedalIndex(next);
+        logic.triggerHaptic(1);
+    }
+}
+void MedalRoomState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
 
 // --- PausedState ---
-
-void PausedState::enter() { 
-    engine(*this).setInternalState(GameLogic::Paused); 
-}
-
+void PausedState::enter() { engine(*this).setInternalState(GameLogic::Paused); }
 void PausedState::exit() {}
 void PausedState::update() {}
 void PausedState::handleInput(int, int) {}
-void PausedState::handleStart() { 
-    engine(*this).togglePause(); 
-}
+void PausedState::handleStart() { engine(*this).togglePause(); }
 
 // --- GameOverState ---
-
-void GameOverState::enter() { 
-    engine(*this).setInternalState(GameLogic::GameOver); 
-}
-
+void GameOverState::enter() { engine(*this).setInternalState(GameLogic::GameOver); }
 void GameOverState::exit() {}
 void GameOverState::update() {}
 void GameOverState::handleInput(int, int) {}
-void GameOverState::handleStart() { 
-    engine(*this).restart(); 
-}
+void GameOverState::handleStart() { engine(*this).restart(); }

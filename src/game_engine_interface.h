@@ -60,6 +60,10 @@ public:
     // --- Roguelike Selection ---
     virtual int choiceIndex() const = 0;
     virtual void setChoiceIndex(int index) = 0;
+    virtual int libraryIndex() const = 0;
+    virtual void setLibraryIndex(int index) = 0;
+    virtual int medalIndex() const = 0;
+    virtual void setMedalIndex(int index) = 0;
     virtual void generateChoices() = 0;
     virtual void selectChoice(int index) = 0;
 };

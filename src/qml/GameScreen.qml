@@ -488,17 +488,20 @@ Item {
                     }
 
                     ListView {
+                        id: libraryList
                         width: parent.width
                         height: parent.height - 40
                         model: gameLogic.fruitLibrary
+                        currentIndex: gameLogic.libraryIndex
                         clip: true
                         spacing: 4
+                        onCurrentIndexChanged: libraryList.positionViewAtIndex(currentIndex, ListView.Contain)
                         delegate: Rectangle {
                             width: parent.width
                             height: 35
-                            color: modelData.discovered ? p1 : Qt.darker(p1, 1.5)
-                            border.color: modelData.discovered ? p3 : p2
-                            border.width: 1
+                            color: gameLogic.libraryIndex === index ? p2 : (modelData.discovered ? p1 : Qt.darker(p1, 1.5))
+                            border.color: gameLogic.libraryIndex === index ? p3 : p2
+                            border.width: gameLogic.libraryIndex === index ? 2 : 1
 
                             Row {
                                 anchors.fill: parent

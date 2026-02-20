@@ -2,135 +2,96 @@ import QtQuick
 import QtQuick.Controls
 
 Rectangle {
-    id: root
+    id: medalRoot
     anchors.fill: parent
     color: p0
-    visible: false
-    z: 150
+    z: 110
 
     property color p0
     property color p3
     property string gameFont
-
     signal closeRequested
 
-    onVisibleChanged: {
-        if (visible) {
-            medalList.focus = true
-        }
-    }
-
     Column {
-        id: header
-        anchors.top: parent.top
-        anchors.topMargin: 10
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width - 20
-        spacing: 5
+        anchors.fill: parent
+        anchors.margins: 10
+        spacing: 10
 
         Text {
-            text: "MEDAL COLLECTION"
+            text: "ACHIEVEMENTS"
+            color: p3
             font.family: gameFont
             font.pixelSize: 14
             font.bold: true
-            color: p3
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        Rectangle {
+        ListView {
+            id: medalList
             width: parent.width
-            height: 1
-            color: p3
-        }
-    }
+            height: parent.height - 50
+            model: gameLogic.medalLibrary
+            currentIndex: gameLogic.medalIndex
+            clip: true
+            spacing: 5
+            onCurrentIndexChanged: medalList.positionViewAtIndex(currentIndex, ListView.Contain)
 
-    ListView {
-        id: medalList
-        anchors.top: header.bottom
-        anchors.bottom: footer.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: 10
-        clip: true
-        model: gameLogic.medalLibrary
-        spacing: 8
-        boundsBehavior: Flickable.StopAtBounds
+            delegate: Rectangle {
+                width: parent.width
+                height: 40
+                color: gameLogic.medalIndex === index ? p2 : p1
+                border.color: gameLogic.medalIndex === index ? p3 : p2
+                border.width: 1
 
-        delegate: Column {
-            width: medalList.width
-            spacing: 2
+                readonly property bool unlocked: gameLogic.achievements.indexOf(modelData.id) !== -1
 
-            property bool isUnlocked: {
-                var unlockedList = gameLogic.achievements
-                var found = false
-                for (var i = 0; i < unlockedList.length; i++) {
-                    if (unlockedList[i] === modelData.id) {
-                        found = true
-                        break
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    spacing: 8
+                    
+                    Rectangle {
+                        width: 24; height: 24
+                        color: unlocked ? p3 : p0
+                        radius: 12
+                        border.color: p3
+                        border.width: 1
+                        anchors.verticalCenter: parent.verticalCenter
+                        Text {
+                            anchors.centerIn: parent
+                            text: unlocked ? "★" : "?"
+                            color: unlocked ? p0 : p3
+                            font.pixelSize: 12
+                        }
+                    }
+
+                    Column {
+                        width: parent.width - 40
+                        Text {
+                            text: unlocked ? modelData.id : "?????????"
+                            color: p3
+                            font.family: gameFont
+                            font.pixelSize: 9
+                            font.bold: true
+                        }
+                        Text {
+                            text: unlocked ? "UNLOCKED" : modelData.hint
+                            color: p3
+                            font.family: gameFont
+                            font.pixelSize: 7
+                            opacity: 0.7
+                        }
                     }
                 }
-                return found
-            }
-
-            Text {
-                text: isUnlocked ? ("★ " + modelData.id) : "??? [Locked]"
-                font.family: gameFont
-                font.pixelSize: 10
-                font.bold: isUnlocked
-                color: p3
-                width: parent.width
-                wrapMode: Text.WordWrap
-            }
-
-            Text {
-                text: isUnlocked ? "Status: Unlocked!" : ("Hint: " + modelData.hint)
-                font.family: gameFont
-                font.pixelSize: 8
-                color: p3
-                opacity: 0.6
-                width: parent.width
-                wrapMode: Text.WordWrap
-            }
-
-            Rectangle {
-                width: parent.width
-                height: 1
-                color: p3
-                opacity: 0.1
             }
         }
-
-        // Handle Keys for Navigation
-        Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Up) {
-                medalList.flick(0, 500)
-                event.accepted = true
-            } else if (event.key === Qt.Key_Down) {
-                medalList.flick(0, -500)
-                event.accepted = true
-            } else if (event.key === Qt.Key_B || event.key === Qt.Key_X || event.key === Qt.Key_Back) {
-                root.closeRequested()
-                event.accepted = true
-            }
-        }
-    }
-
-    Rectangle {
-        id: footer
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 5
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width - 20
-        height: 20
-        color: "transparent"
 
         Text {
-            anchors.centerIn: parent
-            text: qsTr("UP/DOWN to Scroll | B to Close")
+            text: "START to Back"
+            color: p3
             font.family: gameFont
             font.pixelSize: 8
-            color: p3
-            opacity: 0.6
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 }
