@@ -184,6 +184,7 @@ private:
     void loadLevelData(int index);
     void checkAchievements();
     void runLevelScript();
+    bool isOccupied(const QPoint &p) const;
     static bool isOutOfBounds(const QPoint &p) noexcept;
 
     SnakeModel m_snakeModel;
