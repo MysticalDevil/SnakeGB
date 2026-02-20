@@ -267,8 +267,22 @@ void GameLogic::loadLastSession() {
     std::deque<QPoint> b;
     for (const auto &v : d[u"body"_s].toList()) b.emplace_back(v.toPoint());
     m_snakeModel.reset(b);
+    
+    // Reset session-specific volatile state
+    m_inputQueue.clear();
+    m_currentInputHistory.clear();
+    m_currentRecording.clear();
+    for(const auto &p : b) m_currentRecording.append(p);
+    
     m_timer->setInterval(std::max(60, 200 - (m_score/5)*8));
     m_timer->start();
+    
+    // CRITICAL: Notify UI to refresh all layers
+    emit scoreChanged();
+    emit foodChanged();
+    emit obstaclesChanged();
+    emit ghostChanged();
+    
     requestStateChange(Paused);
 }
 
