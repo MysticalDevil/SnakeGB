@@ -66,22 +66,22 @@ Window {
                 }
 
                 // Interaction
-                dpad.onUpClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
-                dpad.onDownClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
-                dpad.onLeftClicked: { gameLogic.requestFeedback(1); gameLogic.move(-1, 0) }
-                dpad.onRightClicked: { gameLogic.requestFeedback(1); gameLogic.move(1, 0) }
+                shell.dpad.onUpClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1) screen.showingMedals = true; else gameLogic.move(0, -1) }
+                shell.dpad.onDownClicked: { gameLogic.requestFeedback(1); if (gameLogic.state === 1 && gameLogic.hasReplay) gameLogic.startReplay(); else gameLogic.move(0, 1) }
+                shell.dpad.onLeftClicked: { gameLogic.requestFeedback(1); gameLogic.move(-1, 0) }
+                shell.dpad.onRightClicked: { gameLogic.requestFeedback(1); gameLogic.move(1, 0) }
                 
-                aButton.onClicked: { gameLogic.requestFeedback(1); if (screen.showingMedals) screen.showingMedals = false; else gameLogic.handleStart() }
-                bButton.onClicked: {
+                shell.aButton.onClicked: { gameLogic.requestFeedback(1); if (screen.showingMedals) screen.showingMedals = false; else gameLogic.handleStart() }
+                shell.bButton.onClicked: {
                     gameLogic.requestFeedback(1)
                     if (screen.showingMedals) screen.showingMedals = false
                     else if (gameLogic.state === 1) gameLogic.quit()
                     else if (gameLogic.state >= 3) gameLogic.quitToMenu()
                     else gameLogic.nextPalette()
                 }
-                selectButton.onPressed: { gameLogic.requestFeedback(1); longPressTimer.start() }
-                selectButton.onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
-                startButton.onClicked: { gameLogic.requestFeedback(1); gameLogic.handleStart() }
+                shell.selectButton.onPressed: { gameLogic.requestFeedback(1); longPressTimer.start() }
+                shell.selectButton.onReleased: { if (longPressTimer.running) { longPressTimer.stop(); gameLogic.handleSelect() } }
+                shell.startButton.onClicked: { gameLogic.requestFeedback(1); gameLogic.handleStart() }
             }
         }
     }

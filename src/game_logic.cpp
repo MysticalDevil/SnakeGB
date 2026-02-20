@@ -170,6 +170,10 @@ void GameLogic::loadLastSession() {
     m_direction = m_settings.value(u"saved_dir"_s).toPoint();
     m_snakeModel.reset(body);
     m_sessionStartTime = QDateTime::currentMSecsSinceEpoch();
+    
+    // Fix: Restore correct speed based on loaded score
+    m_timer->setInterval(std::max(60, 200 - (m_score / 5) * 8));
+    
     emit scoreChanged(); emit obstaclesChanged(); emit foodChanged(); emit hasSaveChanged();
     changeState(std::make_unique<PausedState>(*this));
 }
