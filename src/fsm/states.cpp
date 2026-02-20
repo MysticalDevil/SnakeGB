@@ -13,11 +13,7 @@ static auto& engine(GameState& s) {
 void SplashState::enter() { 
     auto& e = engine(*this);
     e.setInternalState(GameLogic::Splash); 
-    
-    // Load persisted data (ghosts, medals, settings)
     e.lazyInit();
-    
-    // Start timer for frame counting
     e.startEngineTimer(100); 
 }
 
@@ -44,7 +40,15 @@ void MenuState::enter() {
 
 void MenuState::exit() {}
 void MenuState::update() {}
-void MenuState::handleInput(int, int) {}
+
+void MenuState::handleInput(int dx, int dy) {
+    if (dx == 0 && dy == 1) { // DOWN
+        auto& e = engine(*this);
+        if (e.hasReplay()) {
+            e.startReplay();
+        }
+    }
+}
 
 void MenuState::handleStart() {
     auto& e = engine(*this);

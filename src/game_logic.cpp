@@ -202,17 +202,8 @@ void GameLogic::deactivateBuff() {
     emit buffChanged();
 }
 
-void GameLogic::saveCurrentState() {
-    if (m_profileManager) {
-        m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction);
-    }
-}
-
-void GameLogic::clearSavedState() {
-    if (m_profileManager) {
-        m_profileManager->clearSession();
-    }
-}
+void GameLogic::saveCurrentState() { if (m_profileManager) m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food, m_direction); }
+void GameLogic::clearSavedState() { if (m_profileManager) m_profileManager->clearSession(); }
 
 void GameLogic::restart() {
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
@@ -364,8 +355,11 @@ void GameLogic::lazyInit() {
     QFile f(getGhostFilePath());
     if (f.open(QIODevice::ReadOnly)) {
         QDataStream in(&f); quint32 magic; in >> magic;
-        if (magic == GHOST_FILE_MAGIC) in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex;
-        else { m_bestRecording.clear(); m_bestInputHistory.clear(); }
+        if (magic == GHOST_FILE_MAGIC || magic == 0x534E4B02) {
+            in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex;
+        } else {
+            m_bestRecording.clear(); m_bestInputHistory.clear(); 
+        }
     }
     loadLevelData(m_levelIndex);
     spawnFood();
@@ -383,7 +377,18 @@ void GameLogic::loadLevelData(int i) {
     emit obstaclesChanged();
 }
 
-void GameLogic::move(int dx, int dy) { if (m_inputQueue.size() < 2) { QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back(); if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) return; m_inputQueue.push_back({dx, dy}); emit uiInteractTriggered(); } }
+void GameLogic::move(int dx, int dy) {
+    if (m_fsmState) {
+        m_fsmState->handleInput(dx, dy);
+    }
+    if (m_state == Playing && m_inputQueue.size() < 2) {
+        QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
+        if ((dx && last.x() == -dx) || (dy && last.y() == -dy)) return;
+        m_inputQueue.push_back({dx, dy});
+        emit uiInteractTriggered();
+    }
+}
+
 void GameLogic::quit() { saveCurrentState(); QCoreApplication::quit(); }
 void GameLogic::handleSelect() { if (m_fsmState) m_fsmState->handleSelect(); }
 void GameLogic::handleStart() { if (m_fsmState) m_fsmState->handleStart(); }

@@ -28,6 +28,7 @@ public:
     virtual int& gameTickCounter() = 0;
     virtual QPoint foodPos() const = 0;
     virtual bool hasSave() const = 0;
+    virtual bool hasReplay() const = 0;
 
     // --- Logic & Physics ---
     virtual bool checkCollision(const QPoint &head) = 0;
@@ -37,6 +38,7 @@ public:
 
     // --- Game Actions ---
     virtual void restart() = 0;
+    virtual void startReplay() = 0;
     virtual void loadLastSession() = 0;
     virtual void togglePause() = 0;
     virtual void nextLevel() = 0;
