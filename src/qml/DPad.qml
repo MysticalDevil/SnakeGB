@@ -15,72 +15,61 @@ Item {
     signal leftClicked()
     signal rightClicked()
 
-    // --- Cross Base ---
-    // Horizontal bar
+    // Cross Base
     Rectangle {
         anchors.centerIn: parent
-        width: 100
-        height: 34
-        color: "#222"
-        radius: 4
+        width: 100; height: 34
+        color: "#222"; radius: 4
     }
-    // Vertical bar
     Rectangle {
         anchors.centerIn: parent
-        width: 34
-        height: 100
-        color: "#222"
-        radius: 4
+        width: 34; height: 100
+        color: "#222"; radius: 4
     }
 
-    // Directional Segments with Feedback
-    component DPadButton: Rectangle {
-        property bool isPressed: false
-        width: 34
-        height: 34
-        color: isPressed ? "#444" : "transparent"
+    // Helper component for internal use
+    component DPadSegment: Rectangle {
+        property bool isDown: false
+        width: 34; height: 34
         radius: 4
+        color: isDown ? "#444" : "transparent"
         
-        // Inner Arrow Glow (Using a Triangle via rotation)
         Rectangle {
             anchors.centerIn: parent
             width: 10; height: 10
-            color: parent.isPressed ? gameLogic.palette[3] : "#111"
-            rotation: 45
-            opacity: parent.isPressed ? 0.8 : 0.4
-            Behavior on color { ColorAnimation { duration: 50 } }
+            color: parent.isDown ? gameLogic.palette[3] : "#111"
+            rotation: 45; opacity: parent.isDown ? 0.8 : 0.4
         }
-
-        // Physical Sinking Effect
-        transform: Translate { y: isPressed ? 2 : 0 }
+        
+        transform: Translate { y: isDown ? 2 : 0 }
     }
 
-    DPadButton {
-        id: upBtn
+    // Up
+    DPadSegment {
         anchors.top: parent.top; anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        isPressed: root.upPressed
-        MouseArea { anchors.fill: parent; onPressed: root.upClicked() }
+        isDown: root.upPressed || upMa.pressed
+        MouseArea { id: upMa; anchors.fill: parent; onPressed: root.upClicked() }
     }
-    DPadButton {
-        id: downBtn
+    // Down
+    DPadSegment {
         anchors.bottom: parent.bottom; anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        isPressed: root.downPressed
-        MouseArea { anchors.fill: parent; onPressed: root.downClicked() }
+        isDown: root.downPressed || downMa.pressed
+        MouseArea { id: downMa; anchors.fill: parent; onPressed: root.downClicked() }
     }
-    DPadButton {
-        id: leftBtn
+    // Left
+    DPadSegment {
         anchors.left: parent.left; anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
-        isPressed: root.leftPressed
-        MouseArea { anchors.fill: parent; onPressed: root.leftClicked() }
+        isDown: root.leftPressed || leftMa.pressed
+        MouseArea { id: leftMa; anchors.fill: parent; onPressed: root.leftClicked() }
     }
-    DPadButton {
-        id: rightBtn
+    // Right
+    DPadSegment {
         anchors.right: parent.right; anchors.rightMargin: 10
         anchors.verticalCenter: parent.verticalCenter
-        isPressed: root.rightPressed
-        MouseArea { anchors.fill: parent; onPressed: root.rightClicked() }
+        isDown: root.rightPressed || rightMa.pressed
+        MouseArea { id: rightMa; anchors.fill: parent; onPressed: root.rightClicked() }
     }
 }
