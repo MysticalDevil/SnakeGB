@@ -19,7 +19,6 @@ Item {
         color: "black"
         clip: true
 
-        // --- 1. 核心层 ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -50,12 +49,21 @@ Item {
                 SequentialAnimation {
                     id: bootAnim
                     running: gameLogic.state === 0
-                    PauseAnimation { duration: 200 }
-                    NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
+                    PauseAnimation { 
+                        duration: 200 
+                    }
+                    NumberAnimation { 
+                        target: bootText
+                        property: "y"
+                        from: -50
+                        to: 80
+                        duration: 600
+                        easing.type: Easing.OutBounce 
+                    }
                 }
             }
 
-            // Start Menu
+            // Menu
             Rectangle {
                 id: menuLayer
                 anchors.fill: parent
@@ -76,8 +84,21 @@ Item {
                     Column {
                         spacing: 4
                         anchors.horizontalCenter: parent.horizontalCenter
-                        Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { 
+                            text: "HI-SCORE: " + gameLogic.highScore
+                            font.family: gameFont
+                            font.pixelSize: 12
+                            color: p3
+                            anchors.horizontalCenter: parent.horizontalCenter 
+                        }
+                        Text { 
+                            text: "LEVEL: " + gameLogic.currentLevelName
+                            font.family: gameFont
+                            font.pixelSize: 10
+                            color: p3
+                            font.bold: true
+                            anchors.horizontalCenter: parent.horizontalCenter 
+                        }
                     }
                     Rectangle {
                         width: 140
@@ -96,8 +117,20 @@ Item {
                     Column {
                         spacing: 2
                         anchors.horizontalCenter: parent.horizontalCenter
-                        Text { text: "UP: Medals | B: Palette"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "SELECT: Switch Level"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { 
+                            text: "UP: Medals | B: Palette"
+                            color: p3
+                            font.pixelSize: 7
+                            opacity: 0.6
+                            anchors.horizontalCenter: parent.horizontalCenter 
+                        }
+                        Text { 
+                            text: "SELECT: Level"
+                            color: p3
+                            font.pixelSize: 7
+                            opacity: 0.6
+                            anchors.horizontalCenter: parent.horizontalCenter 
+                        }
                     }
                 }
             }
@@ -141,14 +174,32 @@ Item {
                 Column {
                     anchors.centerIn: parent
                     spacing: 10
-                    Text { text: "GAME OVER"; color: p0; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "SCORE: " + gameLogic.score; color: p0; font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "START to RESTART"; color: p0; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { 
+                        text: "GAME OVER"
+                        color: p0
+                        font.family: gameFont
+                        font.pixelSize: 24
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter 
+                    }
+                    Text { 
+                        text: "SCORE: " + gameLogic.score
+                        color: p0
+                        font.family: gameFont
+                        font.pixelSize: 14
+                        anchors.horizontalCenter: parent.horizontalCenter 
+                    }
+                    Text { 
+                        text: "START to RESTART"
+                        color: p0
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        anchors.horizontalCenter: parent.horizontalCenter 
+                    }
                 }
             }
         }
 
-        // --- 2. 特效层 (严禁一行流) ---
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent
@@ -178,12 +229,14 @@ Item {
                     var ctx = getContext("2d")
                     ctx.strokeStyle = "black"
                     ctx.lineWidth = 1
-                    for (var i = 0; i < height; i = i + 3) { 
+                    var i = 0
+                    while (i < height) {
                         ctx.beginPath()
                         ctx.moveTo(0, i)
                         ctx.lineTo(width, i)
-                        ctx.stroke() 
-                    } 
+                        ctx.stroke()
+                        i = i + 3
+                    }
                 }
             }
         }
@@ -194,8 +247,21 @@ Item {
             anchors.margins: 10
             z: 500
             visible: gameLogic.state >= 2 && gameLogic.state <= 6
-            Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
-            Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
+            Text { 
+                text: "HI " + gameLogic.highScore
+                color: p3
+                font.family: gameFont
+                font.pixelSize: 8
+                anchors.right: parent.right 
+            }
+            Text { 
+                text: "SC " + gameLogic.score
+                color: p3
+                font.family: gameFont
+                font.pixelSize: 12
+                font.bold: true
+                anchors.right: parent.right 
+            }
         }
         
         OSDLayer { 
