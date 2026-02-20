@@ -1,4 +1,4 @@
-# SnakeGB - 复古 GameBoy 风格贪吃蛇 (v1.3.1)
+# SnakeGB - 复古 GameBoy 风格贪吃蛇 (v1.3.2)
 
 [English](README.md)
 

@@ -1,4 +1,4 @@
-# SnakeGB - Retro GameBoy Style Snake Game (v1.3.1)
+# SnakeGB - Retro GameBoy Style Snake Game (v1.3.2)
 
 [中文版](README_zh-CN.md)
 
