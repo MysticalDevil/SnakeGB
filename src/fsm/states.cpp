@@ -13,7 +13,11 @@ static auto& engine(GameState& s) {
 void SplashState::enter() { 
     auto& e = engine(*this);
     e.setInternalState(GameLogic::Splash); 
-    // Start timer so update() gets called for frame counting
+    
+    // Load persisted data (ghosts, medals, settings)
+    e.lazyInit();
+    
+    // Start timer for frame counting
     e.startEngineTimer(100); 
 }
 
@@ -56,7 +60,6 @@ void MenuState::handleSelect() {
 
 void PlayingState::enter() { 
     engine(*this).setInternalState(GameLogic::Playing); 
-    // Timer is already started via restart() or loadLastSession()
 }
 
 void PlayingState::exit() {}
@@ -64,33 +67,26 @@ void PlayingState::exit() {}
 void PlayingState::update() {
     auto& e = engine(*this);
     
-    // 1. Directional Input processing
     auto& queue = e.inputQueue();
     if (!queue.empty()) {
         e.direction() = queue.front();
         queue.pop_front();
-        // Log frame-synced input
         e.currentInputHistory().append({e.gameTickCounter(), e.direction().x(), e.direction().y()});
     }
 
-    // 2. Head Physics
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
 
-    // 3. Collision Check
     if (e.checkCollision(nextHead)) {
         e.triggerHaptic(8);
-        e.playEventSound(1); // Crash
+        e.playEventSound(1); 
         e.updatePersistence();
         e.requestStateChange(GameLogic::GameOver);
         return;
     }
 
-    // 4. Consumption Handling
+    bool grew = (nextHead == e.foodPos());
     e.handleFoodConsumption(nextHead);
     e.handlePowerUpConsumption(nextHead);
-
-    // 5. Finalize Movement
-    bool grew = (nextHead == e.foodPos());
     e.applyMovement(nextHead, grew);
 }
 
@@ -110,7 +106,6 @@ void ReplayingState::exit() {}
 void ReplayingState::update() {
     auto& e = engine(*this);
     static int historyIdx = 0;
-    
     if (e.gameTickCounter() == 0) historyIdx = 0;
 
     auto& bestHistory = e.bestInputHistory();
@@ -127,7 +122,6 @@ void ReplayingState::update() {
     }
 
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
-    
     if (e.checkCollision(nextHead)) {
         engine(*this).requestStateChange(GameLogic::StartMenu);
         return;

@@ -66,12 +66,14 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
+    Q_PROPERTY(bool hasReplay READ hasReplay NOTIFY highScoreChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
     Q_PROPERTY(QString currentLevelName READ currentLevelName NOTIFY levelChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
     Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
+    Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
     Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
@@ -116,7 +118,7 @@ public:
     void lazyInit() override;
     void forceUpdate() override { update(); }
 
-    // --- QML Exposed API ---
+    // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void startReplay();
@@ -129,7 +131,7 @@ public:
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
 
-    // Property Getters (Internal used by Q_PROPERTY)
+    // Property Getters
     SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
     QPoint food() const noexcept { return m_food; }
     QPoint powerUpPos() const noexcept { return m_powerUpPos; }
