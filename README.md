@@ -11,16 +11,17 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 - **Artistic CRT Engine (v3.1)**: Balanced curvature, scanlines, and **Dynamic Gyro Glare** (physical reflection).
 - **Premium Haptics**: Nuanced tactile feedback using Android `VibrationEffect` (Tick/Pop/Shock).
 - **Immersive Audio**: Stereo panning, dynamic reverb, and **Paused LPF Filter** (muffled BGM when paused).
+- **Deterministic Replay System**: 100% accurate high-score replication using logic-tick synchronization and sample-based RNG seeding.
 - **Ceremonial Boot**: Classic GameBoy-style animated boot sequence and hardware power-cycle visuals.
 - **Scriptable Levels**: Create dynamic maps with moving obstacles using JavaScript.
 - **Roguelite Power-ups**: Special fruits providing Ghost, Slow, or Magnet buffs with visual transparency.
 - **Achievement Room**: Persistent medal system with full collection display and unlock hints.
-- **Multi-Platform**: Native support for Android (`org.devil`), Linux, Windows, and WASM.
+- **Optimized for Android**: Single-ABI (arm64-v8a) builds with LTO, MinSizeRel optimization, and symbol stripping for a minimal footprint.
 
 ## Tech Stack
 
-- **Language**: C++23
-- **Framework**: Qt 6.5+ (Quick, JSEngine, Multimedia, Sensors, ShaderTools)
+- **Language**: C++23 (std::ranges, std::unique_ptr, Coroutines-ready)
+- **Framework**: Qt 6.7+ (Quick, JSEngine, Multimedia, Sensors, ShaderTools)
 - **Build System**: CMake + Ninja
 
 ## Getting Started
@@ -28,7 +29,7 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 ### Build and Run (Desktop)
 ```bash
 mkdir build && cd build
-cmake -G Ninja ..
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 ninja
 ./SnakeGB
 ```
@@ -38,8 +39,9 @@ ninja
 - **START (Enter / S)**: Play / Continue from save
 - **SELECT (Shift)**: Cycle levels / (Hold) Delete save
 - **UP**: Open Medal Collection
-- **DOWN**: Watch Best Replay
-- **B / X**: Back / Toggle Palette
+- **DOWN**: Watch Best High-Score Replay
+- **B / X**: Back / Cycle Color Palettes
+- **Y / C**: Cycle Console Shell Colors
 - **M**: Toggle Music | **Esc**: Quit App
 
 ## License
