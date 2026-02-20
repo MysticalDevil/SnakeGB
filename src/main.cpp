@@ -16,7 +16,7 @@ auto main(int argc, char *argv[]) -> int {
     QCoreApplication::setOrganizationDomain("org.devil");
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QGuiApplication::setApplicationVersion("1.4.2");
+    QGuiApplication::setApplicationVersion("1.4.0");
 
     GameLogic gameLogic;
 

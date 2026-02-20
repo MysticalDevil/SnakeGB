@@ -1,4 +1,4 @@
-# SnakeGB - Retro GameBoy Style Snake Game (v1.3.2)
+# SnakeGB - Retro GameBoy Style Snake Game (v1.4.0)
 
 [中文版](README_zh-CN.md)
 
@@ -6,17 +6,16 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 
 > **Note**: This project was entirely generated and optimized by **Gemini CLI** (AI Agent).
 
-## Core Features (v1.3.1)
+## Core Features (v1.4.0)
 
-- **Artistic CRT Engine (v3.1)**: Balanced curvature, scanlines, and **Dynamic Gyro Glare** (physical reflection).
-- **Premium Haptics**: Nuanced tactile feedback using Android `VibrationEffect` (Tick/Pop/Shock).
-- **Immersive Audio**: Stereo panning, dynamic reverb, and **Paused LPF Filter** (muffled BGM when paused).
-- **Deterministic Replay System**: 100% accurate high-score replication using logic-tick synchronization and sample-based RNG seeding.
-- **Ceremonial Boot**: Classic GameBoy-style animated boot sequence and hardware power-cycle visuals.
-- **Scriptable Levels**: Create dynamic maps with moving obstacles using JavaScript.
-- **Roguelite Power-ups**: Special fruits providing Ghost, Slow, or Magnet buffs with visual transparency.
-- **Achievement Room**: Persistent medal system with full collection display and unlock hints.
-- **Optimized for Android**: Single-ABI (arm64-v8a) builds with LTO, MinSizeRel optimization, and symbol stripping for a minimal footprint.
+- **GameBoy Boot Flow**: Boot bounce animation + boot beep + delayed BGM handoff to menu.
+- **Expanded Navigation**: Hidden fruit library (`LEFT`), achievements room (`UP`), replay (`DOWN`), level switch (`SELECT`).
+- **Refined Input Rules**: Context-sensitive `B` behavior restored across menu/game/pause/game-over/roguelike/library/medal.
+- **Dynamic Levels**: `Classic`, `The Cage`, `Dynamic Pulse`, `Tunnel Run`, `Crossfire`, `Shifting Box`.
+- **Roguelike Power-up Suite**: 9 distinct effects including working **Magnet** fruit attraction and unique portal wall-phasing.
+- **Ghost Replay**: Deterministic replay with recorded input and choice playback.
+- **Mobile Sensor Glare**: `QtSensors` accelerometer-powered screen reflection movement (with desktop fallback motion).
+- **Android Ready**: arm64 deployment pipeline and runtime logcat-driven crash triage workflow.
 
 ## Tech Stack
 
@@ -40,7 +39,12 @@ ninja
 - **SELECT (Shift)**: Cycle levels / (Hold) Delete save
 - **UP**: Open Medal Collection
 - **DOWN**: Watch Best High-Score Replay
-- **B / X**: Back / Cycle Color Palettes
+- **LEFT**: Open hidden Fruit Library
+- **B / X**:
+  - In game: switch display palette
+  - In menu: quit app
+  - In pause/game over/replay/library/medal: back to menu
+  - In roguelike choice: switch display palette
 - **Y / C / Tap Logo**: Cycle Console Shell Colors
 - **M**: Toggle Music | **Esc**: Quit App
 
