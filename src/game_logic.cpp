@@ -12,6 +12,10 @@
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QJSValue>
+#ifdef Q_OS_ANDROID
+#include <QCoreApplication>
+#include <QJniObject>
+#endif
 #include <algorithm>
 
 using namespace Qt::StringLiterals;
@@ -39,6 +43,21 @@ GameLogic::GameLogic(QObject *parent)
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     m_buffTimer->setSingleShot(true);
     connect(m_buffTimer.get(), &QTimer::timeout, this, &GameLogic::deactivateBuff);
+
+    connect(this, &GameLogic::requestFeedback, this, [this](int magnitude) {
+        // Magnitude mapping: 1-10 -> 10ms - 100ms
+        // Special case for death: magnitude 8 -> higher intensity/duration
+        int ms = magnitude * 15;
+#ifdef Q_OS_ANDROID
+        QJniObject systemService = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative", "activity", "()Landroid/app/Activity;");
+        if (systemService.isValid()) {
+            QJniObject vibrator = systemService.callObjectMethod("getSystemService", "(Ljava/lang/String;)Ljava/lang/Object;", QJniObject::fromString("vibrator").object<jstring>());
+            if (vibrator.isValid()) {
+                vibrator.callMethod<void>("vibrate", "(J)V", static_cast<jlong>(ms));
+            }
+        }
+#endif
+    });
 
     m_paletteIndex = m_settings.value(u"paletteIndex"_s, 0).toInt();
     m_shellIndex = m_settings.value(u"shellIndex"_s, 0).toInt();
