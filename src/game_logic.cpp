@@ -285,7 +285,10 @@ QVariantList GameLogic::palette() const { static const QList<QVariantList> p = {
 QString GameLogic::paletteName() const { static const QStringList n = {u"Original"_s, u"Pocket"_s, u"Golden"_s}; int idx = m_profileManager ? m_profileManager->paletteIndex() % 3 : 0; return n[idx]; }
 QVariantList GameLogic::obstacles() const { QVariantList list; for (const auto &p : m_obstacles) list.append(p); return list; }
 QColor GameLogic::shellColor() const { static const QList<QColor> c = {u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s}; int idx = m_profileManager ? m_profileManager->shellIndex() % 3 : 0; return c[idx]; }
-QVariantList GameLogic::ghost() const { QVariantList list; int len = m_snakeModel.rowCount(); int start = std::max(0, m_ghostFrameIndex - len + 1); for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) list.append(m_bestRecording[i]); return list; }
+QVariantList GameLogic::ghost() const {
+    if (m_state == Replaying) return {}; // No ghost during replay
+    QVariantList list;
+    int len = m_snakeModel.rowCount(); int start = std::max(0, m_ghostFrameIndex - len + 1); for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) list.append(m_bestRecording[i]); return list; }
 QVariantList GameLogic::medalLibrary() const { QVariantList list; auto createMedal = [](const QString &id, const QString &hint) { QVariantMap m; m.insert(u"id"_s, id); m.insert(u"hint"_s, hint); return m; }; list << createMedal(u"Gold Medal (50 Pts)"_s, u"Reach 50 points"_s) << createMedal(u"Silver Medal (20 Pts)"_s, u"Reach 20 points"_s) << createMedal(u"Centurion (100 Crashes)"_s, u"Crash 100 times"_s) << createMedal(u"Gourmet (500 Food)"_s, u"Eat 500 food"_s) << createMedal(u"Untouchable"_s, u"20 Ghost triggers"_s) << createMedal(u"Speed Demon"_s, u"Max speed reached"_s) << createMedal(u"Pacifist (60s No Food)"_s, u"60s no food"_s); return list; }
 float GameLogic::coverage() const noexcept { return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); }
 float GameLogic::volume() const { return m_profileManager ? m_profileManager->volume() : 1.0f; }
