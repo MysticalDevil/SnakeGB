@@ -446,7 +446,7 @@ void GameLogic::togglePause() {
 
 void GameLogic::nextPalette() {
     if (m_profileManager) {
-        m_profileManager->setPaletteIndex((m_profileManager->paletteIndex() + 1) % 3);
+        m_profileManager->setPaletteIndex((m_profileManager->paletteIndex() + 1) % 5);
         emit paletteChanged();
         emit uiInteractTriggered();
     }
@@ -710,16 +710,25 @@ QVariantList GameLogic::achievements() const {
 }
 QVariantList GameLogic::palette() const {
     static const QList<QVariantList> p = {
-        {u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s},
-        {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s},
-        {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s}
+        {u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s}, // DMG Classic
+        {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s}, // Pocket
+        {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s}, // Golden
+        {u"#00ffff"_s, u"#008080"_s, u"#004040"_s, u"#002020"_s}, // Ocean Blue
+        {u"#ff0000"_s, u"#a00000"_s, u"#500000"_s, u"#200000"_s}  // Virtual Red
     };
-    int idx = m_profileManager ? m_profileManager->paletteIndex() % 3 : 0;
+    int idx = m_profileManager ? m_profileManager->paletteIndex() % 5 : 0;
     return p[idx];
 }
+
 QString GameLogic::paletteName() const {
-    static const QStringList n = {u"Original"_s, u"Pocket"_s, u"Golden"_s};
-    int idx = m_profileManager ? m_profileManager->paletteIndex() % 3 : 0;
+    static const QStringList n = {
+        u"Original DMG"_s,
+        u"GameBoy Pocket"_s,
+        u"Golden Edition"_s,
+        u"Ice Blue Light"_s,
+        u"Virtual Boy Red"_s
+    };
+    int idx = m_profileManager ? m_profileManager->paletteIndex() % 5 : 0;
     return n[idx];
 }
 QVariantList GameLogic::obstacles() const {
