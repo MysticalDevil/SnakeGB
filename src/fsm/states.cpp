@@ -42,14 +42,16 @@ void MenuState::exit() {}
 void MenuState::update() {}
 
 void MenuState::handleInput(int dx, int dy) {
+    auto& e = engine(*this);
     if (dx == 0 && dy == 1) { // DOWN
-        auto& e = engine(*this);
         if (e.hasReplay()) {
             e.startReplay();
         } else {
             e.playEventSound(3); // Error beep
             e.triggerHaptic(2);  // Minor vibration pulse
         }
+    } else if (dx == -1 && dy == 0) { // LEFT (Hidden Encyclopedia)
+        e.requestStateChange(GameLogic::Library);
     }
 }
 
@@ -184,6 +186,17 @@ void ChoiceState::handleInput(int dx, int dy) {
 void ChoiceState::handleStart() {
     auto& e = engine(*this);
     e.selectChoice(e.choiceIndex());
+}
+
+// --- LibraryState ---
+void LibraryState::enter() { 
+    engine(*this).setInternalState(GameLogic::Library); 
+}
+void LibraryState::exit() {}
+void LibraryState::update() {}
+void LibraryState::handleInput(int, int) {}
+void LibraryState::handleStart() { 
+    engine(*this).requestStateChange(GameLogic::StartMenu); 
 }
 
 // --- PausedState ---

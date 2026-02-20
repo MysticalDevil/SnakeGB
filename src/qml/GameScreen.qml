@@ -113,17 +113,49 @@ Item {
                     width: parent.width / gameLogic.boardWidth
                     height: parent.height / gameLogic.boardHeight
                     z: 30
+                    
+                    // Specific Visuals for PowerUp Types
                     Rectangle {
                         anchors.centerIn: parent
                         width: parent.width * 0.8
                         height: parent.height * 0.8
-                        color: p3
-                        rotation: 45
-                        Rectangle { anchors.centerIn: parent; width: parent.width * 0.5; height: parent.height * 0.5; color: p0 }
+                        rotation: (gameLogic.activeBuff === 0) ? 45 : 0
+                        color: {
+                            var type = gameLogic.powerUpType
+                            if (type === 6) return "#ffd700" // Golden
+                            if (type === 7) return "#00ffff" // Diamond
+                            if (type === 8) return "#ff0000" // Laser
+                            if (type === 9) return "#ffffff" // Mini
+                            return p3
+                        }
+                        
+                        // Internal icon shape
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width * 0.4; height: parent.height * 0.4
+                            color: p0
+                            visible: gameLogic.powerUpType < 6
+                        }
+
+                        // Special Particle Effect for high-tier fruits
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: parent.color
+                            border.width: 1
+                            scale: 1.5
+                            opacity: 0.5
+                            visible: gameLogic.powerUpType >= 6
+                            SequentialAnimation on opacity {
+                                loops: Animation.Infinite
+                                NumberAnimation { from: 0.5; to: 0; duration: 400 }
+                            }
+                        }
+
                         SequentialAnimation on scale {
                             loops: Animation.Infinite
-                            NumberAnimation { from: 0.7; to: 1.3; duration: 300 }
-                            NumberAnimation { from: 1.3; to: 0.7; duration: 300 }
+                            NumberAnimation { from: 0.7; to: 1.2; duration: 300 }
+                            NumberAnimation { from: 1.2; to: 0.7; duration: 300 }
                         }
                     }
                 }
@@ -136,9 +168,9 @@ Item {
                         width: gameWorld.width / gameLogic.boardWidth
                         height: gameWorld.height / gameLogic.boardHeight
                         color: {
-                            if (gameLogic.activeBuff === 6) { // Double Points
-                                return (Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3
-                            }
+                            if (gameLogic.activeBuff === 6) return (Math.floor(elapsed * 10) % 2 === 0) ? "#ffd700" : p3
+                            if (gameLogic.activeBuff === 7) return (Math.floor(elapsed * 15) % 2 === 0) ? "#00ffff" : "#ffffff"
+                            if (gameLogic.activeBuff === 8) return "#ff4444"
                             return index === 0 ? p3 : p2
                         }
                         radius: index === 0 ? 2 : 1
@@ -385,6 +417,74 @@ Item {
             }
 
             MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
+
+            // Fruit Encyclopedia Layer (Hidden)
+            Rectangle {
+                anchors.fill: parent
+                color: p0
+                visible: gameLogic.state === 7 // Library
+                z: 120
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 5
+
+                    Text {
+                        text: "FRUIT CATALOG"
+                        color: p3
+                        font.family: gameFont
+                        font.pixelSize: 14
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+
+                    ListView {
+                        width: parent.width
+                        height: parent.height - 40
+                        model: gameLogic.fruitLibrary
+                        clip: true
+                        spacing: 4
+                        delegate: Rectangle {
+                            width: parent.width
+                            height: 35
+                            color: p1
+                            border.color: p3
+                            border.width: 1
+
+                            Row {
+                                anchors.fill: parent
+                                anchors.margins: 5
+                                spacing: 10
+                                Rectangle {
+                                    width: 20; height: 20
+                                    color: {
+                                        if (modelData.type === 6) return "#ffd700"
+                                        if (modelData.type === 7) return "#00ffff"
+                                        if (modelData.type === 8) return "#ff0000"
+                                        return p3
+                                    }
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    rotation: 45
+                                }
+                                Column {
+                                    width: parent.width - 40
+                                    Text { text: modelData.name; color: p3; font.family: gameFont; font.pixelSize: 9; font.bold: true }
+                                    Text { text: modelData.desc; color: p3; font.family: gameFont; font.pixelSize: 7; width: parent.width; wrapMode: Text.WordWrap; opacity: 0.8 }
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        text: "START to Back"
+                        color: p3
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        anchors.horizontalCenter: parent.horizontalCenter
+                    }
+                }
+            }
         }
 
         ShaderEffect {

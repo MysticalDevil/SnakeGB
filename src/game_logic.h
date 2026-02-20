@@ -88,10 +88,11 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
     Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
+    Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
-    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection };
-    enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6 };
+    enum State { Splash, StartMenu, Playing, Paused, GameOver, Replaying, ChoiceSelection, Library };
+    enum PowerUp { None = 0, Ghost = 1, Slow = 2, Magnet = 3, Shield = 4, Portal = 5, Double = 6, Rich = 7, Laser = 8, Mini = 9 };
     Q_ENUM(State)
 
     explicit GameLogic(QObject *parent = nullptr);
@@ -177,6 +178,7 @@ public:
     bool shieldActive() const noexcept { return m_shieldActive; }
     QVariantList choices() const { return m_choices; }
     bool choicePending() const noexcept { return m_choicePending; }
+    QVariantList fruitLibrary() const;
 
     static constexpr int BOARD_WIDTH = 20;
     static constexpr int BOARD_HEIGHT = 18;
