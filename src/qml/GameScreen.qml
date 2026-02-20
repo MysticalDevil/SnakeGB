@@ -463,13 +463,13 @@ Item {
                 }
             }
 
-            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 9; z: 110 }
+            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: gameLogic.state === 8; z: 110 }
 
             // Fruit Encyclopedia Layer (Hidden)
             Rectangle {
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 7 // Library
+                visible: gameLogic.state === 7
                 z: 120
 
                 Column {
