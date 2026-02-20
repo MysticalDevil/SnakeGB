@@ -15,6 +15,7 @@ Window {
     readonly property color p3: gameLogic.palette[3]
 
     readonly property string gameFont: "Monospace"
+    readonly property bool isAndroid: Qt.platform.os === "android"
 
     property int shakeMagnitude: 2
     property real elapsed: 0.0
@@ -77,6 +78,11 @@ Window {
         function onAchievementEarned(title) {
             osdTimer.restart()
             osdLabel.text = "UNLOCKED: " + title
+            osdBox.visible = true
+        }
+        function onMusicEnabledChanged() {
+            osdTimer.restart()
+            osdLabel.text = gameLogic.musicEnabled ? "MUSIC ON" : "MUSIC OFF"
             osdBox.visible = true
         }
     }
@@ -651,7 +657,7 @@ Window {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 40
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 30
+                spacing: isAndroid ? 18 : 30
                 SmallButton {
                     id: selectBtnUI
                     text: "SELECT"
@@ -678,6 +684,14 @@ Window {
                         } else {
                             gameLogic.handleStart()
                         }
+                    }
+                }
+                SmallButton {
+                    id: musicBtnUI
+                    visible: isAndroid
+                    text: "SND"
+                    onClicked: {
+                        gameLogic.toggleMusic()
                     }
                 }
             }

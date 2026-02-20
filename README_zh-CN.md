@@ -88,6 +88,7 @@ export JAVA_HOME="/opt/openjdk-bin-21"
 - **长按 SELECT (Shift)**：在菜单中清除存档
 - **B / X**：返回 / 退出 / 切换调色盘
 - **M**：开启/关闭音乐 | **Esc**: 退出应用
+- **Android 触控**：`SND` 按键可切换 BGM（适配无键盘设备）
 
 ## 许可证
 本项目采用 [GNU GPL v3](LICENSE) 开源协议。

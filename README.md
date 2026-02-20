@@ -88,6 +88,7 @@ Useful optional variables:
 - **Hold SELECT (Shift)**: Delete save
 - **B / X**: Back / Quit / Toggle Palette
 - **M**: Toggle Music | **Esc**: Quit App
+- **Android Touch**: `SND` button toggles BGM (for no-keyboard devices)
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).
