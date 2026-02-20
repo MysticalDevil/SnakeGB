@@ -8,6 +8,7 @@
 #include <QVariantList>
 #include <QRandomGenerator>
 #include <QJSEngine>
+#include <QAccelerometer>
 #include "game_engine_interface.h"
 #include <deque>
 #include <memory>
@@ -52,7 +53,7 @@ private:
 
 class GameLogic final : public QObject, public IGameEngine {
     Q_OBJECT
-    Q_PROPERTY(SnakeModel *snakeModel READ snakeModel CONSTANT)
+    Q_PROPERTY(SnakeModel *snakeModel READ snakeModelPtr CONSTANT)
     Q_PROPERTY(QPoint food READ food NOTIFY foodChanged)
     Q_PROPERTY(QPoint powerUpPos READ powerUpPos NOTIFY powerUpChanged)
     Q_PROPERTY(int score READ score NOTIFY scoreChanged)
@@ -83,7 +84,7 @@ public:
     explicit GameLogic(QObject *parent = nullptr);
     ~GameLogic() override;
 
-    // --- IGameEngine Implementation ---
+    // --- IGameEngine Interface ---
     void setInternalState(int s) override;
     void requestStateChange(int newState) override;
     
@@ -105,12 +106,17 @@ public:
     void loadLastSession() override;
     void togglePause() override;
     void nextLevel() override;
+    
+    void startEngineTimer(int intervalMs = -1) override;
+    void stopEngineTimer() override;
 
     void triggerHaptic(int magnitude) override;
     void playEventSound(int type, float pan = 0.0f) override;
     void updatePersistence() override;
+    void lazyInit() override;
+    void forceUpdate() override { update(); }
 
-    // --- QML API ---
+    // --- QML Exposed API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void startReplay();
@@ -123,7 +129,8 @@ public:
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
 
-    // Property Getters
+    // Property Getters (Internal used by Q_PROPERTY)
+    SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
     QPoint food() const noexcept { return m_food; }
     QPoint powerUpPos() const noexcept { return m_powerUpPos; }
     int score() const noexcept { return m_score; }
@@ -158,6 +165,7 @@ signals:
     void hasSaveChanged(); void levelChanged(); void ghostChanged();
     void musicEnabledChanged(); void achievementsChanged(); void achievementEarned(QString title);
     void volumeChanged(); void reflectionOffsetChanged();
+    
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
 
 private slots:
@@ -166,7 +174,6 @@ private slots:
 
 private:
     void changeState(std::unique_ptr<GameState> newState);
-    void lazyInit();
     void spawnFood();
     void spawnPowerUp();
     void updateHighScore();

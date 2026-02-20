@@ -3,86 +3,169 @@
 #include <QRandomGenerator>
 #include <algorithm>
 
-static auto& engine(GameState& s) { return static_cast<IGameEngine&>(s.context()); }
+// Helper to access engine through the interface
+static auto& engine(GameState& s) { 
+    return static_cast<IGameEngine&>(s.context()); 
+}
 
 // --- SplashState ---
-void SplashState::enter() { engine(*this).setInternalState(GameLogic::Splash); }
-void SplashState::exit() {}
+
+void SplashState::enter() { 
+    auto& e = engine(*this);
+    e.setInternalState(GameLogic::Splash); 
+    // Start timer so update() gets called for frame counting
+    e.startEngineTimer(100); 
+}
+
+void SplashState::exit() {
+    engine(*this).stopEngineTimer();
+}
+
 void SplashState::update() {
     static int frames = 0;
-    if (++frames > 10) { frames = 0; engine(*this).requestStateChange(GameLogic::StartMenu); }
+    if (++frames > 30) { 
+        frames = 0;
+        engine(*this).requestStateChange(GameLogic::StartMenu);
+    }
 }
+
 void SplashState::handleInput(int, int) {}
 void SplashState::handleStart() {}
 
 // --- MenuState ---
-void MenuState::enter() { engine(*this).setInternalState(GameLogic::StartMenu); }
+
+void MenuState::enter() { 
+    engine(*this).setInternalState(GameLogic::StartMenu); 
+}
+
 void MenuState::exit() {}
 void MenuState::update() {}
 void MenuState::handleInput(int, int) {}
+
 void MenuState::handleStart() {
     auto& e = engine(*this);
     if (e.hasSave()) e.loadLastSession();
     else e.restart();
 }
-void MenuState::handleSelect() { engine(*this).nextLevel(); }
+
+void MenuState::handleSelect() { 
+    engine(*this).nextLevel(); 
+}
 
 // --- PlayingState ---
-void PlayingState::enter() { engine(*this).setInternalState(GameLogic::Playing); }
+
+void PlayingState::enter() { 
+    engine(*this).setInternalState(GameLogic::Playing); 
+    // Timer is already started via restart() or loadLastSession()
+}
+
 void PlayingState::exit() {}
+
 void PlayingState::update() {
     auto& e = engine(*this);
+    
+    // 1. Directional Input processing
     auto& queue = e.inputQueue();
     if (!queue.empty()) {
         e.direction() = queue.front();
         queue.pop_front();
+        // Log frame-synced input
         e.currentInputHistory().append({e.gameTickCounter(), e.direction().x(), e.direction().y()});
     }
+
+    // 2. Head Physics
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
+
+    // 3. Collision Check
     if (e.checkCollision(nextHead)) {
-        e.triggerHaptic(8); e.playEventSound(1); e.updatePersistence();
-        e.requestStateChange(GameLogic::GameOver); return;
+        e.triggerHaptic(8);
+        e.playEventSound(1); // Crash
+        e.updatePersistence();
+        e.requestStateChange(GameLogic::GameOver);
+        return;
     }
+
+    // 4. Consumption Handling
     e.handleFoodConsumption(nextHead);
     e.handlePowerUpConsumption(nextHead);
+
+    // 5. Finalize Movement
     bool grew = (nextHead == e.foodPos());
     e.applyMovement(nextHead, grew);
 }
+
 void PlayingState::handleInput(int, int) {}
-void PlayingState::handleStart() { engine(*this).togglePause(); }
+void PlayingState::handleStart() { 
+    engine(*this).togglePause(); 
+}
 
 // --- ReplayingState ---
-void ReplayingState::enter() { engine(*this).setInternalState(GameLogic::Replaying); }
+
+void ReplayingState::enter() { 
+    engine(*this).setInternalState(GameLogic::Replaying); 
+}
+
 void ReplayingState::exit() {}
+
 void ReplayingState::update() {
     auto& e = engine(*this);
     static int historyIdx = 0;
+    
     if (e.gameTickCounter() == 0) historyIdx = 0;
+
     auto& bestHistory = e.bestInputHistory();
     while (historyIdx < bestHistory.size()) {
         const auto &f = bestHistory[historyIdx];
-        if (f.frame == e.gameTickCounter()) { e.direction() = QPoint(f.dx, f.dy); historyIdx++; }
-        else if (f.frame > e.gameTickCounter()) break;
-        else historyIdx++;
+        if (f.frame == e.gameTickCounter()) {
+            e.direction() = QPoint(f.dx, f.dy);
+            historyIdx++;
+        } else if (f.frame > e.gameTickCounter()) {
+            break; 
+        } else {
+            historyIdx++;
+        }
     }
+
     const QPoint nextHead = e.snakeModel()->body().front() + e.direction();
-    if (e.checkCollision(nextHead)) { engine(*this).requestStateChange(GameLogic::StartMenu); return; }
+    
+    if (e.checkCollision(nextHead)) {
+        engine(*this).requestStateChange(GameLogic::StartMenu);
+        return;
+    }
+
     bool grew = (nextHead == e.foodPos());
-    e.handleFoodConsumption(nextHead); e.handlePowerUpConsumption(nextHead); e.applyMovement(nextHead, grew);
+    e.handleFoodConsumption(nextHead);
+    e.handlePowerUpConsumption(nextHead);
+    e.applyMovement(nextHead, grew);
 }
+
 void ReplayingState::handleInput(int, int) {}
-void ReplayingState::handleStart() { engine(*this).requestStateChange(GameLogic::StartMenu); }
+void ReplayingState::handleStart() { 
+    engine(*this).requestStateChange(GameLogic::StartMenu); 
+}
 
 // --- PausedState ---
-void PausedState::enter() { engine(*this).setInternalState(GameLogic::Paused); }
+
+void PausedState::enter() { 
+    engine(*this).setInternalState(GameLogic::Paused); 
+}
+
 void PausedState::exit() {}
 void PausedState::update() {}
 void PausedState::handleInput(int, int) {}
-void PausedState::handleStart() { engine(*this).togglePause(); }
+void PausedState::handleStart() { 
+    engine(*this).togglePause(); 
+}
 
 // --- GameOverState ---
-void GameOverState::enter() { engine(*this).setInternalState(GameLogic::GameOver); }
+
+void GameOverState::enter() { 
+    engine(*this).setInternalState(GameLogic::GameOver); 
+}
+
 void GameOverState::exit() {}
 void GameOverState::update() {}
 void GameOverState::handleInput(int, int) {}
-void GameOverState::handleStart() { engine(*this).restart(); }
+void GameOverState::handleStart() { 
+    engine(*this).restart(); 
+}
