@@ -5,28 +5,41 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Bold Pixel Snake - Classic S-Shape -->
-    <group android:translateX="22" android:translateY="22">
-        <!-- Body (S-Curve) -->
-        <path android:fillColor="#306230" android:pathData="M10,50 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M25,50 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M40,50 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M40,35 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M40,20 h15 v15 h-15 z" />
-        <path android:fillColor="#306230" android:pathData="M55,20 h15 v15 h-15 z" />
+    <!-- Shadow for Depth -->
+    <path
+        android:fillColor="#20000000"
+        android:pathData="M25,75 Q54,85 83,75 L83,80 Q54,90 25,80 Z" />
+
+    <!-- Bold Iconic Snake (Large Scale) -->
+    <group android:translateX="14" android:translateY="14">
+        <!-- Body Path - Thicker and Higher Contrast -->
+        <path 
+            android:fillColor="#0f380f"
+            android:strokeColor="#306230"
+            android:strokeWidth="1"
+            android:pathData="M15,55 h20 v20 h-20 z M35,55 h20 v20 h-20 z M55,55 h20 v20 h-20 z M55,35 h20 v20 h-20 z M55,15 h20 v20 h-20 z" />
         
-        <!-- Head (Darker Green) -->
-        <path android:fillColor="#0f380f" android:pathData="M70,5 h20 v30 h-20 z" />
+        <!-- Large Head -->
+        <path 
+            android:fillColor="#052005"
+            android:strokeColor="#306230"
+            android:strokeWidth="1"
+            android:pathData="M75,5 h22 v35 h-22 z" />
         
-        <!-- Eye (Light Green) -->
-        <path android:fillColor="#cadc9f" android:pathData="M80,12 h6 v6 h-6 z" />
+        <!-- Bright Eye -->
+        <path android:fillColor="#ffffff" android:pathData="M88,12 h6 v8 h-6 z" />
         
-        <!-- Red Tongue (The Iconic Snake Detail) -->
-        <path android:fillColor="#aa0000" android:pathData="M90,20 h8 v4 h-8 z" />
+        <!-- Bold Red Tongue -->
+        <path android:fillColor="#ff0000" android:pathData="M97,25 h8 v5 h-8 z" />
     </group>
 
-    <!-- Refined Glass Shine -->
+    <!-- Subtle Radial Soft Shine (Top Left) -->
     <path
-        android:fillColor="#30FFFFFF"
-        android:pathData="M0,0 L108,0 L0,108 Z" />
+        android:fillColor="#25FFFFFF"
+        android:pathData="M20,20 m-15,0 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0" />
+        
+    <!-- Very faint top edge light -->
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M0,0 h108 v30 Q54,40 0,30 Z" />
 </vector>
