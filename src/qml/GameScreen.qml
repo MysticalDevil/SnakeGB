@@ -133,31 +133,43 @@ Item {
                 }
             }
 
-            // --- CEREMONY OVERLAYS ---
-            
-            // Splash / Boot Logo (State 0)
             Rectangle { 
                 id: splashLayer
-                anchors.fill: parent; color: p0; visible: gameLogic.state === 0 || bootAnim.running; z: 200
+                anchors.fill: parent
+                color: p0
+                visible: gameLogic.state === 0 || bootAnim.running
+                z: 200
                 Text { 
                     id: bootText
                     text: "S N A K E"
                     anchors.horizontalCenter: parent.horizontalCenter
-                    font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true
-                    y: -50 // Start off-screen
+                    font.family: gameFont
+                    font.pixelSize: 32
+                    color: p3
+                    font.bold: true
+                    y: -50
                 }
                 SequentialAnimation {
                     id: bootAnim
                     running: gameLogic.state === 0
                     PauseAnimation { duration: 200 }
-                    NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
+                    NumberAnimation { 
+                        target: bootText
+                        property: "y"
+                        from: -50
+                        to: 80
+                        duration: 600
+                        easing.type: Easing.OutBounce 
+                    }
                 }
             }
 
-            // Hardware Refresh Flash (Mini-Reboot)
             Rectangle {
                 id: powerFlash
-                anchors.fill: parent; color: "black"; opacity: 0; z: 300
+                anchors.fill: parent
+                color: "black"
+                opacity: 0
+                z: 300
                 SequentialAnimation {
                     id: flashEffect
                     NumberAnimation { target: powerFlash; property: "opacity"; from: 0; to: 1; duration: 50 }
@@ -168,39 +180,68 @@ Item {
             }
 
             Rectangle {
-                anchors.fill: parent; color: p0; visible: gameLogic.state === 1 && !bootAnim.running; z: 50
+                anchors.fill: parent
+                color: p0
+                visible: gameLogic.state === 1 && !bootAnim.running
+                z: 50
                 Column {
-                    anchors.centerIn: parent; spacing: 6
+                    anchors.centerIn: parent
+                    spacing: 6
                     Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "UP: Medals | DOWN: Replay"; font.family: gameFont; font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { 
                         text: gameLogic.hasSave ? "START to Continue" : "START to Play"
-                        font.family: gameFont; font.pixelSize: 14; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter
-                        SequentialAnimation on opacity { loops: Animation.Infinite; NumberAnimation { from: 1; to: 0; duration: 800 }; NumberAnimation { from: 0; to: 1; duration: 800 } }
+                        font.family: gameFont
+                        font.pixelSize: 14
+                        color: p3
+                        font.bold: true
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        SequentialAnimation on opacity { 
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 1; to: 0; duration: 800 }
+                            NumberAnimation { from: 0; to: 1; duration: 800 }
+                        }
                     }
                 }
             }
 
-            // HUD
             Column {
-                anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4
-                visible: gameLogic.state >= 2; z: 60
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.margins: 4
+                visible: gameLogic.state >= 2
+                z: 60
                 Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right }
                 Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
             }
 
             Rectangle {
-                anchors.fill: parent; color: Qt.rgba(p0.r, p0.g, p0.b, 0.6); visible: gameLogic.state === 3; z: 70
+                anchors.fill: parent
+                color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
+                visible: gameLogic.state === 3
+                z: 70
                 Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.centerIn: parent }
             }
 
             Rectangle {
-                anchors.fill: parent; color: Qt.rgba(p3.r, p3.g, p3.b, 0.8); visible: gameLogic.state === 4; z: 70
+                anchors.fill: parent
+                color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
+                visible: gameLogic.state === 4
+                z: 70
                 Column {
-                    anchors.centerIn: parent; spacing: 10
-                    Text { anchors.horizontalCenter: parent.horizontalCenter; color: p0; font.family: gameFont; font.pixelSize: 20; font.bold: true; text: "GAME OVER\nSCORE: " + gameLogic.score; horizontalAlignment: Text.AlignHCenter }
+                    anchors.centerIn: parent
+                    spacing: 10
+                    Text { 
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: p0
+                        font.family: gameFont
+                        font.pixelSize: 20
+                        font.bold: true
+                        text: "GAME OVER\nSCORE: " + gameLogic.score
+                        horizontalAlignment: Text.AlignHCenter 
+                    }
                     Text { text: "Press B to Menu"; font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
