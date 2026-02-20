@@ -19,7 +19,7 @@ Item {
         color: "black"
         clip: true
 
-        // --- 1. 底层内容源 ---
+        // --- 1. 内容源 (经过 Shader 处理) ---
         Item {
             id: gameContent
             anchors.fill: parent
@@ -59,13 +59,28 @@ Item {
                 }
             }
 
-            // Game World
             Item {
                 id: gameWorld
                 anchors.fill: parent
                 z: 10
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
 
+                // GHOST REPLAY
+                Repeater {
+                    model: gameLogic.ghost
+                    visible: gameLogic.state === 2
+                    delegate: Rectangle {
+                        x: modelData.x * (gameWorld.width / gameLogic.boardWidth)
+                        y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
+                        width: gameWorld.width / gameLogic.boardWidth
+                        height: gameWorld.height / gameLogic.boardHeight
+                        color: p3
+                        opacity: 0.25
+                        radius: 1
+                    }
+                }
+
+                // Food
                 Rectangle { 
                     x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
                     y: gameLogic.food.y * (parent.height / gameLogic.boardHeight)
@@ -76,6 +91,7 @@ Item {
                     z: 20 
                 }
                 
+                // PowerUps (9 Styles Restored)
                 Item {
                     visible: gameLogic.powerUpPos.x !== -1
                     x: gameLogic.powerUpPos.x * (parent.width / gameLogic.boardWidth)
@@ -83,20 +99,134 @@ Item {
                     width: parent.width / gameLogic.boardWidth
                     height: parent.height / gameLogic.boardHeight
                     z: 30
-                    Rectangle { 
+                    Item {
                         anchors.centerIn: parent
-                        width: parent.width * 0.8
-                        height: parent.height * 0.8
-                        rotation: 45
-                        color: (gameLogic.powerUpType === 7) ? "#00ffff" : ((gameLogic.powerUpType === 6) ? "#ffd700" : p3)
+                        width: parent.width * 0.9
+                        height: parent.height * 0.9
+                        // Ghost
+                        Rectangle { 
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: p3
+                            border.width: 1
+                            visible: gameLogic.powerUpType === 1
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: parent.width*0.4
+                                height: parent.height*0.4
+                                rotation: 45
+                                border.color: p3
+                                border.width: 1
+                                color: "transparent" 
+                            } 
+                        }
+                        // Slow
+                        Rectangle { 
+                            anchors.fill: parent
+                            radius: width/2
+                            color: "transparent"
+                            border.color: p3
+                            border.width: 2
+                            visible: gameLogic.powerUpType === 2
+                            Rectangle { 
+                                width: parent.width*0.5
+                                height: 2
+                                color: p3
+                                anchors.centerIn: parent 
+                            } 
+                        }
+                        // Magnet
+                        Rectangle { 
+                            anchors.centerIn: parent
+                            width: parent.width*0.8
+                            height: parent.height*0.8
+                            color: p3
+                            visible: gameLogic.powerUpType === 3
+                            clip: true
+                            Rectangle { 
+                                width: parent.width
+                                height: parent.height
+                                rotation: 45
+                                y: parent.height*0.5
+                                color: p0 
+                            } 
+                        }
+                        // Shield
+                        Rectangle { 
+                            anchors.fill: parent
+                            radius: width/2
+                            color: "transparent"
+                            border.color: p3
+                            border.width: 2
+                            visible: gameLogic.powerUpType === 4
+                            Rectangle { width: parent.width*0.6; height: 2; color: p3; anchors.centerIn: parent }
+                            Rectangle { height: parent.height*0.6; width: 2; color: p3; anchors.centerIn: parent } 
+                        }
+                        // Portal
+                        Rectangle { 
+                            anchors.fill: parent
+                            radius: width/2
+                            color: "transparent"
+                            border.color: p3
+                            border.width: 1
+                            visible: gameLogic.powerUpType === 5
+                            Rectangle { 
+                                anchors.centerIn: parent
+                                width: parent.width*0.5
+                                height: parent.height*0.5
+                                radius: width/2
+                                border.color: p3
+                                border.width: 1 
+                            } 
+                        }
+                        // Golden
+                        Rectangle { 
+                            anchors.centerIn: parent
+                            width: parent.width*0.8
+                            height: parent.height*0.8
+                            rotation: 45
+                            color: "#ffd700"
+                            visible: gameLogic.powerUpType === 6
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.4; height: parent.height*0.4; color: p0 } 
+                        }
+                        // Rich
+                        Rectangle { 
+                            anchors.centerIn: parent
+                            width: parent.width*0.8
+                            height: parent.height*0.8
+                            rotation: 45
+                            color: "#00ffff"
+                            visible: gameLogic.powerUpType === 7
+                            Rectangle { anchors.centerIn: parent; width: parent.width*0.2; height: parent.height*0.2; color: "white" } 
+                        }
+                        // Laser
+                        Rectangle { 
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: "#ff0000"
+                            border.width: 2
+                            visible: gameLogic.powerUpType === 8
+                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "#ff0000" } 
+                        }
+                        // Mini
+                        Rectangle { 
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: p3
+                            border.width: 1
+                            visible: gameLogic.powerUpType === 9
+                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" } 
+                        }
+
                         SequentialAnimation on scale { 
                             loops: Animation.Infinite
-                            NumberAnimation { from: 0.7; to: 1.2; duration: 300 }
-                            NumberAnimation { from: 1.2; to: 0.7; duration: 300 } 
+                            NumberAnimation { from: 0.8; to: 1.1; duration: 300 }
+                            NumberAnimation { from: 1.1; to: 0.8; duration: 300 } 
                         }
                     }
                 }
 
+                // Snake
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
@@ -120,6 +250,7 @@ Item {
                     }
                 }
 
+                // Obstacles
                 Repeater {
                     model: gameLogic.obstacles
                     Rectangle { 
@@ -155,14 +286,7 @@ Item {
                     id: bootAnim
                     running: gameLogic.state === 0
                     PauseAnimation { duration: 200 }
-                    NumberAnimation { 
-                        target: bootText
-                        property: "y"
-                        from: -50
-                        to: 80
-                        duration: 600
-                        easing.type: Easing.OutBounce 
-                    }
+                    NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
                 }
             }
 
@@ -214,7 +338,7 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         Text { text: "UP: Medals"; font.family: gameFont; font.pixelSize: 7; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                         Text { text: "DOWN: Replay"; font.family: gameFont; font.pixelSize: 7; color: gameLogic.hasReplay ? p3 : Qt.rgba(p3.r, p3.g, p3.b, 0.3); anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "SELECT: Switch Level"; font.family: gameFont; font.pixelSize: 7; color: p3; anchors.horizontalCenter: parent.horizontalCenter; opacity: 0.8 }
+                        Text { text: "SELECT: Switch Level (Long to Clear)"; font.family: gameFont; font.pixelSize: 7; color: p3; anchors.horizontalCenter: parent.horizontalCenter; opacity: 0.8 }
                     }
                 }
             }
@@ -298,6 +422,36 @@ Item {
 
         // --- 3. 覆盖层 ---
         
+        // HUD RESTORED
+        Column {
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 4
+            z: 100
+            visible: gameLogic.state >= 2 && gameLogic.state <= 6
+            Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
+            Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
+        }
+
+        // STATUS RESTORED
+        Rectangle {
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.margins: 4
+            width: 80; height: 12
+            color: Qt.rgba(p3.r, p3.g, p3.b, 0.2)
+            radius: 2
+            z: 100
+            visible: gameLogic.state === 2 && gameLogic.activeBuff > 0
+            Text {
+                anchors.centerIn: parent; font.family: gameFont; font.pixelSize: 6; font.bold: true; color: p3
+                text: {
+                    var names = ["", "GHOST ACTIVE", "SLOW ACTIVE", "MAGNET ON", "SHIELD ON", "PORTAL OPEN", "2X MULTIPLY", "3X RICH", "LASER READY", "BODY MINI"]
+                    return names[gameLogic.activeBuff] || ""
+                }
+            }
+        }
+
         Rectangle {
             anchors.fill: parent
             color: Qt.rgba(p0.r, p0.g, p0.b, 0.8)
@@ -316,26 +470,11 @@ Item {
                 spacing: 10
                 Text { text: "GAME OVER"; color: p0; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                 Text { text: "SCORE: " + gameLogic.score; color: p0; font.family: gameFont; font.pixelSize: 16; anchors.horizontalCenter: parent.horizontalCenter }
+                Text { text: "START to Restart\nB to Menu"; color: p0; font.family: gameFont; font.pixelSize: 8; horizontalAlignment: Text.AlignHCenter; anchors.horizontalCenter: parent.horizontalCenter }
             }
         }
 
-        OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
-
-        Rectangle {
-            id: powerFlash
-            anchors.fill: parent
-            color: "black"
-            opacity: 0
-            z: 4000
-            SequentialAnimation {
-                id: flashEffect
-                NumberAnimation { target: powerFlash; property: "opacity"; from: 0; to: 1; duration: 50 }
-                PauseAnimation { duration: 100 }
-                NumberAnimation { target: powerFlash; property: "opacity"; from: 1; to: 0; duration: 300 }
-            }
-        }
-
-        // CRT LAYER (ABSOLUTE TOP)
+        // CRT PHYSICAL LAYER (ABS TOP)
         Item {
             id: crtLayer
             anchors.fill: parent
@@ -354,6 +493,22 @@ Item {
                         ctx.stroke() 
                     } 
                 }
+            }
+        }
+
+        OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }
+
+        Rectangle {
+            id: powerFlash
+            anchors.fill: parent
+            color: "black"
+            opacity: 0
+            z: 4000
+            SequentialAnimation {
+                id: flashEffect
+                NumberAnimation { target: powerFlash; property: "opacity"; from: 0; to: 1; duration: 50 }
+                PauseAnimation { duration: 100 }
+                NumberAnimation { target: powerFlash; property: "opacity"; from: 1; to: 0; duration: 300 }
             }
         }
     }
