@@ -71,6 +71,29 @@ Item {
                 z: 10
                 visible: gameLogic.state >= 2
 
+                // Ghost Replay Layer (z: 5, behind snake)
+                Repeater {
+                    model: gameLogic.ghost
+                    visible: gameLogic.state === 2
+                    delegate: Rectangle {
+                        x: modelData.x * (gameWorld.width / gameLogic.boardWidth)
+                        y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
+                        width: gameWorld.width / gameLogic.boardWidth
+                        height: gameWorld.height / gameLogic.boardHeight
+                        color: p3
+                        opacity: 0.35
+                        radius: 1
+                        z: 5
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            color: "transparent"
+                            border.color: p1
+                            border.width: 1
+                        }
+                    }
+                }
+
                 Rectangle {
                     visible: gameLogic.state >= 2
                     x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
