@@ -1,4 +1,4 @@
-name: C++ CMake Ninja CI
+name: SnakeGB CMake CI
 
 on:
   push:
@@ -8,29 +8,51 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Use 24.04 for better C++23 support
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install dependencies
+    - name: Install System Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build libgl1-mesa-dev libvulkan-dev libasound2-dev libpulse-dev xvfb libxcb-cursor0 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 libxkbcommon-x11-0
+        sudo apt-get install -y \
+          ninja-build \
+          libgl1-mesa-dev \
+          libvulkan-dev \
+          libasound2-dev \
+          libpulse-dev \
+          libsensors5-dev \
+          xvfb \
+          libxcb-cursor0 \
+          libxcb-xinerama0 \
+          libxcb-icccm4 \
+          libxcb-image0 \
+          libxcb-keysyms1 \
+          libxcb-render-util0 \
+          libxcb-shape0 \
+          libxkbcommon-x11-0
 
     - name: Install Qt6
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.5.3'
+        version: '6.7.2' # Upgraded to more stable 6.7 LTS
         host: 'linux'
         target: 'desktop'
-        modules: 'qtmultimedia qtshadertools'
+        # Added qtsensors to the modules list
+        modules: 'qtmultimedia qtshadertools qtsensors'
 
     - name: Configure CMake
-      run: cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+      run: |
+        export CC=gcc
+        export CXX=g++
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     - name: Build
-      run: cmake --build build
+      run: cmake --build build --parallel $(nproc)
 
     - name: Run Tests
       run: |
