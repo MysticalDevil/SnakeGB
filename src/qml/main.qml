@@ -38,7 +38,9 @@ Window {
     Connections {
         target: gameLogic
         function onPaletteChanged() { screen.showOSD(gameLogic.paletteName) }
-        function onShellColorChanged() { screen.showOSD(qsTr("Shell Swapped")) }
+        function onShellColorChanged() { 
+            screen.triggerPowerCycle() 
+        }
         function onAchievementEarned(title) { screen.showOSD("UNLOCKED: " + title) }
         function onBuffChanged() {
             if (gameLogic.activeBuff !== 0) {

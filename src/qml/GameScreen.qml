@@ -34,15 +34,12 @@ Item {
                 id: backgroundGrid
                 anchors.fill: parent
                 z: 0
-                
-                // Pulsing color logic for High Coverage Warning
                 property color gridColor: {
                     if (gameLogic.coverage > 0.5) {
                         return Qt.lerp(p1, "#ff0000", Math.abs(Math.sin(elapsed * 5.0)) * 0.3)
                     }
                     return p1
                 }
-
                 onPaint: {
                     var ctx = getContext("2d");
                     ctx.strokeStyle = gridColor;
@@ -60,19 +57,12 @@ Item {
                     }
                     ctx.stroke();
                 }
-                
                 Connections {
                     target: gameLogic
                     function onPaletteChanged() { backgroundGrid.requestPaint(); }
                     function onScoreChanged() { backgroundGrid.requestPaint(); }
                 }
-                
-                // Refresh grid on animation ticks if in warning mode
-                onGridColorChanged: {
-                    if (gameLogic.coverage > 0.5) {
-                        backgroundGrid.requestPaint();
-                    }
-                }
+                onGridColorChanged: { if (gameLogic.coverage > 0.5) backgroundGrid.requestPaint(); }
             }
 
             Item {
@@ -81,7 +71,6 @@ Item {
                 z: 10
                 visible: gameLogic.state >= 2
 
-                // Normal Food (Circle)
                 Rectangle {
                     visible: gameLogic.state >= 2
                     x: gameLogic.food.x * (parent.width / gameLogic.boardWidth)
@@ -93,7 +82,6 @@ Item {
                     z: 20
                 }
 
-                // --- POWER-UP: Diamond with pulsing aura ---
                 Item {
                     id: powerUpContainer
                     visible: gameLogic.state >= 2 && gameLogic.powerUpPos.x !== -1
@@ -102,43 +90,17 @@ Item {
                     width: parent.width / gameLogic.boardWidth
                     height: parent.height / gameLogic.boardHeight
                     z: 30
-
-                    // Rotating diamond shape
                     Rectangle {
                         anchors.centerIn: parent
                         width: parent.width * 0.8
                         height: parent.height * 0.8
                         color: p3
                         rotation: 45
-                        
-                        // Inner core
-                        Rectangle {
-                            anchors.centerIn: parent
-                            width: parent.width * 0.5
-                            height: parent.height * 0.5
-                            color: p0
-                        }
-
+                        Rectangle { anchors.centerIn: parent; width: parent.width * 0.5; height: parent.height * 0.5; color: p0 }
                         SequentialAnimation on scale {
                             loops: Animation.Infinite
                             NumberAnimation { from: 0.7; to: 1.3; duration: 300 }
                             NumberAnimation { from: 1.3; to: 0.7; duration: 300 }
-                        }
-                    }
-
-                    // Outer sparkle aura
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.width * 1.5
-                        height: parent.height * 1.5
-                        radius: 2
-                        color: p3
-                        opacity: 0.2
-                        rotation: -45
-                        SequentialAnimation on opacity {
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 0.1; to: 0.5; duration: 150 }
-                            NumberAnimation { from: 0.5; to: 0.1; duration: 150 }
                         }
                     }
                 }
@@ -153,28 +115,11 @@ Item {
                         color: index === 0 ? p3 : p2
                         radius: index === 0 ? 2 : 1
                         opacity: gameLogic.activeBuff === 1 ? 0.4 : 1.0
-                        border.color: p0
-                        border.width: index === 0 ? 1 : 0
+                        border.color: p0; border.width: index === 0 ? 1 : 0
                         z: 15
                     }
                 }
 
-                Repeater {
-                    model: gameLogic.ghost
-                    visible: gameLogic.state === 2
-                    delegate: Rectangle {
-                        x: modelData.x * (gameWorld.width / gameLogic.boardWidth)
-                        y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
-                        width: gameWorld.width / gameLogic.boardWidth
-                        height: gameWorld.height / gameLogic.boardHeight
-                        color: p3
-                        opacity: 0.15
-                        radius: 1
-                        z: 5
-                    }
-                }
-
-                // Obstacles (Solid Squares - unchanged for contrast)
                 Repeater {
                     model: gameLogic.obstacles
                     Rectangle {
@@ -182,178 +127,86 @@ Item {
                         y: modelData.y * (gameWorld.height / gameLogic.boardHeight)
                         width: gameWorld.width / gameLogic.boardWidth
                         height: gameWorld.height / gameLogic.boardHeight
-                        color: p3
-                        z: 12
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: 2
-                            color: p0
-                        }
+                        color: p3; z: 12
+                        Rectangle { anchors.fill: parent; anchors.margins: 2; color: p0 }
                     }
                 }
             }
 
+            // --- CEREMONY OVERLAYS ---
+            
+            // Splash / Boot Logo (State 0)
             Rectangle { 
-                anchors.fill: parent
-                color: p0
-                visible: gameLogic.state === 0
-                z: 50
+                id: splashLayer
+                anchors.fill: parent; color: p0; visible: gameLogic.state === 0 || bootAnim.running; z: 200
                 Text { 
+                    id: bootText
                     text: "S N A K E"
-                    anchors.centerIn: parent
-                    font.family: gameFont
-                    font.pixelSize: 32
-                    color: p3
-                    font.bold: true 
-                } 
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true
+                    y: -50 // Start off-screen
+                }
+                SequentialAnimation {
+                    id: bootAnim
+                    running: gameLogic.state === 0
+                    PauseAnimation { duration: 200 }
+                    NumberAnimation { target: bootText; property: "y"; from: -50; to: 80; duration: 600; easing.type: Easing.OutBounce }
+                }
+            }
+
+            // Hardware Refresh Flash (Mini-Reboot)
+            Rectangle {
+                id: powerFlash
+                anchors.fill: parent; color: "black"; opacity: 0; z: 300
+                SequentialAnimation {
+                    id: flashEffect
+                    NumberAnimation { target: powerFlash; property: "opacity"; from: 0; to: 1; duration: 50 }
+                    PauseAnimation { duration: 100 }
+                    ScriptAction { script: bootAnim.restart() }
+                    NumberAnimation { target: powerFlash; property: "opacity"; from: 1; to: 0; duration: 300 }
+                }
             }
 
             Rectangle {
-                anchors.fill: parent
-                color: p0
-                visible: gameLogic.state === 1
-                z: 50
+                anchors.fill: parent; color: p0; visible: gameLogic.state === 1 && !bootAnim.running; z: 50
                 Column {
-                    anchors.centerIn: parent
-                    spacing: 6
-                    Text { 
-                        text: "S N A K E"
-                        font.family: gameFont
-                        font.pixelSize: 32
-                        color: p3
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
-                    Text { 
-                        text: "LEVEL: " + gameLogic.currentLevelName
-                        font.family: gameFont
-                        font.pixelSize: 10
-                        color: p3
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
-                    Text { 
-                        text: "HI-SCORE: " + gameLogic.highScore
-                        font.family: gameFont
-                        font.pixelSize: 12
-                        color: p3
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
-                    Text { 
-                        text: "UP: Medals | DOWN: Replay"
-                        font.family: gameFont
-                        font.pixelSize: 8
-                        color: p3
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
+                    anchors.centerIn: parent; spacing: 6
+                    Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 32; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "UP: Medals | DOWN: Replay"; font.family: gameFont; font.pixelSize: 8; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { 
                         text: gameLogic.hasSave ? "START to Continue" : "START to Play"
-                        font.family: gameFont
-                        font.pixelSize: 14
-                        color: p3
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        SequentialAnimation on opacity { 
-                            loops: Animation.Infinite
-                            NumberAnimation { from: 1; to: 0; duration: 800 }
-                            NumberAnimation { from: 0; to: 1; duration: 800 } 
-                        }
+                        font.family: gameFont; font.pixelSize: 14; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter
+                        SequentialAnimation on opacity { loops: Animation.Infinite; NumberAnimation { from: 1; to: 0; duration: 800 }; NumberAnimation { from: 0; to: 1; duration: 800 } }
                     }
                 }
             }
 
+            // HUD
             Column {
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.margins: 4
-                visible: gameLogic.state >= 2
-                z: 60
-                Text { 
-                    text: "HI " + gameLogic.highScore
-                    color: p3
-                    font.family: gameFont
-                    font.pixelSize: 10
-                    font.bold: true
-                    anchors.right: parent.right 
-                }
-                Text { 
-                    text: "SC " + gameLogic.score
-                    color: p3
-                    font.family: gameFont
-                    font.pixelSize: 12
-                    font.bold: true
-                    anchors.right: parent.right 
-                }
-                Text {
-                    text: gameLogic.activeBuff !== 0 ? "BUFF" : ""
-                    color: p3
-                    font.family: gameFont
-                    font.pixelSize: 10
-                    font.bold: true
-                    anchors.right: parent.right
-                    SequentialAnimation on opacity { 
-                        loops: Animation.Infinite
-                        running: gameLogic.activeBuff !== 0
-                        NumberAnimation { from: 1; to: 0; duration: 500 }
-                        NumberAnimation { from: 0; to: 1; duration: 500 } 
-                    }
-                }
+                anchors.top: parent.top; anchors.right: parent.right; anchors.margins: 4
+                visible: gameLogic.state >= 2; z: 60
+                Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true; anchors.right: parent.right }
+                Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
             }
 
             Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.6)
-                visible: gameLogic.state === 3
-                z: 70
-                Text { 
-                    text: "PAUSED"
-                    font.family: gameFont
-                    font.pixelSize: 32
-                    font.bold: true
-                    color: p3
-                    anchors.centerIn: parent 
-                }
+                anchors.fill: parent; color: Qt.rgba(p0.r, p0.g, p0.b, 0.6); visible: gameLogic.state === 3; z: 70
+                Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 32; font.bold: true; color: p3; anchors.centerIn: parent }
             }
 
             Rectangle {
-                anchors.fill: parent
-                color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
-                visible: gameLogic.state === 4
-                z: 70
+                anchors.fill: parent; color: Qt.rgba(p3.r, p3.g, p3.b, 0.8); visible: gameLogic.state === 4; z: 70
                 Column {
-                    anchors.centerIn: parent
-                    spacing: 10
-                    Text { 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        color: p0
-                        font.family: gameFont
-                        font.pixelSize: 20
-                        font.bold: true
-                        text: "GAME OVER\nSCORE: " + gameLogic.score
-                        horizontalAlignment: Text.AlignHCenter 
-                    }
-                    Text { 
-                        text: "Press B to Menu"
-                        font.family: gameFont
-                        font.pixelSize: 12
-                        color: p0
-                        anchors.horizontalCenter: parent.horizontalCenter 
-                    }
+                    anchors.centerIn: parent; spacing: 10
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; color: p0; font.family: gameFont; font.pixelSize: 20; font.bold: true; text: "GAME OVER\nSCORE: " + gameLogic.score; horizontalAlignment: Text.AlignHCenter }
+                    Text { text: "Press B to Menu"; font.family: gameFont; font.pixelSize: 12; color: p0; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
 
             OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 100 }
-            
-            MedalRoom {
-                id: medalRoom
-                p0: root.p0
-                p3: root.p3
-                gameFont: root.gameFont
-                visible: root.showingMedals
-                z: 110
-                onCloseRequested: {
-                    root.showingMedals = false;
-                }
-            }
+            MedalRoom { id: medalRoom; p0: root.p0; p3: root.p3; gameFont: root.gameFont; visible: root.showingMedals; z: 110; onCloseRequested: { root.showingMedals = false; } }
         }
 
         ShaderEffect {
@@ -365,7 +218,6 @@ Item {
         }
     }
 
-    function showOSD(text) { 
-        osd.show(text); 
-    }
+    function showOSD(text) { osd.show(text); }
+    function triggerPowerCycle() { flashEffect.restart(); }
 }

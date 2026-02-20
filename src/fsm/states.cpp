@@ -20,6 +20,7 @@ auto SplashState::enter() -> void {
     m_context.m_timer->start(150); 
     if (m_context.m_soundManager) {
         m_context.m_soundManager->playBeep(BootBeepFreq, BootBeepDuration); 
+        QTimer::singleShot(150, [this]() { m_context.m_soundManager->playBeep(1318, 150); }); // E6 high note
     }
 }
 
