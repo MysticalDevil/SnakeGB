@@ -105,6 +105,7 @@ public:
     void setInternalState(int s) override;
     Q_INVOKABLE void requestStateChange(int newState) override;
     
+    // FSM receives read-only model access; structural mutations stay in GameLogic.
     [[nodiscard]] auto snakeModel() const -> const SnakeModel* override { return &m_snakeModel; }
     [[nodiscard]] auto headPosition() const -> QPoint override {
         return m_snakeModel.body().empty() ? QPoint() : m_snakeModel.body().front();
@@ -120,6 +121,7 @@ public:
         m_inputQueue.pop_front();
         return true;
     }
+    // Replay history is captured at tick granularity to keep playback deterministic.
     void recordInputAtCurrentTick(const QPoint &input) override {
         m_currentInputHistory.append({.frame = m_gameTickCounter, .dx = input.x(), .dy = input.y()});
     }

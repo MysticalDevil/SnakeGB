@@ -140,6 +140,7 @@ void ReplayingState::enter() {
 }
 
 void ReplayingState::update() {
+    // First, replay recorded roguelike choices at their exact frame.
     while (m_choiceHistoryIndex < m_context.bestChoiceHistorySize()) {
         int frame = 0;
         int choiceIndex = 0;
@@ -157,6 +158,7 @@ void ReplayingState::update() {
         }
     }
 
+    // Then, replay movement input for the same tick timeline.
     while (m_historyIndex < m_context.bestInputHistorySize()) {
         int frame = 0;
         int dx = 0;
@@ -174,6 +176,7 @@ void ReplayingState::update() {
         }
     }
 
+    // Run normal step simulation using replay-driven direction.
     const QPoint nextHead = m_context.headPosition() + m_context.currentDirection();
     if (m_context.checkCollision(nextHead)) {
         m_context.requestStateChange(IGameEngine::StartMenu);

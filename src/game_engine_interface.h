@@ -33,16 +33,22 @@ public:
     virtual void requestStateChange(int newState) = 0;
 
     // --- Core Data Access ---
+    // The state layer can read immutable snapshots, but cannot mutate
+    // engine-owned containers directly.
     [[nodiscard]] virtual auto snakeModel() const -> const SnakeModel* = 0;
     [[nodiscard]] virtual auto headPosition() const -> QPoint = 0;
     [[nodiscard]] virtual auto currentDirection() const -> QPoint = 0;
     virtual void setDirection(const QPoint &direction) = 0;
     [[nodiscard]] virtual auto currentTick() const -> int = 0;
+    // Consume one queued input command if available.
     virtual auto consumeQueuedInput(QPoint &nextInput) -> bool = 0;
+    // Persist an input sample for ghost replay determinism.
     virtual void recordInputAtCurrentTick(const QPoint &input) = 0;
     [[nodiscard]] virtual auto bestInputHistorySize() const -> int = 0;
+    // Read replay frame data without exposing the underlying container.
     virtual auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool = 0;
     [[nodiscard]] virtual auto bestChoiceHistorySize() const -> int = 0;
+    // Read replay choice data without exposing the underlying container.
     virtual auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool = 0;
     [[nodiscard]] virtual auto foodPos() const -> QPoint = 0;
     [[nodiscard]] virtual auto currentState() const -> int = 0;
