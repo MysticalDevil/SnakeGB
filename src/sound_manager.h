@@ -26,7 +26,6 @@ public:
     Q_INVOKABLE void stopMusic();
     [[nodiscard]] bool musicEnabled() const { return m_musicEnabled; }
 
-    // Volume Control (0.0 to 1.0)
     void setVolume(float volume);
     [[nodiscard]] float volume() const { return m_volume; }
 
@@ -37,25 +36,42 @@ private slots:
     void playNextNote();
 
 private:
-    void generateSquareWave(int frequencyHz, int durationMs, QByteArray &buffer, int amplitude = 32);
+    void generateSquareWave(int frequencyHz, int durationMs, QByteArray &buffer, int amplitude = 32, double duty = 0.25);
     void generateNoise(int durationMs, QByteArray &buffer);
 
     QAudioFormat m_format;
     QAudioSink *m_sfxSink = nullptr;
-    QAudioSink *m_bgmSink = nullptr;
+    QAudioSink *m_bgmLeadSink = nullptr;
+    QAudioSink *m_bgmBassSink = nullptr;
+    
     QBuffer m_sfxBuffer;
-    QBuffer m_bgmBuffer;
+    QBuffer m_bgmLeadBuffer;
+    QBuffer m_bgmBassBuffer;
+    
     QTimer m_musicTimer;
     bool m_musicEnabled = true;
     float m_volume = 1.0f;
     int m_noteIndex = 0;
     int m_currentScore = 0;
 
-    const std::vector<std::pair<int, int>> m_melody = {
-        {440, 300}, {494, 300}, {523, 300}, {587, 300}, {659, 600}, {587, 600},
-        {523, 300}, {494, 300}, {440, 600}, {0, 300},
-        {330, 300}, {392, 300}, {440, 600}, {392, 300}, {330, 300}, {293, 600},
-        {440, 300}, {494, 300}, {523, 300}, {587, 300}, {659, 600}, {784, 600},
-        {880, 600}, {784, 300}, {659, 300}, {587, 600}
+    // Richer Melody: Lead + Bass pairs
+    struct NotePair {
+        int leadFreq;
+        int bassFreq;
+        int duration;
+    };
+
+    const std::vector<NotePair> m_richMelody = {
+        // Theme A
+        {440, 220, 300}, {494, 247, 300}, {523, 261, 300}, {587, 293, 300},
+        {659, 329, 600}, {587, 293, 600}, {523, 261, 300}, {494, 247, 300},
+        {440, 220, 600}, {0, 0, 300},
+        // Theme B
+        {330, 165, 300}, {392, 196, 300}, {440, 220, 600}, {392, 196, 300},
+        {330, 165, 300}, {293, 146, 600},
+        // Bridge
+        {440, 220, 300}, {494, 247, 300}, {523, 261, 300}, {587, 293, 300},
+        {659, 329, 600}, {784, 392, 600}, {880, 440, 600}, {784, 392, 300},
+        {659, 329, 300}, {587, 293, 600}
     };
 };

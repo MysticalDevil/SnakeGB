@@ -8,9 +8,9 @@
 namespace {
     constexpr int SampleRate = 44100;
     constexpr int DefaultAmplitude = 32;
-    constexpr int BGM_Amplitude = 10;
+    constexpr int Lead_Amplitude = 12;
+    constexpr int Bass_Amplitude = 8;
     constexpr int Noise_Amplitude = 20;
-    constexpr double DutyCycle = 0.25;
     constexpr int AttackMs = 5;
     constexpr int CenterVal = 128;
     constexpr int DeferMs = 100;
@@ -21,9 +21,9 @@ SoundManager::SoundManager(QObject *parent) : QObject(parent) {
     m_format.setChannelCount(1);
     m_format.setSampleFormat(QAudioFormat::UInt8);
 
-    const bool openedSfx = m_sfxBuffer.open(QIODevice::ReadWrite);
-    const bool openedBgm = m_bgmBuffer.open(QIODevice::ReadWrite);
-    (void)openedSfx; (void)openedBgm;
+    m_sfxBuffer.open(QIODevice::ReadWrite);
+    m_bgmLeadBuffer.open(QIODevice::ReadWrite);
+    m_bgmBassBuffer.open(QIODevice::ReadWrite);
 
     connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
     QTimer::singleShot(DeferMs, this, &SoundManager::initAudioAsync);
@@ -33,44 +33,42 @@ void SoundManager::initAudioAsync() {
     const auto device = QMediaDevices::defaultAudioOutput();
     if (!device.isNull()) {
         m_sfxSink = new QAudioSink(device, m_format, this);
-        m_bgmSink = new QAudioSink(device, m_format, this);
+        m_bgmLeadSink = new QAudioSink(device, m_format, this);
+        m_bgmBassSink = new QAudioSink(device, m_format, this);
         m_sfxSink->setVolume(m_volume);
-        m_bgmSink->setVolume(m_volume);
+        m_bgmLeadSink->setVolume(m_volume);
+        m_bgmBassSink->setVolume(m_volume);
     }
 }
 
 SoundManager::~SoundManager() {
-    if (m_sfxSink) { m_sfxSink->stop(); }
-    if (m_bgmSink) { m_bgmSink->stop(); }
+    if (m_sfxSink) m_sfxSink->stop();
+    if (m_bgmLeadSink) m_bgmLeadSink->stop();
+    if (m_bgmBassSink) m_bgmBassSink->stop();
 }
 
-void SoundManager::setScore(int score) {
-    m_currentScore = score;
-}
+void SoundManager::setScore(int score) { m_currentScore = score; }
 
 void SoundManager::setVolume(float volume) {
     m_volume = std::clamp(volume, 0.0f, 1.0f);
-    if (m_sfxSink) m_sfxSink->setVolume(static_cast<qreal>(m_volume));
-    if (m_bgmSink) m_bgmSink->setVolume(static_cast<qreal>(m_volume));
+    if (m_sfxSink) m_sfxSink->setVolume(m_volume);
+    if (m_bgmLeadSink) m_bgmLeadSink->setVolume(m_volume);
+    if (m_bgmBassSink) m_bgmBassSink->setVolume(m_volume);
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
     m_musicEnabled = enabled;
-    if (!m_musicEnabled) {
-        stopMusic();
-    }
+    if (!m_musicEnabled) stopMusic();
 }
 
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs) -> void {
     if (!m_sfxSink) return;
     QByteArray data;
-    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude);
+    generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5); // Richer SFX
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
-    if (m_sfxBuffer.open(QIODevice::ReadOnly)) {
-        m_sfxSink->start(&m_sfxBuffer);
-    }
+    if (m_sfxBuffer.open(QIODevice::ReadOnly)) m_sfxSink->start(&m_sfxBuffer);
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
@@ -80,9 +78,7 @@ auto SoundManager::playCrash(const int durationMs) -> void {
     m_sfxSink->stop();
     m_sfxBuffer.close();
     m_sfxBuffer.setData(data);
-    if (m_sfxBuffer.open(QIODevice::ReadOnly)) {
-        m_sfxSink->start(&m_sfxBuffer);
-    }
+    if (m_sfxBuffer.open(QIODevice::ReadOnly)) m_sfxSink->start(&m_sfxBuffer);
 }
 
 auto SoundManager::startMusic() -> void {
@@ -93,33 +89,42 @@ auto SoundManager::startMusic() -> void {
 
 auto SoundManager::stopMusic() -> void {
     m_musicTimer.stop();
-    if (m_bgmSink) m_bgmSink->stop();
+    if (m_bgmLeadSink) m_bgmLeadSink->stop();
+    if (m_bgmBassSink) m_bgmBassSink->stop();
 }
 
 auto SoundManager::playNextNote() -> void {
-    if (!m_bgmSink || !m_musicEnabled) return;
-    if (m_noteIndex >= static_cast<int>(m_melody.size())) m_noteIndex = 0;
+    if (!m_bgmLeadSink || !m_musicEnabled) return;
+    if (m_noteIndex >= static_cast<int>(m_richMelody.size())) m_noteIndex = 0;
 
-    const auto [freq, duration] = m_melody[m_noteIndex];
+    const auto [leadFreq, bassFreq, duration] = m_richMelody[m_noteIndex];
     m_noteIndex++;
 
     double tempoScale = std::max(0.6, 1.0 - (m_currentScore / 5) * 0.05);
     int scaledDuration = static_cast<int>(duration * tempoScale);
 
-    if (freq > 0) {
-        QByteArray data;
-        generateSquareWave(freq, scaledDuration - 5, data, BGM_Amplitude); 
-        m_bgmSink->stop();
-        m_bgmBuffer.close();
-        m_bgmBuffer.setData(data);
-        if (m_bgmBuffer.open(QIODevice::ReadOnly)) {
-            m_bgmSink->start(&m_bgmBuffer);
-        }
+    if (leadFreq > 0) {
+        QByteArray leadData;
+        generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25);
+        m_bgmLeadSink->stop();
+        m_bgmLeadBuffer.close();
+        m_bgmLeadBuffer.setData(leadData);
+        if (m_bgmLeadBuffer.open(QIODevice::ReadOnly)) m_bgmLeadSink->start(&m_bgmLeadBuffer);
     }
+
+    if (bassFreq > 0) {
+        QByteArray bassData;
+        generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5); // Bass uses 50% duty for rounder tone
+        m_bgmBassSink->stop();
+        m_bgmBassBuffer.close();
+        m_bgmBassBuffer.setData(bassData);
+        if (m_bgmBassBuffer.open(QIODevice::ReadOnly)) m_bgmBassSink->start(&m_bgmBassBuffer);
+    }
+
     m_musicTimer.start(scaledDuration);
 }
 
-auto SoundManager::generateSquareWave(const int frequencyHz, const int durationMs, QByteArray &buffer, int amplitude) -> void {
+auto SoundManager::generateSquareWave(const int frequencyHz, const int durationMs, QByteArray &buffer, int amplitude, double duty) -> void {
     const int sampleRate = m_format.sampleRate();
     if (sampleRate <= 0) return;
     const int sampleCount = (sampleRate * durationMs) / 1000;
@@ -130,7 +135,7 @@ auto SoundManager::generateSquareWave(const int frequencyHz, const int durationM
     for (int i = 0; i < sampleCount; ++i) {
         const double phase = fmod(i, cycleLength) / cycleLength;
         double envelope = (i < attackSamples) ? (static_cast<double>(i) / attackSamples) : (1.0 - (static_cast<double>(i - attackSamples) / (sampleCount - attackSamples)));
-        const int val = (phase < DutyCycle) ? (CenterVal + amplitude) : (CenterVal - amplitude);
+        const int val = (phase < duty) ? (CenterVal + amplitude) : (CenterVal - amplitude);
         buffer[i] = static_cast<char>(CenterVal + (val - CenterVal) * envelope);
     }
 }
