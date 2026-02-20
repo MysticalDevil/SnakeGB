@@ -5,14 +5,18 @@ project(SnakeGB VERSION 1.3.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Use MinSizeRel for size optimization
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "MinSizeRel" CACHE STRING "" FORCE)
 endif()
 
-# 2. Compiler flags for minimal size
+# Global Compilation Flags for minimal size
 if(NOT MSVC)
     add_compile_options(-Os -fdata-sections -ffunction-sections -fvisibility=hidden)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT ipo_supported OUTPUT error)
+    if(ipo_supported)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    endif()
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
@@ -33,32 +37,34 @@ qt_add_executable(SnakeGB
     src/game_engine_interface.h
 )
 
-# 3. Robust Resource Mapping (Explicitly matching folder structure)
-qt_add_resources(SnakeGB "qml_resources"
+# Robust Resource Mapping using BASE to flatten paths
+qt_add_resources(SnakeGB "res_qml"
     PREFIX "/"
+    BASE "src/qml"
     FILES
-        src/qml/main.qml
-        src/qml/GameScreen.qml
-        src/qml/DPad.qml
-        src/qml/GBButton.qml
-        src/qml/SmallButton.qml
-        src/qml/OSDLayer.qml
-        src/qml/MedalRoom.qml
-        src/qml/GameBoyShell.qml
-        src/qml/icon.svg
+        "src/qml/main.qml"
+        "src/qml/GameScreen.qml"
+        "src/qml/DPad.qml"
+        "src/qml/GBButton.qml"
+        "src/qml/SmallButton.qml"
+        "src/qml/OSDLayer.qml"
+        "src/qml/MedalRoom.qml"
+        "src/qml/GameBoyShell.qml"
+        "src/qml/icon.svg"
 )
 
-qt_add_resources(SnakeGB "data_resources"
+qt_add_resources(SnakeGB "res_data"
     PREFIX "/"
+    BASE "src/levels"
     FILES
-        src/levels/levels.json
+        "src/levels/levels.json"
 )
 
 # Shader compilation
 qt6_add_shaders(SnakeGB "shaders"
     PREFIX "/shaders"
     FILES
-        src/qml/lcd.frag
+        "src/qml/lcd.frag"
 )
 
 target_link_libraries(SnakeGB PRIVATE
@@ -71,9 +77,9 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Sensors
 )
 
-# 4. Safe Strip & Section Removal
+# Strip symbols and gc-sections
 if(NOT MSVC AND NOT APPLE)
-    target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections")
+    target_link_options(SnakeGB PRIVATE "-Wl,--gc-sections" "-Wl,--strip-all")
 endif()
 
 if(ANDROID)

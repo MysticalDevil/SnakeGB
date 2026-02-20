@@ -11,15 +11,13 @@
 auto main(int argc, char *argv[]) -> int {
     QGuiApplication app(argc, argv);
 
-    // Set application metadata for platform-standard paths
     QCoreApplication::setOrganizationName("DevilOrg");
     QCoreApplication::setOrganizationDomain("org.devil");
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QGuiApplication::setApplicationVersion("1.3.0");
+    QGuiApplication::setApplicationVersion("1.3.1");
     QGuiApplication::setWindowIcon(QIcon(":/icon.svg"));
 
-    // Internationalization support
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
@@ -36,7 +34,7 @@ auto main(int argc, char *argv[]) -> int {
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
 
     using namespace Qt::StringLiterals;
-    const QUrl url(u"qrc:/src/qml/main.qml"_s);
+    const QUrl url(u"qrc:/main.qml"_s);
 
     QObject::connect(
         &engine, &QQmlApplicationEngine::objectCreated, &app,
