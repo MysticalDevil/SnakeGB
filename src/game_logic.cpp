@@ -269,6 +269,7 @@ void GameLogic::restart() {
     m_shieldActive = false;
     m_powerUpPos = QPoint(-1, -1);
     m_choicePending = false;
+    m_choiceIndex = 0;
     
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);

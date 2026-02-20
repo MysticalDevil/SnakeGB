@@ -319,15 +319,37 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                     }
 
+                    Text {
+                        text: "DPAD to Select | START to Confirm"
+                        color: p3
+                        font.family: gameFont
+                        font.pixelSize: 7
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        opacity: 0.8
+                    }
+
                     Repeater {
                         model: gameLogic.choices
                         delegate: Rectangle {
+                            id: choiceRect
                             width: parent.width
                             height: 40
-                            color: mouseAreaChoice.pressed ? p2 : p1
+                            color: gameLogic.choiceIndex === index ? p2 : p1
                             border.color: p3
-                            border.width: 2
+                            border.width: gameLogic.choiceIndex === index ? 3 : 1
                             radius: 4
+
+                            // Selection Arrow Indicator
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: 5
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: ">"
+                                color: p3
+                                visible: gameLogic.choiceIndex === index
+                                font.family: gameFont
+                                font.bold: true
+                            }
 
                             Column {
                                 anchors.centerIn: parent

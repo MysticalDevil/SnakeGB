@@ -121,12 +121,10 @@ void ReplayingState::update() {
     while (choiceIdx < bestChoices.size()) {
         const auto &c = bestChoices[choiceIdx];
         if (c.frame == e.gameTickCounter()) {
-            // Re-generate choices to keep RNG in sync
             e.generateChoices();
-            // Automatically select the recorded choice
-            static_cast<GameLogic&>(e).selectChoice(c.index);
+            e.selectChoice(c.index);
             choiceIdx++;
-            return; // State changed to Playing, let it continue next tick
+            return; 
         } else if (c.frame > e.gameTickCounter()) {
             break;
         } else {
@@ -169,12 +167,24 @@ void ReplayingState::handleStart() {
 void ChoiceState::enter() { 
     auto& e = engine(*this);
     e.setInternalState(GameLogic::ChoiceSelection); 
+    e.setChoiceIndex(0);
     e.generateChoices();
 }
 void ChoiceState::exit() {}
 void ChoiceState::update() {}
-void ChoiceState::handleInput(int, int) {}
-void ChoiceState::handleStart() {}
+void ChoiceState::handleInput(int dx, int dy) {
+    if (dy != 0) {
+        auto& e = engine(*this);
+        int current = e.choiceIndex();
+        int next = (current + (dy > 0 ? 1 : 2)) % 3;
+        e.setChoiceIndex(next);
+        e.triggerHaptic(1);
+    }
+}
+void ChoiceState::handleStart() {
+    auto& e = engine(*this);
+    e.selectChoice(e.choiceIndex());
+}
 
 // --- PausedState ---
 

@@ -86,6 +86,7 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
     Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
     Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
+    Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
 
 public:
@@ -110,6 +111,7 @@ public:
     int& gameTickCounter() override { return m_gameTickCounter; }
     QPoint foodPos() const override { return m_food; }
     bool hasSave() const override;
+    bool hasReplay() const noexcept override;
 
     bool checkCollision(const QPoint &head) override;
     void handleFoodConsumption(const QPoint &head) override;
@@ -117,6 +119,7 @@ public:
     void applyMovement(const QPoint &newHead, bool grew) override;
 
     void restart() override;
+    void startReplay() override;
     void loadLastSession() override;
     void togglePause() override;
     void nextLevel() override;
@@ -129,11 +132,15 @@ public:
     void updatePersistence() override;
     void lazyInit() override;
     void forceUpdate() override { update(); }
+    
+    void generateChoices() override;
+    Q_INVOKABLE void selectChoice(int index) override;
+    int choiceIndex() const override { return m_choiceIndex; }
+    void setChoiceIndex(int index) override { m_choiceIndex = index; emit choiceIndexChanged(); }
 
     // --- QML API ---
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
-    Q_INVOKABLE void startReplay();
     Q_INVOKABLE void nextPalette();
     Q_INVOKABLE void nextShellColor();
     Q_INVOKABLE void quitToMenu();
@@ -142,7 +149,6 @@ public:
     Q_INVOKABLE void handleSelect();
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
-    Q_INVOKABLE void selectChoice(int index);
 
     // Property Getters
     SnakeModel* snakeModelPtr() noexcept { return &m_snakeModel; }
@@ -157,7 +163,6 @@ public:
     QString paletteName() const;
     QVariantList obstacles() const;
     QColor shellColor() const;
-    bool hasReplay() const noexcept;
     int level() const noexcept { return m_levelIndex; }
     QString currentLevelName() const noexcept { return m_currentLevelName; }
     QVariantList ghost() const;
@@ -183,7 +188,7 @@ signals:
     void hasSaveChanged(); void levelChanged(); void ghostChanged();
     void musicEnabledChanged(); void achievementsChanged(); void achievementEarned(QString title);
     void volumeChanged(); void reflectionOffsetChanged();
-    void choicesChanged(); void choicePendingChanged();
+    void choicesChanged(); void choicePendingChanged(); void choiceIndexChanged();
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
 
@@ -201,7 +206,6 @@ private:
     void loadLevelData(int index);
     void checkAchievements();
     void runLevelScript();
-    void generateChoices();
     bool isOccupied(const QPoint &p) const;
     static bool isOutOfBounds(const QPoint &p) noexcept;
 
@@ -217,6 +221,7 @@ private:
     int m_score = 0;
     State m_state = Splash;
     bool m_choicePending = false;
+    int m_choiceIndex = 0;
     QVariantList m_choices;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");

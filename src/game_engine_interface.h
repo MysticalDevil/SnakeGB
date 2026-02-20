@@ -56,5 +56,10 @@ public:
     virtual void updatePersistence() = 0;
     virtual void lazyInit() = 0;
     virtual void forceUpdate() = 0;
+    
+    // --- Roguelike Selection ---
+    virtual int choiceIndex() const = 0;
+    virtual void setChoiceIndex(int index) = 0;
     virtual void generateChoices() = 0;
+    virtual void selectChoice(int index) = 0;
 };
