@@ -29,12 +29,19 @@ qt_add_executable(SnakeGB
     ${PROJECT_SOURCES}
 )
 
+# Standardize binary name across platforms
+set_target_properties(SnakeGB PROPERTIES
+    OUTPUT_NAME "SnakeGB"
+)
+
 target_include_directories(SnakeGB PRIVATE src)
 
 # Set Android-specific properties
 if(ANDROID)
     set_target_properties(SnakeGB PROPERTIES
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android"
+        # This will influence the .so name and deployment metadata
+        OUTPUT_NAME "SnakeGB"
     )
 endif()
 

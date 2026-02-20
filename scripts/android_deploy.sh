@@ -137,8 +137,8 @@ if [[ ! -f "${DEBUG_KEYSTORE_PATH}" ]]; then
     -validity 10000 >/dev/null 2>&1
 fi
 
-ALIGNED_APK="${ALIGNED_APK:-/tmp/gameboy-snack-aligned.apk}"
-SIGNED_APK="${SIGNED_APK:-/tmp/gameboy-snack-signed.apk}"
+ALIGNED_APK="${ALIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}-aligned.apk}"
+SIGNED_APK="${SIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}.apk}"
 
 "${ZIPALIGN_BIN}" -f 4 "${UNSIGNED_APK}" "${ALIGNED_APK}"
 "${APKSIGNER_BIN}" sign \
