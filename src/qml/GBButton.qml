@@ -4,7 +4,7 @@ import QtQuick.Controls
 Item {
     id: root
     property string text: ""
-    property alias isPressed: mouseArea.pressed
+    property bool isPressed: false
     signal clicked
 
     width: 55
@@ -58,6 +58,12 @@ Item {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
+        onPressed: {
+            root.isPressed = true
+        }
+        onReleased: {
+            root.isPressed = false
+        }
         onClicked: {
             gameLogic.requestFeedback(5)
             root.clicked()

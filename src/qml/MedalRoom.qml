@@ -8,6 +8,8 @@ Rectangle {
     z: 1000
 
     property color p0
+    property color p1
+    property color p2
     property color p3
     property string gameFont
 
@@ -32,17 +34,46 @@ Rectangle {
             width: parent.width
             height: parent.height - 60
             model: gameLogic.medalLibrary
-            currentIndex: gameLogic.medalIndex
+            currentIndex: 0
             clip: true
             spacing: 6
-            onCurrentIndexChanged: medalList.positionViewAtIndex(currentIndex, ListView.Contain)
+            interactive: true
+            boundsBehavior: Flickable.StopAtBounds
+            Component.onCompleted: currentIndex = gameLogic.medalIndex
+            onCurrentIndexChanged: {
+                medalList.positionViewAtIndex(currentIndex, ListView.Contain)
+                if (currentIndex !== gameLogic.medalIndex) {
+                    gameLogic.setMedalIndex(currentIndex)
+                }
+            }
+            Connections {
+                target: gameLogic
+                function onMedalIndexChanged() {
+                    if (medalList.currentIndex !== gameLogic.medalIndex) {
+                        medalList.currentIndex = gameLogic.medalIndex
+                    }
+                }
+            }
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: (event) => {
+                    medalList.contentY = Math.max(0, Math.min(
+                        medalList.contentHeight - medalList.height,
+                        medalList.contentY - event.angleDelta.y
+                    ))
+                }
+            }
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+                width: 6
+            }
 
             delegate: Rectangle {
                 width: parent.width
                 height: 42
-                color: gameLogic.medalIndex === index ? p2 : p1
+                color: medalList.currentIndex === index ? p2 : p1
                 border.color: p3
-                border.width: gameLogic.medalIndex === index ? 2 : 1
+                border.width: medalList.currentIndex === index ? 2 : 1
 
                 readonly property bool unlocked: gameLogic.achievements.indexOf(modelData.id) !== -1
 

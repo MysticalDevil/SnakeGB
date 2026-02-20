@@ -16,6 +16,9 @@ Window {
     readonly property string gameFont: "Monospace"
 
     property real elapsed: 0.0
+    property bool selectPressActive: false
+    property bool selectLongPressConsumed: false
+    property bool selectKeyDown: false
     NumberAnimation on elapsed { 
         from: 0
         to: 1000
@@ -44,35 +47,66 @@ Window {
     }
 
     function handleBButton() {
-        shell.bButton.isPressed = true
-        if (gameLogic.state === 1) {
-            gameLogic.nextPalette()
-        } else if (gameLogic.state >= 3) {
-            gameLogic.quitToMenu()
-        }
+        gameLogic.handleBAction()
     }
 
-    Timer {
-        id: longPressTimer
-        interval: 1000
-        onTriggered: { 
-            if (gameLogic.state === 1) { 
-                gameLogic.deleteSave()
-                screen.showOSD(qsTr("Save Cleared")) 
-            } 
+    function beginSelectPress() {
+        selectPressActive = true
+        selectLongPressConsumed = false
+        selectHoldTimer.restart()
+    }
+
+    function endSelectPress() {
+        selectPressActive = false
+        selectHoldTimer.stop()
+    }
+
+    function handleSelectShortPress() {
+        if (selectLongPressConsumed) {
+            selectLongPressConsumed = false
+            return
+        }
+        gameLogic.handleSelect()
+    }
+
+    function handleBackAction() {
+        if (gameLogic.state === 3 || gameLogic.state === 4 ||
+            gameLogic.state === 5 || gameLogic.state === 6 ||
+            gameLogic.state === 7 || gameLogic.state === 8) {
+            gameLogic.quitToMenu()
+        } else if (gameLogic.state === 1) {
+            gameLogic.quit()
         }
     }
 
     Connections {
         target: gameLogic
         function onPaletteChanged() { 
+            if (gameLogic.state === 0) return
             screen.showOSD(gameLogic.paletteName) 
         }
         function onShellColorChanged() { 
-            screen.triggerPowerCycle() 
+            if (gameLogic.state !== 0) {
+                screen.triggerPowerCycle()
+            }
         }
         function onAchievementEarned(title) { 
             screen.showOSD("UNLOCKED: " + title) 
+        }
+    }
+
+    Timer {
+        id: selectHoldTimer
+        interval: 700
+        repeat: false
+        onTriggered: {
+            if (!window.selectPressActive || window.selectLongPressConsumed) return
+            if (gameLogic.state === 1 && gameLogic.hasSave) {
+                window.selectLongPressConsumed = true
+                gameLogic.deleteSave()
+                gameLogic.requestFeedback(8)
+                screen.showOSD("SAVE CLEARED")
+            }
         }
     }
 
@@ -117,21 +151,23 @@ Window {
 
                 Connections { 
                     target: shell.bButton
-                    function onClicked() { handleBButton() } 
+                    function onClicked() {
+                        handleBButton()
+                    }
                 }
 
                 Connections { 
                     target: shell.selectButton
                     function onPressed() { 
                         shell.selectButton.isPressed = true
-                        longPressTimer.start() 
+                        beginSelectPress()
                     }
                     function onReleased() { 
                         shell.selectButton.isPressed = false
-                        if (longPressTimer.running) { 
-                            longPressTimer.stop()
-                            gameLogic.handleSelect() 
-                        } 
+                        endSelectPress()
+                    }
+                    function onClicked() {
+                        handleSelectShortPress()
                     } 
                 }
 
@@ -160,16 +196,22 @@ Window {
                 gameLogic.handleStart()
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                shell.bButton.isPressed = true
                 handleBButton()
             }
             else if (event.key === Qt.Key_C || event.key === Qt.Key_Y) {
                 gameLogic.nextShellColor()
             }
             else if (event.key === Qt.Key_Shift) {
+                if (selectKeyDown) return
+                selectKeyDown = true
                 shell.selectButton.isPressed = true
-                longPressTimer.start()
+                beginSelectPress()
             }
             else if (event.key === Qt.Key_M) gameLogic.toggleMusic()
+            else if (event.key === Qt.Key_Back) {
+                handleBackAction()
+            }
             else if (event.key === Qt.Key_Escape) gameLogic.quit()
         }
         
@@ -180,11 +222,10 @@ Window {
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
             else if (event.key === Qt.Key_Shift) {
+                selectKeyDown = false
                 shell.selectButton.isPressed = false
-                if (longPressTimer.running) {
-                    longPressTimer.stop()
-                    gameLogic.handleSelect()
-                }
+                endSelectPress()
+                handleSelectShortPress()
             }
         }
     }
