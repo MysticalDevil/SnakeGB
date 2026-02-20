@@ -4,12 +4,35 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group android:translateX="22" android:translateY="22">
-        <!-- Snake Head -->
-        <path android:fillColor="#0f380f" android:pathData="M40,20h20v20h-20z" />
-        <!-- Body Body -->
-        <path android:fillColor="#306230" android:pathData="M20,20h20v20h-20z" />
-        <path android:fillColor="#306230" android:pathData="M20,40h20v20h-20z" />
+    
+    <!-- Main Snake Head & Body Group -->
+    <group android:translateX="14" android:translateY="14">
+        <!-- Body segment -->
         <path android:fillColor="#306230" android:pathData="M20,60h20v20h-20z" />
+        <path android:fillColor="#306230" android:pathData="M20,40h20v20h-20z" />
+        
+        <!-- Head segment -->
+        <path android:fillColor="#0f380f" android:pathData="M40,20h30v30h-30z" />
+        
+        <!-- Eye -->
+        <path android:fillColor="#cadc9f" android:pathData="M55,28h8v8h-8z" />
+        
+        <!-- Open Mouth detail -->
+        <path android:fillColor="#000000" android:pathData="M65,40h5v5h-5z" />
+        
+        <!-- The Target Diamond Power-up -->
+        <group>
+            <path android:fillColor="#306230" android:pathData="M85,25 l10,10 l-10,10 l-10,-10 z" />
+            <!-- Pulsing aura inside icon (static part) -->
+            <path android:fillColor="#8bac0f" android:pathData="M85,30 l5,5 l-5,5 l-5,-5 z" />
+        </group>
     </group>
+
+    <!-- Glass Shine Overlay (Global) -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M0,0 L108,0 L0,108 Z" />
+    <path
+        android:fillColor="#15FFFFFF"
+        android:pathData="M108,108 L108,0 L0,108 Z" />
 </vector>
