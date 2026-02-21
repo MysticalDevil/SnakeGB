@@ -29,6 +29,8 @@ qt_add_executable(SnakeGB
     src/adapter/ui_action.h
     src/adapter/input_semantics.cpp
     src/adapter/input_semantics.h
+    src/adapter/level_applier.cpp
+    src/adapter/level_applier.h
     src/adapter/level_loader.cpp
     src/adapter/level_loader.h
     src/app_state.h
@@ -121,6 +123,7 @@ add_executable(game-tests
     src/profile_manager.cpp
     src/adapter/ui_action.cpp
     src/adapter/input_semantics.cpp
+    src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
     src/fsm/states.cpp
 )
@@ -168,3 +171,12 @@ target_include_directories(adapter-level-loader-tests PRIVATE src)
 target_link_libraries(adapter-level-loader-tests PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME AdapterLevelLoaderTest COMMAND adapter-level-loader-tests)
 set_tests_properties(AdapterLevelLoaderTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-level-applier-tests
+    tests/test_level_applier_adapter.cpp
+    src/adapter/level_applier.cpp
+)
+target_include_directories(adapter-level-applier-tests PRIVATE src)
+target_link_libraries(adapter-level-applier-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
+add_test(NAME AdapterLevelApplierTest COMMAND adapter-level-applier-tests)
+set_tests_properties(AdapterLevelApplierTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

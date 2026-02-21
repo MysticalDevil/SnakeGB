@@ -3,6 +3,7 @@
 #include "core/achievement_rules.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
+#include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/ui_action.h"
 #include "adapter/input_semantics.h"
@@ -1202,27 +1203,19 @@ void GameLogic::loadLevelData(int i) {
         return;
     }
 
-    m_currentLevelName = resolvedLevel->name;
-    m_obstacles.clear();
-    m_currentScript = resolvedLevel->script;
-
-    if (!m_currentScript.isEmpty()) {
-        const QJSValue res = m_jsEngine.evaluate(m_currentScript);
-        if (res.isError()) {
-            applyFallbackLevelData(safeIndex);
-            return;
-        }
-        runLevelScript();
-        if (m_obstacles.isEmpty()) {
-            applyFallbackLevelData(safeIndex);
-            return;
-        }
-    } else {
-        m_obstacles = resolvedLevel->walls;
-        if (m_obstacles.isEmpty()) {
-            applyFallbackLevelData(safeIndex);
-            return;
-        }
+    const bool applied = snakegb::adapter::applyResolvedLevelData(
+        *resolvedLevel, m_currentLevelName, m_currentScript, m_obstacles,
+        [this](const QString &script) -> bool {
+            const QJSValue res = m_jsEngine.evaluate(script);
+            if (res.isError()) {
+                return false;
+            }
+            runLevelScript();
+            return true;
+        });
+    if (!applied) {
+        applyFallbackLevelData(safeIndex);
+        return;
     }
     emit obstaclesChanged();
 }
