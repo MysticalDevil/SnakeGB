@@ -207,7 +207,7 @@ Window {
                 return true
             }
             if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.dispatchUiAction("quit_to_menu")
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             if (action === inputAction.SelectShort) {
@@ -219,7 +219,7 @@ Window {
         function routePageLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.dispatchUiAction("quit_to_menu")
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             if (action === inputAction.Primary) {
@@ -490,13 +490,7 @@ Window {
             exitIconLabToMenu()
             return
         }
-        if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver ||
-            gameLogic.state === AppState.Replaying || gameLogic.state === AppState.ChoiceSelection ||
-            gameLogic.state === AppState.Library || gameLogic.state === AppState.MedalRoom) {
-            gameLogic.dispatchUiAction("quit_to_menu")
-        } else if (gameLogic.state === AppState.StartMenu) {
-            gameLogic.dispatchUiAction("quit")
-        }
+        gameLogic.dispatchUiAction(inputAction.Back)
     }
 
     Connections {
