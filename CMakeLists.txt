@@ -31,6 +31,8 @@ qt_add_executable(SnakeGB
     src/adapter/input_semantics.h
     src/adapter/ghost_store.cpp
     src/adapter/ghost_store.h
+    src/adapter/session_state.cpp
+    src/adapter/session_state.h
     src/adapter/level_applier.cpp
     src/adapter/level_applier.h
     src/adapter/level_loader.cpp
@@ -132,6 +134,7 @@ add_executable(game-tests
     src/adapter/ui_action.cpp
     src/adapter/input_semantics.cpp
     src/adapter/ghost_store.cpp
+    src/adapter/session_state.cpp
     src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
     src/adapter/level_script_runtime.cpp
@@ -210,3 +213,12 @@ target_include_directories(adapter-ghost-store-tests PRIVATE src)
 target_link_libraries(adapter-ghost-store-tests PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME AdapterGhostStoreTest COMMAND adapter-ghost-store-tests)
 set_tests_properties(AdapterGhostStoreTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-session-state-tests
+    tests/test_session_state_adapter.cpp
+    src/adapter/session_state.cpp
+)
+target_include_directories(adapter-session-state-tests PRIVATE src)
+target_link_libraries(adapter-session-state-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterSessionStateTest COMMAND adapter-session-state-tests)
+set_tests_properties(AdapterSessionStateTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

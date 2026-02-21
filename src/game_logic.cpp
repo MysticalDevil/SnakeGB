@@ -5,6 +5,7 @@
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "adapter/ghost_store.h"
+#include "adapter/session_state.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
@@ -403,22 +404,16 @@ void GameLogic::loadLastSession() {
         return;
     }
 
-    auto data = m_profileManager->loadSession();
-    m_score = data[u"score"_s].toInt();
-    m_food = data[u"food"_s].toPoint();
-    m_direction = data[u"dir"_s].toPoint();
-    m_obstacles.clear();
-
-    for (const auto &v : data[u"obstacles"_s].toList()) {
-        m_obstacles.append(v.toPoint());
+    const auto snapshot = snakegb::adapter::decodeSessionSnapshot(m_profileManager->loadSession());
+    if (!snapshot.has_value()) {
+        return;
     }
 
-    std::deque<QPoint> body;
-    for (const auto &v : data[u"body"_s].toList()) {
-        body.emplace_back(v.toPoint());
-    }
-
-    m_snakeModel.reset(body);
+    m_score = snapshot->score;
+    m_food = snapshot->food;
+    m_direction = snapshot->direction;
+    m_obstacles = snapshot->obstacles;
+    m_snakeModel.reset(snapshot->body);
     m_inputQueue.clear();
     m_currentInputHistory.clear();
     m_currentRecording.clear();
@@ -429,7 +424,7 @@ void GameLogic::loadLastSession() {
     m_buffTicksTotal = 0;
     m_shieldActive = false;
 
-    for (const auto &p : body) {
+    for (const auto &p : snapshot->body) {
         m_currentRecording.append(p);
     }
 
