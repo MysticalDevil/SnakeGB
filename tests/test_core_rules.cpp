@@ -18,6 +18,7 @@ private slots:
     void testPickRandomFreeSpotUsesProvidedIndexAndHandlesEdgeCases();
     void testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater();
     void testProbeCollisionRespectsGhostFlag();
+    void testCollisionOutcomeMatchesPortalLaserAndShieldSemantics();
     void testDynamicLevelFallbackProducesObstacles();
     void testWallsFromJsonArrayParsesCoordinates();
     void testResolvedLevelDataFromJsonMapsIndexAndFields();
@@ -176,6 +177,33 @@ void TestCoreRules::testProbeCollisionRespectsGhostFlag() {
     const snakegb::core::CollisionProbe ghostBodyProbe =
         snakegb::core::probeCollision(QPoint(4, 5), obstacles, snakeBody, true);
     QVERIFY(!ghostBodyProbe.hitsBody);
+}
+
+void TestCoreRules::testCollisionOutcomeMatchesPortalLaserAndShieldSemantics() {
+    const QList<QPoint> obstacles{QPoint(3, 3)};
+    const std::deque<QPoint> snakeBody{QPoint(5, 5), QPoint(4, 5)};
+
+    const snakegb::core::CollisionOutcome portalOutcome = snakegb::core::collisionOutcomeForHead(
+        QPoint(3, 3), 20, 20, obstacles, snakeBody, false, true, false, false);
+    QVERIFY(!portalOutcome.collision);
+    QVERIFY(!portalOutcome.consumeLaser);
+    QVERIFY(!portalOutcome.consumeShield);
+
+    const snakegb::core::CollisionOutcome laserOutcome = snakegb::core::collisionOutcomeForHead(
+        QPoint(3, 3), 20, 20, obstacles, snakeBody, false, false, true, false);
+    QVERIFY(!laserOutcome.collision);
+    QVERIFY(laserOutcome.consumeLaser);
+    QCOMPARE(laserOutcome.obstacleIndex, 0);
+
+    const snakegb::core::CollisionOutcome shieldOutcome = snakegb::core::collisionOutcomeForHead(
+        QPoint(4, 5), 20, 20, obstacles, snakeBody, false, false, false, true);
+    QVERIFY(!shieldOutcome.collision);
+    QVERIFY(shieldOutcome.consumeShield);
+    QVERIFY(!shieldOutcome.consumeLaser);
+
+    const snakegb::core::CollisionOutcome crashOutcome = snakegb::core::collisionOutcomeForHead(
+        QPoint(4, 5), 20, 20, obstacles, snakeBody, false, false, false, false);
+    QVERIFY(crashOutcome.collision);
 }
 
 void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {

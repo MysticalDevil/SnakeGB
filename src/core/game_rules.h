@@ -19,6 +19,13 @@ struct CollisionProbe {
     bool hitsBody = false;
 };
 
+struct CollisionOutcome {
+    bool collision = false;
+    bool consumeShield = false;
+    bool consumeLaser = false;
+    int obstacleIndex = -1;
+};
+
 // Returns [0, 100]. 100 means guaranteed trigger, 0 means never trigger.
 auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext &ctx) -> int;
 
@@ -33,5 +40,8 @@ auto pickRandomFreeSpot(int boardWidth, int boardHeight,
 auto magnetCandidateSpots(const QPoint &food, const QPoint &head, int boardWidth, int boardHeight) -> QList<QPoint>;
 auto probeCollision(const QPoint &wrappedHead, const QList<QPoint> &obstacles, const std::deque<QPoint> &snakeBody,
                     bool ghostActive) -> CollisionProbe;
+auto collisionOutcomeForHead(const QPoint &head, int boardWidth, int boardHeight, const QList<QPoint> &obstacles,
+                             const std::deque<QPoint> &snakeBody, bool ghostActive, bool portalActive,
+                             bool laserActive, bool shieldActive) -> CollisionOutcome;
 
 } // namespace snakegb::core

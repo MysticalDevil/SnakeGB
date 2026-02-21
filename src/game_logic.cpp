@@ -248,39 +248,23 @@ auto GameLogic::hasReplay() const noexcept -> bool {
 }
 
 auto GameLogic::checkCollision(const QPoint &head) -> bool {
-    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
-    const snakegb::core::CollisionProbe probe =
-        snakegb::core::probeCollision(p, m_obstacles, m_snakeModel.body(), m_activeBuff == Ghost);
-    if (probe.hitsObstacle) {
-        if (m_activeBuff == Portal) {
-            return false;
-        }
-        if (m_activeBuff == Laser) {
-            m_obstacles.removeAt(probe.obstacleIndex);
-            m_activeBuff = None;
-            emit obstaclesChanged();
-            triggerHaptic(8);
-            emit buffChanged();
-            return false;
-        }
-        if (m_shieldActive) {
-            m_shieldActive = false;
-            triggerHaptic(5);
-            emit buffChanged();
-            return false;
-        }
-        return true;
+    const snakegb::core::CollisionOutcome outcome = snakegb::core::collisionOutcomeForHead(
+        head, BOARD_WIDTH, BOARD_HEIGHT, m_obstacles, m_snakeModel.body(), m_activeBuff == Ghost,
+        m_activeBuff == Portal, m_activeBuff == Laser, m_shieldActive);
+
+    if (outcome.consumeLaser && outcome.obstacleIndex >= 0 && outcome.obstacleIndex < m_obstacles.size()) {
+        m_obstacles.removeAt(outcome.obstacleIndex);
+        m_activeBuff = None;
+        emit obstaclesChanged();
+        triggerHaptic(8);
+        emit buffChanged();
     }
-    if (probe.hitsBody) {
-        if (m_shieldActive) {
-            m_shieldActive = false;
-            triggerHaptic(5);
-            emit buffChanged();
-            return false;
-        }
-        return true;
+    if (outcome.consumeShield) {
+        m_shieldActive = false;
+        triggerHaptic(5);
+        emit buffChanged();
     }
-    return false;
+    return outcome.collision;
 }
 
 void GameLogic::handleFoodConsumption(const QPoint &head) {

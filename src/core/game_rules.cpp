@@ -165,4 +165,37 @@ auto probeCollision(const QPoint &wrappedHead, const QList<QPoint> &obstacles, c
     return probe;
 }
 
+auto collisionOutcomeForHead(const QPoint &head, const int boardWidth, const int boardHeight,
+                             const QList<QPoint> &obstacles, const std::deque<QPoint> &snakeBody,
+                             const bool ghostActive, const bool portalActive, const bool laserActive,
+                             const bool shieldActive) -> CollisionOutcome {
+    const QPoint wrappedHead = wrapPoint(head, boardWidth, boardHeight);
+    const CollisionProbe probe = probeCollision(wrappedHead, obstacles, snakeBody, ghostActive);
+    CollisionOutcome outcome;
+    if (probe.hitsObstacle) {
+        if (portalActive) {
+            return outcome;
+        }
+        if (laserActive) {
+            outcome.consumeLaser = true;
+            outcome.obstacleIndex = probe.obstacleIndex;
+            return outcome;
+        }
+        if (shieldActive) {
+            outcome.consumeShield = true;
+            return outcome;
+        }
+        outcome.collision = true;
+        return outcome;
+    }
+    if (probe.hitsBody) {
+        if (shieldActive) {
+            outcome.consumeShield = true;
+            return outcome;
+        }
+        outcome.collision = true;
+    }
+    return outcome;
+}
+
 } // namespace snakegb::core
