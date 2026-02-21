@@ -192,61 +192,99 @@ Rectangle {
     }
 
     // --- Physical Volume Knob (Side Wheel) ---
-    Rectangle {
+    Item {
         id: volumeKnobTrack
         anchors.right: parent.right
-        anchors.rightMargin: -8
+        anchors.rightMargin: -12
         anchors.top: parent.top
-        anchors.topMargin: 150
-        width: 18
-        height: 92
-        color: "#2b2e33"
-        radius: 5
-        clip: true
-        border.color: "#171a1f"
-        border.width: 1
+        anchors.topMargin: 134
+        width: 34
+        height: 116
+        property real wheelMinY: 10
+        property real wheelMaxY: 82
+        property int detentCount: 15
+
+        function clamp01(v) {
+            return Math.max(0.0, Math.min(1.0, v))
+        }
+
+        function setDetentVolume(v, withHaptic) {
+            var clamped = clamp01(v)
+            var snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
+            if (Math.abs(snapped - gameLogic.volume) > 0.0001) {
+                gameLogic.volume = snapped
+                if (withHaptic) {
+                    gameLogic.requestFeedback(1)
+                }
+            }
+        }
+
+        Text {
+            anchors.right: parent.left
+            anchors.rightMargin: 1
+            anchors.top: parent.top
+            anchors.topMargin: 6
+            text: "VOLUME"
+            rotation: -90
+            transformOrigin: Item.TopRight
+            color: Qt.rgba(0, 0, 0, 0.45)
+            font.pixelSize: 7
+            font.bold: true
+        }
 
         Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: parent.radius - 1
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#3a3d44" }
-                GradientStop { position: 0.5; color: "#262a30" }
-                GradientStop { position: 1.0; color: "#1f2329" }
+            id: slotBody
+            x: 9
+            y: 8
+            width: 14
+            height: 94
+            radius: 7
+            color: "#20242a"
+            border.color: "#15181d"
+            border.width: 1
+
+            MouseArea {
+                anchors.fill: parent
+                onPressed: {
+                    var normalized = 1.0 - ((mouse.y - 2) / (slotBody.height - 4))
+                    volumeKnobTrack.setDetentVolume(normalized, true)
+                }
             }
+        }
+
+        Rectangle {
+            anchors.fill: slotBody
+            anchors.margins: 1
+            radius: slotBody.radius - 1
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#373c44" }
+                GradientStop { position: 0.45; color: "#22262c" }
+                GradientStop { position: 1.0; color: "#171b21" }
+            }
+            opacity: 0.88
         }
 
         Repeater {
-            model: 10
+            model: 9
             delegate: Rectangle {
-                width: 7
+                width: 4
                 height: 1
-                x: 2
-                y: 7 + index * 8
-                color: Qt.rgba(0, 0, 0, 0.35)
+                x: 11
+                y: 14 + index * 10
+                color: Qt.rgba(0, 0, 0, 0.34)
             }
-        }
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.leftMargin: 1
-            width: 2
-            height: parent.height - 2
-            y: 1
-            radius: 1
-            color: Qt.rgba(1, 1, 1, 0.15)
         }
 
         Rectangle {
             id: volumeWheel
-            width: parent.width - 2
-            height: 30
-            x: 1
-            color: "#5b616e"
-            radius: 3
-            y: (1.0 - gameLogic.volume) * (parent.height - height)
-            border.color: "#2a2f38"
+            width: 20
+            height: 22
+            x: 12
+            y: volumeKnobTrack.wheelMinY +
+               (1.0 - gameLogic.volume) * (volumeKnobTrack.wheelMaxY - volumeKnobTrack.wheelMinY)
+            radius: 6
+            color: "#626a78"
+            border.color: "#2a2f37"
             border.width: 1
 
             Rectangle {
@@ -254,61 +292,46 @@ Rectangle {
                 anchors.margins: 1
                 radius: parent.radius - 1
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#7a8291" }
-                    GradientStop { position: 0.45; color: "#5d6471" }
-                    GradientStop { position: 1.0; color: "#444b56" }
+                    GradientStop { position: 0.0; color: "#8a94a6" }
+                    GradientStop { position: 0.42; color: "#687182" }
+                    GradientStop { position: 1.0; color: "#4b5260" }
                 }
             }
 
-            Column {
-                anchors.centerIn: parent
-                spacing: 2
-                Repeater {
-                    model: 6
-                    Rectangle { width: 11; height: 1; color: "#262b33"; radius: 1 }
+            Repeater {
+                model: 5
+                delegate: Rectangle {
+                    width: 1
+                    height: 14
+                    x: 4 + index * 3
+                    y: 4
+                    radius: 1
+                    color: "#2f353f"
                 }
-            }
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.leftMargin: 2
-                anchors.verticalCenter: parent.verticalCenter
-                width: 2
-                height: 8
-                radius: 1
-                color: "#c5ccd8"
-                opacity: 0.85
             }
 
             MouseArea {
                 anchors.fill: parent
-                drag.target: volumeWheel
-                drag.axis: Drag.YAxis
-                drag.minimumY: 0
-                drag.maximumY: volumeKnobTrack.height - volumeWheel.height
-                
-                property int lastStep: 0
-                
+                property real dragOffsetY: 0.0
+                onPressed: {
+                    dragOffsetY = mouse.y
+                }
                 onPositionChanged: {
-                    var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
-                    gameLogic.volume = normalized
-                    
-                    var currentStep = Math.floor(normalized * 10)
-                    if (currentStep !== lastStep) {
-                        gameLogic.requestFeedback(1)
-                        lastStep = currentStep
-                    }
+                    if (!pressed) return
+                    var localY = volumeWheel.y + mouse.y - dragOffsetY
+                    var normalized = 1.0 - ((localY - volumeKnobTrack.wheelMinY) /
+                                             (volumeKnobTrack.wheelMaxY - volumeKnobTrack.wheelMinY))
+                    volumeKnobTrack.setDetentVolume(normalized, true)
                 }
             }
-        }
-        Text {
-            anchors.bottom: parent.top
-            anchors.bottomMargin: 5
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: "VOL"
-            color: "#4f545d"
-            font.pixelSize: 8
-            font.bold: true
+
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: (event) => {
+                    var step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeKnobTrack.detentCount - 1)
+                    volumeKnobTrack.setDetentVolume(gameLogic.volume + step, true)
+                }
+            }
         }
     }
 }
