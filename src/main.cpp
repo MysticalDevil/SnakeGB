@@ -3,6 +3,7 @@
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <qqml.h>
 #include <QQuickWindow>
 #include <QDebug>
 #include <QTranslator>
@@ -10,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include "app_state.h"
 #include "game_logic.h"
 #include "input_injection_pipe.h"
 #include "sound_manager.h"
@@ -50,7 +52,7 @@ auto main(int argc, char *argv[]) -> int {
     QCoreApplication::setOrganizationDomain("org.devil");
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
-    QGuiApplication::setApplicationVersion("1.4.0");
+    QGuiApplication::setApplicationVersion("1.4.6");
 
 #ifndef QT_NO_INFO_OUTPUT
     qInfo().noquote() << "[BuildMode] Debug logging enabled";
@@ -71,6 +73,8 @@ auto main(int argc, char *argv[]) -> int {
     QObject::connect(&gameLogic, &GameLogic::audioSetScore, &soundManager, &SoundManager::setScore);
 
     QQmlApplicationEngine engine;
+    qmlRegisterUncreatableType<AppState>("SnakeGB", 1, 0, "AppState",
+                                         "AppState is an enum container and cannot be instantiated");
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
     engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
 

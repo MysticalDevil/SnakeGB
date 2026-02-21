@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import SnakeGB 1.0
 
 Window {
     id: window
@@ -20,18 +21,8 @@ Window {
     property bool selectLongPressConsumed: false
     property bool selectKeyDown: false
     property bool startPressActive: false
+    property bool saveClearConfirmPending: false
     property bool iconDebugMode: false
-    readonly property var gameState: ({
-        Splash: 0,
-        StartMenu: 1,
-        Playing: 2,
-        Paused: 3,
-        GameOver: 4,
-        Replaying: 5,
-        ChoiceSelection: 6,
-        Library: 7,
-        MedalRoom: 8
-    })
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -102,16 +93,16 @@ Window {
     }
 
     function isOverlayState(state) {
-        return state === gameState.Paused || state === gameState.GameOver ||
-               state === gameState.Replaying || state === gameState.ChoiceSelection
+        return state === AppState.Paused || state === AppState.GameOver ||
+               state === AppState.Replaying || state === AppState.ChoiceSelection
     }
 
     function isPageState(state) {
-        return state === gameState.Library || state === gameState.MedalRoom
+        return state === AppState.Library || state === AppState.MedalRoom
     }
 
     function isGameplayState(state) {
-        return state === gameState.Playing
+        return state === AppState.Playing
     }
 
     function toggleIconLab() {
@@ -119,7 +110,7 @@ Window {
         konamiIndex = 0
         screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
         if (!iconDebugMode) {
-            gameLogic.requestStateChange(gameState.StartMenu)
+            gameLogic.requestStateChange(AppState.StartMenu)
         }
     }
 
@@ -286,6 +277,9 @@ Window {
     }
 
     function dispatchAction(action) {
+        if (saveClearConfirmPending && action !== inputAction.Primary) {
+            cancelSaveClearConfirm(false)
+        }
         inputRouter.route(action)
     }
 
@@ -361,6 +355,14 @@ Window {
     }
 
     function handleAButton() {
+        if (saveClearConfirmPending && gameLogic.state === AppState.StartMenu && gameLogic.hasSave) {
+            saveClearConfirmPending = false
+            saveClearConfirmTimer.stop()
+            gameLogic.deleteSave()
+            gameLogic.requestFeedback(8)
+            screen.showOSD("SAVE CLEARED")
+            return
+        }
         if (handleEasterInput("A")) {
             return
         }
@@ -370,7 +372,7 @@ Window {
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
-        gameLogic.requestStateChange(gameState.StartMenu)
+        gameLogic.requestStateChange(AppState.StartMenu)
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -384,7 +386,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    gameLogic.requestStateChange(gameState.StartMenu)
+                    gameLogic.requestStateChange(AppState.StartMenu)
                 }
                 return "toggle"
             }
@@ -400,7 +402,7 @@ Window {
     }
 
     function handleEasterInput(token) {
-        var trackEaster = iconDebugMode || gameLogic.state !== gameState.Splash
+        var trackEaster = iconDebugMode || gameLogic.state !== AppState.Splash
         if (!trackEaster) {
             return false
         }
@@ -415,7 +417,7 @@ Window {
         var status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                gameLogic.requestStateChange(gameState.StartMenu)
+                gameLogic.requestStateChange(AppState.StartMenu)
             }
             return true
         }
@@ -464,16 +466,27 @@ Window {
         startPressActive = false
     }
 
+    function cancelSaveClearConfirm(showToast) {
+        if (!saveClearConfirmPending) {
+            return
+        }
+        saveClearConfirmPending = false
+        saveClearConfirmTimer.stop()
+        if (showToast) {
+            screen.showOSD("SAVE CLEAR CANCELED")
+        }
+    }
+
     function handleBackAction() {
         if (iconDebugMode) {
             exitIconLabToMenu()
             return
         }
-        if (gameLogic.state === gameState.Paused || gameLogic.state === gameState.GameOver ||
-            gameLogic.state === gameState.Replaying || gameLogic.state === gameState.ChoiceSelection ||
-            gameLogic.state === gameState.Library || gameLogic.state === gameState.MedalRoom) {
+        if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver ||
+            gameLogic.state === AppState.Replaying || gameLogic.state === AppState.ChoiceSelection ||
+            gameLogic.state === AppState.Library || gameLogic.state === AppState.MedalRoom) {
             gameLogic.quitToMenu()
-        } else if (gameLogic.state === gameState.StartMenu) {
+        } else if (gameLogic.state === AppState.StartMenu) {
             gameLogic.quit()
         }
     }
@@ -481,12 +494,17 @@ Window {
     Connections {
         target: gameLogic
         function onPaletteChanged() { 
-            if (gameLogic.state === gameState.Splash) return
+            if (gameLogic.state === AppState.Splash) return
             screen.showOSD(gameLogic.paletteName) 
         }
         function onShellColorChanged() { 
-            if (gameLogic.state !== gameState.Splash) {
+            if (gameLogic.state !== AppState.Splash) {
                 screen.triggerPowerCycle()
+            }
+        }
+        function onStateChanged() {
+            if (gameLogic.state !== AppState.StartMenu) {
+                cancelSaveClearConfirm(false)
             }
         }
         function onAchievementEarned(title) { 
@@ -510,12 +528,21 @@ Window {
         repeat: false
         onTriggered: {
             if (!window.selectPressActive || window.selectLongPressConsumed) return
-            if (gameLogic.state === gameState.StartMenu && gameLogic.hasSave && window.startPressActive) {
+            if (gameLogic.state === AppState.StartMenu && gameLogic.hasSave && window.startPressActive) {
                 window.selectLongPressConsumed = true
-                gameLogic.deleteSave()
-                gameLogic.requestFeedback(8)
-                screen.showOSD("SAVE CLEARED")
+                saveClearConfirmPending = true
+                saveClearConfirmTimer.restart()
+                screen.showOSD("PRESS A TO CLEAR SAVE")
             }
+        }
+    }
+
+    Timer {
+        id: saveClearConfirmTimer
+        interval: 2600
+        repeat: false
+        onTriggered: {
+            cancelSaveClearConfirm(true)
         }
     }
 

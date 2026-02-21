@@ -151,6 +151,9 @@ Each layer returns `handled: true/false`.
 - Export symbolic enums to QML (e.g., `State.Menu`, `State.Playing`, `State.Pause`, ...).
 - Remove magic numbers from key handling.
 
+Status:
+- Implemented with exported `AppState` enum (`SnakeGB 1.0`) and QML now routes by symbolic state constants.
+
 ## 4.4 Isolate easter/debug logic
 - Keep easter detection in shell/frontend scope.
 - Never directly mutate game state except explicit transition APIs.
@@ -162,7 +165,10 @@ Each layer returns `handled: true/false`.
 ## 5.1 Destructive actions
 - Save clear should require stronger confirmation:
   - Recommended: `Select + Start` hold + confirm prompt.
-  - Do not bind destructive action to single-key long press.
+- Do not bind destructive action to single-key long press.
+
+Status:
+- Implemented as `Start + Select` hold to arm clear, followed by explicit `A` confirmation within a short timeout.
 
 ## 5.2 Timeout/reset for sequence inputs
 - Sequence trackers (e.g., Konami) should have reset timeout and state constraints.

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(SnakeGB VERSION 1.4.0 LANGUAGES CXX)
+project(SnakeGB VERSION 1.4.6 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,6 +25,7 @@ qt_add_executable(SnakeGB
     src/profile_manager.h
     src/input_injection_pipe.cpp
     src/input_injection_pipe.h
+    src/app_state.h
     src/fsm/states.cpp
     src/fsm/states.h
     src/fsm/game_state.h
