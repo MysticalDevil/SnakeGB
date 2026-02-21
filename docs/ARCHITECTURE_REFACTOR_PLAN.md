@@ -215,3 +215,5 @@ Validation after each commit:
 - `src/qml/GameScreen.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
 - `Library`/`MedalRoom` list index writes are now routed via `dispatchUiAction(...)` instead of direct adapter
   method calls.
+- QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on
+  `dispatchUiAction(...)`.
