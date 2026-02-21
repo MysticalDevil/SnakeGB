@@ -242,14 +242,6 @@ Rectangle {
             color: "#20242a"
             border.color: "#15181d"
             border.width: 1
-
-            MouseArea {
-                anchors.fill: parent
-                onPressed: {
-                    var normalized = 1.0 - ((mouse.y - 2) / (slotBody.height - 4))
-                    volumeKnobTrack.setDetentVolume(normalized, true)
-                }
-            }
         }
 
         Rectangle {
@@ -286,6 +278,13 @@ Rectangle {
             color: "#626a78"
             border.color: "#2a2f37"
             border.width: 1
+            property real wheelAngle: -130 + gameLogic.volume * 260
+
+            transform: Rotation {
+                origin.x: volumeWheel.width / 2
+                origin.y: volumeWheel.height / 2
+                angle: volumeWheel.wheelAngle
+            }
 
             Rectangle {
                 anchors.fill: parent
@@ -312,16 +311,32 @@ Rectangle {
 
             MouseArea {
                 anchors.fill: parent
-                property real dragOffsetY: 0.0
+                property real lastAngle: 0.0
+                property real angleAccum: 0.0
+
+                function pointerAngle(px, py) {
+                    return Math.atan2(py - volumeWheel.height / 2, px - volumeWheel.width / 2) * 180 / Math.PI
+                }
+
                 onPressed: {
-                    dragOffsetY = mouse.y
+                    lastAngle = pointerAngle(mouse.x, mouse.y)
+                    angleAccum = 0.0
                 }
                 onPositionChanged: {
                     if (!pressed) return
-                    var localY = volumeWheel.y + mouse.y - dragOffsetY
-                    var normalized = 1.0 - ((localY - volumeKnobTrack.wheelMinY) /
-                                             (volumeKnobTrack.wheelMaxY - volumeKnobTrack.wheelMinY))
-                    volumeKnobTrack.setDetentVolume(normalized, true)
+                    var currentAngle = pointerAngle(mouse.x, mouse.y)
+                    var delta = currentAngle - lastAngle
+                    if (delta > 180) delta -= 360
+                    if (delta < -180) delta += 360
+                    lastAngle = currentAngle
+                    angleAccum += delta
+
+                    while (Math.abs(angleAccum) >= 12) {
+                        var step = angleAccum > 0 ? 1 : -1
+                        volumeKnobTrack.setDetentVolume(
+                            gameLogic.volume + step / Math.max(1, volumeKnobTrack.detentCount - 1), true)
+                        angleAccum -= step * 12
+                    }
                 }
             }
 
