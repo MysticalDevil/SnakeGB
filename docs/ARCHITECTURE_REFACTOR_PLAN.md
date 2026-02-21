@@ -196,6 +196,7 @@ Validation after each commit:
 - `GameLogic` adapter now delegates:
   - roguelike chance evaluation
   - safe initial snake body generation
+  - random free-spot selection for food/powerup spawn
   - free-spot board scanning for food/powerup spawn
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
