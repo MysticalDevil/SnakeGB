@@ -3,6 +3,7 @@
 #include "core/achievement_rules.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
+#include "adapter/ui_action.h"
 #include "fsm/states.h"
 #include "profile_manager.h"
 #include <QCoreApplication>
@@ -639,101 +640,81 @@ void GameLogic::selectChoice(int index) {
 // --- QML API ---
 
 void GameLogic::dispatchUiAction(const QString &action) {
-    if (action == u"nav_up"_s) {
-        move(0, -1);
-        return;
-    }
-    if (action == u"nav_down"_s) {
-        move(0, 1);
-        return;
-    }
-    if (action == u"nav_left"_s) {
-        move(-1, 0);
-        return;
-    }
-    if (action == u"nav_right"_s) {
-        move(1, 0);
-        return;
-    }
-    if (action == u"primary"_s || action == u"start"_s) {
-        handleStart();
-        return;
-    }
-    if (action == u"secondary"_s) {
-        handleBAction();
-        return;
-    }
-    if (action == u"select_short"_s) {
-        handleSelect();
-        return;
-    }
-    if (action == u"back"_s) {
-        if (m_state == Paused || m_state == GameOver || m_state == Replaying || m_state == ChoiceSelection ||
-            m_state == Library || m_state == MedalRoom) {
+    using snakegb::adapter::UiActionKind;
+    const snakegb::adapter::UiAction uiAction = snakegb::adapter::parseUiAction(action);
+
+    switch (uiAction.kind) {
+        case UiActionKind::NavUp:
+            move(0, -1);
+            break;
+        case UiActionKind::NavDown:
+            move(0, 1);
+            break;
+        case UiActionKind::NavLeft:
+            move(-1, 0);
+            break;
+        case UiActionKind::NavRight:
+            move(1, 0);
+            break;
+        case UiActionKind::Primary:
+        case UiActionKind::Start:
+            handleStart();
+            break;
+        case UiActionKind::Secondary:
+            handleBAction();
+            break;
+        case UiActionKind::SelectShort:
+            handleSelect();
+            break;
+        case UiActionKind::Back:
+            if (m_state == Paused || m_state == GameOver || m_state == Replaying || m_state == ChoiceSelection ||
+                m_state == Library || m_state == MedalRoom) {
+                quitToMenu();
+            } else if (m_state == StartMenu) {
+                quit();
+            }
+            break;
+        case UiActionKind::ToggleShellColor:
+            nextShellColor();
+            break;
+        case UiActionKind::ToggleMusic:
+            toggleMusic();
+            break;
+        case UiActionKind::QuitToMenu:
             quitToMenu();
-        } else if (m_state == StartMenu) {
+            break;
+        case UiActionKind::Quit:
             quit();
-        }
-        return;
-    }
-    if (action == u"toggle_shell_color"_s) {
-        nextShellColor();
-        return;
-    }
-    if (action == u"toggle_music"_s) {
-        toggleMusic();
-        return;
-    }
-    if (action == u"quit_to_menu"_s) {
-        quitToMenu();
-        return;
-    }
-    if (action == u"quit"_s) {
-        quit();
-        return;
-    }
-    if (action == u"next_palette"_s) {
-        nextPalette();
-        return;
-    }
-    if (action == u"delete_save"_s) {
-        deleteSave();
-        return;
-    }
-    if (action == u"state_start_menu"_s) {
-        requestStateChange(StartMenu);
-        return;
-    }
-    if (action == u"state_splash"_s) {
-        requestStateChange(Splash);
-        return;
-    }
-    if (action == u"feedback_light"_s) {
-        triggerHaptic(1);
-        return;
-    }
-    if (action == u"feedback_ui"_s) {
-        triggerHaptic(5);
-        return;
-    }
-    if (action == u"feedback_heavy"_s) {
-        triggerHaptic(8);
-        return;
-    }
-    if (action.startsWith(u"set_library_index:"_s)) {
-        bool ok = false;
-        const int index = action.sliced(18).toInt(&ok);
-        if (ok) {
-            setLibraryIndex(index);
-        }
-        return;
-    }
-    if (action.startsWith(u"set_medal_index:"_s)) {
-        bool ok = false;
-        const int index = action.sliced(16).toInt(&ok);
-        if (ok) {
-            setMedalIndex(index);
-        }
+            break;
+        case UiActionKind::NextPalette:
+            nextPalette();
+            break;
+        case UiActionKind::DeleteSave:
+            deleteSave();
+            break;
+        case UiActionKind::StateStartMenu:
+            requestStateChange(StartMenu);
+            break;
+        case UiActionKind::StateSplash:
+            requestStateChange(Splash);
+            break;
+        case UiActionKind::FeedbackLight:
+            triggerHaptic(1);
+            break;
+        case UiActionKind::FeedbackUi:
+            triggerHaptic(5);
+            break;
+        case UiActionKind::FeedbackHeavy:
+            triggerHaptic(8);
+            break;
+        case UiActionKind::SetLibraryIndex:
+            setLibraryIndex(uiAction.value);
+            break;
+        case UiActionKind::SetMedalIndex:
+            setMedalIndex(uiAction.value);
+            break;
+        case UiActionKind::Unknown:
+            break;
     }
 }
 

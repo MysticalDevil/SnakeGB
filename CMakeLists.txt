@@ -25,6 +25,8 @@ qt_add_executable(SnakeGB
     src/profile_manager.h
     src/input_injection_pipe.cpp
     src/input_injection_pipe.h
+    src/adapter/ui_action.cpp
+    src/adapter/ui_action.h
     src/app_state.h
     src/core/game_rules.cpp
     src/core/game_rules.h
@@ -113,6 +115,7 @@ add_executable(game-tests
     src/core/achievement_rules.cpp
     src/sound_manager.cpp
     src/profile_manager.cpp
+    src/adapter/ui_action.cpp
     src/fsm/states.cpp
 )
 target_include_directories(game-tests PRIVATE src)
@@ -131,3 +134,12 @@ target_include_directories(core-rules-tests PRIVATE src)
 target_link_libraries(core-rules-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
 add_test(NAME CoreRulesTest COMMAND core-rules-tests)
 set_tests_properties(CoreRulesTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-tests
+    tests/test_ui_action_parser.cpp
+    src/adapter/ui_action.cpp
+)
+target_include_directories(adapter-tests PRIVATE src)
+target_link_libraries(adapter-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterTest COMMAND adapter-tests)
+set_tests_properties(AdapterTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
