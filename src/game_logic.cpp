@@ -1,5 +1,6 @@
 #include "game_logic.h"
 #include "core/buff_runtime.h"
+#include "core/achievement_rules.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "fsm/states.h"
@@ -1233,18 +1234,18 @@ void GameLogic::checkAchievements() {
         return;
     }
 
-    auto unlock = [this](const QString &title) -> void {
+    const QStringList unlockedTitles = snakegb::core::unlockedAchievementTitles(
+        m_score, m_timer->interval(), m_timer->isActive());
+
+    auto unlockTitle = [this](const QString &title) -> void {
         if (m_profileManager->unlockMedal(title)) {
             emit achievementEarned(title);
             emit achievementsChanged();
         }
     };
 
-    if (m_score >= 50) {
-        unlock(u"Gold Medal (50 Pts)"_s);
-    }
-    if (m_timer->isActive() && m_timer->interval() <= 60) {
-        unlock(u"Speed Demon"_s);
+    for (const QString &title : unlockedTitles) {
+        unlockTitle(title);
     }
 }
 
