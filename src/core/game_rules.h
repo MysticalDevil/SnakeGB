@@ -21,5 +21,6 @@ auto wrapPoint(const QPoint &point, int boardWidth, int boardHeight) -> QPoint;
 auto buildSafeInitialSnakeBody(const QList<QPoint> &obstacles, int boardWidth, int boardHeight) -> std::deque<QPoint>;
 auto collectFreeSpots(int boardWidth, int boardHeight,
                       const std::function<bool(const QPoint &)> &isBlocked) -> QList<QPoint>;
+auto magnetCandidateSpots(const QPoint &food, const QPoint &head, int boardWidth, int boardHeight) -> QList<QPoint>;
 
 } // namespace snakegb::core

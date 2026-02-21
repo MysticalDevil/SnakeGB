@@ -1,6 +1,7 @@
 #include "game_rules.h"
 
 #include <algorithm>
+#include <cstdlib>
 
 namespace snakegb::core {
 
@@ -87,6 +88,45 @@ auto collectFreeSpots(int boardWidth, int boardHeight,
         }
     }
     return freeSpots;
+}
+
+auto magnetCandidateSpots(const QPoint &food, const QPoint &head, int boardWidth, int boardHeight) -> QList<QPoint> {
+    auto axisStepToward = [](int from, int to, int size) -> int {
+        if (from == to) {
+            return 0;
+        }
+        const int forward = (to - from + size) % size;
+        const int backward = (from - to + size) % size;
+        return (forward <= backward) ? 1 : -1;
+    };
+
+    const int stepX = axisStepToward(food.x(), head.x(), boardWidth);
+    const int stepY = axisStepToward(food.y(), head.y(), boardHeight);
+    const bool preferX = std::abs(head.x() - food.x()) >= std::abs(head.y() - food.y());
+
+    QList<QPoint> candidates;
+    auto pushCandidate = [&](bool xAxis) -> void {
+        if (xAxis) {
+            if (stepX == 0) {
+                return;
+            }
+            candidates.append(QPoint(wrapAxis(food.x() + stepX, boardWidth), food.y()));
+        } else {
+            if (stepY == 0) {
+                return;
+            }
+            candidates.append(QPoint(food.x(), wrapAxis(food.y() + stepY, boardHeight)));
+        }
+    };
+
+    if (preferX) {
+        pushCandidate(true);
+        pushCandidate(false);
+    } else {
+        pushCandidate(false);
+        pushCandidate(true);
+    }
+    return candidates;
 }
 
 } // namespace snakegb::core

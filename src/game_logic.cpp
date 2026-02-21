@@ -1005,34 +1005,8 @@ void GameLogic::applyMagnetAttraction() {
         return;
     }
 
-    auto axisStepToward = [](int from, int to, int size) -> int {
-        if (from == to) return 0;
-        const int forward = (to - from + size) % size;
-        const int backward = (from - to + size) % size;
-        return (forward <= backward) ? 1 : -1;
-    };
-
-    const int stepX = axisStepToward(m_food.x(), head.x(), BOARD_WIDTH);
-    const int stepY = axisStepToward(m_food.y(), head.y(), BOARD_HEIGHT);
-    const bool preferX = std::abs(head.x() - m_food.x()) >= std::abs(head.y() - m_food.y());
-
-    QList<QPoint> candidates;
-    auto pushCandidate = [&](bool xAxis) -> void {
-        if (xAxis) {
-            if (stepX == 0) return;
-            candidates.append(QPoint(snakegb::core::wrapAxis(m_food.x() + stepX, BOARD_WIDTH), m_food.y()));
-        } else {
-            if (stepY == 0) return;
-            candidates.append(QPoint(m_food.x(), snakegb::core::wrapAxis(m_food.y() + stepY, BOARD_HEIGHT)));
-        }
-    };
-    if (preferX) {
-        pushCandidate(true);
-        pushCandidate(false);
-    } else {
-        pushCandidate(false);
-        pushCandidate(true);
-    }
+    const QList<QPoint> candidates =
+        snakegb::core::magnetCandidateSpots(m_food, head, BOARD_WIDTH, BOARD_HEIGHT);
 
     for (const QPoint &candidate : candidates) {
         if (candidate == m_food) {
