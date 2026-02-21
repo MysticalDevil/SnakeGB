@@ -708,6 +708,18 @@ void GameLogic::dispatchUiAction(const QString &action) {
         requestStateChange(Splash);
         return;
     }
+    if (action == u"feedback_light"_s) {
+        triggerHaptic(1);
+        return;
+    }
+    if (action == u"feedback_ui"_s) {
+        triggerHaptic(5);
+        return;
+    }
+    if (action == u"feedback_heavy"_s) {
+        triggerHaptic(8);
+        return;
+    }
     if (action.startsWith(u"set_library_index:"_s)) {
         bool ok = false;
         const int index = action.sliced(18).toInt(&ok);

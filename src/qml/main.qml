@@ -367,7 +367,7 @@ Window {
             saveClearConfirmPending = false
             saveClearConfirmTimer.stop()
             gameLogic.dispatchUiAction("delete_save")
-            gameLogic.requestFeedback(8)
+            gameLogic.dispatchUiAction("feedback_heavy")
             screen.showOSD("SAVE CLEARED")
             return
         }
@@ -575,14 +575,14 @@ Window {
                 volume: gameLogic.volume
 
                 onShellColorToggleRequested: {
-                    gameLogic.requestFeedback(5)
+                    gameLogic.dispatchUiAction("feedback_ui")
                     gameLogic.dispatchUiAction("toggle_shell_color")
                 }
 
                 onVolumeRequested: (value, withHaptic) => {
                     gameLogic.volume = value
                     if (withHaptic) {
-                        gameLogic.requestFeedback(1)
+                        gameLogic.dispatchUiAction("feedback_light")
                     }
                 }
                 
