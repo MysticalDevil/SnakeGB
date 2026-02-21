@@ -241,6 +241,8 @@ Validation after each commit:
   `src/adapter/ghost_store.*`; behavior is covered by `AdapterGhostStoreTest`.
 - Profile session-map decoding is extracted into `src/adapter/session_state.*`; behavior is covered by
   `AdapterSessionStateTest`.
+- Fruit/medal library view-model mapping is extracted into `src/adapter/library_models.*`; behavior is covered by
+  `AdapterLibraryModelsTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
