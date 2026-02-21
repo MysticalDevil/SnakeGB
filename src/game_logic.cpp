@@ -338,32 +338,9 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     }
 
     m_activeBuff = m_powerUpType;
-    if (m_profileManager) {
-        m_profileManager->discoverFruit(static_cast<int>(m_activeBuff));
-    }
-
-    if (m_activeBuff == Shield) {
-        m_shieldActive = true;
-    }
-
-    if (m_activeBuff == Mini) {
-        auto body = m_snakeModel.body();
-        if (body.size() > 3) {
-            std::deque<QPoint> nb;
-            const size_t targetLength = snakegb::core::miniShrinkTargetLength(body.size(), 3);
-            for (size_t i = 0; i < targetLength; ++i) {
-                nb.push_back(body[i]);
-            }
-            m_snakeModel.reset(nb);
-        }
-        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
-        m_activeBuff = None;
-    }
+    applyAcquiredBuffEffects(static_cast<int>(m_activeBuff), BuffDurationTicks, true, true);
 
     m_powerUpPos = QPoint(-1, -1);
-    m_buffTicksRemaining =
-        snakegb::core::buffDurationTicks(static_cast<snakegb::core::BuffId>(m_activeBuff), BuffDurationTicks);
-    m_buffTicksTotal = m_buffTicksRemaining;
 
     emit powerUpEaten();
     if (m_activeBuff == Slow) {
@@ -644,31 +621,8 @@ void GameLogic::selectChoice(int index) {
     int type = m_choices[index].toMap().value(u"type"_s).toInt();
     m_lastRoguelikeChoiceScore = m_score;
     m_activeBuff = static_cast<PowerUp>(type);
-    
-    if (m_profileManager) {
-        m_profileManager->discoverFruit(type);
-    }
-    
-    if (m_activeBuff == Shield) {
-        m_shieldActive = true;
-    }
-    
-    if (m_activeBuff == Mini) {
-        auto body = m_snakeModel.body();
-        if (body.size() > 3) {
-            std::deque<QPoint> nb;
-            const size_t targetLength = snakegb::core::miniShrinkTargetLength(body.size(), 3);
-            for (size_t i = 0; i < targetLength; ++i) {
-                nb.push_back(body[i]);
-            }
-            m_snakeModel.reset(nb);
-        }
-        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
-        m_activeBuff = None;
-    }
-    
-    m_buffTicksRemaining = BuffDurationTicks * 2;
-    m_buffTicksTotal = m_buffTicksRemaining;
+    applyAcquiredBuffEffects(type, BuffDurationTicks * 2, false, true);
+
     emit buffChanged();
     if (m_state == Replaying) {
         int normalInterval = std::max(60, 200 - ((m_score / 5) * 8));
@@ -975,6 +929,44 @@ auto GameLogic::fruitLibrary() const -> QVariantList {
 }
 
 // --- Private Helpers ---
+
+void GameLogic::applyMiniShrink() {
+    const auto body = m_snakeModel.body();
+    if (body.size() <= 3) {
+        return;
+    }
+    std::deque<QPoint> nextBody;
+    const size_t targetLength = snakegb::core::miniShrinkTargetLength(body.size(), 3);
+    for (size_t i = 0; i < targetLength; ++i) {
+        nextBody.push_back(body[i]);
+    }
+    m_snakeModel.reset(nextBody);
+}
+
+void GameLogic::applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
+                                         bool emitMiniPrompt) {
+    if (m_profileManager) {
+        m_profileManager->discoverFruit(discoveredType);
+    }
+
+    if (m_activeBuff == Shield) {
+        m_shieldActive = true;
+    }
+
+    if (m_activeBuff == Mini) {
+        applyMiniShrink();
+        if (emitMiniPrompt) {
+            emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
+        }
+        m_activeBuff = None;
+    }
+
+    m_buffTicksRemaining = halfDurationForRich
+                               ? snakegb::core::buffDurationTicks(static_cast<snakegb::core::BuffId>(m_activeBuff),
+                                                                  baseDurationTicks)
+                               : baseDurationTicks;
+    m_buffTicksTotal = m_buffTicksRemaining;
+}
 
 auto GameLogic::shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool {
     const int chancePercent = snakegb::core::roguelikeChoiceChancePercent({

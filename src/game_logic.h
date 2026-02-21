@@ -269,6 +269,9 @@ private slots:
     void update();
 
 private:
+    void applyMiniShrink();
+    void applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
+                                  bool emitMiniPrompt);
     auto shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool;
     void applyMagnetAttraction();
     void deactivateBuff();
