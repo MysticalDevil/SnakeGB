@@ -19,6 +19,9 @@ Window {
     property bool selectPressActive: false
     property bool selectLongPressConsumed: false
     property bool selectKeyDown: false
+    property bool iconDebugMode: false
+    property var konamiSeq: ["U","U","D","D","L","R","L","R","B","A"]
+    property int konamiIndex: 0
     NumberAnimation on elapsed { 
         from: 0
         to: 1000
@@ -28,6 +31,10 @@ Window {
 
     function handleDirection(dx, dy) {
         gameLogic.move(dx, dy)
+        if (dy < 0) feedEasterInput("U")
+        else if (dy > 0) feedEasterInput("D")
+        else if (dx < 0) feedEasterInput("L")
+        else if (dx > 0) feedEasterInput("R")
         if (dy < 0) {
             shell.dpad.upPressed = true
         } else if (dy > 0) {
@@ -47,7 +54,26 @@ Window {
     }
 
     function handleBButton() {
+        feedEasterInput("B")
         gameLogic.handleBAction()
+    }
+
+    function handleAButton() {
+        feedEasterInput("A")
+        gameLogic.handleStart()
+    }
+
+    function feedEasterInput(token) {
+        if (token === konamiSeq[konamiIndex]) {
+            konamiIndex += 1
+            if (konamiIndex >= konamiSeq.length) {
+                konamiIndex = 0
+                iconDebugMode = !iconDebugMode
+                screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
+            }
+            return
+        }
+        konamiIndex = (token === konamiSeq[0]) ? 1 : 0
     }
 
     function beginSelectPress() {
@@ -152,6 +178,7 @@ Window {
                     p3: window.p3
                     gameFont: window.gameFont
                     elapsed: window.elapsed
+                    iconDebugMode: window.iconDebugMode
                 }
 
                 Connections {
@@ -164,7 +191,7 @@ Window {
 
                 Connections { 
                     target: shell.aButton
-                    function onClicked() { gameLogic.handleStart() } 
+                    function onClicked() { handleAButton() } 
                 }
 
                 Connections { 
@@ -211,7 +238,11 @@ Window {
             }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 shell.aButton.isPressed = true
-                gameLogic.handleStart()
+                handleAButton()
+            }
+            else if (event.key === Qt.Key_F6) {
+                iconDebugMode = !iconDebugMode
+                screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shell.bButton.isPressed = true

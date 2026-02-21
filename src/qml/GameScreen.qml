@@ -10,6 +10,7 @@ Item {
     property color p3
     property string gameFont
     property real elapsed
+    property bool iconDebugMode: false
 
     function buffName(type) {
         if (type === 1) return "GHOST"
@@ -44,6 +45,101 @@ Item {
         if (type === 4) return "#8aff8a"
         if (type === 5) return "#b78bff"
         return p3
+    }
+
+    function drawFoodSymbol(ctx, w, h) {
+        ctx.clearRect(0, 0, w, h)
+        ctx.fillStyle = p3
+        ctx.beginPath()
+        ctx.arc(w * 0.50, h * 0.56, Math.max(2, w * 0.30), 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = Qt.rgba(p0.r, p0.g, p0.b, 0.45)
+        ctx.beginPath()
+        ctx.arc(w * 0.40, h * 0.42, Math.max(1.2, w * 0.12), 0, Math.PI * 2)
+        ctx.fill()
+        ctx.fillStyle = p2
+        ctx.fillRect(w * 0.50, h * 0.12, Math.max(1, w * 0.08), Math.max(2, h * 0.22))
+        ctx.fillStyle = p1
+        ctx.fillRect(w * 0.64, h * 0.22, Math.max(1, w * 0.14), 1)
+        ctx.fillRect(w * 0.22, h * 0.74, 1, 1)
+        ctx.fillRect(w * 0.72, h * 0.70, 1, 1)
+    }
+
+    function drawPowerSymbol(ctx, w, h, type, accent) {
+        ctx.clearRect(0, 0, w, h)
+        ctx.lineWidth = Math.max(1, Math.floor(w * 0.12))
+        ctx.strokeStyle = accent
+        ctx.fillStyle = accent
+
+        if (type === 1) { // Ghost
+            ctx.strokeRect(2, 2, w - 4, h - 4)
+            ctx.clearRect(Math.floor(w * 0.42), Math.floor(h * 0.30), Math.floor(w * 0.16), Math.floor(h * 0.44))
+        } else if (type === 2) { // Slow
+            ctx.beginPath()
+            ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
+            ctx.stroke()
+            ctx.fillRect(w * 0.26, h * 0.46, w * 0.48, Math.max(1, h * 0.1))
+        } else if (type === 3) { // Magnet
+            ctx.beginPath()
+            ctx.moveTo(w * 0.25, h * 0.20)
+            ctx.lineTo(w * 0.25, h * 0.70)
+            ctx.quadraticCurveTo(w * 0.50, h * 0.92, w * 0.75, h * 0.70)
+            ctx.lineTo(w * 0.75, h * 0.20)
+            ctx.stroke()
+        } else if (type === 4) { // Shield
+            ctx.beginPath()
+            ctx.moveTo(w * 0.50, h * 0.12)
+            ctx.lineTo(w * 0.80, h * 0.28)
+            ctx.lineTo(w * 0.72, h * 0.72)
+            ctx.lineTo(w * 0.50, h * 0.90)
+            ctx.lineTo(w * 0.28, h * 0.72)
+            ctx.lineTo(w * 0.20, h * 0.28)
+            ctx.closePath()
+            ctx.stroke()
+        } else if (type === 5) { // Portal
+            ctx.beginPath()
+            ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.arc(w * 0.68, h * 0.34, w * 0.08, 0, Math.PI * 2)
+            ctx.fill()
+        } else if (type === 6) { // Double
+            ctx.save()
+            ctx.translate(w * 0.38, h * 0.52)
+            ctx.rotate(Math.PI / 4)
+            ctx.strokeRect(-w * 0.12, -h * 0.12, w * 0.24, h * 0.24)
+            ctx.restore()
+            ctx.save()
+            ctx.translate(w * 0.62, h * 0.48)
+            ctx.rotate(Math.PI / 4)
+            ctx.strokeRect(-w * 0.12, -h * 0.12, w * 0.24, h * 0.24)
+            ctx.restore()
+        } else if (type === 7) { // Diamond
+            ctx.save()
+            ctx.translate(w / 2, h / 2)
+            ctx.rotate(Math.PI / 4)
+            ctx.strokeRect(-w * 0.20, -h * 0.20, w * 0.40, h * 0.40)
+            ctx.restore()
+            ctx.fillRect(w * 0.48, h * 0.05, 1, h * 0.18)
+            ctx.fillRect(w * 0.41, h * 0.12, w * 0.14, 1)
+        } else if (type === 8) { // Laser
+            ctx.beginPath()
+            ctx.moveTo(w * 0.26, h * 0.22)
+            ctx.lineTo(w * 0.55, h * 0.22)
+            ctx.lineTo(w * 0.42, h * 0.52)
+            ctx.lineTo(w * 0.70, h * 0.52)
+            ctx.lineTo(w * 0.34, h * 0.85)
+            ctx.lineTo(w * 0.46, h * 0.60)
+            ctx.lineTo(w * 0.24, h * 0.60)
+            ctx.closePath()
+            ctx.fill()
+        } else if (type === 9) { // Mini
+            ctx.strokeRect(w * 0.30, h * 0.30, w * 0.40, h * 0.40)
+            ctx.fillRect(w * 0.16, h * 0.16, w * 0.10, 1)
+            ctx.fillRect(w * 0.16, h * 0.16, 1, h * 0.10)
+            ctx.fillRect(w * 0.74, h * 0.74, w * 0.10, 1)
+            ctx.fillRect(w * 0.84, h * 0.74, 1, h * 0.10)
+        }
     }
 
     function choiceGlyph(type) {
@@ -471,44 +567,16 @@ Item {
                     height: gameWorld.cellH
                     z: 20
 
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: parent.width - 2
-                        height: parent.height - 2
-                        radius: width / 2
-                        color: p3
-                    }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        anchors.horizontalCenterOffset: -2
-                        anchors.verticalCenterOffset: -2
-                        width: Math.max(2, parent.width * 0.35)
-                        height: Math.max(2, parent.height * 0.35)
-                        radius: width / 2
-                        color: p0
-                        opacity: 0.45
-                    }
-
-                    Rectangle {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.horizontalCenterOffset: 1
-                        y: -1
-                        width: 2
-                        height: 4
-                        color: p2
-                    }
-
-                    Repeater {
-                        model: 3
-                        delegate: Rectangle {
-                            width: 1
-                            height: 1
-                            color: p1
-                            opacity: 0.8
-                            x: 2 + index * 3
-                            y: parent.height - 4 - (index % 2)
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            root.drawFoodSymbol(ctx, width, height)
                         }
+                        Component.onCompleted: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
                     }
                 }
 
@@ -534,18 +602,10 @@ Item {
 
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 8
-                        height: 8
-                        color: powerColor(gameLogic.powerUpType)
-                        rotation: 45
-                    }
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: 4
-                        height: 4
-                        color: p0
-                        rotation: 45
+                        width: parent.width - 1
+                        height: parent.height - 1
+                        radius: 2
+                        color: Qt.rgba(p0.r, p0.g, p0.b, 0.78)
                     }
 
                     Rectangle {
@@ -559,13 +619,21 @@ Item {
                         opacity: (Math.floor(elapsed * 8) % 2 === 0) ? 0.45 : 0.1
                     }
 
-                    Text {
-                        anchors.centerIn: parent
-                        text: powerGlyph(gameLogic.powerUpType)
-                        color: p3
-                        font.family: gameFont
-                        font.pixelSize: 7
-                        font.bold: true
+                    Canvas {
+                        id: worldPowerIcon
+                        anchors.fill: parent
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            root.drawPowerSymbol(ctx, width, height, gameLogic.powerUpType, powerColor(gameLogic.powerUpType))
+                        }
+                        Component.onCompleted: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
+                        Connections {
+                            target: gameLogic
+                            function onPowerUpChanged() { worldPowerIcon.requestPaint() }
+                        }
                     }
                 }
 
@@ -731,83 +799,16 @@ Item {
                                         width: 22
                                         height: 22
                                         property color accent: choiceCard.accent
-                                        Rectangle {
+                                        Canvas {
                                             anchors.fill: parent
-                                            color: "transparent"
-                                            border.color: choiceIcon.accent
-                                            border.width: 1
-                                            visible: powerType === 1 // Ghost
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            radius: width / 2
-                                            color: "transparent"
-                                            border.color: choiceIcon.accent
-                                            border.width: 2
-                                            visible: powerType === 2 // Slow
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            color: choiceIcon.accent
-                                            visible: powerType === 3 // Magnet
-                                            clip: true
-                                            Rectangle { width: 22; height: 22; rotation: 45; y: 11; color: p1 }
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            radius: width / 2
-                                            color: "transparent"
-                                            border.color: choiceIcon.accent
-                                            border.width: 2
-                                            visible: powerType === 4 // Shield
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            radius: width / 2
-                                            color: "transparent"
-                                            border.color: choiceIcon.accent
-                                            border.width: 1
-                                            visible: powerType === 5 // Portal
-                                            Rectangle {
-                                                anchors.centerIn: parent
-                                                width: 10
-                                                height: 10
-                                                radius: 5
-                                                border.color: choiceIcon.accent
-                                                border.width: 1
-                                                color: "transparent"
+                                            onPaint: {
+                                                var ctx = getContext("2d")
+                                                ctx.reset()
+                                                root.drawPowerSymbol(ctx, width, height, powerType, choiceIcon.accent)
                                             }
-                                        }
-                                        Rectangle {
-                                            anchors.centerIn: parent
-                                            width: 16
-                                            height: 16
-                                            rotation: 45
-                                            color: "#ffd700"
-                                            visible: powerType === 6 // Double
-                                        }
-                                        Rectangle {
-                                            anchors.centerIn: parent
-                                            width: 16
-                                            height: 16
-                                            rotation: 45
-                                            color: "#00ffff"
-                                            visible: powerType === 7 // Diamond
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            color: "transparent"
-                                            border.color: "#ff4d4d"
-                                            border.width: 2
-                                            visible: powerType === 8 // Laser
-                                        }
-                                        Rectangle {
-                                            anchors.fill: parent
-                                            color: "transparent"
-                                            border.color: choiceIcon.accent
-                                            border.width: 1
-                                            visible: powerType === 9 // Mini
-                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: root.readableText(p0) }
+                                            Component.onCompleted: requestPaint()
+                                            onWidthChanged: requestPaint()
+                                            onHeightChanged: requestPaint()
                                         }
                                     }
                                 }
@@ -993,6 +994,187 @@ Item {
                 gameFont: root.gameFont
                 visible: gameLogic.state === 8
                 z: 900
+            }
+
+            Rectangle {
+                id: iconLabLayer
+                visible: root.iconDebugMode
+                anchors.fill: parent
+                color: p0
+                z: 1600
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    color: Qt.rgba(p1.r, p1.g, p1.b, 0.36)
+                    border.color: p2
+                    border.width: 1
+                }
+
+                Column {
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    spacing: 6
+
+                    Rectangle {
+                        width: parent.width
+                        height: 34
+                        radius: 3
+                        color: Qt.rgba(p1.r, p1.g, p1.b, 0.66)
+                        border.color: p3
+                        border.width: 1
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 1
+                            Text {
+                                text: "ICON LAB"
+                                color: p3
+                                font.family: gameFont
+                                font.pixelSize: 14
+                                font.bold: true
+                            }
+                            Text {
+                                text: "F6 / KONAMI TO EXIT"
+                                color: Qt.rgba(p3.r, p3.g, p3.b, 0.82)
+                                font.family: gameFont
+                                font.pixelSize: 7
+                                font.bold: true
+                            }
+                        }
+                    }
+
+                    Row {
+                        spacing: 6
+                        Rectangle {
+                            width: 90
+                            height: 42
+                            radius: 3
+                            color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
+                            border.color: p3
+                            border.width: 1
+
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 8
+                                Rectangle {
+                                    width: 26
+                                    height: 26
+                                    radius: 3
+                                    color: Qt.rgba(p0.r, p0.g, p0.b, 0.72)
+                                    border.color: p3
+                                    border.width: 1
+                                    Canvas {
+                                        anchors.fill: parent
+                                        onPaint: {
+                                            var ctx = getContext("2d")
+                                            ctx.reset()
+                                            root.drawFoodSymbol(ctx, width, height)
+                                        }
+                                        Component.onCompleted: requestPaint()
+                                        onWidthChanged: requestPaint()
+                                        onHeightChanged: requestPaint()
+                                    }
+                                }
+                                Column {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    Text { text: "FOOD"; color: p3; font.family: gameFont; font.pixelSize: 8; font.bold: true }
+                                    Text { text: "BASE"; color: Qt.rgba(p3.r, p3.g, p3.b, 0.82); font.family: gameFont; font.pixelSize: 6; font.bold: true }
+                                }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width - 96
+                            height: 42
+                            radius: 3
+                            color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
+                            border.color: p3
+                            border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: "POWERUP ICON SUITE"
+                                color: p3
+                                font.family: gameFont
+                                font.pixelSize: 9
+                                font.bold: true
+                            }
+                        }
+                    }
+
+                    Grid {
+                        width: parent.width
+                        columns: 3
+                        columnSpacing: 6
+                        rowSpacing: 6
+
+                        Repeater {
+                            model: [1,2,3,4,5,6,7,8,9]
+                            delegate: Rectangle {
+                                width: (iconLabLayer.width - 32) / 3
+                                height: 56
+                                radius: 3
+                                color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
+                                border.color: powerColor(modelData)
+                                border.width: 1
+
+                                Row {
+                                    anchors.fill: parent
+                                    anchors.margins: 5
+                                    spacing: 6
+
+                                    Rectangle {
+                                        width: 26
+                                        height: 26
+                                        radius: 4
+                                        color: Qt.rgba(p0.r, p0.g, p0.b, 0.72)
+                                        border.color: p3
+                                        border.width: 1
+                                        anchors.verticalCenter: parent.verticalCenter
+
+                                        Canvas {
+                                            anchors.fill: parent
+                                            onPaint: {
+                                                var ctx = getContext("2d")
+                                                ctx.reset()
+                                                root.drawPowerSymbol(ctx, width, height, modelData, powerColor(modelData))
+                                            }
+                                            Component.onCompleted: requestPaint()
+                                            onWidthChanged: requestPaint()
+                                            onHeightChanged: requestPaint()
+                                        }
+                                    }
+
+                                    Column {
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        spacing: 1
+                                        Text {
+                                            text: buffName(modelData)
+                                            color: p3
+                                            font.family: gameFont
+                                            font.pixelSize: 8
+                                            font.bold: true
+                                        }
+                                        Text {
+                                            text: rarityName(modelData)
+                                            color: powerColor(modelData)
+                                            font.family: gameFont
+                                            font.pixelSize: 7
+                                            font.bold: true
+                                        }
+                                        Text {
+                                            text: "GLYPH " + powerGlyph(modelData)
+                                            color: Qt.rgba(p3.r, p3.g, p3.b, 0.72)
+                                            font.family: gameFont
+                                            font.pixelSize: 6
+                                            font.bold: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 

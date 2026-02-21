@@ -144,8 +144,15 @@ case "${TARGET}" in
       ((i += 1))
     done
     ;;
+  icons)
+    i=0
+    while (( i < 1 )); do
+      send_key "F6"
+      ((i += 1))
+    done
+    ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library"
+    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library|icons"
     exit 3
     ;;
 esac
