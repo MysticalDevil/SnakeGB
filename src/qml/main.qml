@@ -20,6 +20,17 @@ Window {
     property bool selectLongPressConsumed: false
     property bool selectKeyDown: false
     property bool iconDebugMode: false
+    readonly property var gameState: ({
+        Splash: 0,
+        StartMenu: 1,
+        Playing: 2,
+        Paused: 3,
+        GameOver: 4,
+        Replaying: 5,
+        ChoiceSelection: 6,
+        Library: 7,
+        MedalRoom: 8
+    })
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -89,7 +100,7 @@ Window {
         konamiIndex = 0
         screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
         if (!iconDebugMode) {
-            gameLogic.requestStateChange(1)
+            gameLogic.requestStateChange(gameState.StartMenu)
         }
     }
 
@@ -232,7 +243,7 @@ Window {
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
-        gameLogic.requestStateChange(1)
+        gameLogic.requestStateChange(gameState.StartMenu)
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -246,7 +257,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    gameLogic.requestStateChange(1)
+                    gameLogic.requestStateChange(gameState.StartMenu)
                 }
                 return "toggle"
             }
@@ -262,7 +273,7 @@ Window {
     }
 
     function handleEasterInput(token) {
-        var trackEaster = iconDebugMode || gameLogic.state !== 0
+        var trackEaster = iconDebugMode || gameLogic.state !== gameState.Splash
         if (!trackEaster) {
             return false
         }
@@ -277,7 +288,7 @@ Window {
         var status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                gameLogic.requestStateChange(1)
+                gameLogic.requestStateChange(gameState.StartMenu)
             }
             return true
         }
@@ -323,11 +334,11 @@ Window {
             exitIconLabToMenu()
             return
         }
-        if (gameLogic.state === 3 || gameLogic.state === 4 ||
-            gameLogic.state === 5 || gameLogic.state === 6 ||
-            gameLogic.state === 7 || gameLogic.state === 8) {
+        if (gameLogic.state === gameState.Paused || gameLogic.state === gameState.GameOver ||
+            gameLogic.state === gameState.Replaying || gameLogic.state === gameState.ChoiceSelection ||
+            gameLogic.state === gameState.Library || gameLogic.state === gameState.MedalRoom) {
             gameLogic.quitToMenu()
-        } else if (gameLogic.state === 1) {
+        } else if (gameLogic.state === gameState.StartMenu) {
             gameLogic.quit()
         }
     }
@@ -335,11 +346,11 @@ Window {
     Connections {
         target: gameLogic
         function onPaletteChanged() { 
-            if (gameLogic.state === 0) return
+            if (gameLogic.state === gameState.Splash) return
             screen.showOSD(gameLogic.paletteName) 
         }
         function onShellColorChanged() { 
-            if (gameLogic.state !== 0) {
+            if (gameLogic.state !== gameState.Splash) {
                 screen.triggerPowerCycle()
             }
         }
@@ -364,7 +375,7 @@ Window {
         repeat: false
         onTriggered: {
             if (!window.selectPressActive || window.selectLongPressConsumed) return
-            if (gameLogic.state === 1 && gameLogic.hasSave) {
+            if (gameLogic.state === gameState.StartMenu && gameLogic.hasSave) {
                 window.selectLongPressConsumed = true
                 gameLogic.deleteSave()
                 gameLogic.requestFeedback(8)

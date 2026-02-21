@@ -14,8 +14,8 @@ Last updated: 2026-02-21
 
 - [x] Branch created for staged refactor (`refactor/input-semantics-phase1`).
 - [x] Phase 1 (Part A): unified action dispatch entry added in QML (`dispatchAction` + action map).
-- [x] Phase 1 (Part B): runtime input injection channel added (FIFO + token mapping).
-- [ ] Phase 1 (Part C): remove remaining direct key-to-logic calls and align docs/tests fully.
+- [x] Phase 1 (Part B): runtime input injection channel added (file queue / FIFO + token mapping).
+- [x] Phase 1 (Part C): remove major direct key-to-logic entry points and add smoke script (`scripts/input_semantics_smoke.sh`).
 - [ ] Phase 2: introduce dedicated `InputRouter` abstraction + named state constants.
 - [ ] Phase 3: automated regression matrix for input semantics and easter no-side-effect rules.
 
@@ -194,10 +194,16 @@ Each layer returns `handled: true/false`.
 
 ## 8. Automation Input Injection
 
-Runtime input injection is available via FIFO pipe for non-focus-based UI automation.
+Runtime input injection is available for non-focus-based UI automation.
 
 ## 8.1 Enable
-Launch app with:
+Recommended (file queue mode):
+
+```bash
+SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue ./build-review/SnakeGB
+```
+
+Alternative (FIFO mode):
 
 ```bash
 SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe ./build-review/SnakeGB
@@ -207,7 +213,7 @@ SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe ./build-review/SnakeGB
 Use helper script:
 
 ```bash
-./scripts/inject_input.sh -p /tmp/snakegb-input.pipe UP UP DOWN DOWN LEFT RIGHT LEFT RIGHT B A
+./scripts/inject_input.sh -p /tmp/snakegb-input.queue UP UP DOWN DOWN LEFT RIGHT LEFT RIGHT B A
 ```
 
 Supported tokens:

@@ -78,7 +78,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 
 ## Input Architecture Notes
 - Input unification and migration plan: `docs/INPUT_SEMANTICS.md`
-- Runtime automation injection (FIFO): set `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe` and send tokens with `scripts/inject_input.sh`
+- Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `scripts/inject_input.sh`
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).

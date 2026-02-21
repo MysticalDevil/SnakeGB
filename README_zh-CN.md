@@ -78,7 +78,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 
 ## 输入架构说明
 - 按键语义统一与迁移方案：`docs/INPUT_SEMANTICS.md`
-- 运行时自动化注入（FIFO）：设置 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`，并用 `scripts/inject_input.sh` 发送按键 token
+- 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `scripts/inject_input.sh` 发送按键 token
 
 ## 授权
 本项目采用 [GNU GPL v3](LICENSE) 协议授权。
