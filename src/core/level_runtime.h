@@ -15,9 +15,12 @@ struct FallbackLevelData {
     QList<QPoint> walls;
 };
 
+using ResolvedLevelData = FallbackLevelData;
+
 auto dynamicObstaclesForLevel(QStringView levelName, int gameTickCounter) -> std::optional<QList<QPoint>>;
 auto normalizedFallbackLevelIndex(int levelIndex) -> int;
 auto fallbackLevelData(int levelIndex) -> FallbackLevelData;
 auto wallsFromJsonArray(const QJsonArray &wallsJson) -> QList<QPoint>;
+auto resolvedLevelDataFromJson(const QJsonArray &levelsJson, int levelIndex) -> std::optional<ResolvedLevelData>;
 
 } // namespace snakegb::core

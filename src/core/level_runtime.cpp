@@ -97,4 +97,20 @@ auto wallsFromJsonArray(const QJsonArray &wallsJson) -> QList<QPoint> {
     return walls;
 }
 
+auto resolvedLevelDataFromJson(const QJsonArray &levelsJson, const int levelIndex) -> std::optional<ResolvedLevelData> {
+    if (levelsJson.isEmpty()) {
+        return std::nullopt;
+    }
+    const int normalized = ((levelIndex % levelsJson.size()) + levelsJson.size()) % levelsJson.size();
+    const auto levelObject = levelsJson[normalized].toObject();
+
+    ResolvedLevelData resolved;
+    resolved.name = levelObject.value(QStringLiteral("name")).toString();
+    resolved.script = levelObject.value(QStringLiteral("script")).toString();
+    if (resolved.script.isEmpty()) {
+        resolved.walls = wallsFromJsonArray(levelObject.value(QStringLiteral("walls")).toArray());
+    }
+    return resolved;
+}
+
 } // namespace snakegb::core

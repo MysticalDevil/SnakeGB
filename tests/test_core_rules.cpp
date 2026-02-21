@@ -19,6 +19,7 @@ private slots:
     void testProbeCollisionRespectsGhostFlag();
     void testDynamicLevelFallbackProducesObstacles();
     void testWallsFromJsonArrayParsesCoordinates();
+    void testResolvedLevelDataFromJsonMapsIndexAndFields();
     void testBuffRuntimeRules();
     void testReplayTimelineAppliesOnlyOnMatchingTicks();
 };
@@ -192,6 +193,33 @@ void TestCoreRules::testWallsFromJsonArrayParsesCoordinates() {
     QCOMPARE(walls.size(), 2);
     QCOMPARE(walls[0], QPoint(1, 2));
     QCOMPARE(walls[1], QPoint(8, 9));
+}
+
+void TestCoreRules::testResolvedLevelDataFromJsonMapsIndexAndFields() {
+    QJsonArray levels;
+    levels.append(QJsonObject{{"name", "L0"}, {"script", "function onTick(t){return [];}"}});
+    levels.append(QJsonObject{
+        {"name", "L1"},
+        {"script", ""},
+        {"walls", QJsonArray{QJsonObject{{"x", 3}, {"y", 4}}, QJsonObject{{"x", 5}, {"y", 6}}}}
+    });
+
+    const auto resolvedScript = snakegb::core::resolvedLevelDataFromJson(levels, 0);
+    QVERIFY(resolvedScript.has_value());
+    QCOMPARE(resolvedScript->name, QString("L0"));
+    QVERIFY(!resolvedScript->script.isEmpty());
+    QVERIFY(resolvedScript->walls.isEmpty());
+
+    const auto resolvedWalls = snakegb::core::resolvedLevelDataFromJson(levels, 3);
+    QVERIFY(resolvedWalls.has_value());
+    QCOMPARE(resolvedWalls->name, QString("L1"));
+    QVERIFY(resolvedWalls->script.isEmpty());
+    QCOMPARE(resolvedWalls->walls.size(), 2);
+    QCOMPARE(resolvedWalls->walls[0], QPoint(3, 4));
+    QCOMPARE(resolvedWalls->walls[1], QPoint(5, 6));
+
+    const auto empty = snakegb::core::resolvedLevelDataFromJson(QJsonArray{}, 0);
+    QVERIFY(!empty.has_value());
 }
 
 void TestCoreRules::testBuffRuntimeRules() {

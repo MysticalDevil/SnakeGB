@@ -1218,11 +1218,15 @@ void GameLogic::loadLevelData(int i) {
         applyFallbackLevel(safeIndex);
         return;
     }
-    auto lvl = levels[i % levels.size()].toObject();
-    
-    m_currentLevelName = lvl.value(u"name"_s).toString();
+    const auto resolvedLevel = snakegb::core::resolvedLevelDataFromJson(levels, i);
+    if (!resolvedLevel.has_value()) {
+        applyFallbackLevel(safeIndex);
+        return;
+    }
+
+    m_currentLevelName = resolvedLevel->name;
     m_obstacles.clear();
-    m_currentScript = lvl.value(u"script"_s).toString();
+    m_currentScript = resolvedLevel->script;
 
     if (!m_currentScript.isEmpty()) {
         const QJSValue res = m_jsEngine.evaluate(m_currentScript);
@@ -1236,7 +1240,7 @@ void GameLogic::loadLevelData(int i) {
             return;
         }
     } else {
-        m_obstacles = snakegb::core::wallsFromJsonArray(lvl.value(u"walls"_s).toArray());
+        m_obstacles = resolvedLevel->walls;
         if (m_obstacles.isEmpty()) {
             applyFallbackLevel(safeIndex);
             return;
