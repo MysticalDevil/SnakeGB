@@ -5,7 +5,6 @@
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "adapter/ghost_store.h"
-#include "adapter/library_models.h"
 #include "adapter/session_state.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
@@ -751,122 +750,6 @@ void GameLogic::deleteSave() {
     }
     loadLevelData(m_levelIndex);
     emit levelChanged();
-}
-
-// --- Property Getters ---
-
-auto GameLogic::highScore() const -> int {
-    return m_profileManager ? m_profileManager->highScore() : 0;
-}
-
-auto GameLogic::palette() const -> QVariantList {
-    static const QList<QVariantList> p = {
-        {u"#cadc9f"_s, u"#8bac0f"_s, u"#306230"_s, u"#0f380f"_s},
-        {u"#e0e8d0"_s, u"#a0a890"_s, u"#4d533c"_s, u"#1f1f1f"_s},
-        {u"#ffd700"_s, u"#e0a000"_s, u"#a05000"_s, u"#201000"_s},
-        {u"#00ffff"_s, u"#008080"_s, u"#004040"_s, u"#002020"_s},
-        {u"#ff0000"_s, u"#a00000"_s, u"#500000"_s, u"#200000"_s}
-    };
-    int idx = m_profileManager ? m_profileManager->paletteIndex() % 5 : 0;
-    return p[idx];
-}
-
-auto GameLogic::paletteName() const -> QString {
-    static const QStringList names = {
-        u"Original DMG"_s,
-        u"Pocket B&W"_s,
-        u"Golden Lux"_s,
-        u"Ice Blue"_s,
-        u"Virtual Red"_s
-    };
-    int idx = m_profileManager ? m_profileManager->paletteIndex() % 5 : 0;
-    return names[idx];
-}
-
-auto GameLogic::obstacles() const -> QVariantList {
-    QVariantList list;
-    for (const auto &p : m_obstacles) {
-        QVariantMap item;
-        item.insert(u"x"_s, p.x());
-        item.insert(u"y"_s, p.y());
-        list.append(item);
-    }
-    return list;
-}
-
-auto GameLogic::shellColor() const -> QColor {
-    static const QList<QColor> colors = {
-        u"#c0c0c0"_s, u"#f0f0f0"_s, u"#9370db"_s, 
-        u"#ff0000"_s, u"#008080"_s, u"#ffd700"_s, u"#2f4f4f"_s
-    };
-    int idx = m_profileManager ? m_profileManager->shellIndex() % 7 : 0;
-    return colors[idx];
-}
-
-auto GameLogic::shellName() const -> QString {
-    static const QStringList names = {
-        u"Matte Silver"_s,
-        u"Cloud White"_s,
-        u"Lavender"_s,
-        u"Crimson"_s,
-        u"Teal"_s,
-        u"Sunburst"_s,
-        u"Graphite"_s
-    };
-    const int idx = m_profileManager ? m_profileManager->shellIndex() % names.size() : 0;
-    return names[idx];
-}
-
-auto GameLogic::ghost() const -> QVariantList {
-    if (m_state == Replaying) {
-        return {};
-    }
-    QVariantList list;
-    int len = m_snakeModel.rowCount();
-    int start = std::max(0, m_ghostFrameIndex - len + 1);
-    for (int i = m_ghostFrameIndex; i >= start && i < m_bestRecording.size(); --i) {
-        list.append(m_bestRecording[i]);
-    }
-    return list;
-}
-
-auto GameLogic::musicEnabled() const noexcept -> bool {
-    return m_musicEnabled;
-}
-
-auto GameLogic::achievements() const -> QVariantList {
-    QVariantList list;
-    if (m_profileManager) {
-        for (const auto &m : m_profileManager->unlockedMedals()) {
-            list.append(m);
-        }
-    }
-    return list;
-}
-
-auto GameLogic::medalLibrary() const -> QVariantList {
-    return snakegb::adapter::buildMedalLibraryModel();
-}
-
-auto GameLogic::coverage() const noexcept -> float { 
-    return static_cast<float>(m_snakeModel.rowCount()) / (BOARD_WIDTH * BOARD_HEIGHT); 
-}
-
-auto GameLogic::volume() const -> float { 
-    return m_profileManager ? m_profileManager->volume() : 1.0f; 
-}
-
-void GameLogic::setVolume(float v) {
-    if (m_profileManager) {
-        m_profileManager->setVolume(v);
-    }
-    emit audioSetVolume(v);
-    emit volumeChanged();
-}
-
-auto GameLogic::fruitLibrary() const -> QVariantList {
-    const QList<int> discovered = m_profileManager ? m_profileManager->discoveredFruits() : QList<int>{};
-    return snakegb::adapter::buildFruitLibraryModel(discovered);
 }
 
 // --- Private Helpers ---

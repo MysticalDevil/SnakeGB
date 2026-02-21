@@ -18,6 +18,7 @@ qt_standard_project_setup(REQUIRES 6.7)
 qt_add_executable(SnakeGB
     src/main.cpp
     src/game_logic.cpp
+    src/game_logic_view.cpp
     src/game_logic.h
     src/sound_manager.cpp
     src/sound_manager.h
@@ -124,6 +125,7 @@ enable_testing()
 add_executable(game-tests
     tests/test_game_logic.cpp
     src/game_logic.cpp
+    src/game_logic_view.cpp
     src/core/game_rules.cpp
     src/core/buff_runtime.cpp
     src/core/session_step.cpp

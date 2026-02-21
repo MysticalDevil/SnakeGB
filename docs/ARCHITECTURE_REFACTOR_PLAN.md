@@ -245,6 +245,8 @@ Validation after each commit:
   `AdapterLibraryModelsTest`.
 - `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
+- QML-facing view/property mapping methods are now extracted into `src/game_logic_view.cpp` so the main runtime
+  adapter file can continue shrinking around orchestration logic.
 
 ### Phase C progress snapshot (2026-02-21)
 
