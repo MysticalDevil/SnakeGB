@@ -12,6 +12,7 @@ class TestCoreRules : public QObject {
 
 private slots:
     void testCollectFreeSpotsRespectsPredicate();
+    void testPickRandomFreeSpotUsesProvidedIndexAndHandlesEdgeCases();
     void testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater();
     void testProbeCollisionRespectsGhostFlag();
     void testDynamicLevelFallbackProducesObstacles();
@@ -114,6 +115,39 @@ void TestCoreRules::testCollectFreeSpotsRespectsPredicate() {
     QCOMPARE(freeSpots.size(), 4);
     QVERIFY(!freeSpots.contains(QPoint(0, 0)));
     QVERIFY(!freeSpots.contains(QPoint(2, 1)));
+}
+
+void TestCoreRules::testPickRandomFreeSpotUsesProvidedIndexAndHandlesEdgeCases() {
+    QPoint picked;
+    const bool ok = snakegb::core::pickRandomFreeSpot(
+        3,
+        2,
+        [](const QPoint &point) -> bool { return point == QPoint(0, 0) || point == QPoint(2, 1); },
+        [](int size) -> int {
+            if (size != 4) {
+                return -1;
+            }
+            return 2;
+        },
+        picked);
+    QVERIFY(ok);
+    QCOMPARE(picked, QPoint(1, 1));
+
+    const bool badIndex = snakegb::core::pickRandomFreeSpot(
+        2,
+        1,
+        [](const QPoint &) -> bool { return false; },
+        [](int) -> int { return 99; },
+        picked);
+    QVERIFY(!badIndex);
+
+    const bool noFreeSpot = snakegb::core::pickRandomFreeSpot(
+        2,
+        2,
+        [](const QPoint &) -> bool { return true; },
+        [](int) -> int { return 0; },
+        picked);
+    QVERIFY(!noFreeSpot);
 }
 
 void TestCoreRules::testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater() {

@@ -90,6 +90,20 @@ auto collectFreeSpots(int boardWidth, int boardHeight,
     return freeSpots;
 }
 
+auto pickRandomFreeSpot(int boardWidth, int boardHeight, const std::function<bool(const QPoint &)> &isBlocked,
+                        const std::function<int(int)> &pickIndex, QPoint &pickedPoint) -> bool {
+    const QList<QPoint> freeSpots = collectFreeSpots(boardWidth, boardHeight, isBlocked);
+    if (freeSpots.isEmpty()) {
+        return false;
+    }
+    const int selected = pickIndex(freeSpots.size());
+    if (selected < 0 || selected >= freeSpots.size()) {
+        return false;
+    }
+    pickedPoint = freeSpots[selected];
+    return true;
+}
+
 auto magnetCandidateSpots(const QPoint &food, const QPoint &head, int boardWidth, int boardHeight) -> QList<QPoint> {
     auto axisStepToward = [](int from, int to, int size) -> int {
         if (from == to) {
