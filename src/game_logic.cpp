@@ -1097,58 +1097,24 @@ void GameLogic::clearSavedState() {
 }
 
 void GameLogic::loadLevelData(int i) {
-    static const QStringList fallbackNames = {
-        u"Classic"_s,
-        u"The Cage"_s,
-        u"Dynamic Pulse"_s,
-        u"Tunnel Run"_s,
-        u"Crossfire"_s,
-        u"Shifting Box"_s
-    };
-    static const QStringList fallbackScripts = {
-        u""_s,
-        u""_s,
-        u"function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"_s,
-        u""_s,
-        u"function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = 4 + t; var right = 15 - t; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,y:13-t}]; }"_s,
-        u"function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) * 2.0); var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"_s
-    };
     const auto applyFallbackLevel = [this](int levelIndex) -> void {
+        const snakegb::core::FallbackLevelData fallback = snakegb::core::fallbackLevelData(levelIndex);
         m_obstacles.clear();
-        m_currentScript = fallbackScripts[levelIndex];
+        m_currentLevelName = fallback.name;
+        m_currentScript = fallback.script;
         if (!m_currentScript.isEmpty()) {
             const QJSValue res = m_jsEngine.evaluate(m_currentScript);
             if (!res.isError()) {
                 runLevelScript();
             }
-        } else if (levelIndex == 1) {
-            m_obstacles = {
-                QPoint(5, 5), QPoint(6, 5), QPoint(14, 5), QPoint(15, 5),
-                QPoint(5, 12), QPoint(6, 12), QPoint(14, 12), QPoint(15, 12)
-            };
-        } else if (levelIndex == 3) {
-            m_obstacles = {
-                QPoint(9, 4), QPoint(9, 5), QPoint(9, 6), QPoint(9, 7), QPoint(9, 10), QPoint(9, 11), QPoint(9, 12), QPoint(9, 13),
-                QPoint(10, 4), QPoint(10, 5), QPoint(10, 6), QPoint(10, 7), QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)
-            };
-        } else if (levelIndex == 4) {
-            m_obstacles = {
-                QPoint(5, 8), QPoint(6, 8), QPoint(7, 8), QPoint(8, 8), QPoint(11, 8), QPoint(12, 8), QPoint(13, 8), QPoint(14, 8),
-                QPoint(5, 9), QPoint(6, 9), QPoint(7, 9), QPoint(8, 9), QPoint(11, 9), QPoint(12, 9), QPoint(13, 9), QPoint(14, 9)
-            };
-        } else if (levelIndex == 5) {
-            m_obstacles = {
-                QPoint(4, 4), QPoint(5, 4), QPoint(6, 4), QPoint(13, 4), QPoint(14, 4), QPoint(15, 4),
-                QPoint(4, 13), QPoint(5, 13), QPoint(6, 13), QPoint(13, 13), QPoint(14, 13), QPoint(15, 13),
-                QPoint(4, 5), QPoint(4, 12), QPoint(15, 5), QPoint(15, 12)
-            };
+        } else {
+            m_obstacles = fallback.walls;
         }
         emit obstaclesChanged();
     };
 
-    const int fallbackCount = fallbackNames.size();
-    const int safeIndex = ((i % fallbackCount) + fallbackCount) % fallbackCount;
-    m_currentLevelName = fallbackNames[safeIndex];
+    const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
+    m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
 
     QFile f(u"qrc:/src/levels/levels.json"_s);
     if (!f.open(QIODevice::ReadOnly)) {
