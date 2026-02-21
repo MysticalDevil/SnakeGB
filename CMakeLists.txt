@@ -118,6 +118,7 @@ add_executable(game-tests
 target_include_directories(game-tests PRIVATE src)
 target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml Qt6::Multimedia Qt6::Sensors)
 add_test(NAME GameLogicTest COMMAND game-tests)
+set_tests_properties(GameLogicTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(core-rules-tests
     tests/test_core_rules.cpp
@@ -127,3 +128,4 @@ add_executable(core-rules-tests
 target_include_directories(core-rules-tests PRIVATE src)
 target_link_libraries(core-rules-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
 add_test(NAME CoreRulesTest COMMAND core-rules-tests)
+set_tests_properties(CoreRulesTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
