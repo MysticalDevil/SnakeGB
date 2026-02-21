@@ -14,10 +14,16 @@ Rectangle {
     property string gameFont
 
     function luminance(colorValue) {
+        if (colorValue === undefined || colorValue === null) {
+            return 0.0
+        }
         return 0.299 * colorValue.r + 0.587 * colorValue.g + 0.114 * colorValue.b
     }
 
     function readableText(bgColor) {
+        if (p0 === undefined || p3 === undefined) {
+            return "white"
+        }
         var d0 = Math.abs(luminance(p0) - luminance(bgColor))
         var d3 = Math.abs(luminance(p3) - luminance(bgColor))
         return d3 >= d0 ? p3 : p0

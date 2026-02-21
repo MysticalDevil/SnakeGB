@@ -36,8 +36,11 @@ void silenceStderrForRelease() {
 
 auto main(int argc, char *argv[]) -> int {
 #if defined(QT_NO_DEBUG_OUTPUT) && defined(QT_NO_INFO_OUTPUT) && defined(QT_NO_WARNING_OUTPUT)
-    silenceStderrForRelease();
-    qInstallMessageHandler(releaseLogFilter);
+    const bool keepStderr = qEnvironmentVariableIntValue("SNAKEGB_KEEP_STDERR") == 1;
+    if (!keepStderr) {
+        silenceStderrForRelease();
+        qInstallMessageHandler(releaseLogFilter);
+    }
 #endif
 
     QGuiApplication app(argc, argv);

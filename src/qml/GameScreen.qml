@@ -210,43 +210,123 @@ Item {
                 visible: gameLogic.state === 1
                 z: 500
                 Column {
-                    anchors.centerIn: parent
-                    spacing: 12
-                    Text { text: "S N A K E"; font.family: gameFont; font.pixelSize: 40; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Column {
-                        spacing: 4
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        Text { text: "HI-SCORE: " + gameLogic.highScore; font.family: gameFont; font.pixelSize: 12; color: p3; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "LEVEL: " + gameLogic.currentLevelName; font.family: gameFont; font.pixelSize: 10; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    }
+                    width: parent.width - 24
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 7
+
                     Rectangle {
-                        width: 140; height: 24; color: p1; border.color: p3; anchors.horizontalCenter: parent.horizontalCenter
-                        Text {
-                            text: gameLogic.hasSave ? "START to Continue" : "START to Play"
-                            color: p3
-                            font.pixelSize: 10
+                        width: parent.width
+                        height: 44
+                        radius: 4
+                        color: "#c8d4b3"
+                        border.color: "#5a6b4f"
+                        border.width: 1
+
+                        Column {
                             anchors.centerIn: parent
-                            font.bold: true
-                            opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.70
+                            spacing: 1
+                            Text {
+                                text: "S N A K E"
+                                font.family: gameFont
+                                font.pixelSize: 24
+                                color: "#2b3a2a"
+                                font.bold: true
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                style: Text.Outline
+                                styleColor: Qt.rgba(0, 0, 0, 0.18)
+                            }
+                            Text {
+                                text: gameLogic.hasSave ? "CONTINUE READY" : "NEW RUN READY"
+                                font.family: gameFont
+                                font.pixelSize: 7
+                                color: "#3e523d"
+                                anchors.horizontalCenter: parent.horizontalCenter
+                            }
                         }
                     }
-                    Column {
-                        spacing: 2
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        Rectangle {
-                            width: 196
-                            height: 24
-                            radius: 3
-                            color: Qt.rgba(0.10, 0.12, 0.10, 0.62)
-                            border.color: Qt.rgba(0.88, 0.94, 0.82, 0.88)
-                            border.width: 1
-                            anchors.horizontalCenter: parent.horizontalCenter
 
-                            Column {
+                    Rectangle {
+                        width: parent.width
+                        height: 30
+                        radius: 3
+                        color: "#b8c79d"
+                        border.color: "#60724f"
+                        border.width: 1
+
+                        Row {
+                            anchors.centerIn: parent
+                            spacing: 16
+                            Text {
+                                text: "HI " + gameLogic.highScore
+                                font.family: gameFont
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: "#2e412d"
+                            }
+                            Text {
+                                text: "LEVEL " + gameLogic.currentLevelName
+                                font.family: gameFont
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: "#2e412d"
+                            }
+                        }
+                    }
+
+                    Item {
+                        width: parent.width
+                        height: 34
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 170
+                            height: 30
+                            radius: 3
+                            color: "#3c4c36"
+                            border.color: "#d7e5bc"
+                            border.width: 1
+                            Text {
+                                text: gameLogic.hasSave ? "START  CONTINUE" : "START  NEW GAME"
+                                color: "#eef9d8"
+                                font.pixelSize: 11
+                                font.bold: true
                                 anchors.centerIn: parent
-                                spacing: 1
-                                Text { text: "UP: Medals | DOWN: Replay"; color: "#e9f4d8"; font.pixelSize: 8; opacity: 1.0; anchors.horizontalCenter: parent.horizontalCenter; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.42) }
-                                Text { text: "SELECT: Switch Level | B: Palette"; color: "#e9f4d8"; font.pixelSize: 8; opacity: 1.0; anchors.horizontalCenter: parent.horizontalCenter; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.42) }
+                                opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.72
+                                style: Text.Outline
+                                styleColor: Qt.rgba(0, 0, 0, 0.35)
+                            }
+                        }
+                    }
+
+                    Item { width: 1; height: 3 }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 32
+                        radius: 4
+                        color: "#4a5c43"
+                        border.color: "#b9c9a1"
+                        border.width: 1
+
+                        Column {
+                            anchors.fill: parent
+                            anchors.margins: 7
+                            spacing: 1
+                            Text {
+                                text: "UP: MEDALS   DOWN: REPLAY"
+                                color: "#edf8da"
+                                font.pixelSize: 7
+                                font.bold: true
+                                style: Text.Outline
+                                styleColor: Qt.rgba(0, 0, 0, 0.28)
+                            }
+                            Text {
+                                text: "LEFT: CATALOG   SELECT: LEVEL"
+                                color: "#edf8da"
+                                font.pixelSize: 7
+                                font.bold: true
+                                style: Text.Outline
+                                styleColor: Qt.rgba(0, 0, 0, 0.28)
                             }
                         }
                     }

@@ -55,8 +55,8 @@ WINDOW_ADDR=""
 GEOM=""
 DEADLINE=$((SECONDS + WAIT_SECONDS))
 while (( SECONDS < DEADLINE )); do
-  WINDOW_INFO="$(hyprctl clients -j | jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" '
-    .[] | select(.class == $cls or (.title | contains($ttl))) |
+  WINDOW_INFO="$(hyprctl clients -j | jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" --argjson pid "${APP_PID}" '
+    .[] | select((.pid == $pid) or (.class == $cls) or (.title | contains($ttl))) |
     "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
   ' | head -n1)"
 
