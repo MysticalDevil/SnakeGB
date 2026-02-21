@@ -1,6 +1,7 @@
 #include "level_runtime.h"
 
 #include <cmath>
+#include <QJsonObject>
 
 namespace snakegb::core {
 
@@ -84,6 +85,16 @@ auto fallbackLevelData(int levelIndex) -> FallbackLevelData {
             break;
     }
     return {.name = QStringLiteral("Classic"), .script = QString(), .walls = {}};
+}
+
+auto wallsFromJsonArray(const QJsonArray &wallsJson) -> QList<QPoint> {
+    QList<QPoint> walls;
+    walls.reserve(wallsJson.size());
+    for (const auto &item : wallsJson) {
+        const auto wall = item.toObject();
+        walls.append(QPoint(wall.value(QStringLiteral("x")).toInt(), wall.value(QStringLiteral("y")).toInt()));
+    }
+    return walls;
 }
 
 } // namespace snakegb::core

@@ -5,6 +5,8 @@
 #include "game_engine_interface.h"
 
 #include <QtTest/QtTest>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <deque>
 
 class TestCoreRules : public QObject {
@@ -16,6 +18,7 @@ private slots:
     void testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater();
     void testProbeCollisionRespectsGhostFlag();
     void testDynamicLevelFallbackProducesObstacles();
+    void testWallsFromJsonArrayParsesCoordinates();
     void testBuffRuntimeRules();
     void testReplayTimelineAppliesOnlyOnMatchingTicks();
 };
@@ -178,6 +181,17 @@ void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {
 
     const auto unknown = snakegb::core::dynamicObstaclesForLevel(u"Classic", 10);
     QVERIFY(!unknown.has_value());
+}
+
+void TestCoreRules::testWallsFromJsonArrayParsesCoordinates() {
+    QJsonArray wallsJson;
+    wallsJson.append(QJsonObject{{"x", 1}, {"y", 2}});
+    wallsJson.append(QJsonObject{{"x", 8}, {"y", 9}});
+
+    const QList<QPoint> walls = snakegb::core::wallsFromJsonArray(wallsJson);
+    QCOMPARE(walls.size(), 2);
+    QCOMPARE(walls[0], QPoint(1, 2));
+    QCOMPARE(walls[1], QPoint(8, 9));
 }
 
 void TestCoreRules::testBuffRuntimeRules() {

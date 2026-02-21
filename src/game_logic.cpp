@@ -1236,12 +1236,7 @@ void GameLogic::loadLevelData(int i) {
             return;
         }
     } else {
-        for (const auto &w : lvl.value(u"walls"_s).toArray()) {
-            m_obstacles.append(QPoint(
-                w.toObject().value(u"x"_s).toInt(), 
-                w.toObject().value(u"y"_s).toInt()
-            ));
-        }
+        m_obstacles = snakegb::core::wallsFromJsonArray(lvl.value(u"walls"_s).toArray());
         if (m_obstacles.isEmpty()) {
             applyFallbackLevel(safeIndex);
             return;
