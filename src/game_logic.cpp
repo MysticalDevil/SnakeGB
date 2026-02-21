@@ -625,11 +625,7 @@ void GameLogic::selectChoice(int index) {
 
     emit buffChanged();
     if (m_state == Replaying) {
-        int normalInterval = std::max(60, 200 - ((m_score / 5) * 8));
-        if (m_activeBuff == Slow) {
-            normalInterval = 250;
-        }
-        m_timer->setInterval(normalInterval);
+        m_timer->setInterval(normalTickIntervalMs());
         return;
     }
 
@@ -637,11 +633,7 @@ void GameLogic::selectChoice(int index) {
 
     QTimer::singleShot(500, this, [this]() -> void {
         if (m_state == Playing) {
-            int normalInterval = std::max(60, 200 - ((m_score / 5) * 8));
-            if (m_activeBuff == Slow) {
-                normalInterval = 250;
-            }
-            m_timer->setInterval(normalInterval);
+            m_timer->setInterval(normalTickIntervalMs());
         }
     });
 
@@ -937,6 +929,13 @@ void GameLogic::dispatchStateCallback(const std::function<void(GameState &)> &ca
     applyPendingStateChangeIfNeeded();
 }
 
+auto GameLogic::normalTickIntervalMs() const -> int {
+    if (m_activeBuff == Slow) {
+        return 250;
+    }
+    return std::max(60, 200 - ((m_score / 5) * 8));
+}
+
 void GameLogic::applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
                                          bool emitMiniPrompt) {
     if (m_profileManager) {
@@ -960,6 +959,22 @@ void GameLogic::applyAcquiredBuffEffects(int discoveredType, int baseDurationTic
                                                                   baseDurationTicks)
                                : baseDurationTicks;
     m_buffTicksTotal = m_buffTicksRemaining;
+}
+
+void GameLogic::applyPostTickTasks() {
+    if (!m_currentScript.isEmpty()) {
+        runLevelScript();
+    }
+    m_gameTickCounter++;
+}
+
+void GameLogic::updateReflectionFallback() {
+    if (m_hasAccelerometerReading) {
+        return;
+    }
+    const float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f;
+    m_reflectionOffset = QPointF(std::sin(t * 0.8f) * 0.01f, std::cos(t * 0.7f) * 0.01f);
+    emit reflectionOffsetChanged();
 }
 
 auto GameLogic::shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool {
@@ -1326,17 +1341,7 @@ void GameLogic::update() {
             }
         }
         dispatchStateCallback([](GameState &state) -> void { state.update(); });
-        if (!m_currentScript.isEmpty()) {
-            runLevelScript();
-        }
-        m_gameTickCounter++;
+        applyPostTickTasks();
     }
-    if (!m_hasAccelerometerReading) {
-        float t = static_cast<float>(QDateTime::currentMSecsSinceEpoch()) / 1000.0f;
-        m_reflectionOffset = QPointF(
-            std::sin(t * 0.8f) * 0.01f,
-            std::cos(t * 0.7f) * 0.01f
-        );
-        emit reflectionOffsetChanged();
-    }
+    updateReflectionFallback();
 }

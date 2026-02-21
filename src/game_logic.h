@@ -270,6 +270,9 @@ private slots:
     void update();
 
 private:
+    [[nodiscard]] auto normalTickIntervalMs() const -> int;
+    void applyPostTickTasks();
+    void updateReflectionFallback();
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);
     void applyPendingStateChangeIfNeeded();
     void applyMiniShrink();
