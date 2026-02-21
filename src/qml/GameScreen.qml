@@ -11,6 +11,7 @@ Item {
     property string gameFont
     property real elapsed
     property bool iconDebugMode: false
+    property int iconLabSelection: 0
 
     function buffName(type) {
         if (type === 1) return "GHOST"
@@ -140,6 +141,16 @@ Item {
             ctx.fillRect(w * 0.74, h * 0.74, w * 0.10, 1)
             ctx.fillRect(w * 0.84, h * 0.74, 1, h * 0.10)
         }
+    }
+
+    function iconLabMove(dx, dy) {
+        var cols = 3
+        var idx = iconLabSelection
+        var col = idx % cols
+        var row = Math.floor(idx / cols)
+        var nextCol = Math.max(0, Math.min(cols - 1, col + (dx > 0 ? 1 : (dx < 0 ? -1 : 0))))
+        var nextRow = Math.max(0, Math.min(2, row + (dy > 0 ? 1 : (dy < 0 ? -1 : 0))))
+        iconLabSelection = nextRow * cols + nextCol
     }
 
     function choiceGlyph(type) {
@@ -1002,6 +1013,11 @@ Item {
                 anchors.fill: parent
                 color: p0
                 z: 1600
+                onVisibleChanged: {
+                    if (visible) {
+                        iconLabSelection = 0
+                    }
+                }
 
                 Rectangle {
                     anchors.fill: parent
@@ -1114,9 +1130,41 @@ Item {
                                 width: (iconLabLayer.width - 32) / 3
                                 height: 56
                                 radius: 3
+                                property int iconIdx: index
                                 color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
                                 border.color: powerColor(modelData)
-                                border.width: 1
+                                border.width: root.iconLabSelection === iconIdx ? 2 : 1
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    color: "transparent"
+                                    border.color: Qt.rgba(p3.r, p3.g, p3.b, 0.9)
+                                    border.width: 1
+                                    visible: root.iconLabSelection === iconIdx
+                                    opacity: (Math.floor(elapsed * 8) % 2 === 0) ? 0.9 : 0.5
+                                }
+
+                                Rectangle {
+                                    anchors.right: parent.right
+                                    anchors.top: parent.top
+                                    anchors.rightMargin: 3
+                                    anchors.topMargin: 3
+                                    width: 20
+                                    height: 9
+                                    radius: 2
+                                    visible: root.iconLabSelection === iconIdx
+                                    color: p3
+                                    border.color: p0
+                                    border.width: 1
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "SEL"
+                                        color: p0
+                                        font.family: gameFont
+                                        font.pixelSize: 6
+                                        font.bold: true
+                                    }
+                                }
 
                                 Row {
                                     anchors.fill: parent
@@ -1172,6 +1220,23 @@ Item {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 18
+                        radius: 3
+                        color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
+                        border.color: p3
+                        border.width: 1
+                        Text {
+                            anchors.centerIn: parent
+                            text: "SELECTED: " + buffName(root.iconLabSelection + 1)
+                            color: p3
+                            font.family: gameFont
+                            font.pixelSize: 8
+                            font.bold: true
                         }
                     }
                 }

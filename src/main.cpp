@@ -11,6 +11,7 @@
 #include <cstdlib>
 
 #include "game_logic.h"
+#include "input_injection_pipe.h"
 #include "sound_manager.h"
 
 namespace {
@@ -57,6 +58,7 @@ auto main(int argc, char *argv[]) -> int {
 
     GameLogic gameLogic;
     SoundManager soundManager;
+    InputInjectionPipe inputInjectionPipe;
     soundManager.setVolume(gameLogic.volume());
 
     QObject::connect(&gameLogic, &GameLogic::audioPlayBeep, &soundManager, &SoundManager::playBeep);
@@ -70,6 +72,7 @@ auto main(int argc, char *argv[]) -> int {
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
+    engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
 
     using namespace Qt::StringLiterals;
     const QUrl url(u"qrc:/src/qml/main.qml"_s);

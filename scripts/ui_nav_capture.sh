@@ -105,6 +105,14 @@ send_key() {
   sleep "${NAV_STEP_DELAY}"
 }
 
+send_konami() {
+  local seq=(Up Up Down Down Left Right Left Right X Z)
+  local k
+  for k in "${seq[@]}"; do
+    send_key "${k}"
+  done
+}
+
 if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
   i=0
   while (( i < PALETTE_STEPS )); do
@@ -151,8 +159,26 @@ case "${TARGET}" in
       ((i += 1))
     done
     ;;
+  icons-right)
+    send_key "F6"
+    sleep 0.3
+    send_key "Right"
+    ;;
+  konami-on)
+    send_konami
+    ;;
+  konami-off)
+    send_konami
+    sleep 0.4
+    send_konami
+    ;;
+  icons-exit-b)
+    send_key "F6"
+    sleep 0.3
+    send_key "X"
+    ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library|icons"
+    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|icons-exit-b"
     exit 3
     ;;
 esac

@@ -23,6 +23,8 @@ qt_add_executable(SnakeGB
     src/sound_manager.h
     src/profile_manager.cpp
     src/profile_manager.h
+    src/input_injection_pipe.cpp
+    src/input_injection_pipe.h
     src/fsm/states.cpp
     src/fsm/states.h
     src/fsm/game_state.h
