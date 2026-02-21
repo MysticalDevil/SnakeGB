@@ -204,3 +204,12 @@ Validation after each commit:
 - Remaining Phase A focus:
   - continue shrinking adapter-owned rule branches into `GameSessionCore`-style interfaces.
   - keep signal/timer/QML contract unchanged during extraction.
+
+### Phase B progress snapshot (2026-02-21)
+
+- Added `GameLogic::dispatchUiAction(const QString &action)` as an action-oriented adapter entry for QML input routing.
+- Main shell input routing in `src/qml/main.qml` now calls adapter actions instead of directly calling multiple
+  `GameLogic` methods (`nextShellColor`, `toggleMusic`, `quit`, `quitToMenu`, `handleStart`, `handleSelect`,
+  `handleBAction`, `deleteSave`, directional `move`).
+- Back-path semantics are now unified through one adapter action path.
+- `src/qml/GameScreen.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
