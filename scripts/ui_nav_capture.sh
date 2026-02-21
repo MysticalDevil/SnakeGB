@@ -11,6 +11,7 @@ BOOT_SETTLE_SECONDS="${BOOT_SETTLE_SECONDS:-4.2}"
 NAV_STEP_DELAY="${NAV_STEP_DELAY:-0.25}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.6}"
 PALETTE_STEPS="${PALETTE_STEPS:-0}"
+ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
 TARGET="${1:-menu}"
 OUT_PNG="${2:-/tmp/snakegb_ui_nav_${TARGET}.png}"
 
@@ -39,6 +40,14 @@ if [[ ! -x "${APP_BIN}" ]]; then
   exit 1
 fi
 
+# Use an isolated settings dir by default so palette/save persistence does not
+# pollute automated captures or make palette steps non-deterministic.
+CFG_TMP=""
+if [[ "${ISOLATED_CONFIG}" == "1" ]]; then
+  CFG_TMP="$(mktemp -d /tmp/snakegb_ui_cfg.XXXXXX)"
+  export XDG_CONFIG_HOME="${CFG_TMP}"
+fi
+
 # Prevent stale windows from previous runs from being matched.
 pkill -f "${APP_BIN}" >/dev/null 2>&1 || true
 sleep 0.2
@@ -48,6 +57,9 @@ echo "[info] Launching ${APP_BIN}"
 APP_PID=$!
 cleanup() {
   kill "${APP_PID}" >/dev/null 2>&1 || true
+  if [[ -n "${CFG_TMP}" && -d "${CFG_TMP}" ]]; then
+    rm -rf "${CFG_TMP}"
+  fi
 }
 trap cleanup EXIT
 
@@ -55,10 +67,16 @@ WINDOW_ADDR=""
 GEOM=""
 DEADLINE=$((SECONDS + WAIT_SECONDS))
 while (( SECONDS < DEADLINE )); do
-  WINDOW_INFO="$(hyprctl clients -j | jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" --argjson pid "${APP_PID}" '
-    .[] | select((.pid == $pid) or (.class == $cls) or (.title | contains($ttl))) |
+  CLIENTS_JSON="$(hyprctl clients -j 2>&1 || true)"
+  if ! jq -e . >/dev/null 2>&1 <<<"${CLIENTS_JSON}"; then
+    sleep 0.2
+    continue
+  fi
+
+  WINDOW_INFO="$(jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" --argjson pid "${APP_PID}" '
+    .[] | select((.pid == $pid) or (.class == $cls) or ((.title // "") | contains($ttl))) |
     "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
-  ' | head -n1)"
+  ' <<<"${CLIENTS_JSON}" | head -n1)"
 
   if [[ -n "${WINDOW_INFO}" ]]; then
     WINDOW_ADDR="${WINDOW_INFO%%$'\t'*}"

@@ -99,6 +99,104 @@ Item {
         return Qt.rgba(c.r, c.g, c.b, 0.78)
     }
 
+    function blendColor(a, b, t) {
+        var k = Math.max(0.0, Math.min(1.0, t))
+        return Qt.rgba(
+            a.r * (1.0 - k) + b.r * k,
+            a.g * (1.0 - k) + b.g * k,
+            a.b * (1.0 - k) + b.b * k,
+            1.0
+        )
+    }
+
+    function tonedColor(c, amount) {
+        var l = luminance(c)
+        var gray = Qt.rgba(l, l, l, 1.0)
+        return blendColor(c, gray, amount)
+    }
+
+    function clampedSurface(a, b, mix, desat, minL, maxL) {
+        var c = tonedColor(blendColor(a, b, mix), desat)
+        var l = luminance(c)
+        if (l < minL) {
+            c = blendColor(c, Qt.rgba(1, 1, 1, 1), Math.min(1.0, (minL - l) * 1.4))
+        } else if (l > maxL) {
+            c = blendColor(c, Qt.rgba(0, 0, 0, 1), Math.min(1.0, (l - maxL) * 1.4))
+        }
+        return c
+    }
+
+    function menuColor(role) {
+        var n = gameLogic.paletteName
+        if (n === "Original DMG") {
+            if (role === "cardPrimary") return "#d7e7b2"
+            if (role === "cardSecondary") return "#c7d99d"
+            if (role === "actionCard") return "#4e7a39"
+            if (role === "hintCard") return "#92b65a"
+            if (role === "borderPrimary") return "#39582a"
+            if (role === "borderSecondary") return "#577d3e"
+            if (role === "titleInk") return "#213319"
+            if (role === "secondaryInk") return "#253a1b"
+            if (role === "actionInk") return "#f2f8e4"
+            if (role === "hintInk") return "#1d2d15"
+        } else if (n === "Pocket B&W") {
+            if (role === "cardPrimary") return "#e3e5dd"
+            if (role === "cardSecondary") return "#d4d8cc"
+            if (role === "actionCard") return "#5a6250"
+            if (role === "hintCard") return "#b8bead"
+            if (role === "borderPrimary") return "#4f5648"
+            if (role === "borderSecondary") return "#646b5b"
+            if (role === "titleInk") return "#1d211b"
+            if (role === "secondaryInk") return "#242822"
+            if (role === "actionInk") return "#edf1e8"
+            if (role === "hintInk") return "#22261f"
+        } else if (n === "Golden Lux") {
+            if (role === "cardPrimary") return "#f5cf5d"
+            if (role === "cardSecondary") return "#e9bf45"
+            if (role === "actionCard") return "#825118"
+            if (role === "hintCard") return "#c89030"
+            if (role === "borderPrimary") return "#6d4412"
+            if (role === "borderSecondary") return "#89591b"
+            if (role === "titleInk") return "#2a1a06"
+            if (role === "secondaryInk") return "#342109"
+            if (role === "actionInk") return "#fff4c5"
+            if (role === "hintInk") return "#2d1d0a"
+        } else if (n === "Ice Blue") {
+            if (role === "cardPrimary") return "#78d9df"
+            if (role === "cardSecondary") return "#67c1c8"
+            if (role === "actionCard") return "#1e5f68"
+            if (role === "hintCard") return "#327f87"
+            if (role === "borderPrimary") return "#184c53"
+            if (role === "borderSecondary") return "#2c747b"
+            if (role === "titleInk") return "#08272d"
+            if (role === "secondaryInk") return "#0d3138"
+            if (role === "actionInk") return "#dcfbff"
+            if (role === "hintInk") return "#e6fcff"
+        } else if (n === "Virtual Red") {
+            if (role === "cardPrimary") return "#d44f4f"
+            if (role === "cardSecondary") return "#c53f3f"
+            if (role === "actionCard") return "#4e1111"
+            if (role === "hintCard") return "#7a2626"
+            if (role === "borderPrimary") return "#6c2424"
+            if (role === "borderSecondary") return "#8f3939"
+            if (role === "titleInk") return "#2b0a0a"
+            if (role === "secondaryInk") return "#320d0d"
+            if (role === "actionInk") return "#ffe7df"
+            if (role === "hintInk") return "#f9e3dc"
+        }
+
+        if (role === "cardPrimary") return clampedSurface(p0, p1, 0.78, 0.28, 0.52, 0.80)
+        if (role === "cardSecondary") return clampedSurface(p0, p1, 0.64, 0.24, 0.46, 0.76)
+        if (role === "actionCard") return clampedSurface(p2, p3, 0.58, 0.22, 0.30, 0.52)
+        if (role === "hintCard") return clampedSurface(p1, p2, 0.40, 0.30, 0.34, 0.60)
+        if (role === "borderPrimary") return blendColor(p2, p3, 0.55)
+        if (role === "borderSecondary") return blendColor(p2, p3, 0.35)
+        if (role === "titleInk" || role === "secondaryInk") return readableText(menuColor("cardPrimary"))
+        if (role === "actionInk") return readableText(menuColor("actionCard"))
+        if (role === "hintInk") return readableText(menuColor("hintCard"))
+        return p3
+    }
+
     width: 240
     height: 216
 
@@ -209,6 +307,17 @@ Item {
                 color: p0
                 visible: gameLogic.state === 1
                 z: 500
+                readonly property color cardPrimary: root.menuColor("cardPrimary")
+                readonly property color cardSecondary: root.menuColor("cardSecondary")
+                readonly property color actionCard: root.menuColor("actionCard")
+                readonly property color hintCard: root.menuColor("hintCard")
+                readonly property color borderPrimary: root.menuColor("borderPrimary")
+                readonly property color borderSecondary: root.menuColor("borderSecondary")
+                readonly property color titleInk: root.menuColor("titleInk")
+                readonly property color secondaryInk: root.menuColor("secondaryInk")
+                readonly property color actionInk: root.menuColor("actionInk")
+                readonly property color hintInk: root.menuColor("hintInk")
+
                 Column {
                     width: parent.width - 24
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -219,8 +328,8 @@ Item {
                         width: parent.width
                         height: 44
                         radius: 4
-                        color: "#c8d4b3"
-                        border.color: "#5a6b4f"
+                        color: menuLayer.cardPrimary
+                        border.color: menuLayer.borderPrimary
                         border.width: 1
 
                         Column {
@@ -230,17 +339,15 @@ Item {
                                 text: "S N A K E"
                                 font.family: gameFont
                                 font.pixelSize: 24
-                                color: "#2b3a2a"
+                                color: menuLayer.titleInk
                                 font.bold: true
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                style: Text.Outline
-                                styleColor: Qt.rgba(0, 0, 0, 0.18)
                             }
                             Text {
                                 text: gameLogic.hasSave ? "CONTINUE READY" : "NEW RUN READY"
                                 font.family: gameFont
                                 font.pixelSize: 7
-                                color: "#3e523d"
+                                color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.68)
                                 anchors.horizontalCenter: parent.horizontalCenter
                             }
                         }
@@ -250,8 +357,8 @@ Item {
                         width: parent.width
                         height: 30
                         radius: 3
-                        color: "#b8c79d"
-                        border.color: "#60724f"
+                        color: menuLayer.cardSecondary
+                        border.color: menuLayer.borderSecondary
                         border.width: 1
 
                         Row {
@@ -262,14 +369,14 @@ Item {
                                 font.family: gameFont
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: "#2e412d"
+                                color: menuLayer.secondaryInk
                             }
                             Text {
                                 text: "LEVEL " + gameLogic.currentLevelName
                                 font.family: gameFont
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: "#2e412d"
+                                color: menuLayer.secondaryInk
                             }
                         }
                     }
@@ -282,18 +389,16 @@ Item {
                             width: 170
                             height: 30
                             radius: 3
-                            color: "#3c4c36"
-                            border.color: "#d7e5bc"
+                            color: menuLayer.actionCard
+                            border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.74)
                             border.width: 1
                             Text {
                                 text: gameLogic.hasSave ? "START  CONTINUE" : "START  NEW GAME"
-                                color: "#eef9d8"
+                                color: menuLayer.actionInk
                                 font.pixelSize: 11
                                 font.bold: true
                                 anchors.centerIn: parent
-                                opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.72
-                                style: Text.Outline
-                                styleColor: Qt.rgba(0, 0, 0, 0.35)
+                                opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
                             }
                         }
                     }
@@ -301,11 +406,12 @@ Item {
                     Item { width: 1; height: 3 }
 
                     Rectangle {
-                        width: parent.width
-                        height: 32
+                        width: parent.width - 12
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        height: 36
                         radius: 4
-                        color: "#4a5c43"
-                        border.color: "#b9c9a1"
+                        color: menuLayer.hintCard
+                        border.color: menuLayer.borderSecondary
                         border.width: 1
 
                         Column {
@@ -314,19 +420,15 @@ Item {
                             spacing: 1
                             Text {
                                 text: "UP: MEDALS   DOWN: REPLAY"
-                                color: "#edf8da"
-                                font.pixelSize: 7
+                                color: Qt.rgba(menuLayer.hintInk.r, menuLayer.hintInk.g, menuLayer.hintInk.b, 0.93)
+                                font.pixelSize: 8
                                 font.bold: true
-                                style: Text.Outline
-                                styleColor: Qt.rgba(0, 0, 0, 0.28)
                             }
                             Text {
                                 text: "LEFT: CATALOG   SELECT: LEVEL"
-                                color: "#edf8da"
-                                font.pixelSize: 7
+                                color: Qt.rgba(menuLayer.hintInk.r, menuLayer.hintInk.g, menuLayer.hintInk.b, 0.93)
+                                font.pixelSize: 8
                                 font.bold: true
-                                style: Text.Outline
-                                styleColor: Qt.rgba(0, 0, 0, 0.28)
                             }
                         }
                     }
