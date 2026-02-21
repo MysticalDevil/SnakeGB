@@ -4,6 +4,7 @@
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "adapter/ui_action.h"
+#include "adapter/input_semantics.h"
 #include "fsm/states.h"
 #include "profile_manager.h"
 #include <QCoreApplication>
@@ -667,11 +668,15 @@ void GameLogic::dispatchUiAction(const QString &action) {
             handleSelect();
             break;
         case UiActionKind::Back:
-            if (m_state == Paused || m_state == GameOver || m_state == Replaying || m_state == ChoiceSelection ||
-                m_state == Library || m_state == MedalRoom) {
-                quitToMenu();
-            } else if (m_state == StartMenu) {
-                quit();
+            switch (snakegb::adapter::resolveBackActionForState(static_cast<int>(m_state))) {
+                case snakegb::adapter::BackAction::QuitToMenu:
+                    quitToMenu();
+                    break;
+                case snakegb::adapter::BackAction::QuitApplication:
+                    quit();
+                    break;
+                case snakegb::adapter::BackAction::None:
+                    break;
             }
             break;
         case UiActionKind::ToggleShellColor:

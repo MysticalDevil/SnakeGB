@@ -27,6 +27,8 @@ qt_add_executable(SnakeGB
     src/input_injection_pipe.h
     src/adapter/ui_action.cpp
     src/adapter/ui_action.h
+    src/adapter/input_semantics.cpp
+    src/adapter/input_semantics.h
     src/app_state.h
     src/core/game_rules.cpp
     src/core/game_rules.h
@@ -116,6 +118,7 @@ add_executable(game-tests
     src/sound_manager.cpp
     src/profile_manager.cpp
     src/adapter/ui_action.cpp
+    src/adapter/input_semantics.cpp
     src/fsm/states.cpp
 )
 target_include_directories(game-tests PRIVATE src)
@@ -143,3 +146,12 @@ target_include_directories(adapter-tests PRIVATE src)
 target_link_libraries(adapter-tests PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME AdapterTest COMMAND adapter-tests)
 set_tests_properties(AdapterTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-semantics-tests
+    tests/test_input_semantics_adapter.cpp
+    src/adapter/input_semantics.cpp
+)
+target_include_directories(adapter-semantics-tests PRIVATE src)
+target_link_libraries(adapter-semantics-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterSemanticsTest COMMAND adapter-semantics-tests)
+set_tests_properties(AdapterSemanticsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
