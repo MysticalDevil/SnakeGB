@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import SnakeGB 1.0
 import "ThemeCatalog.js" as ThemeCatalog
 
 Item {
@@ -273,7 +274,7 @@ Item {
                 id: splashLayer
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 0
+                visible: gameLogic.state === AppState.Splash
                 z: 1000
                 property real logoY: -56
                 property int fakeLoad: 0
@@ -357,7 +358,7 @@ Item {
                 id: menuLayer
                 anchors.fill: parent
                 color: p0
-                visible: gameLogic.state === 1
+                visible: gameLogic.state === AppState.StartMenu
                 z: 500
                 readonly property color cardPrimary: root.menuColor("cardPrimary")
                 readonly property color cardSecondary: root.menuColor("cardSecondary")
@@ -492,7 +493,7 @@ Item {
                 id: gameWorld
                 anchors.fill: parent
                 z: 10
-                visible: gameLogic.state >= 2 && gameLogic.state <= 6
+                visible: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
                 readonly property real cellW: width / gameLogic.boardWidth
                 readonly property real cellH: height / gameLogic.boardHeight
 
@@ -531,7 +532,7 @@ Item {
                 
                 Repeater {
                     model: gameLogic.ghost
-                    visible: gameLogic.state === 2
+                    visible: gameLogic.state === AppState.Playing
                     delegate: Rectangle {
                         x: modelData.x * gameWorld.cellW
                         y: modelData.y * gameWorld.cellH
@@ -663,7 +664,7 @@ Item {
                     border.color: accent
                     border.width: 1
                     z: 40
-                    visible: (gameLogic.state === 2 || gameLogic.state === 5) &&
+                    visible: (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying) &&
                              gameLogic.activeBuff !== 0 && gameLogic.buffTicksTotal > 0
 
                     Text {
@@ -729,7 +730,7 @@ Item {
                 id: pausedLayer
                 anchors.fill: parent
                 color: Qt.rgba(p0.r, p0.g, p0.b, 0.7)
-                visible: gameLogic.state === 3
+                visible: gameLogic.state === AppState.Paused
                 z: 600
                 Column {
                     anchors.centerIn: parent
@@ -744,7 +745,7 @@ Item {
                 id: gameOverLayer
                 anchors.fill: parent
                 color: Qt.rgba(p3.r, p3.g, p3.b, 0.95)
-                visible: gameLogic.state === 4
+                visible: gameLogic.state === AppState.GameOver
                 z: 700
                 Column {
                     anchors.centerIn: parent
@@ -762,7 +763,7 @@ Item {
                 width: 100
                 height: 20
                 color: p3
-                visible: gameLogic.state === 5
+                visible: gameLogic.state === AppState.Replaying
                 z: 600
                 Text { text: "REPLAY"; color: p0; anchors.centerIn: parent; font.bold: true }
             }
@@ -771,7 +772,7 @@ Item {
             Rectangle {
                 anchors.fill: parent
                 color: Qt.rgba(p0.r, p0.g, p0.b, 0.95)
-                visible: gameLogic.state === 6
+                visible: gameLogic.state === AppState.ChoiceSelection
                 z: 650
                 Column {
                     anchors.centerIn: parent
@@ -871,7 +872,7 @@ Item {
                 anchors.fill: parent
                 readonly property var catalogTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
                 color: catalogTheme.pageBg
-                visible: gameLogic.state === 7
+                visible: gameLogic.state === AppState.Library
                 z: 800
                 Column {
                     anchors.fill: parent
@@ -1003,7 +1004,7 @@ Item {
                 p3: root.p3
                 visualTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
                 gameFont: root.gameFont
-                visible: gameLogic.state === 8
+                visible: gameLogic.state === AppState.MedalRoom
                 z: 900
             }
 
@@ -1292,7 +1293,7 @@ Item {
             anchors.right: parent.right
             anchors.margins: 10
             z: 500
-            visible: gameLogic.state >= 2 && gameLogic.state <= 6
+            visible: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
             Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
             Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
         }
@@ -1301,5 +1302,5 @@ Item {
     }
 
     function showOSD(t) { osd.show(t) }
-    function triggerPowerCycle() { gameLogic.requestStateChange(0) }
+    function triggerPowerCycle() { gameLogic.requestStateChange(AppState.Splash) }
 }
