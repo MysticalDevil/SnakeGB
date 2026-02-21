@@ -243,6 +243,8 @@ Validation after each commit:
   `AdapterSessionStateTest`.
 - Fruit/medal library view-model mapping is extracted into `src/adapter/library_models.*`; behavior is covered by
   `AdapterLibraryModelsTest`.
+- `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
+  reduce entry-point coupling before further service extraction.
 
 ### Phase C progress snapshot (2026-02-21)
 
