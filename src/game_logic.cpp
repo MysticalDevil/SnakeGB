@@ -56,9 +56,24 @@ GameLogic::GameLogic(QObject *parent)
       m_accelerometer(std::make_unique<QAccelerometer>()),
       m_profileManager(std::make_unique<ProfileManager>()),
       m_fsmState(nullptr) {
-
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
+    setupAudioSignals();
+    setupSensorRuntime();
 
+    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
+}
+
+GameLogic::~GameLogic() {
+    if (m_accelerometer) {
+        m_accelerometer->stop();
+    }
+    if (m_timer) {
+        m_timer->stop();
+    }
+    m_fsmState.reset();
+}
+
+void GameLogic::setupAudioSignals() {
     connect(this, &GameLogic::foodEaten, this, [this](float pan) -> void {
         emit audioSetScore(m_score);
         emit audioPlayBeep(880, 100, pan);
@@ -66,7 +81,7 @@ GameLogic::GameLogic(QObject *parent)
     });
 
     connect(this, &GameLogic::powerUpEaten, this, [this]() -> void {
-        emit audioPlayBeep(1200, 150, 0.0f);
+        emit audioPlayBeep(1200, 150, 0.0F);
         triggerHaptic(6);
     });
 
@@ -76,7 +91,7 @@ GameLogic::GameLogic(QObject *parent)
     });
 
     connect(this, &GameLogic::uiInteractTriggered, this, [this]() -> void {
-        emit audioPlayBeep(200, 50, 0.0f);
+        emit audioPlayBeep(200, 50, 0.0F);
         triggerHaptic(2);
     });
 
@@ -95,52 +110,50 @@ GameLogic::GameLogic(QObject *parent)
                     emit audioStartMusic();
                 }
             });
-        } else if (m_state == Playing || m_state == Replaying) {
+            return;
+        }
+
+        if (m_state == Playing || m_state == Replaying) {
             if (m_musicEnabled) {
                 qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStartMusic (playing/replaying)";
                 emit audioStartMusic();
             }
-        } else if (m_state == Splash || m_state == GameOver) {
+            return;
+        }
+
+        if (m_state == Splash || m_state == GameOver) {
             qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStopMusic (splash/gameover)";
             emit audioStopMusic();
         }
     });
-
-    if (m_accelerometer) {
-        m_accelerometer->setDataRate(30);
-        connect(m_accelerometer.get(), &QAccelerometer::readingChanged, this, [this]() -> void {
-            if (!m_accelerometer || !m_accelerometer->reading()) {
-                return;
-            }
-            constexpr qreal MaxTilt = 6.0;
-            const qreal nx = std::clamp(m_accelerometer->reading()->y() / MaxTilt, -1.0, 1.0);
-            const qreal ny = std::clamp(m_accelerometer->reading()->x() / MaxTilt, -1.0, 1.0);
-            m_reflectionOffset = QPointF(nx * 0.02, -ny * 0.02);
-            m_hasAccelerometerReading = true;
-            emit reflectionOffsetChanged();
-        });
-        m_accelerometer->start();
-        QTimer::singleShot(200, this, [this]() -> void {
-            if (!m_accelerometer) {
-                return;
-            }
-            qInfo().noquote() << "[SensorFlow][GameLogic] accelerometer connected="
-                              << m_accelerometer->isConnectedToBackend()
-                              << "active=" << m_accelerometer->isActive();
-        });
-    }
-
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
 }
 
-GameLogic::~GameLogic() {
-    if (m_accelerometer) {
-        m_accelerometer->stop();
+void GameLogic::setupSensorRuntime() {
+    if (!m_accelerometer) {
+        return;
     }
-    if (m_timer) {
-        m_timer->stop();
-    }
-    m_fsmState.reset();
+
+    m_accelerometer->setDataRate(30);
+    connect(m_accelerometer.get(), &QAccelerometer::readingChanged, this, [this]() -> void {
+        if (!m_accelerometer || !m_accelerometer->reading()) {
+            return;
+        }
+        constexpr qreal maxTilt = 6.0;
+        const qreal nx = std::clamp(m_accelerometer->reading()->y() / maxTilt, -1.0, 1.0);
+        const qreal ny = std::clamp(m_accelerometer->reading()->x() / maxTilt, -1.0, 1.0);
+        m_reflectionOffset = QPointF(nx * 0.02, -ny * 0.02);
+        m_hasAccelerometerReading = true;
+        emit reflectionOffsetChanged();
+    });
+    m_accelerometer->start();
+    QTimer::singleShot(200, this, [this]() -> void {
+        if (!m_accelerometer) {
+            return;
+        }
+        qInfo().noquote() << "[SensorFlow][GameLogic] accelerometer connected="
+                          << m_accelerometer->isConnectedToBackend()
+                          << "active=" << m_accelerometer->isActive();
+    });
 }
 
 // --- IGameEngine Implementation ---

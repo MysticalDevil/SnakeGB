@@ -257,6 +257,8 @@ private slots:
     void update();
 
 private:
+    void setupAudioSignals();
+    void setupSensorRuntime();
     [[nodiscard]] auto normalTickIntervalMs() const -> int;
     void applyPostTickTasks();
     void updateReflectionFallback();
