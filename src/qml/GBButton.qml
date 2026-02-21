@@ -27,8 +27,8 @@ Item {
         anchors.fill: parent
         radius: width / 2
         color: "#8f1b2f"
-        border.color: "#4a0f1a"
-        border.width: 2
+        border.color: Qt.rgba(0.18, 0.04, 0.08, 0.75)
+        border.width: 1
 
         transform: Translate {
             y: pressedVisual ? 3 : 0
@@ -48,11 +48,23 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            anchors.margins: 6
+            anchors.margins: 1
             radius: width / 2
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.42)
+            border.color: Qt.rgba(1, 1, 1, 0.10)
             border.width: 1
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 7
+            radius: width / 2
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.18) }
+                GradientStop { position: 0.45; color: "transparent" }
+                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.14) }
+            }
+            opacity: 0.55
         }
 
         Text {

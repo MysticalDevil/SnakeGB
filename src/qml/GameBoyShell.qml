@@ -198,59 +198,115 @@ Rectangle {
         anchors.rightMargin: -8
         anchors.top: parent.top
         anchors.topMargin: 150
-        width: 16
-        height: 80
-        color: "#2f3136"
-        radius: 4
+        width: 18
+        height: 92
+        color: "#2b2e33"
+        radius: 5
         clip: true
-        border.color: "#1c1f23"
+        border.color: "#171a1f"
         border.width: 1
 
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: parent.radius - 1
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#3a3d44" }
+                GradientStop { position: 0.5; color: "#262a30" }
+                GradientStop { position: 1.0; color: "#1f2329" }
+            }
+        }
+
+        Repeater {
+            model: 10
+            delegate: Rectangle {
+                width: 7
+                height: 1
+                x: 2
+                y: 7 + index * 8
+                color: Qt.rgba(0, 0, 0, 0.35)
+            }
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.leftMargin: 1
+            width: 2
+            height: parent.height - 2
+            y: 1
+            radius: 1
+            color: Qt.rgba(1, 1, 1, 0.15)
+        }
+
+        Rectangle {
+            id: volumeWheel
+            width: parent.width - 2
+            height: 30
+            x: 1
+            color: "#5b616e"
+            radius: 3
+            y: (1.0 - gameLogic.volume) * (parent.height - height)
+            border.color: "#2a2f38"
+            border.width: 1
+
             Rectangle {
-                id: volumeWheel
-                width: parent.width
-                height: 30
-                color: "#464a52"
-                radius: 2
-                y: (1.0 - gameLogic.volume) * (parent.height - height)
-
-                Column {
-                    anchors.centerIn: parent
-                    spacing: 2
-                    Repeater {
-                        model: 5
-                        Rectangle { width: 12; height: 1; color: "#222" }
-                    }
+                anchors.fill: parent
+                anchors.margins: 1
+                radius: parent.radius - 1
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#7a8291" }
+                    GradientStop { position: 0.45; color: "#5d6471" }
+                    GradientStop { position: 1.0; color: "#444b56" }
                 }
+            }
 
-                MouseArea {
-                    anchors.fill: parent
-                    drag.target: volumeWheel
-                    drag.axis: Drag.YAxis
-                    drag.minimumY: 0
-                    drag.maximumY: volumeKnobTrack.height - volumeWheel.height
+            Column {
+                anchors.centerIn: parent
+                spacing: 2
+                Repeater {
+                    model: 6
+                    Rectangle { width: 11; height: 1; color: "#262b33"; radius: 1 }
+                }
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.leftMargin: 2
+                anchors.verticalCenter: parent.verticalCenter
+                width: 2
+                height: 8
+                radius: 1
+                color: "#c5ccd8"
+                opacity: 0.85
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                drag.target: volumeWheel
+                drag.axis: Drag.YAxis
+                drag.minimumY: 0
+                drag.maximumY: volumeKnobTrack.height - volumeWheel.height
+                
+                property int lastStep: 0
+                
+                onPositionChanged: {
+                    var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
+                    gameLogic.volume = normalized
                     
-                    property int lastStep: 0
-                    
-                    onPositionChanged: {
-                        var normalized = 1.0 - (volumeWheel.y / (volumeKnobTrack.height - volumeWheel.height))
-                        gameLogic.volume = normalized
-                        
-                        // Haptic feedback every 10% volume change
-                        var currentStep = Math.floor(normalized * 10)
-                        if (currentStep !== lastStep) {
-                            gameLogic.requestFeedback(1)
-                            lastStep = currentStep
-                        }
+                    var currentStep = Math.floor(normalized * 10)
+                    if (currentStep !== lastStep) {
+                        gameLogic.requestFeedback(1)
+                        lastStep = currentStep
                     }
                 }
             }
+        }
         Text {
             anchors.bottom: parent.top
             anchors.bottomMargin: 5
             anchors.horizontalCenter: parent.horizontalCenter
             text: "VOL"
-            color: "#666"
+            color: "#4f545d"
             font.pixelSize: 8
             font.bold: true
         }
