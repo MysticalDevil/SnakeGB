@@ -230,13 +230,13 @@ Rectangle {
             height: parent.height - 8
             radius: 3
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#25333f" }
-                GradientStop { position: 0.55; color: "#18222b" }
-                GradientStop { position: 1.0; color: "#22303b" }
+                GradientStop { position: 0.0; color: "#273744" }
+                GradientStop { position: 0.55; color: "#22313d" }
+                GradientStop { position: 1.0; color: "#263540" }
             }
-            border.color: Qt.rgba(0, 0, 0, 0.35)
+            border.color: Qt.rgba(0, 0, 0, 0.24)
             border.width: 1
-            opacity: 0.9
+            opacity: 0.82
         }
 
         Rectangle {
@@ -244,7 +244,7 @@ Rectangle {
             anchors.margins: 1
             radius: sideCut.radius - 1
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.07)
+            border.color: Qt.rgba(1, 1, 1, 0.04)
             border.width: 1
         }
 
@@ -260,8 +260,8 @@ Rectangle {
                 id: wheelBody
                 anchors.fill: parent
                 radius: 7
-                color: "#5f6776"
-                border.color: "#3a4350"
+                color: "#596476"
+                border.color: "#435061"
                 border.width: 1
                 property real spinPhase: shell.volume * 90
                 property real groovePitch: 5
@@ -271,21 +271,10 @@ Rectangle {
                     anchors.margins: 1
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#8f9aae" }
-                        GradientStop { position: 0.5; color: "#6c7689" }
-                        GradientStop { position: 1.0; color: "#4c5564" }
+                        GradientStop { position: 0.0; color: "#707c90" }
+                        GradientStop { position: 0.5; color: "#657184" }
+                        GradientStop { position: 1.0; color: "#5a6578" }
                     }
-                }
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 2
-                    anchors.top: parent.top
-                    anchors.topMargin: 2
-                    width: 2
-                    height: parent.height - 4
-                    radius: 1
-                    color: Qt.rgba(1, 1, 1, 0.11)
                 }
 
                 Repeater {
@@ -299,8 +288,8 @@ Rectangle {
                         property real yPos: index * wheelBody.groovePitch - (wheelBody.spinPhase % wheelBody.groovePitch) - wheelBody.groovePitch
                         y: yPos
                         visible: yPos >= 1 && yPos <= wheelBody.height - 2
-                        color: "#2b3440"
-                        opacity: 0.48
+                        color: "#4a5567"
+                        opacity: 0.36
                     }
                 }
             }
@@ -309,7 +298,7 @@ Rectangle {
                 anchors.fill: wheelBody
                 radius: wheelBody.radius
                 color: "transparent"
-                border.color: Qt.rgba(0, 0, 0, 0.16)
+                border.color: Qt.rgba(0, 0, 0, 0.10)
                 border.width: 1
             }
 
@@ -345,8 +334,8 @@ Rectangle {
             text: "VOL"
             font.pixelSize: 8
             font.bold: true
-            color: Qt.rgba(0, 0, 0, 0.22)
-            opacity: 0.56
+            color: Qt.rgba(0, 0, 0, 0.18)
+            opacity: 0.44
         }
     }
 }

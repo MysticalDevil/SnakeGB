@@ -15,19 +15,19 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: width / 2
-        color: "#26070c"
-        opacity: 0.36
+        color: "#13070a"
+        opacity: 0.16
         visible: !pressedVisual
         z: -2
-        transform: Translate { y: 5 }
+        transform: Translate { y: 3 }
     }
 
     Rectangle {
         id: buttonBody
         anchors.fill: parent
         radius: width / 2
-        color: "#8f1b2f"
-        border.color: Qt.rgba(0.18, 0.04, 0.08, 0.75)
+        color: "#8a2a40"
+        border.color: Qt.rgba(0.17, 0.04, 0.09, 0.58)
         border.width: 1
 
         transform: Translate {
@@ -39,11 +39,11 @@ Item {
             anchors.margins: 2
             radius: width / 2
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.lighter(buttonBody.color, 1.25) }
-                GradientStop { position: 0.45; color: buttonBody.color }
-                GradientStop { position: 1.0; color: Qt.darker(buttonBody.color, 1.22) }
+                GradientStop { position: 0.0; color: Qt.lighter(buttonBody.color, 1.10) }
+                GradientStop { position: 0.5; color: buttonBody.color }
+                GradientStop { position: 1.0; color: Qt.darker(buttonBody.color, 1.08) }
             }
-            opacity: 0.95
+            opacity: 0.90
         }
 
         Rectangle {
@@ -51,7 +51,7 @@ Item {
             anchors.margins: 1
             radius: width / 2
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.10)
+            border.color: Qt.rgba(1, 1, 1, 0.06)
             border.width: 1
         }
 
@@ -60,11 +60,11 @@ Item {
             anchors.margins: 7
             radius: width / 2
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.18) }
+                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.08) }
                 GradientStop { position: 0.45; color: "transparent" }
-                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.14) }
+                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.06) }
             }
-            opacity: 0.55
+            opacity: 0.32
         }
 
         Text {
@@ -72,10 +72,9 @@ Item {
             text: root.text
             color: "#f3f3f3"
             font.bold: true
-            font.pixelSize: 19
+            font.pixelSize: 18
             font.family: "Trebuchet MS"
-            style: Text.Raised
-            styleColor: "#3b0f16"
+            style: Text.Normal
         }
     }
 
@@ -83,10 +82,10 @@ Item {
         anchors.fill: buttonBody
         radius: buttonBody.radius
         color: "black"
-        opacity: 0.2
+        opacity: 0.08
         z: -1
         visible: !pressedVisual
-        transform: Translate { y: 3 }
+        transform: Translate { y: 1 }
     }
 
     MouseArea {
