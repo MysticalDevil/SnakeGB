@@ -400,7 +400,6 @@ void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
 }
 
 void GameLogic::restart() {
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_direction = {0, -1};
     m_inputQueue.clear();
     m_score = 0;
@@ -422,6 +421,7 @@ void GameLogic::restart() {
     m_currentChoiceHistory.clear();
     
     loadLevelData(m_levelIndex);
+    m_snakeModel.reset(buildSafeInitialSnakeBody());
     clearSavedState();
     
     m_timer->setInterval(InitialInterval);
@@ -441,7 +441,6 @@ void GameLogic::startReplay() {
     }
     
     setInternalState(Replaying);
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
     m_currentRecording.clear();
     m_direction = {0, -1};
     m_inputQueue.clear();
@@ -453,6 +452,7 @@ void GameLogic::startReplay() {
     m_powerUpPos = QPoint(-1, -1);
     
     loadLevelData(m_bestLevelIndex);
+    m_snakeModel.reset(buildSafeInitialSnakeBody());
     m_rng.seed(m_bestRandomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
@@ -1237,6 +1237,43 @@ void GameLogic::loadLevelData(int i) {
         }
     }
     emit obstaclesChanged();
+}
+
+auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint> {
+    auto wrapAxis = [](int value, int size) -> int {
+        int v = value % size;
+        if (v < 0) {
+            v += size;
+        }
+        return v;
+    };
+    auto blocked = [this](const QPoint &p) -> bool {
+        for (const QPoint &op : m_obstacles) {
+            if (op == p) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    QList<QPoint> candidates;
+    candidates << QPoint(10, 10) << QPoint(10, 8) << QPoint(10, 6)
+               << QPoint(5, 10) << QPoint(15, 10);
+    for (int y = 0; y < BOARD_HEIGHT; ++y) {
+        for (int x = 0; x < BOARD_WIDTH; ++x) {
+            candidates << QPoint(x, y);
+        }
+    }
+
+    for (const QPoint &head : candidates) {
+        const QPoint b1(head.x(), wrapAxis(head.y() + 1, BOARD_HEIGHT));
+        const QPoint b2(head.x(), wrapAxis(head.y() + 2, BOARD_HEIGHT));
+        if (!blocked(head) && !blocked(b1) && !blocked(b2)) {
+            return {head, b1, b2};
+        }
+    }
+
+    return {{10, 10}, {10, 11}, {10, 12}};
 }
 
 void GameLogic::checkAchievements() {

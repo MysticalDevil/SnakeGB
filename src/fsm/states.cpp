@@ -184,7 +184,13 @@ void ReplayingState::update() {
 
     const bool grew = (nextHead == m_context.foodPos());
     m_context.handleFoodConsumption(nextHead);
+    if (m_context.currentState() != IGameEngine::Replaying || m_context.hasPendingStateChange()) {
+        return;
+    }
     m_context.handlePowerUpConsumption(nextHead);
+    if (m_context.currentState() != IGameEngine::Replaying || m_context.hasPendingStateChange()) {
+        return;
+    }
     m_context.applyMovement(nextHead, grew);
 }
 

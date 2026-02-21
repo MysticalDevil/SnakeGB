@@ -1,5 +1,6 @@
 #include <QtTest>
 #include <QCoreApplication>
+#include <QSet>
 #include "game_logic.h"
 
 class TestGameLogic : public QObject {
@@ -160,6 +161,31 @@ private slots:
                  "Start should begin a new run");
         QVERIFY2(game.obstacles().size() > 0,
                  "The Cage run should use The Cage obstacles");
+    }
+
+    void testTunnelRunInitialSpawnAvoidsObstacles() {
+        GameLogic game;
+        game.requestStateChange(GameLogic::StartMenu);
+        game.deleteSave();
+
+        // Classic -> The Cage -> Dynamic Pulse -> Tunnel Run
+        game.handleSelect();
+        game.handleSelect();
+        game.handleSelect();
+        QCOMPARE(game.currentLevelName(), QString("Tunnel Run"));
+
+        game.handleStart();
+        QVERIFY(game.state() == GameLogic::Playing || game.state() == GameLogic::Paused);
+
+        QSet<QPoint> obstacleSet;
+        for (const QVariant &item : game.obstacles()) {
+            const QVariantMap map = item.toMap();
+            obstacleSet.insert(QPoint(map.value("x").toInt(), map.value("y").toInt()));
+        }
+        for (const QPoint &segment : game.snakeModelPtr()->body()) {
+            QVERIFY2(!obstacleSet.contains(segment),
+                     "Tunnel Run initial snake body must not overlap obstacles");
+        }
     }
 
     void testHeadWrapsAtBoundary() {

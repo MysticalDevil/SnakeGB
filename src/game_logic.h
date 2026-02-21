@@ -277,6 +277,7 @@ private:
     void saveCurrentState();
     void clearSavedState();
     void loadLevelData(int index);
+    [[nodiscard]] auto buildSafeInitialSnakeBody() const -> std::deque<QPoint>;
     void checkAchievements();
     void runLevelScript();
     [[nodiscard]] auto isOccupied(const QPoint &p) const -> bool;
