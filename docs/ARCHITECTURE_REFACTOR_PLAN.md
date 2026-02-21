@@ -226,6 +226,8 @@ Validation after each commit:
   parsing and keeps only semantic dispatch.
 - Back-button state semantics are extracted into `src/adapter/input_semantics.*`; adapter behavior is covered by
   `AdapterSemanticsTest`.
+- Level resource loading (`QFile` + bytes handoff) is extracted into `src/adapter/level_loader.*`; behavior is
+  covered by `AdapterLevelLoaderTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
