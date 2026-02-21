@@ -193,6 +193,15 @@ target_link_libraries(adapter-tests PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME AdapterTest COMMAND adapter-tests)
 set_tests_properties(AdapterTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(adapter-ui-dispatch-tests
+    tests/test_ui_action_dispatch_adapter.cpp
+    src/adapter/ui_action.cpp
+)
+target_include_directories(adapter-ui-dispatch-tests PRIVATE src)
+target_link_libraries(adapter-ui-dispatch-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterUiDispatchTest COMMAND adapter-ui-dispatch-tests)
+set_tests_properties(AdapterUiDispatchTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-semantics-tests
     tests/test_input_semantics_adapter.cpp
     src/adapter/input_semantics.cpp

@@ -249,6 +249,8 @@ Validation after each commit:
   adapter file can continue shrinking around orchestration logic.
 - FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
   `*State` classes directly, reducing adapter-to-state implementation coupling.
+- UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `GameLogic` now binds
+  orchestration lambdas instead of owning the large action switch.
 
 ### Phase C progress snapshot (2026-02-21)
 

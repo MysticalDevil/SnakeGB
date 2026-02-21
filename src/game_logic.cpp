@@ -597,86 +597,40 @@ void GameLogic::selectChoice(int index)
 
 void GameLogic::dispatchUiAction(const QString &action)
 {
-    using snakegb::adapter::UiActionKind;
     const snakegb::adapter::UiAction uiAction = snakegb::adapter::parseUiAction(action);
-
-    switch (uiAction.kind) {
-    case UiActionKind::NavUp:
-        move(0, -1);
-        break;
-    case UiActionKind::NavDown:
-        move(0, 1);
-        break;
-    case UiActionKind::NavLeft:
-        move(-1, 0);
-        break;
-    case UiActionKind::NavRight:
-        move(1, 0);
-        break;
-    case UiActionKind::Primary:
-    case UiActionKind::Start:
-        handleStart();
-        break;
-    case UiActionKind::Secondary:
-        handleBAction();
-        break;
-    case UiActionKind::SelectShort:
-        handleSelect();
-        break;
-    case UiActionKind::Back:
-        switch (snakegb::adapter::resolveBackActionForState(static_cast<int>(m_state))) {
-        case snakegb::adapter::BackAction::QuitToMenu:
-            quitToMenu();
-            break;
-        case snakegb::adapter::BackAction::QuitApplication:
-            quit();
-            break;
-        case snakegb::adapter::BackAction::None:
-            break;
-        }
-        break;
-    case UiActionKind::ToggleShellColor:
-        nextShellColor();
-        break;
-    case UiActionKind::ToggleMusic:
-        toggleMusic();
-        break;
-    case UiActionKind::QuitToMenu:
-        quitToMenu();
-        break;
-    case UiActionKind::Quit:
-        quit();
-        break;
-    case UiActionKind::NextPalette:
-        nextPalette();
-        break;
-    case UiActionKind::DeleteSave:
-        deleteSave();
-        break;
-    case UiActionKind::StateStartMenu:
-        requestStateChange(StartMenu);
-        break;
-    case UiActionKind::StateSplash:
-        requestStateChange(Splash);
-        break;
-    case UiActionKind::FeedbackLight:
-        triggerHaptic(1);
-        break;
-    case UiActionKind::FeedbackUi:
-        triggerHaptic(5);
-        break;
-    case UiActionKind::FeedbackHeavy:
-        triggerHaptic(8);
-        break;
-    case UiActionKind::SetLibraryIndex:
-        setLibraryIndex(uiAction.value);
-        break;
-    case UiActionKind::SetMedalIndex:
-        setMedalIndex(uiAction.value);
-        break;
-    case UiActionKind::Unknown:
-        break;
-    }
+    snakegb::adapter::dispatchUiAction(
+        uiAction,
+        {
+            .onMove = [this](int dx, int dy) -> void { move(dx, dy); },
+            .onStart = [this]() -> void { handleStart(); },
+            .onSecondary = [this]() -> void { handleBAction(); },
+            .onSelect = [this]() -> void { handleSelect(); },
+            .onBack = [this]() -> void {
+                switch (snakegb::adapter::resolveBackActionForState(static_cast<int>(m_state))) {
+                case snakegb::adapter::BackAction::QuitToMenu:
+                    quitToMenu();
+                    break;
+                case snakegb::adapter::BackAction::QuitApplication:
+                    quit();
+                    break;
+                case snakegb::adapter::BackAction::None:
+                    break;
+                }
+            },
+            .onToggleShellColor = [this]() -> void { nextShellColor(); },
+            .onToggleMusic = [this]() -> void { toggleMusic(); },
+            .onQuitToMenu = [this]() -> void { quitToMenu(); },
+            .onQuit = [this]() -> void { quit(); },
+            .onNextPalette = [this]() -> void { nextPalette(); },
+            .onDeleteSave = [this]() -> void { deleteSave(); },
+            .onStateStartMenu = [this]() -> void { requestStateChange(StartMenu); },
+            .onStateSplash = [this]() -> void { requestStateChange(Splash); },
+            .onFeedbackLight = [this]() -> void { triggerHaptic(1); },
+            .onFeedbackUi = [this]() -> void { triggerHaptic(5); },
+            .onFeedbackHeavy = [this]() -> void { triggerHaptic(8); },
+            .onSetLibraryIndex = [this](int index) -> void { setLibraryIndex(index); },
+            .onSetMedalIndex = [this](int index) -> void { setMedalIndex(index); },
+        });
 }
 
 void GameLogic::move(int dx, int dy)
