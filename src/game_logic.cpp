@@ -1,4 +1,5 @@
 #include "game_logic.h"
+#include "core/buff_runtime.h"
 #include "core/game_rules.h"
 #include "fsm/states.h"
 #include "profile_manager.h"
@@ -300,12 +301,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
         return;
     }
 
-    int points = 1;
-    if (m_activeBuff == Double) {
-        points = 2;
-    } else if (m_activeBuff == Rich) {
-        points = 3;
-    }
+    const int points = snakegb::core::foodPointsForBuff(static_cast<snakegb::core::BuffId>(m_activeBuff));
 
     const int previousScore = m_score;
     m_score += points;
@@ -354,8 +350,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
         auto body = m_snakeModel.body();
         if (body.size() > 3) {
             std::deque<QPoint> nb;
-            size_t half = std::max<size_t>(3, body.size() / 2);
-            for (size_t i = 0; i < half; ++i) {
+            const size_t targetLength = snakegb::core::miniShrinkTargetLength(body.size(), 3);
+            for (size_t i = 0; i < targetLength; ++i) {
                 nb.push_back(body[i]);
             }
             m_snakeModel.reset(nb);
@@ -365,7 +361,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
     }
 
     m_powerUpPos = QPoint(-1, -1);
-    m_buffTicksRemaining = (m_activeBuff == Rich) ? BuffDurationTicks / 2 : BuffDurationTicks;
+    m_buffTicksRemaining =
+        snakegb::core::buffDurationTicks(static_cast<snakegb::core::BuffId>(m_activeBuff), BuffDurationTicks);
     m_buffTicksTotal = m_buffTicksRemaining;
 
     emit powerUpEaten();
@@ -660,8 +657,8 @@ void GameLogic::selectChoice(int index) {
         auto body = m_snakeModel.body();
         if (body.size() > 3) {
             std::deque<QPoint> nb;
-            size_t half = std::max<size_t>(3, body.size() / 2);
-            for(size_t i = 0; i < half; ++i) {
+            const size_t targetLength = snakegb::core::miniShrinkTargetLength(body.size(), 3);
+            for (size_t i = 0; i < targetLength; ++i) {
                 nb.push_back(body[i]);
             }
             m_snakeModel.reset(nb);

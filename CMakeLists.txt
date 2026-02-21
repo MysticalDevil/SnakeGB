@@ -28,6 +28,8 @@ qt_add_executable(SnakeGB
     src/app_state.h
     src/core/game_rules.cpp
     src/core/game_rules.h
+    src/core/buff_runtime.cpp
+    src/core/buff_runtime.h
     src/core/session_step.cpp
     src/core/session_step.h
     src/core/replay_timeline.cpp
@@ -100,6 +102,7 @@ add_executable(game-tests
     tests/test_game_logic.cpp
     src/game_logic.cpp
     src/core/game_rules.cpp
+    src/core/buff_runtime.cpp
     src/core/session_step.cpp
     src/core/replay_timeline.cpp
     src/sound_manager.cpp
