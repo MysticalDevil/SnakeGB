@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import SnakeGB 1.0
 
 Window {
     id: window
@@ -19,7 +20,24 @@ Window {
     property bool selectPressActive: false
     property bool selectLongPressConsumed: false
     property bool selectKeyDown: false
+    property bool startPressActive: false
+    property bool saveClearConfirmPending: false
     property bool iconDebugMode: false
+    readonly property var inputAction: ({
+        NavUp: "nav_up",
+        NavDown: "nav_down",
+        NavLeft: "nav_left",
+        NavRight: "nav_right",
+        Primary: "primary",
+        Secondary: "secondary",
+        Start: "start",
+        SelectShort: "select_short",
+        Back: "back",
+        Escape: "escape",
+        ToggleIconLab: "toggle_icon_lab",
+        ToggleShellColor: "toggle_shell_color",
+        ToggleMusic: "toggle_music"
+    })
     property var konamiSeq: ["U","U","D","D","L","R","L","R","B","A"]
     property int konamiIndex: 0
     NumberAnimation on elapsed { 
@@ -29,12 +47,7 @@ Window {
         loops: Animation.Infinite 
     }
 
-    function handleDirection(dx, dy) {
-        gameLogic.move(dx, dy)
-        if (dy < 0) feedEasterInput("U")
-        else if (dy > 0) feedEasterInput("D")
-        else if (dx < 0) feedEasterInput("L")
-        else if (dx > 0) feedEasterInput("R")
+    function setDpadPressed(dx, dy) {
         if (dy < 0) {
             shell.dpad.upPressed = true
         } else if (dy > 0) {
@@ -46,6 +59,287 @@ Window {
         }
     }
 
+    function handleDirection(dx, dy) {
+        gameLogic.move(dx, dy)
+        setDpadPressed(dx, dy)
+    }
+
+    function routeDirection(action) {
+        var dx = 0
+        var dy = 0
+        var token = ""
+        if (action === inputAction.NavUp) {
+            dy = -1
+            token = "U"
+        } else if (action === inputAction.NavDown) {
+            dy = 1
+            token = "D"
+        } else if (action === inputAction.NavLeft) {
+            dx = -1
+            token = "L"
+        } else if (action === inputAction.NavRight) {
+            dx = 1
+            token = "R"
+        } else {
+            return false
+        }
+
+        if (handleEasterInput(token)) {
+            clearDpadVisuals()
+            return true
+        }
+        handleDirection(dx, dy)
+        return true
+    }
+
+    function isOverlayState(state) {
+        return state === AppState.Paused || state === AppState.GameOver ||
+               state === AppState.Replaying || state === AppState.ChoiceSelection
+    }
+
+    function isPageState(state) {
+        return state === AppState.Library || state === AppState.MedalRoom
+    }
+
+    function isGameplayState(state) {
+        return state === AppState.Playing
+    }
+
+    function toggleIconLab() {
+        iconDebugMode = !iconDebugMode
+        konamiIndex = 0
+        screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
+        if (!iconDebugMode) {
+            gameLogic.requestStateChange(AppState.StartMenu)
+        }
+    }
+
+    QtObject {
+        id: inputRouter
+
+        // Layer priority: icon overlay -> state overlay -> page -> game -> shell fallback.
+        function route(action) {
+            if (routeGlobal(action)) return true
+            if (window.iconDebugMode) return routeIconLayer(action)
+
+            var state = gameLogic.state
+            if (isOverlayState(state)) return routeOverlayLayer(action)
+            if (isPageState(state)) return routePageLayer(action)
+            if (isGameplayState(state)) return routeGameLayer(action)
+            return routeShellLayer(action)
+        }
+
+        function routeGlobal(action) {
+            if (action === inputAction.ToggleIconLab) {
+                toggleIconLab()
+                return true
+            }
+            if (action === inputAction.ToggleShellColor) {
+                gameLogic.nextShellColor()
+                return true
+            }
+            if (action === inputAction.ToggleMusic) {
+                gameLogic.toggleMusic()
+                return true
+            }
+            if (action === inputAction.Escape) {
+                if (window.iconDebugMode) {
+                    exitIconLabToMenu()
+                } else {
+                    gameLogic.quit()
+                }
+                return true
+            }
+            return false
+        }
+
+        function routeIconLayer(action) {
+            var dx = 0
+            var dy = 0
+            var token = ""
+            if (action === inputAction.NavUp) {
+                dy = -1
+                token = "U"
+            } else if (action === inputAction.NavDown) {
+                dy = 1
+                token = "D"
+            } else if (action === inputAction.NavLeft) {
+                dx = -1
+                token = "L"
+            } else if (action === inputAction.NavRight) {
+                dx = 1
+                token = "R"
+            }
+            if (token !== "") {
+                handleEasterInput(token)
+                if (window.iconDebugMode) {
+                    screen.iconLabMove(dx, dy)
+                    setDpadPressed(dx, dy)
+                }
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                exitIconLabToMenu()
+                return true
+            }
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Start || action === inputAction.SelectShort) {
+                return true
+            }
+            return false
+        }
+
+        function routeOverlayLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary || action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                gameLogic.quitToMenu()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                return true
+            }
+            return false
+        }
+
+        function routePageLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                gameLogic.quitToMenu()
+                return true
+            }
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            return false
+        }
+
+        function routeGameLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Secondary) {
+                handleBButton()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            if (action === inputAction.Back) {
+                handleBackAction()
+                return true
+            }
+            return false
+        }
+
+        function routeShellLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                handleBackAction()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            return false
+        }
+    }
+
+    function dispatchAction(action) {
+        if (saveClearConfirmPending && action !== inputAction.Primary) {
+            cancelSaveClearConfirm(false)
+        }
+        inputRouter.route(action)
+    }
+
+    function dispatchInjectedToken(rawToken) {
+        var token = String(rawToken).trim().toUpperCase()
+        if (token === "UP" || token === "U") {
+            dispatchAction(inputAction.NavUp)
+            return
+        }
+        if (token === "DOWN" || token === "D") {
+            dispatchAction(inputAction.NavDown)
+            return
+        }
+        if (token === "LEFT" || token === "L") {
+            dispatchAction(inputAction.NavLeft)
+            return
+        }
+        if (token === "RIGHT" || token === "R") {
+            dispatchAction(inputAction.NavRight)
+            return
+        }
+        if (token === "A" || token === "PRIMARY" || token === "OK") {
+            dispatchAction(inputAction.Primary)
+            return
+        }
+        if (token === "B" || token === "SECONDARY") {
+            dispatchAction(inputAction.Secondary)
+            return
+        }
+        if (token === "START") {
+            dispatchAction(inputAction.Start)
+            return
+        }
+        if (token === "SELECT") {
+            dispatchAction(inputAction.SelectShort)
+            return
+        }
+        if (token === "BACK") {
+            dispatchAction(inputAction.Back)
+            return
+        }
+        if (token === "ESC" || token === "ESCAPE") {
+            dispatchAction(inputAction.Escape)
+            return
+        }
+        if (token === "F6" || token === "ICON") {
+            dispatchAction(inputAction.ToggleIconLab)
+            return
+        }
+        if (token === "COLOR" || token === "SHELL") {
+            dispatchAction(inputAction.ToggleShellColor)
+            return
+        }
+        if (token === "MUSIC") {
+            dispatchAction(inputAction.ToggleMusic)
+            return
+        }
+        screen.showOSD("UNKNOWN INPUT: " + token)
+    }
+
     function clearDpadVisuals() {
         shell.dpad.upPressed = false
         shell.dpad.downPressed = false
@@ -54,26 +348,85 @@ Window {
     }
 
     function handleBButton() {
-        feedEasterInput("B")
+        if (handleEasterInput("B")) {
+            return
+        }
         gameLogic.handleBAction()
     }
 
     function handleAButton() {
-        feedEasterInput("A")
+        if (saveClearConfirmPending && gameLogic.state === AppState.StartMenu && gameLogic.hasSave) {
+            saveClearConfirmPending = false
+            saveClearConfirmTimer.stop()
+            gameLogic.deleteSave()
+            gameLogic.requestFeedback(8)
+            screen.showOSD("SAVE CLEARED")
+            return
+        }
+        if (handleEasterInput("A")) {
+            return
+        }
         gameLogic.handleStart()
+    }
+
+    function exitIconLabToMenu() {
+        iconDebugMode = false
+        konamiIndex = 0
+        gameLogic.requestStateChange(AppState.StartMenu)
+        screen.showOSD("ICON LAB OFF")
     }
 
     function feedEasterInput(token) {
         if (token === konamiSeq[konamiIndex]) {
             konamiIndex += 1
+            konamiResetTimer.restart()
             if (konamiIndex >= konamiSeq.length) {
                 konamiIndex = 0
+                konamiResetTimer.stop()
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
+                if (!iconDebugMode) {
+                    gameLogic.requestStateChange(AppState.StartMenu)
+                }
+                return "toggle"
             }
-            return
+            return "progress"
         }
         konamiIndex = (token === konamiSeq[0]) ? 1 : 0
+        if (konamiIndex > 0) {
+            konamiResetTimer.restart()
+        } else {
+            konamiResetTimer.stop()
+        }
+        return "mismatch"
+    }
+
+    function handleEasterInput(token) {
+        var trackEaster = iconDebugMode || gameLogic.state !== AppState.Splash
+        if (!trackEaster) {
+            return false
+        }
+
+        // Quick exit in icon lab: B always returns to main menu.
+        if (iconDebugMode && token === "B" && konamiIndex === 0) {
+            exitIconLabToMenu()
+            return true
+        }
+
+        var beforeIndex = konamiIndex
+        var status = feedEasterInput(token)
+        if (iconDebugMode) {
+            if (status === "toggle") {
+                gameLogic.requestStateChange(AppState.StartMenu)
+            }
+            return true
+        }
+        if (status === "toggle") {
+            return true
+        }
+        // Let the first token pass through for normal controls; consume the rest
+        // of a potential Konami sequence to avoid gameplay/menu side effects.
+        return beforeIndex > 0
     }
 
     function beginSelectPress() {
@@ -88,6 +441,9 @@ Window {
     }
 
     function handleSelectShortPress() {
+        if (iconDebugMode) {
+            return
+        }
         if (selectLongPressConsumed) {
             selectLongPressConsumed = false
             return
@@ -95,12 +451,42 @@ Window {
         gameLogic.handleSelect()
     }
 
+    function handleStartButton() {
+        if (iconDebugMode) {
+            return
+        }
+        gameLogic.handleStart()
+    }
+
+    function beginStartPress() {
+        startPressActive = true
+    }
+
+    function endStartPress() {
+        startPressActive = false
+    }
+
+    function cancelSaveClearConfirm(showToast) {
+        if (!saveClearConfirmPending) {
+            return
+        }
+        saveClearConfirmPending = false
+        saveClearConfirmTimer.stop()
+        if (showToast) {
+            screen.showOSD("SAVE CLEAR CANCELED")
+        }
+    }
+
     function handleBackAction() {
-        if (gameLogic.state === 3 || gameLogic.state === 4 ||
-            gameLogic.state === 5 || gameLogic.state === 6 ||
-            gameLogic.state === 7 || gameLogic.state === 8) {
+        if (iconDebugMode) {
+            exitIconLabToMenu()
+            return
+        }
+        if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver ||
+            gameLogic.state === AppState.Replaying || gameLogic.state === AppState.ChoiceSelection ||
+            gameLogic.state === AppState.Library || gameLogic.state === AppState.MedalRoom) {
             gameLogic.quitToMenu()
-        } else if (gameLogic.state === 1) {
+        } else if (gameLogic.state === AppState.StartMenu) {
             gameLogic.quit()
         }
     }
@@ -108,12 +494,17 @@ Window {
     Connections {
         target: gameLogic
         function onPaletteChanged() { 
-            if (gameLogic.state === 0) return
+            if (gameLogic.state === AppState.Splash) return
             screen.showOSD(gameLogic.paletteName) 
         }
         function onShellColorChanged() { 
-            if (gameLogic.state !== 0) {
+            if (gameLogic.state !== AppState.Splash) {
                 screen.triggerPowerCycle()
+            }
+        }
+        function onStateChanged() {
+            if (gameLogic.state !== AppState.StartMenu) {
+                cancelSaveClearConfirm(false)
             }
         }
         function onAchievementEarned(title) { 
@@ -124,18 +515,43 @@ Window {
         }
     }
 
+    Connections {
+        target: inputInjector
+        function onActionInjected(action) {
+            dispatchInjectedToken(action)
+        }
+    }
+
     Timer {
         id: selectHoldTimer
         interval: 700
         repeat: false
         onTriggered: {
             if (!window.selectPressActive || window.selectLongPressConsumed) return
-            if (gameLogic.state === 1 && gameLogic.hasSave) {
+            if (gameLogic.state === AppState.StartMenu && gameLogic.hasSave && window.startPressActive) {
                 window.selectLongPressConsumed = true
-                gameLogic.deleteSave()
-                gameLogic.requestFeedback(8)
-                screen.showOSD("SAVE CLEARED")
+                saveClearConfirmPending = true
+                saveClearConfirmTimer.restart()
+                screen.showOSD("PRESS A TO CLEAR SAVE")
             }
+        }
+    }
+
+    Timer {
+        id: saveClearConfirmTimer
+        interval: 2600
+        repeat: false
+        onTriggered: {
+            cancelSaveClearConfirm(true)
+        }
+    }
+
+    Timer {
+        id: konamiResetTimer
+        interval: 1400
+        repeat: false
+        onTriggered: {
+            konamiIndex = 0
         }
     }
 
@@ -183,21 +599,21 @@ Window {
 
                 Connections {
                     target: shell.dpad
-                    function onUpClicked() { handleDirection(0, -1) }
-                    function onDownClicked() { handleDirection(0, 1) }
-                    function onLeftClicked() { handleDirection(-1, 0) }
-                    function onRightClicked() { handleDirection(1, 0) }
+                    function onUpClicked() { dispatchAction(inputAction.NavUp) }
+                    function onDownClicked() { dispatchAction(inputAction.NavDown) }
+                    function onLeftClicked() { dispatchAction(inputAction.NavLeft) }
+                    function onRightClicked() { dispatchAction(inputAction.NavRight) }
                 }
 
                 Connections { 
                     target: shell.aButton
-                    function onClicked() { handleAButton() } 
+                    function onClicked() { dispatchAction(inputAction.Primary) } 
                 }
 
                 Connections { 
                     target: shell.bButton
                     function onClicked() {
-                        handleBButton()
+                        dispatchAction(inputAction.Secondary)
                     }
                 }
 
@@ -212,13 +628,21 @@ Window {
                         endSelectPress()
                     }
                     function onClicked() {
-                        handleSelectShortPress()
+                        dispatchAction(inputAction.SelectShort)
                     } 
                 }
 
                 Connections { 
                     target: shell.startButton
-                    function onClicked() { gameLogic.handleStart() } 
+                    function onPressed() {
+                        shell.startButton.isPressed = true
+                        beginStartPress()
+                    }
+                    function onReleased() {
+                        shell.startButton.isPressed = false
+                        endStartPress()
+                    }
+                    function onClicked() { dispatchAction(inputAction.Start) } 
                 }
             }
         }
@@ -228,28 +652,28 @@ Window {
         focus: true
         Keys.onPressed: (event) => {
             if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) handleDirection(0, -1)
-            else if (event.key === Qt.Key_Down) handleDirection(0, 1)
-            else if (event.key === Qt.Key_Left) handleDirection(-1, 0)
-            else if (event.key === Qt.Key_Right) handleDirection(1, 0)
+            if (event.key === Qt.Key_Up) dispatchAction(inputAction.NavUp)
+            else if (event.key === Qt.Key_Down) dispatchAction(inputAction.NavDown)
+            else if (event.key === Qt.Key_Left) dispatchAction(inputAction.NavLeft)
+            else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
                 shell.startButton.isPressed = true
-                gameLogic.handleStart()
+                beginStartPress()
+                dispatchAction(inputAction.Start)
             }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
                 shell.aButton.isPressed = true
-                handleAButton()
+                dispatchAction(inputAction.Primary)
             }
             else if (event.key === Qt.Key_F6) {
-                iconDebugMode = !iconDebugMode
-                screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
+                dispatchAction(inputAction.ToggleIconLab)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shell.bButton.isPressed = true
-                handleBButton()
+                dispatchAction(inputAction.Secondary)
             }
             else if (event.key === Qt.Key_C || event.key === Qt.Key_Y) {
-                gameLogic.nextShellColor()
+                dispatchAction(inputAction.ToggleShellColor)
             }
             else if (event.key === Qt.Key_Shift) {
                 if (selectKeyDown) return
@@ -257,24 +681,27 @@ Window {
                 shell.selectButton.isPressed = true
                 beginSelectPress()
             }
-            else if (event.key === Qt.Key_M) gameLogic.toggleMusic()
+            else if (event.key === Qt.Key_M) dispatchAction(inputAction.ToggleMusic)
             else if (event.key === Qt.Key_Back) {
-                handleBackAction()
+                dispatchAction(inputAction.Back)
             }
-            else if (event.key === Qt.Key_Escape) gameLogic.quit()
+            else if (event.key === Qt.Key_Escape) {
+                dispatchAction(inputAction.Escape)
+            }
         }
         
         Keys.onReleased: (event) => {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shell.startButton.isPressed = false
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) endStartPress()
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
             else if (event.key === Qt.Key_Shift) {
                 selectKeyDown = false
                 shell.selectButton.isPressed = false
                 endSelectPress()
-                handleSelectShortPress()
+                dispatchAction(inputAction.SelectShort)
             }
         }
     }
