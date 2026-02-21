@@ -202,6 +202,7 @@ Validation after each commit:
   - level JSON entry resolution/index normalization
   - level JSON envelope decoding from raw bytes
   - level count extraction from JSON bytes
+  - score-to-tick-interval mapping rule
   - scripted level `onTick` runtime obstacle parsing/application
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
