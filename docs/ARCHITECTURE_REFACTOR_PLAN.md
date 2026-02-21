@@ -187,3 +187,20 @@ Validation after each commit:
 - [x] Phase A implementation started.
 - [ ] Phase B implementation completed.
 - [ ] Phase C test hardening completed.
+
+### Phase A progress snapshot (2026-02-21)
+
+- Extracted to `src/core`: `game_rules`, `buff_runtime`, `session_step`, `replay_timeline`, `level_runtime`,
+  `achievement_rules`.
+- `fsm/states.cpp` now delegates playing/replay frame progression to core helpers.
+- `GameLogic` adapter now delegates:
+  - roguelike chance evaluation
+  - safe initial snake body generation
+  - free-spot board scanning for food/powerup spawn
+  - dynamic scripted-level fallback obstacle evolution
+  - achievement unlock rule evaluation
+  - magnet movement candidate selection
+  - collision probing (while keeping buff/shield side effects in adapter)
+- Remaining Phase A focus:
+  - continue shrinking adapter-owned rule branches into `GameSessionCore`-style interfaces.
+  - keep signal/timer/QML contract unchanged during extraction.
