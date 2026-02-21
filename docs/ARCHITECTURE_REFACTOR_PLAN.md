@@ -201,6 +201,7 @@ Validation after each commit:
   - level walls JSON-to-grid parsing
   - level JSON entry resolution/index normalization
   - level JSON envelope decoding from raw bytes
+  - level count extraction from JSON bytes
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
   - magnet movement candidate selection
