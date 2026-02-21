@@ -223,18 +223,18 @@ Rectangle {
         Rectangle {
             id: sideCut
             x: 0
-            y: 3
-            width: 10
-            height: parent.height - 6
-            radius: 5
+            y: 5
+            width: 9
+            height: parent.height - 10
+            radius: 4
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.darker(shell.color, 1.18) }
-                GradientStop { position: 0.5; color: Qt.darker(shell.color, 1.30) }
-                GradientStop { position: 1.0; color: Qt.darker(shell.color, 1.20) }
+                GradientStop { position: 0.0; color: "#30404f" }
+                GradientStop { position: 0.5; color: "#1f2a35" }
+                GradientStop { position: 1.0; color: "#2e3c4a" }
             }
-            border.color: Qt.darker(shell.color, 1.40)
+            border.color: "#162029"
             border.width: 1
-            opacity: 0.90
+            opacity: 0.96
         }
 
         Rectangle {
