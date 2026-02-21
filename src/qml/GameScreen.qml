@@ -81,6 +81,14 @@ Item {
         return p3
     }
 
+    function luminance(colorValue) {
+        return 0.299 * colorValue.r + 0.587 * colorValue.g + 0.114 * colorValue.b
+    }
+
+    function readableText(bgColor) {
+        return luminance(bgColor) > 0.54 ? p0 : p3
+    }
+
     width: 240
     height: 216
 
@@ -227,6 +235,39 @@ Item {
                 anchors.fill: parent
                 z: 10
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
+
+                Canvas {
+                    id: boardGrid
+                    anchors.fill: parent
+                    z: 1
+                    visible: gameWorld.visible
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.reset()
+                        var cw = width / gameLogic.boardWidth
+                        var ch = height / gameLogic.boardHeight
+                        ctx.strokeStyle = Qt.rgba(root.p2.r, root.p2.g, root.p2.b, 0.22)
+                        ctx.lineWidth = 1
+                        var x = 0
+                        while (x <= width) {
+                            ctx.beginPath()
+                            ctx.moveTo(x + 0.5, 0)
+                            ctx.lineTo(x + 0.5, height)
+                            ctx.stroke()
+                            x += cw
+                        }
+                        var y = 0
+                        while (y <= height) {
+                            ctx.beginPath()
+                            ctx.moveTo(0, y + 0.5)
+                            ctx.lineTo(width, y + 0.5)
+                            ctx.stroke()
+                            y += ch
+                        }
+                    }
+                    Component.onCompleted: requestPaint()
+                    onVisibleChanged: if (visible) requestPaint()
+                }
                 
                 Repeater {
                     model: gameLogic.ghost
@@ -613,15 +654,15 @@ Item {
                                             border.color: choiceIcon.accent
                                             border.width: 1
                                             visible: powerType === 9 // Mini
-                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
+                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: root.readableText(p0) }
                                         }
                                     }
                                 }
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: parent.width - 44
-                                    Text { text: modelData.name; color: choiceCard.accent; font.bold: true; font.pixelSize: 9 }
-                                    Text { text: modelData.desc; color: p3; font.pixelSize: 6; opacity: 0.85; width: parent.width; wrapMode: Text.WordWrap }
+                                    Text { text: modelData.name; color: root.readableText(choiceCard.color); font.bold: true; font.pixelSize: 9 }
+                                    Text { text: modelData.desc; color: root.readableText(choiceCard.color); font.pixelSize: 6; opacity: 0.85; width: parent.width; wrapMode: Text.WordWrap }
                                 }
                             }
 
@@ -676,13 +717,21 @@ Item {
                         width: parent.width
                         height: parent.height - 60
                         model: gameLogic.fruitLibrary
-                        currentIndex: 0
+                        property bool syncingFromLogic: false
+                        currentIndex: -1
                         spacing: 6
                         clip: true
                         interactive: true
                         boundsBehavior: Flickable.StopAtBounds
-                        Component.onCompleted: currentIndex = gameLogic.libraryIndex
+                        Component.onCompleted: {
+                            syncingFromLogic = true
+                            currentIndex = gameLogic.libraryIndex
+                            syncingFromLogic = false
+                        }
                         onCurrentIndexChanged: {
+                            if (syncingFromLogic) {
+                                return
+                            }
                             positionViewAtIndex(currentIndex, ListView.Contain)
                             if (currentIndex !== gameLogic.libraryIndex) {
                                 gameLogic.setLibraryIndex(currentIndex)
@@ -692,7 +741,10 @@ Item {
                             target: gameLogic
                             function onLibraryIndexChanged() {
                                 if (libraryList.currentIndex !== gameLogic.libraryIndex) {
+                                    libraryList.syncingFromLogic = true
                                     libraryList.currentIndex = gameLogic.libraryIndex
+                                    libraryList.syncingFromLogic = false
+                                    libraryList.positionViewAtIndex(libraryList.currentIndex, ListView.Contain)
                                 }
                             }
                         }
@@ -780,6 +832,8 @@ Item {
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
             property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
             property real time: root.elapsed
+            property real reflectionX: gameLogic.reflectionOffset.x
+            property real reflectionY: gameLogic.reflectionOffset.y
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 
@@ -792,7 +846,7 @@ Item {
                 anchors.fill: parent
                 onPaint: { 
                     var ctx = getContext("2d")
-                    ctx.strokeStyle = "black"
+                    ctx.strokeStyle = Qt.rgba(root.p0.r, root.p0.g, root.p0.b, 0.65)
                     ctx.lineWidth = 1
                     var i = 0
                     while (i < height) {

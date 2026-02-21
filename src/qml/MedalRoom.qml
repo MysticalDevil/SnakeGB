@@ -34,13 +34,21 @@ Rectangle {
             width: parent.width
             height: parent.height - 60
             model: gameLogic.medalLibrary
-            currentIndex: 0
+            property bool syncingFromLogic: false
+            currentIndex: -1
             clip: true
             spacing: 6
             interactive: true
             boundsBehavior: Flickable.StopAtBounds
-            Component.onCompleted: currentIndex = gameLogic.medalIndex
+            Component.onCompleted: {
+                syncingFromLogic = true
+                currentIndex = gameLogic.medalIndex
+                syncingFromLogic = false
+            }
             onCurrentIndexChanged: {
+                if (syncingFromLogic) {
+                    return
+                }
                 medalList.positionViewAtIndex(currentIndex, ListView.Contain)
                 if (currentIndex !== gameLogic.medalIndex) {
                     gameLogic.setMedalIndex(currentIndex)
@@ -50,7 +58,10 @@ Rectangle {
                 target: gameLogic
                 function onMedalIndexChanged() {
                     if (medalList.currentIndex !== gameLogic.medalIndex) {
+                        medalList.syncingFromLogic = true
                         medalList.currentIndex = gameLogic.medalIndex
+                        medalList.syncingFromLogic = false
+                        medalList.positionViewAtIndex(medalList.currentIndex, ListView.Contain)
                     }
                 }
             }

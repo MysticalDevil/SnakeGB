@@ -6,7 +6,9 @@ layout(location = 0) out vec4 fragColor;
 layout(std140, binding = 0) uniform buf {
     mat4 qt_Matrix;
     float qt_Opacity;
-    float time; 
+    float time;
+    float reflectionX;
+    float reflectionY;
 };
 
 layout(binding = 1) uniform sampler2D source;
@@ -48,7 +50,8 @@ void main() {
         cos(time * 0.7) * 0.015 + sin(time * 1.1) * 0.008
     );
     
-    vec2 lightPos = vec2(0.2, 0.2) + breathingOffset;
+    vec2 sensorOffset = vec2(reflectionX, reflectionY);
+    vec2 lightPos = vec2(0.2, 0.2) + breathingOffset + sensorOffset;
     float reflection = 0.0;
     float distRef = length(uv - lightPos);
     reflection += smoothstep(0.5, 0.0, distRef) * 0.08;
