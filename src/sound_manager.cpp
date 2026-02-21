@@ -4,6 +4,7 @@
 #include <QRandomGenerator>
 #include <QtMath>
 #include <QTimer>
+#include <QDebug>
 #include <utility>
 
 namespace {
@@ -62,16 +63,20 @@ void SoundManager::setVolume(float volume) {
 }
 
 auto SoundManager::setPaused(bool paused) -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] setPaused =" << paused;
     m_isPaused = paused;
     if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive()) startMusic();
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] setMusicEnabled =" << enabled;
     m_musicEnabled = enabled;
     if (!m_musicEnabled) stopMusic();
 }
 
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float pan) -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] playBeep f=" << frequencyHz
+                      << "ms=" << durationMs << "pan=" << pan;
     if (m_sfxSink == nullptr) return;
     QByteArray data;
     generateSquareWave(frequencyHz, durationMs, data, DefaultAmplitude, 0.5, pan);
@@ -82,6 +87,7 @@ auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float p
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] playCrash ms=" << durationMs;
     if (m_sfxSink == nullptr) return;
     QByteArray data;
     generateNoise(durationMs, data);
@@ -92,12 +98,15 @@ auto SoundManager::playCrash(const int durationMs) -> void {
 }
 
 auto SoundManager::startMusic() -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] startMusic"
+                      << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused << ")";
     if (!m_musicEnabled || m_bgmLeadSink == nullptr) return;
     m_noteIndex = 0;
     playNextNote();
 }
 
 auto SoundManager::stopMusic() -> void {
+    qInfo().noquote() << "[AudioFlow][SoundManager] stopMusic";
     m_musicTimer.stop();
     if (m_bgmLeadSink != nullptr) m_bgmLeadSink->stop();
     if (m_bgmBassSink != nullptr) m_bgmBassSink->stop();
