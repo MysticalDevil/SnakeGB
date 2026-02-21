@@ -3,6 +3,7 @@
 #include "core/achievement_rules.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
+#include "adapter/ghost_store.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
@@ -11,11 +12,7 @@
 #include "fsm/states.h"
 #include "profile_manager.h"
 #include <QCoreApplication>
-#include <QDataStream>
-#include <QFile>
-#include <QDir>
 #include <QRandomGenerator>
-#include <QStandardPaths>
 #include <QDateTime>
 #include <QJSValue>
 #include <QAccelerometer>
@@ -33,7 +30,6 @@ using namespace Qt::StringLiterals;
 namespace {
     constexpr int InitialInterval = 200;
     constexpr int BuffDurationTicks = 40; 
-    constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B04;
 
     auto rollWeightedPowerUp(QRandomGenerator &rng) -> GameLogic::PowerUp {
         // Lower Mini probability while keeping other fruits reasonably common.
@@ -60,12 +56,6 @@ namespace {
             pick -= item.second;
         }
         return GameLogic::Ghost;
-    }
-
-    auto getGhostFilePath() -> QString {
-        const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-        QDir().mkpath(path);
-        return path + u"/ghost.dat"_s;
     }
 
     auto stateName(int state) -> const char * {
@@ -529,17 +519,13 @@ void GameLogic::lazyInit() {
         emit audioSetVolume(m_profileManager->volume());
     }
 
-    QFile f(getGhostFilePath());
-    if (f.open(QIODevice::ReadOnly)) {
-        QDataStream in(&f);
-        quint32 magic;
-        in >> magic;
-        if (magic == GHOST_FILE_MAGIC) {
-            in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex >> m_bestChoiceHistory;
-        } else if (magic >= 0x534E4B02) {
-            in >> m_bestRecording >> m_bestRandomSeed >> m_bestInputHistory >> m_bestLevelIndex;
-            m_bestChoiceHistory.clear();
-        }
+    snakegb::adapter::GhostSnapshot snapshot;
+    if (snakegb::adapter::loadGhostSnapshot(snapshot)) {
+        m_bestRecording = snapshot.recording;
+        m_bestRandomSeed = snapshot.randomSeed;
+        m_bestInputHistory = snapshot.inputHistory;
+        m_bestLevelIndex = snapshot.levelIndex;
+        m_bestChoiceHistory = snapshot.choiceHistory;
     }
 
     loadLevelData(m_levelIndex);
@@ -1134,15 +1120,15 @@ void GameLogic::updateHighScore() {
         m_bestRandomSeed = m_randomSeed;
         m_bestLevelIndex = m_levelIndex;
 
-        QFile file(getGhostFilePath());
-        if (file.open(QIODevice::WriteOnly)) {
-            QDataStream out(&file);
-            out << GHOST_FILE_MAGIC 
-                << m_bestRecording 
-                << m_bestRandomSeed 
-                << m_bestInputHistory 
-                << m_bestLevelIndex 
-                << m_bestChoiceHistory;
+        const bool savedGhost = snakegb::adapter::saveGhostSnapshot({
+            .recording = m_bestRecording,
+            .randomSeed = m_bestRandomSeed,
+            .inputHistory = m_bestInputHistory,
+            .levelIndex = m_bestLevelIndex,
+            .choiceHistory = m_bestChoiceHistory,
+        });
+        if (!savedGhost) {
+            qWarning().noquote() << "[ReplayFlow][GameLogic] failed to persist ghost snapshot";
         }
         emit highScoreChanged();
     }

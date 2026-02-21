@@ -29,6 +29,8 @@ qt_add_executable(SnakeGB
     src/adapter/ui_action.h
     src/adapter/input_semantics.cpp
     src/adapter/input_semantics.h
+    src/adapter/ghost_store.cpp
+    src/adapter/ghost_store.h
     src/adapter/level_applier.cpp
     src/adapter/level_applier.h
     src/adapter/level_loader.cpp
@@ -44,6 +46,7 @@ qt_add_executable(SnakeGB
     src/core/session_step.h
     src/core/replay_timeline.cpp
     src/core/replay_timeline.h
+    src/core/replay_types.h
     src/core/level_runtime.cpp
     src/core/level_runtime.h
     src/core/achievement_rules.cpp
@@ -125,6 +128,7 @@ add_executable(game-tests
     src/profile_manager.cpp
     src/adapter/ui_action.cpp
     src/adapter/input_semantics.cpp
+    src/adapter/ghost_store.cpp
     src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
     src/adapter/level_script_runtime.cpp
@@ -193,3 +197,12 @@ target_include_directories(adapter-level-script-runtime-tests PRIVATE src)
 target_link_libraries(adapter-level-script-runtime-tests PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
 add_test(NAME AdapterLevelScriptRuntimeTest COMMAND adapter-level-script-runtime-tests)
 set_tests_properties(AdapterLevelScriptRuntimeTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-ghost-store-tests
+    tests/test_ghost_store_adapter.cpp
+    src/adapter/ghost_store.cpp
+)
+target_include_directories(adapter-ghost-store-tests PRIVATE src)
+target_link_libraries(adapter-ghost-store-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterGhostStoreTest COMMAND adapter-ghost-store-tests)
+set_tests_properties(AdapterGhostStoreTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

@@ -10,6 +10,7 @@
 #include <QJSEngine>
 #include <QAccelerometer>
 #include "game_engine_interface.h"
+#include "core/replay_types.h"
 #include <deque>
 #include <functional>
 #include <memory>
@@ -17,21 +18,6 @@
 
 class ProfileManager;
 class GameState;
-
-struct ReplayFrame {
-    int frame;
-    int dx;
-    int dy;
-    friend auto operator<<(QDataStream &out, const ReplayFrame &f) -> QDataStream & { return out << f.frame << f.dx << f.dy; }
-    friend auto operator>>(QDataStream &in, ReplayFrame &f) -> QDataStream & { return in >> f.frame >> f.dx >> f.dy; }
-};
-
-struct ChoiceRecord {
-    int frame;
-    int index;
-    friend auto operator<<(QDataStream &out, const ChoiceRecord &c) -> QDataStream & { return out << c.frame << c.index; }
-    friend auto operator>>(QDataStream &in, ChoiceRecord &c) -> QDataStream & { return in >> c.frame >> c.index; }
-};
 
 class SnakeModel final : public QAbstractListModel {
     Q_OBJECT
