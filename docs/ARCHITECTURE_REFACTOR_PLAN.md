@@ -247,6 +247,8 @@ Validation after each commit:
   reduce entry-point coupling before further service extraction.
 - QML-facing view/property mapping methods are now extracted into `src/game_logic_view.cpp` so the main runtime
   adapter file can continue shrinking around orchestration logic.
+- FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
+  `*State` classes directly, reducing adapter-to-state implementation coupling.
 
 ### Phase C progress snapshot (2026-02-21)
 

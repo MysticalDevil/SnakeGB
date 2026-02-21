@@ -11,9 +11,11 @@ endif()
 
 option(SNAKEGB_OPTIMIZE_SIZE "Enable binary size optimizations" ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL Multimedia Sensors ShaderTools Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL ShaderTools Test)
+find_package(Qt6 QUIET COMPONENTS Multimedia Sensors)
 
 qt_standard_project_setup(REQUIRES 6.7)
+set(CMAKE_AUTOUIC OFF)
 
 qt_add_executable(SnakeGB
     src/main.cpp
@@ -59,7 +61,9 @@ qt_add_executable(SnakeGB
     src/core/choice_runtime.cpp
     src/core/choice_runtime.h
     src/fsm/states.cpp
+    src/fsm/state_factory.cpp
     src/fsm/states.h
+    src/fsm/state_factory.h
     src/fsm/game_state.h
     src/game_engine_interface.h
 )
@@ -95,9 +99,17 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Qml
     Qt6::Quick
     Qt6::OpenGL
-    Qt6::Multimedia
-    Qt6::Sensors
 )
+
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(SnakeGB PRIVATE Qt6::Multimedia)
+    target_compile_definitions(SnakeGB PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+endif()
+
+if(TARGET Qt6::Sensors)
+    target_link_libraries(SnakeGB PRIVATE Qt6::Sensors)
+    target_compile_definitions(SnakeGB PRIVATE SNAKEGB_HAS_SENSORS)
+endif()
 
 # Keep verbose logs in Debug, silence non-critical logs in release-like builds.
 target_compile_definitions(SnakeGB PRIVATE
@@ -143,10 +155,19 @@ add_executable(game-tests
     src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
     src/adapter/level_script_runtime.cpp
+    src/fsm/state_factory.cpp
     src/fsm/states.cpp
 )
 target_include_directories(game-tests PRIVATE src)
-target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml Qt6::Multimedia Qt6::Sensors)
+target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml)
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(game-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(game-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+endif()
+if(TARGET Qt6::Sensors)
+    target_link_libraries(game-tests PRIVATE Qt6::Sensors)
+    target_compile_definitions(game-tests PRIVATE SNAKEGB_HAS_SENSORS)
+endif()
 add_test(NAME GameLogicTest COMMAND game-tests)
 set_tests_properties(GameLogicTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
