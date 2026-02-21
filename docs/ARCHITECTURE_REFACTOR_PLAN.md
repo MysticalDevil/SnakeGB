@@ -220,6 +220,8 @@ Validation after each commit:
   `dispatchUiAction(...)`.
 - Action string parsing is extracted into `src/adapter/ui_action.*`; `GameLogic::dispatchUiAction` now delegates
   parsing and keeps only semantic dispatch.
+- Back-button state semantics are extracted into `src/adapter/input_semantics.*`; adapter behavior is covered by
+  `AdapterSemanticsTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
