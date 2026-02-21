@@ -27,10 +27,27 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 
 ### Build and Run (Desktop)
 ```bash
-mkdir build && cd build
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
-ninja
-./SnakeGB
+cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build-debug --parallel
+./build-debug/SnakeGB
+```
+
+```bash
+cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --parallel
+./build-release/SnakeGB
+```
+
+- `Debug`: full runtime logs enabled.
+- `Release` / `MinSizeRel` / `RelWithDebInfo`: `qDebug/qInfo/qWarning` logs are compiled out (desktop + Android).
+
+### Build and Deploy (Android)
+```bash
+# Debug build (logs enabled)
+CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
+
+# Release build (logs disabled)
+CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 ```
 
 ## Controls

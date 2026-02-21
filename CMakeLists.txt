@@ -62,6 +62,12 @@ target_link_libraries(SnakeGB PRIVATE
     Qt6::Sensors
 )
 
+# Keep verbose logs in Debug, silence non-critical logs in release-like builds.
+target_compile_definitions(SnakeGB PRIVATE
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>,$<CONFIG:RelWithDebInfo>>:
+        QT_NO_DEBUG_OUTPUT;QT_NO_INFO_OUTPUT;QT_NO_WARNING_OUTPUT>
+)
+
 if(SNAKEGB_OPTIMIZE_SIZE)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_MINSIZEREL ON)

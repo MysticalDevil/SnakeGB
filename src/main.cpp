@@ -4,13 +4,31 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickWindow>
+#include <QDebug>
 #include <QTranslator>
 #include <QTimer>
+#include <cstdio>
+#include <cstdlib>
 
 #include "game_logic.h"
 #include "sound_manager.h"
 
+namespace {
+auto releaseLogFilter(QtMsgType type, const QMessageLogContext &, const QString &msg) -> void {
+    if (type == QtCriticalMsg || type == QtFatalMsg) {
+        fprintf(stderr, "%s\n", msg.toLocal8Bit().constData());
+    }
+    if (type == QtFatalMsg) {
+        abort();
+    }
+}
+}
+
 auto main(int argc, char *argv[]) -> int {
+#if defined(QT_NO_DEBUG_OUTPUT) && defined(QT_NO_INFO_OUTPUT) && defined(QT_NO_WARNING_OUTPUT)
+    qInstallMessageHandler(releaseLogFilter);
+#endif
+
     QGuiApplication app(argc, argv);
 
     QCoreApplication::setOrganizationName("DevilOrg");
@@ -18,6 +36,10 @@ auto main(int argc, char *argv[]) -> int {
     QCoreApplication::setApplicationName("SnakeGB");
     QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
     QGuiApplication::setApplicationVersion("1.4.0");
+
+#ifndef QT_NO_INFO_OUTPUT
+    qInfo().noquote() << "[BuildMode] Debug logging enabled";
+#endif
 
     GameLogic gameLogic;
     SoundManager soundManager;
