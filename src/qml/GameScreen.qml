@@ -235,6 +235,8 @@ Item {
                 anchors.fill: parent
                 z: 10
                 visible: gameLogic.state >= 2 && gameLogic.state <= 6
+                readonly property real cellW: width / gameLogic.boardWidth
+                readonly property real cellH: height / gameLogic.boardHeight
 
                 Canvas {
                     id: boardGrid
@@ -273,10 +275,10 @@ Item {
                     model: gameLogic.ghost
                     visible: gameLogic.state === 2
                     delegate: Rectangle {
-                        x: modelData.x * (240 / gameLogic.boardWidth)
-                        y: modelData.y * (216 / gameLogic.boardHeight)
-                        width: 240 / gameLogic.boardWidth
-                        height: 216 / gameLogic.boardHeight
+                        x: modelData.x * gameWorld.cellW
+                        y: modelData.y * gameWorld.cellH
+                        width: gameWorld.cellW
+                        height: gameWorld.cellH
                         color: p3
                         opacity: 0.2
                     }
@@ -285,10 +287,10 @@ Item {
                 Repeater {
                     model: gameLogic.snakeModel
                     delegate: Rectangle {
-                        x: model.pos.x * (240 / gameLogic.boardWidth)
-                        y: model.pos.y * (216 / gameLogic.boardHeight)
-                        width: 240 / gameLogic.boardWidth
-                        height: 216 / gameLogic.boardHeight
+                        x: model.pos.x * gameWorld.cellW
+                        y: model.pos.y * gameWorld.cellH
+                        width: gameWorld.cellW
+                        height: gameWorld.cellH
                         color: gameLogic.activeBuff === 6 ? (Math.floor(elapsed * 10) % 2 === 0 ? "#ffd700" : p3) : (index === 0 ? p3 : p2)
                         radius: index === 0 ? 2 : 0
                         Rectangle { anchors.fill: parent; anchors.margins: -2; border.color: "#00ffff"; border.width: 1; radius: parent.radius + 2; visible: index === 0 && gameLogic.shieldActive }
@@ -298,10 +300,10 @@ Item {
                 Repeater {
                     model: gameLogic.obstacles
                     delegate: Rectangle {
-                        x: modelData.x * (240 / gameLogic.boardWidth)
-                        y: modelData.y * (216 / gameLogic.boardHeight)
-                        width: 240 / gameLogic.boardWidth
-                        height: 216 / gameLogic.boardHeight
+                        x: modelData.x * gameWorld.cellW
+                        y: modelData.y * gameWorld.cellH
+                        width: gameWorld.cellW
+                        height: gameWorld.cellH
                         color: gameLogic.currentLevelName === "Dynamic Pulse" || gameLogic.currentLevelName === "Crossfire" || gameLogic.currentLevelName === "Shifting Box"
                                ? ((Math.floor(elapsed * 8) % 2 === 0) ? p3 : p2)
                                : p2
@@ -312,10 +314,10 @@ Item {
                 }
                 
                 Item {
-                    x: gameLogic.food.x * (240 / gameLogic.boardWidth)
-                    y: gameLogic.food.y * (216 / gameLogic.boardHeight)
-                    width: 240 / gameLogic.boardWidth
-                    height: 216 / gameLogic.boardHeight
+                    x: gameLogic.food.x * gameWorld.cellW
+                    y: gameLogic.food.y * gameWorld.cellH
+                    width: gameWorld.cellW
+                    height: gameWorld.cellH
                     z: 20
 
                     Rectangle {
@@ -362,10 +364,10 @@ Item {
                 // PowerUp Icon
                 Item {
                     visible: gameLogic.powerUpPos.x !== -1
-                    x: gameLogic.powerUpPos.x * (240 / gameLogic.boardWidth)
-                    y: gameLogic.powerUpPos.y * (216 / gameLogic.boardHeight)
-                    width: 240 / gameLogic.boardWidth
-                    height: 216 / gameLogic.boardHeight
+                    x: gameLogic.powerUpPos.x * gameWorld.cellW
+                    y: gameLogic.powerUpPos.y * gameWorld.cellH
+                    width: gameWorld.cellW
+                    height: gameWorld.cellH
                     z: 30
 
                     Rectangle {

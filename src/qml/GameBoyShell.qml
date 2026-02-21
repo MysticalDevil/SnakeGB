@@ -4,7 +4,13 @@ import QtQuick.Controls
 Rectangle {
     id: shell
     anchors.fill: parent
-    color: gameLogic.shellColor
+    property color shellColor: "#4aa3a8"
+    property real volume: 1.0
+
+    signal shellColorToggleRequested()
+    signal volumeRequested(real value, bool withHaptic)
+
+    color: shell.shellColor
     radius: 16
     border.color: Qt.darker(color, 1.35)
     border.width: 2
@@ -122,8 +128,7 @@ Rectangle {
         MouseArea {
             anchors.fill: parent
             onClicked: {
-                gameLogic.requestFeedback(5)
-                gameLogic.nextShellColor()
+                shell.shellColorToggleRequested()
             }
         }
     }
@@ -209,13 +214,10 @@ Rectangle {
         function setDetentVolume(v, withHaptic) {
             var clamped = clamp01(v)
             var snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
-            var oldStep = Math.round(gameLogic.volume * (detentCount - 1))
+            var oldStep = Math.round(shell.volume * (detentCount - 1))
             var newStep = Math.round(snapped * (detentCount - 1))
-            if (Math.abs(snapped - gameLogic.volume) > 0.0001) {
-                gameLogic.volume = snapped
-                if (withHaptic && oldStep !== newStep) {
-                    gameLogic.requestFeedback(1)
-                }
+            if (Math.abs(snapped - shell.volume) > 0.0001) {
+                shell.volumeRequested(snapped, withHaptic && oldStep !== newStep)
             }
         }
 
@@ -261,7 +263,7 @@ Rectangle {
                 color: "#5f6776"
                 border.color: "#333a45"
                 border.width: 1
-                property real spinPhase: gameLogic.volume * 90
+                property real spinPhase: shell.volume * 90
                 property real groovePitch: 5
 
                 Rectangle {
@@ -317,7 +319,7 @@ Rectangle {
                 property real startVolume: 0.0
                 onPressed: {
                     startY = mouse.y
-                    startVolume = gameLogic.volume
+                    startVolume = shell.volume
                 }
                 onPositionChanged: {
                     if (!pressed) return
@@ -330,7 +332,7 @@ Rectangle {
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                 onWheel: (event) => {
                     var step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeControl.detentCount - 1)
-                    volumeControl.setDetentVolume(gameLogic.volume + step, true)
+                    volumeControl.setDetentVolume(shell.volume + step, true)
                 }
             }
         }

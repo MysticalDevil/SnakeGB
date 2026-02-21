@@ -126,6 +126,20 @@ Window {
             GameBoyShell {
                 id: shell
                 anchors.fill: parent
+                shellColor: gameLogic.shellColor
+                volume: gameLogic.volume
+
+                onShellColorToggleRequested: {
+                    gameLogic.requestFeedback(5)
+                    gameLogic.nextShellColor()
+                }
+
+                onVolumeRequested: (value, withHaptic) => {
+                    gameLogic.volume = value
+                    if (withHaptic) {
+                        gameLogic.requestFeedback(1)
+                    }
+                }
                 
                 GameScreen {
                     id: screen
