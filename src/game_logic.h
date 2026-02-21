@@ -11,6 +11,7 @@
 #include <QAccelerometer>
 #include "game_engine_interface.h"
 #include <deque>
+#include <functional>
 #include <memory>
 #include <optional>
 
@@ -269,6 +270,8 @@ private slots:
     void update();
 
 private:
+    void dispatchStateCallback(const std::function<void(GameState &)> &callback);
+    void applyPendingStateChangeIfNeeded();
     void applyMiniShrink();
     void applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
                                   bool emitMiniPrompt);

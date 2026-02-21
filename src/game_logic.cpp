@@ -651,16 +651,7 @@ void GameLogic::selectChoice(int index) {
 // --- QML API ---
 
 void GameLogic::move(int dx, int dy) {
-    if (m_fsmState) {
-        m_stateCallbackInProgress = true;
-        m_fsmState->handleInput(dx, dy);
-        m_stateCallbackInProgress = false;
-        if (m_pendingStateChange.has_value()) {
-            const int pendingState = *m_pendingStateChange;
-            m_pendingStateChange.reset();
-            requestStateChange(pendingState);
-        }
-    }
+    dispatchStateCallback([dx, dy](GameState &state) -> void { state.handleInput(dx, dy); });
 
     if (m_state == Playing && m_inputQueue.size() < 2) {
         QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
@@ -742,29 +733,11 @@ void GameLogic::handleSelect() {
         nextLevel();
         return;
     }
-    if (m_fsmState) {
-        m_stateCallbackInProgress = true;
-        m_fsmState->handleSelect();
-        m_stateCallbackInProgress = false;
-        if (m_pendingStateChange.has_value()) {
-            const int pendingState = *m_pendingStateChange;
-            m_pendingStateChange.reset();
-            requestStateChange(pendingState);
-        }
-    }
+    dispatchStateCallback([](GameState &state) -> void { state.handleSelect(); });
 }
 
 void GameLogic::handleStart() {
-    if (m_fsmState) {
-        m_stateCallbackInProgress = true;
-        m_fsmState->handleStart();
-        m_stateCallbackInProgress = false;
-        if (m_pendingStateChange.has_value()) {
-            const int pendingState = *m_pendingStateChange;
-            m_pendingStateChange.reset();
-            requestStateChange(pendingState);
-        }
-    }
+    dispatchStateCallback([](GameState &state) -> void { state.handleStart(); });
 }
 
 void GameLogic::deleteSave() {
@@ -941,6 +914,27 @@ void GameLogic::applyMiniShrink() {
         nextBody.push_back(body[i]);
     }
     m_snakeModel.reset(nextBody);
+}
+
+void GameLogic::applyPendingStateChangeIfNeeded() {
+    if (!m_pendingStateChange.has_value()) {
+        return;
+    }
+    const int pendingState = *m_pendingStateChange;
+    m_pendingStateChange.reset();
+    requestStateChange(pendingState);
+}
+
+void GameLogic::dispatchStateCallback(const std::function<void(GameState &)> &callback) {
+    if (!m_fsmState) {
+        return;
+    }
+    // Defer state replacement while executing a state callback to avoid
+    // invalidating the current state object mid-function.
+    m_stateCallbackInProgress = true;
+    callback(*m_fsmState);
+    m_stateCallbackInProgress = false;
+    applyPendingStateChangeIfNeeded();
 }
 
 void GameLogic::applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
@@ -1331,16 +1325,7 @@ void GameLogic::update() {
                 deactivateBuff();
             }
         }
-        // Defer state replacement while executing a state callback to avoid
-        // invalidating the current state object mid-function.
-        m_stateCallbackInProgress = true;
-        m_fsmState->update();
-        m_stateCallbackInProgress = false;
-        if (m_pendingStateChange.has_value()) {
-            const int pendingState = *m_pendingStateChange;
-            m_pendingStateChange.reset();
-            requestStateChange(pendingState);
-        }
+        dispatchStateCallback([](GameState &state) -> void { state.update(); });
         if (!m_currentScript.isEmpty()) {
             runLevelScript();
         }
