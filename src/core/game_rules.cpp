@@ -129,4 +129,26 @@ auto magnetCandidateSpots(const QPoint &food, const QPoint &head, int boardWidth
     return candidates;
 }
 
+auto probeCollision(const QPoint &wrappedHead, const QList<QPoint> &obstacles, const std::deque<QPoint> &snakeBody,
+                    bool ghostActive) -> CollisionProbe {
+    CollisionProbe probe;
+    for (int i = 0; i < obstacles.size(); ++i) {
+        if (obstacles[i] == wrappedHead) {
+            probe.hitsObstacle = true;
+            probe.obstacleIndex = i;
+            return probe;
+        }
+    }
+    if (ghostActive) {
+        return probe;
+    }
+    for (const QPoint &bodyPoint : snakeBody) {
+        if (bodyPoint == wrappedHead) {
+            probe.hitsBody = true;
+            return probe;
+        }
+    }
+    return probe;
+}
+
 } // namespace snakegb::core

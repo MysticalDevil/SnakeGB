@@ -256,42 +256,36 @@ auto GameLogic::hasReplay() const noexcept -> bool {
 
 auto GameLogic::checkCollision(const QPoint &head) -> bool {
     const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
-
-    for (int i = 0; i < m_obstacles.size(); ++i) {
-        if (m_obstacles[i] == p) {
-            if (m_activeBuff == Portal) {
-                return false;
-            }
-            if (m_activeBuff == Laser) {
-                m_obstacles.removeAt(i);
-                m_activeBuff = None;
-                emit obstaclesChanged();
-                triggerHaptic(8);
-                emit buffChanged();
-                return false;
-            }
-            if (m_shieldActive) {
-                m_shieldActive = false;
-                triggerHaptic(5);
-                emit buffChanged();
-                return false;
-            }
-            return true;
+    const snakegb::core::CollisionProbe probe =
+        snakegb::core::probeCollision(p, m_obstacles, m_snakeModel.body(), m_activeBuff == Ghost);
+    if (probe.hitsObstacle) {
+        if (m_activeBuff == Portal) {
+            return false;
         }
+        if (m_activeBuff == Laser) {
+            m_obstacles.removeAt(probe.obstacleIndex);
+            m_activeBuff = None;
+            emit obstaclesChanged();
+            triggerHaptic(8);
+            emit buffChanged();
+            return false;
+        }
+        if (m_shieldActive) {
+            m_shieldActive = false;
+            triggerHaptic(5);
+            emit buffChanged();
+            return false;
+        }
+        return true;
     }
-
-    if (m_activeBuff != Ghost) {
-        for (const auto &body : m_snakeModel.body()) {
-            if (body == p) {
-                if (m_shieldActive) {
-                    m_shieldActive = false;
-                    triggerHaptic(5);
-                    emit buffChanged();
-                    return false;
-                }
-                return true;
-            }
+    if (probe.hitsBody) {
+        if (m_shieldActive) {
+            m_shieldActive = false;
+            triggerHaptic(5);
+            emit buffChanged();
+            return false;
         }
+        return true;
     }
     return false;
 }
