@@ -12,6 +12,7 @@
 #include "game_engine_interface.h"
 #include <deque>
 #include <memory>
+#include <optional>
 
 class ProfileManager;
 class GameState;
@@ -148,6 +149,7 @@ public:
     }
     [[nodiscard]] auto foodPos() const -> QPoint override { return m_food; }
     [[nodiscard]] auto currentState() const -> int override { return static_cast<int>(m_state); }
+    [[nodiscard]] auto hasPendingStateChange() const -> bool override { return m_pendingStateChange.has_value(); }
     [[nodiscard]] auto hasSave() const -> bool override;
     [[nodiscard]] auto hasReplay() const noexcept -> bool override;
 
@@ -322,6 +324,8 @@ private:
     std::deque<QPoint> m_inputQueue;
     std::unique_ptr<GameState> m_fsmState;
     bool m_musicEnabled = true;
+    bool m_stateUpdateInProgress = false;
+    std::optional<int> m_pendingStateChange;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

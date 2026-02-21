@@ -133,6 +133,11 @@ void GameLogic::setInternalState(int s) {
 }
 
 void GameLogic::requestStateChange(int newState) {
+    if (m_stateUpdateInProgress) {
+        m_pendingStateChange = newState;
+        return;
+    }
+
     auto s = static_cast<State>(newState);
     switch (s) {
         case Splash:
@@ -1206,7 +1211,16 @@ void GameLogic::update() {
                 deactivateBuff();
             }
         }
+        // Defer state replacement while executing a state callback to avoid
+        // invalidating the current state object mid-function.
+        m_stateUpdateInProgress = true;
         m_fsmState->update();
+        m_stateUpdateInProgress = false;
+        if (m_pendingStateChange.has_value()) {
+            const int pendingState = *m_pendingStateChange;
+            m_pendingStateChange.reset();
+            requestStateChange(pendingState);
+        }
         if (!m_currentScript.isEmpty()) {
             runLevelScript();
         }

@@ -75,9 +75,8 @@ void PlayingState::update() {
     const bool grew = (nextHead == m_context.foodPos());
     m_context.handleFoodConsumption(nextHead);
 
-    // Eating food can switch state (e.g. LevelUp choice). Once state changed,
-    // this PlayingState instance may already be invalidated by FSM replacement.
-    if (m_context.currentState() != IGameEngine::Playing) {
+    // Stop this frame as soon as a state switch is requested (immediate or deferred).
+    if (m_context.currentState() != IGameEngine::Playing || m_context.hasPendingStateChange()) {
         return;
     }
 
