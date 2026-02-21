@@ -92,7 +92,7 @@ Rectangle {
                 }
                 medalList.positionViewAtIndex(currentIndex, ListView.Contain)
                 if (currentIndex !== gameLogic.medalIndex) {
-                    gameLogic.setMedalIndex(currentIndex)
+                    gameLogic.dispatchUiAction("set_medal_index:" + currentIndex)
                 }
             }
             Connections {

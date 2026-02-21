@@ -185,7 +185,7 @@ Validation after each commit:
 - [x] Module boundaries defined.
 - [x] Phase plan and KPIs defined.
 - [x] Phase A implementation started.
-- [ ] Phase B implementation completed.
+- [x] Phase B implementation completed.
 - [ ] Phase C test hardening completed.
 
 ### Phase A progress snapshot (2026-02-21)
@@ -213,3 +213,5 @@ Validation after each commit:
   `handleBAction`, `deleteSave`, directional `move`).
 - Back-path semantics are now unified through one adapter action path.
 - `src/qml/GameScreen.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
+- `Library`/`MedalRoom` list index writes are now routed via `dispatchUiAction(...)` instead of direct adapter
+  method calls.

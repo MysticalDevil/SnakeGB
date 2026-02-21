@@ -706,6 +706,22 @@ void GameLogic::dispatchUiAction(const QString &action) {
     }
     if (action == u"state_splash"_s) {
         requestStateChange(Splash);
+        return;
+    }
+    if (action.startsWith(u"set_library_index:"_s)) {
+        bool ok = false;
+        const int index = action.sliced(18).toInt(&ok);
+        if (ok) {
+            setLibraryIndex(index);
+        }
+        return;
+    }
+    if (action.startsWith(u"set_medal_index:"_s)) {
+        bool ok = false;
+        const int index = action.sliced(16).toInt(&ok);
+        if (ok) {
+            setMedalIndex(index);
+        }
     }
 }
 

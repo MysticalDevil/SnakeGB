@@ -902,7 +902,7 @@ Item {
                             }
                             positionViewAtIndex(currentIndex, ListView.Contain)
                             if (currentIndex !== gameLogic.libraryIndex) {
-                                gameLogic.setLibraryIndex(currentIndex)
+                                gameLogic.dispatchUiAction("set_library_index:" + currentIndex)
                             }
                         }
                         Connections {
@@ -1302,5 +1302,5 @@ Item {
     }
 
     function showOSD(t) { osd.show(t) }
-    function triggerPowerCycle() { gameLogic.requestStateChange(AppState.Splash) }
+    function triggerPowerCycle() { gameLogic.dispatchUiAction("state_splash") }
 }
