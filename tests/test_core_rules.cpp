@@ -6,6 +6,7 @@
 
 #include <QtTest/QtTest>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <deque>
 
@@ -20,6 +21,7 @@ private slots:
     void testDynamicLevelFallbackProducesObstacles();
     void testWallsFromJsonArrayParsesCoordinates();
     void testResolvedLevelDataFromJsonMapsIndexAndFields();
+    void testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope();
     void testBuffRuntimeRules();
     void testReplayTimelineAppliesOnlyOnMatchingTicks();
 };
@@ -220,6 +222,23 @@ void TestCoreRules::testResolvedLevelDataFromJsonMapsIndexAndFields() {
 
     const auto empty = snakegb::core::resolvedLevelDataFromJson(QJsonArray{}, 0);
     QVERIFY(!empty.has_value());
+}
+
+void TestCoreRules::testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope() {
+    const QJsonObject level{
+        {"name", "BytesLevel"},
+        {"script", ""},
+        {"walls", QJsonArray{QJsonObject{{"x", 11}, {"y", 12}}}}
+    };
+    const QJsonDocument document(QJsonObject{{"levels", QJsonArray{level}}});
+    const auto resolved = snakegb::core::resolvedLevelDataFromJsonBytes(document.toJson(), 0);
+    QVERIFY(resolved.has_value());
+    QCOMPARE(resolved->name, QString("BytesLevel"));
+    QCOMPARE(resolved->walls.size(), 1);
+    QCOMPARE(resolved->walls.first(), QPoint(11, 12));
+
+    const auto invalid = snakegb::core::resolvedLevelDataFromJsonBytes(QByteArrayLiteral("not-json"), 0);
+    QVERIFY(!invalid.has_value());
 }
 
 void TestCoreRules::testBuffRuntimeRules() {

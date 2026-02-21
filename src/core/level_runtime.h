@@ -3,6 +3,7 @@
 #include <QList>
 #include <QPoint>
 #include <QJsonArray>
+#include <QByteArray>
 #include <QString>
 #include <QStringView>
 #include <optional>
@@ -22,5 +23,7 @@ auto normalizedFallbackLevelIndex(int levelIndex) -> int;
 auto fallbackLevelData(int levelIndex) -> FallbackLevelData;
 auto wallsFromJsonArray(const QJsonArray &wallsJson) -> QList<QPoint>;
 auto resolvedLevelDataFromJson(const QJsonArray &levelsJson, int levelIndex) -> std::optional<ResolvedLevelData>;
+auto resolvedLevelDataFromJsonBytes(const QByteArray &levelsJsonBytes,
+                                    int levelIndex) -> std::optional<ResolvedLevelData>;
 
 } // namespace snakegb::core

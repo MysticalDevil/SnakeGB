@@ -1213,12 +1213,7 @@ void GameLogic::loadLevelData(int i) {
         return;
     }
 
-    auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
-    if (levels.isEmpty()) {
-        applyFallbackLevelData(safeIndex);
-        return;
-    }
-    const auto resolvedLevel = snakegb::core::resolvedLevelDataFromJson(levels, i);
+    const auto resolvedLevel = snakegb::core::resolvedLevelDataFromJsonBytes(f.readAll(), i);
     if (!resolvedLevel.has_value()) {
         applyFallbackLevelData(safeIndex);
         return;

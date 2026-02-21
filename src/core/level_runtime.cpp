@@ -1,6 +1,7 @@
 #include "level_runtime.h"
 
 #include <cmath>
+#include <QJsonDocument>
 #include <QJsonObject>
 
 namespace snakegb::core {
@@ -111,6 +112,16 @@ auto resolvedLevelDataFromJson(const QJsonArray &levelsJson, const int levelInde
         resolved.walls = wallsFromJsonArray(levelObject.value(QStringLiteral("walls")).toArray());
     }
     return resolved;
+}
+
+auto resolvedLevelDataFromJsonBytes(const QByteArray &levelsJsonBytes, const int levelIndex)
+    -> std::optional<ResolvedLevelData> {
+    const QJsonDocument document = QJsonDocument::fromJson(levelsJsonBytes);
+    if (!document.isObject()) {
+        return std::nullopt;
+    }
+    const QJsonArray levels = document.object().value(QStringLiteral("levels")).toArray();
+    return resolvedLevelDataFromJson(levels, levelIndex);
 }
 
 } // namespace snakegb::core
