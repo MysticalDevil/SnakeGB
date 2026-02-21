@@ -184,6 +184,6 @@ Validation after each commit:
 - [x] Refactor objectives documented.
 - [x] Module boundaries defined.
 - [x] Phase plan and KPIs defined.
-- [ ] Phase A implementation started.
+- [x] Phase A implementation started.
 - [ ] Phase B implementation completed.
 - [ ] Phase C test hardening completed.

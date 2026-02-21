@@ -1,5 +1,5 @@
 #include "states.h"
-#include "../game_logic.h"
+#include "../core/session_step.h"
 
 // --- Splash State ---
 void SplashState::enter() {
@@ -58,30 +58,13 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    QPoint nextInput;
-    if (m_context.consumeQueuedInput(nextInput)) {
-        m_context.setDirection(nextInput);
-        m_context.recordInputAtCurrentTick(nextInput);
-    }
-
-    const QPoint nextHead = m_context.headPosition() + m_context.currentDirection();
-    if (m_context.checkCollision(nextHead)) {
-        m_context.triggerHaptic(8);
-        m_context.playEventSound(1);
-        m_context.requestStateChange(IGameEngine::GameOver);
-        return;
-    }
-
-    const bool grew = (nextHead == m_context.foodPos());
-    m_context.handleFoodConsumption(nextHead);
-
-    // Stop this frame as soon as a state switch is requested (immediate or deferred).
-    if (m_context.currentState() != IGameEngine::Playing || m_context.hasPendingStateChange()) {
-        return;
-    }
-
-    m_context.handlePowerUpConsumption(nextHead);
-    m_context.applyMovement(nextHead, grew);
+    snakegb::core::runSessionStep(m_context, {
+                                            .activeState = IGameEngine::Playing,
+                                            .collisionTargetState = IGameEngine::GameOver,
+                                            .consumeInputQueue = true,
+                                            .recordConsumedInput = true,
+                                            .emitCrashFeedbackOnCollision = true,
+                                        });
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
@@ -176,22 +159,13 @@ void ReplayingState::update() {
     }
 
     // Run normal step simulation using replay-driven direction.
-    const QPoint nextHead = m_context.headPosition() + m_context.currentDirection();
-    if (m_context.checkCollision(nextHead)) {
-        m_context.requestStateChange(IGameEngine::StartMenu);
-        return;
-    }
-
-    const bool grew = (nextHead == m_context.foodPos());
-    m_context.handleFoodConsumption(nextHead);
-    if (m_context.currentState() != IGameEngine::Replaying || m_context.hasPendingStateChange()) {
-        return;
-    }
-    m_context.handlePowerUpConsumption(nextHead);
-    if (m_context.currentState() != IGameEngine::Replaying || m_context.hasPendingStateChange()) {
-        return;
-    }
-    m_context.applyMovement(nextHead, grew);
+    snakegb::core::runSessionStep(m_context, {
+                                            .activeState = IGameEngine::Replaying,
+                                            .collisionTargetState = IGameEngine::StartMenu,
+                                            .consumeInputQueue = false,
+                                            .recordConsumedInput = false,
+                                            .emitCrashFeedbackOnCollision = false,
+                                        });
 }
 
 void ReplayingState::handleStart() {
