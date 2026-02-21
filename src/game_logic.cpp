@@ -113,7 +113,11 @@ GameLogic::GameLogic(QObject *parent)
                     emit audioStartMusic();
                 }
             });
-        } else if (m_state == Playing || m_state == Replaying || m_state == GameOver) {
+        } else if (m_state == Playing || m_state == Replaying) {
+            if (m_musicEnabled) {
+                emit audioStartMusic();
+            }
+        } else if (m_state == Splash || m_state == GameOver) {
             emit audioStopMusic();
         }
     });

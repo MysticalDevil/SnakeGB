@@ -508,6 +508,7 @@ Item {
                     Repeater {
                         model: gameLogic.choices
                         delegate: Rectangle {
+                            id: choiceCard
                             width: parent.width
                             height: 46
                             property int powerType: Number(modelData.type)
@@ -531,13 +532,15 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     Item {
+                                        id: choiceIcon
                                         anchors.centerIn: parent
                                         width: 22
                                         height: 22
+                                        property color accent: choiceCard.accent
                                         Rectangle {
                                             anchors.fill: parent
                                             color: "transparent"
-                                            border.color: parent.parent.parent.accent
+                                            border.color: choiceIcon.accent
                                             border.width: 1
                                             visible: powerType === 1 // Ghost
                                         }
@@ -545,13 +548,13 @@ Item {
                                             anchors.fill: parent
                                             radius: width / 2
                                             color: "transparent"
-                                            border.color: parent.parent.parent.accent
+                                            border.color: choiceIcon.accent
                                             border.width: 2
                                             visible: powerType === 2 // Slow
                                         }
                                         Rectangle {
                                             anchors.fill: parent
-                                            color: parent.parent.parent.accent
+                                            color: choiceIcon.accent
                                             visible: powerType === 3 // Magnet
                                             clip: true
                                             Rectangle { width: 22; height: 22; rotation: 45; y: 11; color: p1 }
@@ -560,7 +563,7 @@ Item {
                                             anchors.fill: parent
                                             radius: width / 2
                                             color: "transparent"
-                                            border.color: parent.parent.parent.accent
+                                            border.color: choiceIcon.accent
                                             border.width: 2
                                             visible: powerType === 4 // Shield
                                         }
@@ -568,7 +571,7 @@ Item {
                                             anchors.fill: parent
                                             radius: width / 2
                                             color: "transparent"
-                                            border.color: parent.parent.parent.accent
+                                            border.color: choiceIcon.accent
                                             border.width: 1
                                             visible: powerType === 5 // Portal
                                             Rectangle {
@@ -576,7 +579,7 @@ Item {
                                                 width: 10
                                                 height: 10
                                                 radius: 5
-                                                border.color: parent.parent.parent.parent.accent
+                                                border.color: choiceIcon.accent
                                                 border.width: 1
                                                 color: "transparent"
                                             }
@@ -607,7 +610,7 @@ Item {
                                         Rectangle {
                                             anchors.fill: parent
                                             color: "transparent"
-                                            border.color: parent.parent.parent.accent
+                                            border.color: choiceIcon.accent
                                             border.width: 1
                                             visible: powerType === 9 // Mini
                                             Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
@@ -617,7 +620,7 @@ Item {
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: parent.width - 44
-                                    Text { text: modelData.name; color: parent.parent.parent.accent; font.bold: true; font.pixelSize: 9 }
+                                    Text { text: modelData.name; color: choiceCard.accent; font.bold: true; font.pixelSize: 9 }
                                     Text { text: modelData.desc; color: p3; font.pixelSize: 6; opacity: 0.85; width: parent.width; wrapMode: Text.WordWrap }
                                 }
                             }
@@ -635,8 +638,8 @@ Item {
                                 border.width: 1
                                 Text {
                                     anchors.centerIn: parent
-                                    text: rarityName(parent.parent.powerType)
-                                    color: parent.parent.accent
+                                    text: rarityName(choiceCard.powerType)
+                                    color: choiceCard.accent
                                     font.family: gameFont
                                     font.pixelSize: 6
                                     font.bold: true
