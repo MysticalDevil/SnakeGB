@@ -1067,15 +1067,10 @@ void GameLogic::changeState(std::unique_ptr<GameState> newState) {
 }
 
 void GameLogic::spawnFood() {
-    QList<QPoint> freeSpots;
-    for (int x = 0; x < BOARD_WIDTH; ++x) {
-        for (int y = 0; y < BOARD_HEIGHT; ++y) {
-            QPoint p(x, y);
-            if (!isOccupied(p) && p != m_powerUpPos) {
-                freeSpots << p;
-            }
-        }
-    }
+    const QList<QPoint> freeSpots = snakegb::core::collectFreeSpots(
+        BOARD_WIDTH, BOARD_HEIGHT, [this](const QPoint &point) -> bool {
+            return isOccupied(point) || point == m_powerUpPos;
+        });
     if (!freeSpots.isEmpty()) {
         m_food = freeSpots[m_rng.bounded(freeSpots.size())];
         emit foodChanged();
@@ -1083,15 +1078,10 @@ void GameLogic::spawnFood() {
 }
 
 void GameLogic::spawnPowerUp() {
-    QList<QPoint> freeSpots;
-    for (int x = 0; x < BOARD_WIDTH; ++x) {
-        for (int y = 0; y < BOARD_HEIGHT; ++y) {
-            QPoint p(x, y);
-            if (!isOccupied(p) && p != m_food) {
-                freeSpots << p;
-            }
-        }
-    }
+    const QList<QPoint> freeSpots = snakegb::core::collectFreeSpots(
+        BOARD_WIDTH, BOARD_HEIGHT, [this](const QPoint &point) -> bool {
+            return isOccupied(point) || point == m_food;
+        });
     if (!freeSpots.isEmpty()) {
         m_powerUpPos = freeSpots[m_rng.bounded(freeSpots.size())];
         m_powerUpType = rollWeightedPowerUp(m_rng);

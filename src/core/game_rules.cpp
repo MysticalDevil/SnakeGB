@@ -75,4 +75,18 @@ auto buildSafeInitialSnakeBody(const QList<QPoint> &obstacles, int boardWidth, i
     return {{10, 10}, {10, 11}, {10, 12}};
 }
 
+auto collectFreeSpots(int boardWidth, int boardHeight,
+                      const std::function<bool(const QPoint &)> &isBlocked) -> QList<QPoint> {
+    QList<QPoint> freeSpots;
+    for (int x = 0; x < boardWidth; ++x) {
+        for (int y = 0; y < boardHeight; ++y) {
+            const QPoint point(x, y);
+            if (!isBlocked(point)) {
+                freeSpots << point;
+            }
+        }
+    }
+    return freeSpots;
+}
+
 } // namespace snakegb::core

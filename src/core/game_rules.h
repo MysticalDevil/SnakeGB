@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <QList>
 #include <QPoint>
 #include <deque>
@@ -18,5 +19,7 @@ auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext &ctx) -> int;
 auto wrapAxis(int value, int size) -> int;
 auto wrapPoint(const QPoint &point, int boardWidth, int boardHeight) -> QPoint;
 auto buildSafeInitialSnakeBody(const QList<QPoint> &obstacles, int boardWidth, int boardHeight) -> std::deque<QPoint>;
+auto collectFreeSpots(int boardWidth, int boardHeight,
+                      const std::function<bool(const QPoint &)> &isBlocked) -> QList<QPoint>;
 
 } // namespace snakegb::core
