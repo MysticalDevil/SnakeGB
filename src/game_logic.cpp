@@ -3,6 +3,7 @@
 #include "core/achievement_rules.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
+#include "adapter/level_loader.h"
 #include "adapter/ui_action.h"
 #include "adapter/input_semantics.h"
 #include "fsm/states.h"
@@ -11,9 +12,6 @@
 #include <QDataStream>
 #include <QFile>
 #include <QDir>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QRandomGenerator>
 #include <QStandardPaths>
 #include <QDateTime>
@@ -66,14 +64,6 @@ namespace {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
         QDir().mkpath(path);
         return path + u"/ghost.dat"_s;
-    }
-
-    auto readLevelCountFromResource(int fallbackCount) -> int {
-        QFile f(u"qrc:/src/levels/levels.json"_s);
-        if (!f.open(QIODevice::ReadOnly)) {
-            return fallbackCount;
-        }
-        return snakegb::core::levelCountFromJsonBytes(f.readAll(), fallbackCount);
     }
 
     auto stateName(int state) -> const char * {
@@ -485,7 +475,7 @@ void GameLogic::togglePause() {
 }
 
 void GameLogic::nextLevel() {
-    const int levelCount = readLevelCountFromResource(6);
+    const int levelCount = snakegb::adapter::readLevelCountFromResource(u"qrc:/src/levels/levels.json"_s, 6);
     m_levelIndex = (m_levelIndex + 1) % levelCount;
     loadLevelData(m_levelIndex);
     if (m_state == StartMenu && hasSave()) {
@@ -1206,13 +1196,7 @@ void GameLogic::loadLevelData(int i) {
     const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
     m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
 
-    QFile f(u"qrc:/src/levels/levels.json"_s);
-    if (!f.open(QIODevice::ReadOnly)) {
-        applyFallbackLevelData(safeIndex);
-        return;
-    }
-
-    const auto resolvedLevel = snakegb::core::resolvedLevelDataFromJsonBytes(f.readAll(), i);
+    const auto resolvedLevel = snakegb::adapter::loadResolvedLevelFromResource(u"qrc:/src/levels/levels.json"_s, i);
     if (!resolvedLevel.has_value()) {
         applyFallbackLevelData(safeIndex);
         return;
