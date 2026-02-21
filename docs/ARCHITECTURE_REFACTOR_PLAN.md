@@ -203,6 +203,7 @@ Validation after each commit:
   - level JSON envelope decoding from raw bytes
   - level count extraction from JSON bytes
   - score-to-tick-interval mapping rule
+  - replay frame/value object types into shared core type header
   - scripted level `onTick` runtime obstacle parsing/application
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
@@ -234,6 +235,8 @@ Validation after each commit:
   `AdapterLevelApplierTest`.
 - Scripted level runtime evaluation is extracted into `src/adapter/level_script_runtime.*`; behavior is covered by
   `AdapterLevelScriptRuntimeTest`.
+- Ghost replay persistence (`ghost.dat` load/save + legacy compatibility) is extracted into
+  `src/adapter/ghost_store.*`; behavior is covered by `AdapterGhostStoreTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
