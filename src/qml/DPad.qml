@@ -53,9 +53,9 @@ Item {
             var ctx = getContext("2d")
             ctx.reset()
             
-            var baseColor = "#222222"
-            var activeColor = "#444444"
-            var borderColor = "#111111"
+            var baseColor = "#2a2d33"
+            var activeColor = "#4a4f58"
+            var borderColor = "#15181d"
             
             ctx.lineWidth = 2
             ctx.strokeStyle = borderColor
@@ -149,7 +149,7 @@ Item {
                 height: 10
                 onPaint: {
                     var ctx = getContext("2d")
-                    ctx.fillStyle = dpad.upPressed ? "#888" : "#333"
+                    ctx.fillStyle = dpad.upPressed ? "#aeb4bf" : "#515862"
                     ctx.beginPath()
                     ctx.moveTo(6, 0)
                     ctx.lineTo(12, 10)
@@ -186,7 +186,7 @@ Item {
                 height: 10
                 onPaint: {
                     var ctx = getContext("2d")
-                    ctx.fillStyle = dpad.downPressed ? "#888" : "#333"
+                    ctx.fillStyle = dpad.downPressed ? "#aeb4bf" : "#515862"
                     ctx.beginPath()
                     ctx.moveTo(0, 0)
                     ctx.lineTo(12, 0)
@@ -223,7 +223,7 @@ Item {
                 height: 12
                 onPaint: {
                     var ctx = getContext("2d")
-                    ctx.fillStyle = dpad.leftPressed ? "#888" : "#333"
+                    ctx.fillStyle = dpad.leftPressed ? "#aeb4bf" : "#515862"
                     ctx.beginPath()
                     ctx.moveTo(10, 0)
                     ctx.lineTo(10, 12)
@@ -260,7 +260,7 @@ Item {
                 height: 12
                 onPaint: {
                     var ctx = getContext("2d")
-                    ctx.fillStyle = dpad.rightPressed ? "#888" : "#333"
+                    ctx.fillStyle = dpad.rightPressed ? "#aeb4bf" : "#515862"
                     ctx.beginPath()
                     ctx.moveTo(0, 0)
                     ctx.lineTo(10, 6)

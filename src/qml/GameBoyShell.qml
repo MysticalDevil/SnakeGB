@@ -150,10 +150,10 @@ Rectangle {
 
     Row {
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 140
+        anchors.bottomMargin: 132
         anchors.right: parent.right
-        anchors.rightMargin: 30
-        spacing: 15
+        anchors.rightMargin: 22
+        spacing: 18
         rotation: -15
         GBButton { id: bBtnUI; text: "B" }
         GBButton { id: aBtnUI; text: "A" }
@@ -161,9 +161,9 @@ Rectangle {
 
     Row {
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 40
+        anchors.bottomMargin: 36
         anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 30
+        spacing: 28
         SmallButton { id: selectBtnUI; text: "SELECT" }
         SmallButton { id: startBtnUI; text: "START" }
     }
