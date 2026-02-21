@@ -191,18 +191,16 @@ Rectangle {
         }
     }
 
-    // --- Physical Volume Knob (Side Wheel) ---
+    // --- Physical Volume Wheel (Game Boy side thumbwheel style) ---
     Item {
-        id: volumeKnobTrack
+        id: volumeControl
         anchors.right: parent.right
-        anchors.rightMargin: -12
+        anchors.rightMargin: -7
         anchors.top: parent.top
-        anchors.topMargin: 134
-        width: 34
-        height: 116
-        property real wheelMinY: 10
-        property real wheelMaxY: 82
-        property int detentCount: 15
+        anchors.topMargin: 160
+        width: 28
+        height: 84
+        property int detentCount: 16
 
         function clamp01(v) {
             return Math.max(0.0, Math.min(1.0, v))
@@ -211,9 +209,11 @@ Rectangle {
         function setDetentVolume(v, withHaptic) {
             var clamped = clamp01(v)
             var snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
+            var oldStep = Math.round(gameLogic.volume * (detentCount - 1))
+            var newStep = Math.round(snapped * (detentCount - 1))
             if (Math.abs(snapped - gameLogic.volume) > 0.0001) {
                 gameLogic.volume = snapped
-                if (withHaptic) {
+                if (withHaptic && oldStep !== newStep) {
                     gameLogic.requestFeedback(1)
                 }
             }
@@ -221,130 +221,85 @@ Rectangle {
 
         Text {
             anchors.right: parent.left
-            anchors.rightMargin: 1
-            anchors.top: parent.top
-            anchors.topMargin: 6
-            text: "VOLUME"
+            anchors.rightMargin: 3
+            anchors.verticalCenter: parent.verticalCenter
+            text: "VOL"
             rotation: -90
-            transformOrigin: Item.TopRight
+            transformOrigin: Item.Center
             color: Qt.rgba(0, 0, 0, 0.45)
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.bold: true
         }
 
         Rectangle {
-            id: slotBody
-            x: 9
-            y: 8
+            id: sideCut
+            x: 0
+            y: 0
+            width: 10
+            height: parent.height
+            radius: 5
+            color: Qt.darker(shell.color, 1.25)
+            border.color: Qt.darker(shell.color, 1.45)
+            border.width: 1
+            opacity: 0.85
+        }
+
+        Rectangle {
+            id: wheelBody
+            x: 8
+            y: 0
             width: 14
-            height: 94
+            height: parent.height
             radius: 7
-            color: "#20242a"
-            border.color: "#15181d"
+            color: "#5f6776"
+            border.color: "#2c3139"
             border.width: 1
-        }
-
-        Rectangle {
-            anchors.fill: slotBody
-            anchors.margins: 1
-            radius: slotBody.radius - 1
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#373c44" }
-                GradientStop { position: 0.45; color: "#22262c" }
-                GradientStop { position: 1.0; color: "#171b21" }
-            }
-            opacity: 0.88
-        }
-
-        Repeater {
-            model: 9
-            delegate: Rectangle {
-                width: 4
-                height: 1
-                x: 11
-                y: 14 + index * 10
-                color: Qt.rgba(0, 0, 0, 0.34)
-            }
-        }
-
-        Rectangle {
-            id: volumeWheel
-            width: 20
-            height: 22
-            x: 12
-            y: volumeKnobTrack.wheelMinY +
-               (1.0 - gameLogic.volume) * (volumeKnobTrack.wheelMaxY - volumeKnobTrack.wheelMinY)
-            radius: 6
-            color: "#626a78"
-            border.color: "#2a2f37"
-            border.width: 1
-            property real wheelAngle: -130 + gameLogic.volume * 260
-
-            transform: Rotation {
-                origin.x: volumeWheel.width / 2
-                origin.y: volumeWheel.height / 2
-                angle: volumeWheel.wheelAngle
-            }
+            property real spinPhase: gameLogic.volume * 64
 
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
                 radius: parent.radius - 1
                 gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#8a94a6" }
-                    GradientStop { position: 0.42; color: "#687182" }
-                    GradientStop { position: 1.0; color: "#4b5260" }
+                    GradientStop { position: 0.0; color: "#8c96a9" }
+                    GradientStop { position: 0.45; color: "#666f80" }
+                    GradientStop { position: 1.0; color: "#4a5260" }
                 }
             }
 
             Repeater {
-                model: 5
+                model: 14
                 delegate: Rectangle {
-                    width: 1
-                    height: 14
-                    x: 4 + index * 3
-                    y: 4
+                    width: wheelBody.width - 4
+                    height: 1
                     radius: 1
-                    color: "#2f353f"
+                    x: 2
+                    y: ((index * 6 + wheelBody.spinPhase) % (wheelBody.height + 6)) - 3
+                    color: "#2f3540"
+                    opacity: 0.8
                 }
             }
 
             MouseArea {
                 anchors.fill: parent
-                property real lastAngle: 0.0
-                property real angleAccum: 0.0
-
-                function pointerAngle(px, py) {
-                    return Math.atan2(py - volumeWheel.height / 2, px - volumeWheel.width / 2) * 180 / Math.PI
-                }
-
+                property real startY: 0.0
+                property real startVolume: 0.0
                 onPressed: {
-                    lastAngle = pointerAngle(mouse.x, mouse.y)
-                    angleAccum = 0.0
+                    startY = mouse.y
+                    startVolume = gameLogic.volume
                 }
                 onPositionChanged: {
                     if (!pressed) return
-                    var currentAngle = pointerAngle(mouse.x, mouse.y)
-                    var delta = currentAngle - lastAngle
-                    if (delta > 180) delta -= 360
-                    if (delta < -180) delta += 360
-                    lastAngle = currentAngle
-                    angleAccum += delta
-
-                    while (Math.abs(angleAccum) >= 12) {
-                        var step = angleAccum > 0 ? 1 : -1
-                        volumeKnobTrack.setDetentVolume(
-                            gameLogic.volume + step / Math.max(1, volumeKnobTrack.detentCount - 1), true)
-                        angleAccum -= step * 12
-                    }
+                    var delta = (startY - mouse.y) / 74.0
+                    volumeControl.setDetentVolume(startVolume + delta, true)
                 }
             }
 
             WheelHandler {
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                 onWheel: (event) => {
-                    var step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeKnobTrack.detentCount - 1)
-                    volumeKnobTrack.setDetentVolume(gameLogic.volume + step, true)
+                    var step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeControl.detentCount - 1)
+                    volumeControl.setDetentVolume(gameLogic.volume + step, true)
                 }
             }
         }
