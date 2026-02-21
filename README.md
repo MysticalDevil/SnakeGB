@@ -61,6 +61,17 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 ```
 
+### Build and Deploy (WebAssembly)
+```bash
+# Qt WASM toolchain root (example path)
+export QT_WASM_PREFIX=~/Qt/6.7.3/wasm_singlethread
+
+# Build, package to /tmp/snakegb-wasm-dist, and serve locally on :8080
+./scripts/wasm_deploy.sh
+```
+
+- Set `SERVE=0` to only build/package without starting a web server.
+
 ## Controls
 - **Arrow Keys**: Move snake
 - **START (Enter / S)**: Play / Continue from save
