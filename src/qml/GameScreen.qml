@@ -224,7 +224,7 @@ Item {
                         spacing: 2
                         anchors.horizontalCenter: parent.horizontalCenter
                         Text { text: "UP: Medals | DOWN: Replay"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "SELECT: Switch Level"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
+                        Text { text: "SELECT: Switch Level | B: Palette"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
                     }
                 }
             }

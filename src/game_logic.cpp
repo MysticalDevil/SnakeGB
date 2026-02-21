@@ -747,13 +747,17 @@ void GameLogic::nextShellColor() {
 }
 
 void GameLogic::handleBAction() {
+    // Unified semantics:
+    // - Active gameplay states: secondary visual action (palette cycle)
+    // - Navigation/overlay states: back to menu
+    // - Menu root: palette cycle (quit uses Back/Esc)
     if (m_state == Playing || m_state == ChoiceSelection) {
         nextPalette();
         return;
     }
 
     if (m_state == StartMenu) {
-        quit();
+        nextPalette();
         return;
     }
 

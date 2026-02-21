@@ -4,8 +4,6 @@
 
 SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience with modern engineering standards and premium haptic/audio feedback.
 
-> **Note**: This project was entirely generated and optimized by **Gemini CLI** (AI Agent).
-
 ## Core Features (v1.4.0)
 
 - **GameBoy Boot Flow**: Boot bounce animation + boot beep + delayed BGM handoff to menu.
@@ -16,6 +14,19 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 - **Ghost Replay**: Deterministic replay with recorded input and choice playback.
 - **Mobile Sensor Glare**: `QtSensors` accelerometer-powered screen reflection movement (with desktop fallback motion).
 - **Android Ready**: arm64 deployment pipeline and runtime logcat-driven crash triage workflow.
+
+## Gameplay
+
+- **Core Loop**: eat food, grow longer, and survive as speed increases.
+- **Wrap-Around Board**: crossing screen edges loops snake to the opposite side.
+- **Level Variants**:
+  - `Classic`: no obstacles.
+  - `The Cage`: static wall clusters.
+  - `Dynamic Pulse`, `Crossfire`, `Shifting Box`: script-driven moving obstacles.
+  - `Tunnel Run`: narrow dual-column tunnel pressure.
+- **Roguelike Choices**: random ability choices appear as score progresses; each run can evolve differently.
+- **Special Fruits**: 9 fruit effects (Ghost/Slow/Magnet/Shield/Portal/Double/Diamond/Laser/Mini) with temporary or instant buffs.
+- **Ghost Replay**: best run input+choice replay for route learning and score improvement.
 
 ## Tech Stack
 
@@ -58,12 +69,12 @@ CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 - **DOWN**: Watch Best High-Score Replay
 - **LEFT**: Open hidden Fruit Library
 - **B / X**:
-  - In game: switch display palette
-  - In menu: quit app
+  - In active game (`Playing` / `Roguelike choice`): switch display palette
+  - In menu: switch display palette
   - In pause/game over/replay/library/medal: back to menu
-  - In roguelike choice: switch display palette
 - **Y / C / Tap Logo**: Cycle Console Shell Colors
-- **M**: Toggle Music | **Esc**: Quit App
+- **M**: Toggle Music
+- **Back / Esc**: Quit App
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).
