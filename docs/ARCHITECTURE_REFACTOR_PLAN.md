@@ -186,7 +186,7 @@ Validation after each commit:
 - [x] Phase plan and KPIs defined.
 - [x] Phase A implementation started.
 - [x] Phase B implementation completed.
-- [ ] Phase C test hardening completed.
+- [x] Phase C test hardening completed.
 
 ### Phase A progress snapshot (2026-02-21)
 
@@ -217,3 +217,14 @@ Validation after each commit:
   method calls.
 - QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on
   `dispatchUiAction(...)`.
+
+### Phase C progress snapshot (2026-02-21)
+
+- Added headless core-focused tests in `tests/test_core_rules.cpp`:
+  - `buff_runtime` rules (food scoring/duration/shrink invariants)
+  - `replay_timeline` deterministic tick application (input + choice frame playback behavior)
+- Expanded `core-rules-tests` linkage in `CMakeLists.txt` to include `src/core/buff_runtime.cpp` and
+  `src/core/replay_timeline.cpp`.
+- Verification passed:
+  - `ctest --output-on-failure` (GameLogicTest + CoreRulesTest)
+  - `./scripts/input_semantics_matrix_wayland.sh` (input semantics compatibility matrix)
