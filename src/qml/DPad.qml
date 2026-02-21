@@ -3,8 +3,8 @@ import QtQuick.Controls
 
 Item {
     id: dpad
-    width: 96
-    height: 96
+    width: 102
+    height: 102
 
     property bool upPressed: false
     property bool downPressed: false
@@ -16,8 +16,8 @@ Item {
     signal leftClicked
     signal rightClicked
 
-    readonly property int armThickness: 30
-    readonly property int crossSize: 84
+    readonly property int armThickness: 34
+    readonly property int crossSize: 94
     readonly property int pressX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
     readonly property int pressY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
 
@@ -33,19 +33,19 @@ Item {
             anchors.fill: parent
             x: 1
             y: 2
-            opacity: 0.28
+            opacity: 0.24
             Rectangle {
                 anchors.centerIn: parent
                 width: dpad.armThickness
                 height: parent.height
-                radius: 2
+                radius: 1
                 color: "#000000"
             }
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.width
                 height: dpad.armThickness
-                radius: 2
+                radius: 1
                 color: "#000000"
             }
         }
@@ -54,12 +54,13 @@ Item {
             anchors.centerIn: parent
             width: dpad.armThickness
             height: parent.height
-            radius: 2
+            radius: 1
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#343b47" }
-                GradientStop { position: 1.0; color: "#252b34" }
+                GradientStop { position: 0.0; color: "#465063" }
+                GradientStop { position: 0.5; color: "#353f4f" }
+                GradientStop { position: 1.0; color: "#252d39" }
             }
-            border.color: "#10161c"
+            border.color: "#0f141a"
             border.width: 2
         }
 
@@ -67,32 +68,111 @@ Item {
             anchors.centerIn: parent
             width: parent.width
             height: dpad.armThickness
-            radius: 2
+            radius: 1
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#343b47" }
-                GradientStop { position: 1.0; color: "#252b34" }
+                GradientStop { position: 0.0; color: "#465063" }
+                GradientStop { position: 0.5; color: "#353f4f" }
+                GradientStop { position: 1.0; color: "#252d39" }
             }
-            border.color: "#10161c"
+            border.color: "#0f141a"
             border.width: 2
+        }
+
+        Canvas {
+            id: embossMarks
+            anchors.fill: parent
+            opacity: 0.34
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+
+                var light = "rgba(170, 182, 198, 0.34)"
+                var dark = "rgba(15, 20, 26, 0.55)"
+
+                // Up mark
+                ctx.fillStyle = dark
+                ctx.beginPath()
+                ctx.moveTo(width / 2, 14)
+                ctx.lineTo(width / 2 - 5, 22)
+                ctx.lineTo(width / 2 + 5, 22)
+                ctx.closePath()
+                ctx.fill()
+                ctx.fillStyle = light
+                ctx.beginPath()
+                ctx.moveTo(width / 2, 13)
+                ctx.lineTo(width / 2 - 4, 20)
+                ctx.lineTo(width / 2 + 4, 20)
+                ctx.closePath()
+                ctx.fill()
+
+                // Down mark
+                ctx.fillStyle = dark
+                ctx.beginPath()
+                ctx.moveTo(width / 2 - 5, height - 22)
+                ctx.lineTo(width / 2 + 5, height - 22)
+                ctx.lineTo(width / 2, height - 14)
+                ctx.closePath()
+                ctx.fill()
+                ctx.fillStyle = light
+                ctx.beginPath()
+                ctx.moveTo(width / 2 - 4, height - 21)
+                ctx.lineTo(width / 2 + 4, height - 21)
+                ctx.lineTo(width / 2, height - 14)
+                ctx.closePath()
+                ctx.fill()
+
+                // Left mark
+                ctx.fillStyle = dark
+                ctx.beginPath()
+                ctx.moveTo(14, height / 2)
+                ctx.lineTo(22, height / 2 - 5)
+                ctx.lineTo(22, height / 2 + 5)
+                ctx.closePath()
+                ctx.fill()
+                ctx.fillStyle = light
+                ctx.beginPath()
+                ctx.moveTo(13, height / 2)
+                ctx.lineTo(20, height / 2 - 4)
+                ctx.lineTo(20, height / 2 + 4)
+                ctx.closePath()
+                ctx.fill()
+
+                // Right mark
+                ctx.fillStyle = dark
+                ctx.beginPath()
+                ctx.moveTo(width - 22, height / 2 - 5)
+                ctx.lineTo(width - 14, height / 2)
+                ctx.lineTo(width - 22, height / 2 + 5)
+                ctx.closePath()
+                ctx.fill()
+                ctx.fillStyle = light
+                ctx.beginPath()
+                ctx.moveTo(width - 21, height / 2 - 4)
+                ctx.lineTo(width - 14, height / 2)
+                ctx.lineTo(width - 21, height / 2 + 4)
+                ctx.closePath()
+                ctx.fill()
+            }
+            Component.onCompleted: requestPaint()
         }
 
         Rectangle {
             anchors.centerIn: parent
-            width: dpad.armThickness - 4
-            height: parent.height - 6
+            width: dpad.armThickness - 5
+            height: parent.height - 8
             radius: 1
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.08)
+            border.color: Qt.rgba(1, 1, 1, 0.12)
             border.width: 1
         }
 
         Rectangle {
             anchors.centerIn: parent
-            width: parent.width - 6
-            height: dpad.armThickness - 4
+            width: parent.width - 8
+            height: dpad.armThickness - 5
             radius: 1
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.08)
+            border.color: Qt.rgba(1, 1, 1, 0.12)
             border.width: 1
         }
 
@@ -101,7 +181,7 @@ Item {
             y: 0
             width: dpad.armThickness
             height: (parent.height - dpad.armThickness) / 2 + 1
-            color: Qt.rgba(0, 0, 0, 0.18)
+            color: Qt.rgba(0, 0, 0, 0.24)
             visible: dpad.upPressed
         }
         Rectangle {
@@ -109,7 +189,7 @@ Item {
             y: (parent.height + dpad.armThickness) / 2 - 1
             width: dpad.armThickness
             height: (parent.height - dpad.armThickness) / 2 + 1
-            color: Qt.rgba(0, 0, 0, 0.18)
+            color: Qt.rgba(0, 0, 0, 0.24)
             visible: dpad.downPressed
         }
         Rectangle {
@@ -117,7 +197,7 @@ Item {
             y: (parent.height - dpad.armThickness) / 2
             width: (parent.width - dpad.armThickness) / 2 + 1
             height: dpad.armThickness
-            color: Qt.rgba(0, 0, 0, 0.18)
+            color: Qt.rgba(0, 0, 0, 0.24)
             visible: dpad.leftPressed
         }
         Rectangle {
@@ -125,27 +205,27 @@ Item {
             y: (parent.height - dpad.armThickness) / 2
             width: (parent.width - dpad.armThickness) / 2 + 1
             height: dpad.armThickness
-            color: Qt.rgba(0, 0, 0, 0.18)
+            color: Qt.rgba(0, 0, 0, 0.24)
             visible: dpad.rightPressed
         }
 
         Rectangle {
             anchors.centerIn: parent
-            width: 20
-            height: 20
-            radius: 10
-            color: "#151a20"
-            border.color: "#0c1015"
+            width: 18
+            height: 18
+            radius: 9
+            color: "#161d25"
+            border.color: "#0b1015"
             border.width: 1
         }
 
         Rectangle {
             anchors.centerIn: parent
             anchors.verticalCenterOffset: -1
-            width: 12
-            height: 5
+            width: 10
+            height: 4
             radius: 2
-            color: Qt.rgba(1, 1, 1, 0.07)
+            color: Qt.rgba(1, 1, 1, 0.06)
         }
     }
 
