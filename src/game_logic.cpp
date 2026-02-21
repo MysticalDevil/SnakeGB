@@ -285,7 +285,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
     float pan = (static_cast<float>(p.x()) / BOARD_WIDTH - 0.5f) * 1.4f;
     emit foodEaten(pan);
 
-    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
+    m_timer->setInterval(normalTickIntervalMs());
     emit scoreChanged();
     spawnFood();
 
@@ -442,7 +442,7 @@ void GameLogic::loadLastSession() {
         m_currentRecording.append(p);
     }
 
-    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
+    m_timer->setInterval(normalTickIntervalMs());
     m_timer->start();
 
     emit scoreChanged();
@@ -989,7 +989,7 @@ auto GameLogic::normalTickIntervalMs() const -> int {
     if (m_activeBuff == Slow) {
         return 250;
     }
-    return std::max(60, 200 - ((m_score / 5) * 8));
+    return snakegb::core::tickIntervalForScore(m_score);
 }
 
 void GameLogic::applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks, bool halfDurationForRich,
@@ -1082,7 +1082,7 @@ void GameLogic::deactivateBuff() {
     m_buffTicksRemaining = 0;
     m_buffTicksTotal = 0;
     m_shieldActive = false;
-    m_timer->setInterval(std::max(60, 200 - ((m_score / 5) * 8)));
+    m_timer->setInterval(normalTickIntervalMs());
     emit buffChanged();
 }
 

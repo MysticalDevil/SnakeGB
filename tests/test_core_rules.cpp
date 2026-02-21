@@ -19,6 +19,7 @@ private slots:
     void testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater();
     void testProbeCollisionRespectsGhostFlag();
     void testCollisionOutcomeMatchesPortalLaserAndShieldSemantics();
+    void testTickIntervalForScoreUsesSpeedFloor();
     void testDynamicLevelFallbackProducesObstacles();
     void testWallsFromJsonArrayParsesCoordinates();
     void testResolvedLevelDataFromJsonMapsIndexAndFields();
@@ -204,6 +205,12 @@ void TestCoreRules::testCollisionOutcomeMatchesPortalLaserAndShieldSemantics() {
     const snakegb::core::CollisionOutcome crashOutcome = snakegb::core::collisionOutcomeForHead(
         QPoint(4, 5), 20, 20, obstacles, snakeBody, false, false, false, false);
     QVERIFY(crashOutcome.collision);
+}
+
+void TestCoreRules::testTickIntervalForScoreUsesSpeedFloor() {
+    QCOMPARE(snakegb::core::tickIntervalForScore(0), 200);
+    QCOMPARE(snakegb::core::tickIntervalForScore(25), 160);
+    QCOMPARE(snakegb::core::tickIntervalForScore(200), 60);
 }
 
 void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {

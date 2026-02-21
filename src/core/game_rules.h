@@ -28,6 +28,7 @@ struct CollisionOutcome {
 
 // Returns [0, 100]. 100 means guaranteed trigger, 0 means never trigger.
 auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext &ctx) -> int;
+auto tickIntervalForScore(int score) -> int;
 
 auto wrapAxis(int value, int size) -> int;
 auto wrapPoint(const QPoint &point, int boardWidth, int boardHeight) -> QPoint;

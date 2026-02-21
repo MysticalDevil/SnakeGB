@@ -34,6 +34,10 @@ auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext &ctx) -> int {
     return std::min(chancePercent, 65);
 }
 
+auto tickIntervalForScore(const int score) -> int {
+    return std::max(60, 200 - ((score / 5) * 8));
+}
+
 auto wrapAxis(int value, int size) -> int {
     int wrapped = value % size;
     if (wrapped < 0) {
