@@ -198,6 +198,7 @@ Validation after each commit:
   - safe initial snake body generation
   - random free-spot selection for food/powerup spawn
   - free-spot board scanning for food/powerup spawn
+  - level walls JSON-to-grid parsing
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
   - magnet movement candidate selection
