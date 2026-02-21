@@ -205,6 +205,7 @@ Validation after each commit:
   - score-to-tick-interval mapping rule
   - replay frame/value object types into shared core type header
   - roguelike choice pool picking/runtime selection algorithm
+  - weighted power-up selection policy
   - scripted level `onTick` runtime obstacle parsing/application
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
