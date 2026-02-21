@@ -89,6 +89,16 @@ Item {
         return luminance(bgColor) > 0.54 ? p0 : p3
     }
 
+    function readableMutedText(bgColor) {
+        var c = readableText(bgColor)
+        return Qt.rgba(c.r, c.g, c.b, 0.9)
+    }
+
+    function readableSecondaryText(bgColor) {
+        var c = readableText(bgColor)
+        return Qt.rgba(c.r, c.g, c.b, 0.78)
+    }
+
     width: 240
     height: 216
 
@@ -188,7 +198,7 @@ Item {
                     font.family: gameFont
                     font.pixelSize: 8
                     color: p3
-                    opacity: 0.75
+                    opacity: 0.92
                 }
             }
 
@@ -214,17 +224,31 @@ Item {
                         Text {
                             text: gameLogic.hasSave ? "START to Continue" : "START to Play"
                             color: p3
-                            font.pixelSize: 9
+                            font.pixelSize: 10
                             anchors.centerIn: parent
                             font.bold: true
-                            opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.45
+                            opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.70
                         }
                     }
                     Column {
                         spacing: 2
                         anchors.horizontalCenter: parent.horizontalCenter
-                        Text { text: "UP: Medals | DOWN: Replay"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
-                        Text { text: "SELECT: Switch Level | B: Palette"; color: p3; font.pixelSize: 7; opacity: 0.6; anchors.horizontalCenter: parent.horizontalCenter }
+                        Rectangle {
+                            width: 196
+                            height: 24
+                            radius: 3
+                            color: Qt.rgba(0.10, 0.12, 0.10, 0.62)
+                            border.color: Qt.rgba(0.88, 0.94, 0.82, 0.88)
+                            border.width: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 1
+                                Text { text: "UP: Medals | DOWN: Replay"; color: "#e9f4d8"; font.pixelSize: 8; opacity: 1.0; anchors.horizontalCenter: parent.horizontalCenter; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.42) }
+                                Text { text: "SELECT: Switch Level | B: Palette"; color: "#e9f4d8"; font.pixelSize: 8; opacity: 1.0; anchors.horizontalCenter: parent.horizontalCenter; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.42) }
+                            }
+                        }
                     }
                 }
             }
@@ -456,9 +480,9 @@ Item {
                         text: rarityName(gameLogic.activeBuff)
                         color: parent.accent
                         font.family: gameFont
-                        font.pixelSize: 6
+                        font.pixelSize: 7
                         font.bold: true
-                        opacity: 0.88
+                        opacity: 0.96
                     }
 
                     Rectangle {
@@ -664,7 +688,7 @@ Item {
                                     anchors.verticalCenter: parent.verticalCenter
                                     width: parent.width - 44
                                     Text { text: modelData.name; color: root.readableText(choiceCard.color); font.bold: true; font.pixelSize: 9 }
-                                    Text { text: modelData.desc; color: root.readableText(choiceCard.color); font.pixelSize: 6; opacity: 0.85; width: parent.width; wrapMode: Text.WordWrap }
+                                    Text { text: modelData.desc; color: root.readableSecondaryText(choiceCard.color); font.pixelSize: 7; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap }
                                 }
                             }
 
@@ -684,7 +708,7 @@ Item {
                                     text: rarityName(choiceCard.powerType)
                                     color: choiceCard.accent
                                     font.family: gameFont
-                                    font.pixelSize: 6
+                                    font.pixelSize: 7
                                     font.bold: true
                                 }
                             }
@@ -764,11 +788,14 @@ Item {
                             width: 6
                         }
                         delegate: Rectangle {
+                            id: libraryCard
                             width: parent.width
-                            height: 40
+                            height: 46
                             color: libraryList.currentIndex === index ? p2 : p1
                             border.color: p3
                             border.width: libraryList.currentIndex === index ? 2 : 1
+                            readonly property color labelColor: root.readableText(color)
+                            readonly property color descColor: root.readableSecondaryText(color)
                             Row {
                                 anchors.fill: parent
                                 anchors.margins: 5
@@ -804,8 +831,8 @@ Item {
                                 Column {
                                     width: parent.width - 50
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text { text: modelData.name; color: p3; font.family: gameFont; font.pixelSize: 10; font.bold: true }
-                                    Text { text: modelData.desc; color: p3; font.family: gameFont; font.pixelSize: 7; opacity: 0.7; width: parent.width; wrapMode: Text.WordWrap }
+                                    Text { text: modelData.name; color: libraryCard.labelColor; font.family: gameFont; font.pixelSize: 11; font.bold: true; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.25) }
+                                    Text { text: modelData.desc; color: libraryCard.descColor; font.family: gameFont; font.pixelSize: 9; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.2) }
                                 }
                             }
                         }

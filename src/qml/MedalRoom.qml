@@ -13,6 +13,26 @@ Rectangle {
     property color p3
     property string gameFont
 
+    function luminance(colorValue) {
+        return 0.299 * colorValue.r + 0.587 * colorValue.g + 0.114 * colorValue.b
+    }
+
+    function readableText(bgColor) {
+        var d0 = Math.abs(luminance(p0) - luminance(bgColor))
+        var d3 = Math.abs(luminance(p3) - luminance(bgColor))
+        return d3 >= d0 ? p3 : p0
+    }
+
+    function readableMutedText(bgColor) {
+        var c = readableText(bgColor)
+        return Qt.rgba(c.r, c.g, c.b, 0.9)
+    }
+
+    function readableSecondaryText(bgColor) {
+        var c = readableText(bgColor)
+        return Qt.rgba(c.r, c.g, c.b, 0.78)
+    }
+
     Column {
         anchors.fill: parent
         anchors.margins: 15
@@ -81,7 +101,7 @@ Rectangle {
 
             delegate: Rectangle {
                 width: parent.width
-                height: 42
+                height: 48
                 color: medalList.currentIndex === index ? p2 : p1
                 border.color: p3
                 border.width: medalList.currentIndex === index ? 2 : 1
@@ -114,19 +134,23 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         Text {
                             text: unlocked ? modelData.id : "?????????"
-                            color: p3
+                            color: medalRoot.readableText(parent.parent.color)
                             font.family: gameFont
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.bold: true
+                            style: Text.Outline
+                            styleColor: Qt.rgba(0, 0, 0, 0.24)
                         }
                         Text {
                             text: unlocked ? "UNLOCKED" : modelData.hint
-                            color: p3
+                            color: medalRoot.readableSecondaryText(parent.parent.color)
                             font.family: gameFont
-                            font.pixelSize: 7
-                            opacity: 0.7
+                            font.pixelSize: 9
+                            opacity: 1.0
                             width: parent.width
                             wrapMode: Text.WordWrap
+                            style: Text.Outline
+                            styleColor: Qt.rgba(0, 0, 0, 0.20)
                         }
                     }
                 }
