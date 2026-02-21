@@ -19,6 +19,7 @@ Window {
     property bool selectPressActive: false
     property bool selectLongPressConsumed: false
     property bool selectKeyDown: false
+    property bool startPressActive: false
     property bool iconDebugMode: false
     readonly property var gameState: ({
         Splash: 0,
@@ -455,6 +456,14 @@ Window {
         gameLogic.handleStart()
     }
 
+    function beginStartPress() {
+        startPressActive = true
+    }
+
+    function endStartPress() {
+        startPressActive = false
+    }
+
     function handleBackAction() {
         if (iconDebugMode) {
             exitIconLabToMenu()
@@ -501,7 +510,7 @@ Window {
         repeat: false
         onTriggered: {
             if (!window.selectPressActive || window.selectLongPressConsumed) return
-            if (gameLogic.state === gameState.StartMenu && gameLogic.hasSave) {
+            if (gameLogic.state === gameState.StartMenu && gameLogic.hasSave && window.startPressActive) {
                 window.selectLongPressConsumed = true
                 gameLogic.deleteSave()
                 gameLogic.requestFeedback(8)
@@ -598,6 +607,14 @@ Window {
 
                 Connections { 
                     target: shell.startButton
+                    function onPressed() {
+                        shell.startButton.isPressed = true
+                        beginStartPress()
+                    }
+                    function onReleased() {
+                        shell.startButton.isPressed = false
+                        endStartPress()
+                    }
                     function onClicked() { dispatchAction(inputAction.Start) } 
                 }
             }
@@ -614,6 +631,7 @@ Window {
             else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
                 shell.startButton.isPressed = true
+                beginStartPress()
                 dispatchAction(inputAction.Start)
             }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
@@ -649,6 +667,7 @@ Window {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shell.startButton.isPressed = false
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) endStartPress()
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
             else if (event.key === Qt.Key_Shift) {

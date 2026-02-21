@@ -17,6 +17,7 @@ Last updated: 2026-02-21
 - [x] Phase 1 (Part B): runtime input injection channel added (file queue / FIFO + token mapping).
 - [x] Phase 1 (Part C): remove major direct key-to-logic entry points and add smoke script (`scripts/input_semantics_smoke.sh`).
 - [x] Phase 2: introduce dedicated `InputRouter` abstraction + named state constants.
+- [x] Phase 3 (Part A): destructive save-clear action now requires `START + SELECT` hold.
 - [ ] Phase 3: automated regression matrix for input semantics and easter no-side-effect rules.
 
 ---
