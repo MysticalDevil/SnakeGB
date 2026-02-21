@@ -60,7 +60,15 @@ Window {
     }
 
     function handleDirection(dx, dy) {
-        gameLogic.move(dx, dy)
+        if (dy < 0) {
+            gameLogic.dispatchUiAction(inputAction.NavUp)
+        } else if (dy > 0) {
+            gameLogic.dispatchUiAction(inputAction.NavDown)
+        } else if (dx < 0) {
+            gameLogic.dispatchUiAction(inputAction.NavLeft)
+        } else if (dx > 0) {
+            gameLogic.dispatchUiAction(inputAction.NavRight)
+        }
         setDpadPressed(dx, dy)
     }
 
@@ -110,7 +118,7 @@ Window {
         konamiIndex = 0
         screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
         if (!iconDebugMode) {
-            gameLogic.requestStateChange(AppState.StartMenu)
+            gameLogic.dispatchUiAction("state_start_menu")
         }
     }
 
@@ -135,18 +143,18 @@ Window {
                 return true
             }
             if (action === inputAction.ToggleShellColor) {
-                gameLogic.nextShellColor()
+                gameLogic.dispatchUiAction("toggle_shell_color")
                 return true
             }
             if (action === inputAction.ToggleMusic) {
-                gameLogic.toggleMusic()
+                gameLogic.dispatchUiAction("toggle_music")
                 return true
             }
             if (action === inputAction.Escape) {
                 if (window.iconDebugMode) {
                     exitIconLabToMenu()
                 } else {
-                    gameLogic.quit()
+                    gameLogic.dispatchUiAction("quit")
                 }
                 return true
             }
@@ -199,7 +207,7 @@ Window {
                 return true
             }
             if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.quitToMenu()
+                gameLogic.dispatchUiAction("quit_to_menu")
                 return true
             }
             if (action === inputAction.SelectShort) {
@@ -211,7 +219,7 @@ Window {
         function routePageLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.quitToMenu()
+                gameLogic.dispatchUiAction("quit_to_menu")
                 return true
             }
             if (action === inputAction.Primary) {
@@ -351,14 +359,14 @@ Window {
         if (handleEasterInput("B")) {
             return
         }
-        gameLogic.handleBAction()
+        gameLogic.dispatchUiAction(inputAction.Secondary)
     }
 
     function handleAButton() {
         if (saveClearConfirmPending && gameLogic.state === AppState.StartMenu && gameLogic.hasSave) {
             saveClearConfirmPending = false
             saveClearConfirmTimer.stop()
-            gameLogic.deleteSave()
+            gameLogic.dispatchUiAction("delete_save")
             gameLogic.requestFeedback(8)
             screen.showOSD("SAVE CLEARED")
             return
@@ -366,13 +374,13 @@ Window {
         if (handleEasterInput("A")) {
             return
         }
-        gameLogic.handleStart()
+        gameLogic.dispatchUiAction(inputAction.Primary)
     }
 
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
-        gameLogic.requestStateChange(AppState.StartMenu)
+        gameLogic.dispatchUiAction("state_start_menu")
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -386,7 +394,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    gameLogic.requestStateChange(AppState.StartMenu)
+                    gameLogic.dispatchUiAction("state_start_menu")
                 }
                 return "toggle"
             }
@@ -417,7 +425,7 @@ Window {
         var status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                gameLogic.requestStateChange(AppState.StartMenu)
+                gameLogic.dispatchUiAction("state_start_menu")
             }
             return true
         }
@@ -448,14 +456,14 @@ Window {
             selectLongPressConsumed = false
             return
         }
-        gameLogic.handleSelect()
+        gameLogic.dispatchUiAction(inputAction.SelectShort)
     }
 
     function handleStartButton() {
         if (iconDebugMode) {
             return
         }
-        gameLogic.handleStart()
+        gameLogic.dispatchUiAction(inputAction.Start)
     }
 
     function beginStartPress() {
@@ -485,9 +493,9 @@ Window {
         if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver ||
             gameLogic.state === AppState.Replaying || gameLogic.state === AppState.ChoiceSelection ||
             gameLogic.state === AppState.Library || gameLogic.state === AppState.MedalRoom) {
-            gameLogic.quitToMenu()
+            gameLogic.dispatchUiAction("quit_to_menu")
         } else if (gameLogic.state === AppState.StartMenu) {
-            gameLogic.quit()
+            gameLogic.dispatchUiAction("quit")
         }
     }
 
@@ -574,7 +582,7 @@ Window {
 
                 onShellColorToggleRequested: {
                     gameLogic.requestFeedback(5)
-                    gameLogic.nextShellColor()
+                    gameLogic.dispatchUiAction("toggle_shell_color")
                 }
 
                 onVolumeRequested: (value, withHaptic) => {

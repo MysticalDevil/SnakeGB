@@ -638,6 +638,77 @@ void GameLogic::selectChoice(int index) {
 
 // --- QML API ---
 
+void GameLogic::dispatchUiAction(const QString &action) {
+    if (action == u"nav_up"_s) {
+        move(0, -1);
+        return;
+    }
+    if (action == u"nav_down"_s) {
+        move(0, 1);
+        return;
+    }
+    if (action == u"nav_left"_s) {
+        move(-1, 0);
+        return;
+    }
+    if (action == u"nav_right"_s) {
+        move(1, 0);
+        return;
+    }
+    if (action == u"primary"_s || action == u"start"_s) {
+        handleStart();
+        return;
+    }
+    if (action == u"secondary"_s) {
+        handleBAction();
+        return;
+    }
+    if (action == u"select_short"_s) {
+        handleSelect();
+        return;
+    }
+    if (action == u"back"_s) {
+        if (m_state == Paused || m_state == GameOver || m_state == Replaying || m_state == ChoiceSelection ||
+            m_state == Library || m_state == MedalRoom) {
+            quitToMenu();
+        } else if (m_state == StartMenu) {
+            quit();
+        }
+        return;
+    }
+    if (action == u"toggle_shell_color"_s) {
+        nextShellColor();
+        return;
+    }
+    if (action == u"toggle_music"_s) {
+        toggleMusic();
+        return;
+    }
+    if (action == u"quit_to_menu"_s) {
+        quitToMenu();
+        return;
+    }
+    if (action == u"quit"_s) {
+        quit();
+        return;
+    }
+    if (action == u"next_palette"_s) {
+        nextPalette();
+        return;
+    }
+    if (action == u"delete_save"_s) {
+        deleteSave();
+        return;
+    }
+    if (action == u"state_start_menu"_s) {
+        requestStateChange(StartMenu);
+        return;
+    }
+    if (action == u"state_splash"_s) {
+        requestStateChange(Splash);
+    }
+}
+
 void GameLogic::move(int dx, int dy) {
     dispatchStateCallback([dx, dy](GameState &state) -> void { state.handleInput(dx, dy); });
 

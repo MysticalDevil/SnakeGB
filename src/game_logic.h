@@ -198,6 +198,7 @@ public:
     }
 
     // --- QML API ---
+    Q_INVOKABLE void dispatchUiAction(const QString &action);
     Q_INVOKABLE void move(int dx, int dy);
     Q_INVOKABLE void startGame() { restart(); }
     Q_INVOKABLE void nextShellColor();
