@@ -228,6 +228,8 @@ Validation after each commit:
   `AdapterSemanticsTest`.
 - Level resource loading (`QFile` + bytes handoff) is extracted into `src/adapter/level_loader.*`; behavior is
   covered by `AdapterLevelLoaderTest`.
+- Level apply/fallback decision flow is extracted into `src/adapter/level_applier.*`; behavior is covered by
+  `AdapterLevelApplierTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
