@@ -1187,40 +1187,40 @@ void GameLogic::clearSavedState() {
     }
 }
 
-void GameLogic::loadLevelData(int i) {
-    const auto applyFallbackLevel = [this](int levelIndex) -> void {
-        const snakegb::core::FallbackLevelData fallback = snakegb::core::fallbackLevelData(levelIndex);
-        m_obstacles.clear();
-        m_currentLevelName = fallback.name;
-        m_currentScript = fallback.script;
-        if (!m_currentScript.isEmpty()) {
-            const QJSValue res = m_jsEngine.evaluate(m_currentScript);
-            if (!res.isError()) {
-                runLevelScript();
-            }
-        } else {
-            m_obstacles = fallback.walls;
+void GameLogic::applyFallbackLevelData(const int levelIndex) {
+    const snakegb::core::FallbackLevelData fallback = snakegb::core::fallbackLevelData(levelIndex);
+    m_obstacles.clear();
+    m_currentLevelName = fallback.name;
+    m_currentScript = fallback.script;
+    if (!m_currentScript.isEmpty()) {
+        const QJSValue res = m_jsEngine.evaluate(m_currentScript);
+        if (!res.isError()) {
+            runLevelScript();
         }
-        emit obstaclesChanged();
-    };
+    } else {
+        m_obstacles = fallback.walls;
+    }
+    emit obstaclesChanged();
+}
 
+void GameLogic::loadLevelData(int i) {
     const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
     m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
 
     QFile f(u"qrc:/src/levels/levels.json"_s);
     if (!f.open(QIODevice::ReadOnly)) {
-        applyFallbackLevel(safeIndex);
+        applyFallbackLevelData(safeIndex);
         return;
     }
 
     auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
     if (levels.isEmpty()) {
-        applyFallbackLevel(safeIndex);
+        applyFallbackLevelData(safeIndex);
         return;
     }
     const auto resolvedLevel = snakegb::core::resolvedLevelDataFromJson(levels, i);
     if (!resolvedLevel.has_value()) {
-        applyFallbackLevel(safeIndex);
+        applyFallbackLevelData(safeIndex);
         return;
     }
 
@@ -1231,18 +1231,18 @@ void GameLogic::loadLevelData(int i) {
     if (!m_currentScript.isEmpty()) {
         const QJSValue res = m_jsEngine.evaluate(m_currentScript);
         if (res.isError()) {
-            applyFallbackLevel(safeIndex);
+            applyFallbackLevelData(safeIndex);
             return;
         }
         runLevelScript();
         if (m_obstacles.isEmpty()) {
-            applyFallbackLevel(safeIndex);
+            applyFallbackLevelData(safeIndex);
             return;
         }
     } else {
         m_obstacles = resolvedLevel->walls;
         if (m_obstacles.isEmpty()) {
-            applyFallbackLevel(safeIndex);
+            applyFallbackLevelData(safeIndex);
             return;
         }
     }

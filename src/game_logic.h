@@ -289,6 +289,7 @@ private:
     void saveCurrentState();
     void clearSavedState();
     void loadLevelData(int index);
+    void applyFallbackLevelData(int levelIndex);
     [[nodiscard]] auto buildSafeInitialSnakeBody() const -> std::deque<QPoint>;
     void checkAchievements();
     void runLevelScript();
