@@ -33,6 +33,8 @@ qt_add_executable(SnakeGB
     src/adapter/level_applier.h
     src/adapter/level_loader.cpp
     src/adapter/level_loader.h
+    src/adapter/level_script_runtime.cpp
+    src/adapter/level_script_runtime.h
     src/app_state.h
     src/core/game_rules.cpp
     src/core/game_rules.h
@@ -125,6 +127,7 @@ add_executable(game-tests
     src/adapter/input_semantics.cpp
     src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
+    src/adapter/level_script_runtime.cpp
     src/fsm/states.cpp
 )
 target_include_directories(game-tests PRIVATE src)
@@ -180,3 +183,13 @@ target_include_directories(adapter-level-applier-tests PRIVATE src)
 target_link_libraries(adapter-level-applier-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
 add_test(NAME AdapterLevelApplierTest COMMAND adapter-level-applier-tests)
 set_tests_properties(AdapterLevelApplierTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-level-script-runtime-tests
+    tests/test_level_script_runtime_adapter.cpp
+    src/adapter/level_script_runtime.cpp
+    src/core/level_runtime.cpp
+)
+target_include_directories(adapter-level-script-runtime-tests PRIVATE src)
+target_link_libraries(adapter-level-script-runtime-tests PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
+add_test(NAME AdapterLevelScriptRuntimeTest COMMAND adapter-level-script-runtime-tests)
+set_tests_properties(AdapterLevelScriptRuntimeTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")

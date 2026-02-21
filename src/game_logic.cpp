@@ -5,6 +5,7 @@
 #include "core/level_runtime.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
+#include "adapter/level_script_runtime.h"
 #include "adapter/ui_action.h"
 #include "adapter/input_semantics.h"
 #include "fsm/states.h"
@@ -1245,36 +1246,13 @@ void GameLogic::checkAchievements() {
 }
 
 void GameLogic::runLevelScript() {
-    auto applyDynamicFallback = [this]() -> bool {
-        const auto dynamicObstacles = snakegb::core::dynamicObstaclesForLevel(m_currentLevelName, m_gameTickCounter);
-        if (dynamicObstacles.has_value()) {
-            m_obstacles = dynamicObstacles.value();
-            emit obstaclesChanged();
-            return true;
-        }
-        return false;
-    };
-
-    QJSValue onTick = m_jsEngine.globalObject().property(u"onTick"_s);
-    if (onTick.isCallable()) {
-        QJSValueList args;
-        args << m_gameTickCounter;
-        QJSValue result = onTick.call(args);
-        if (result.isArray()) {
-            m_obstacles.clear();
-            const int len = result.property(u"length"_s).toInt();
-            for (int i = 0; i < len; ++i) {
-                QJSValue item = result.property(i);
-                m_obstacles.append(QPoint(
-                    item.property(u"x"_s).toInt(), 
-                    item.property(u"y"_s).toInt()
-                ));
-            }
-            emit obstaclesChanged();
-            return;
-        }
+    if (snakegb::adapter::tryApplyOnTickScript(m_jsEngine, m_gameTickCounter, m_obstacles)) {
+        emit obstaclesChanged();
+        return;
     }
-    applyDynamicFallback();
+    if (snakegb::adapter::applyDynamicLevelFallback(m_currentLevelName, m_gameTickCounter, m_obstacles)) {
+        emit obstaclesChanged();
+    }
 }
 
 auto GameLogic::isOccupied(const QPoint &p) const -> bool {
