@@ -1,4 +1,5 @@
 #include "states.h"
+#include "../core/replay_timeline.h"
 #include "../core/session_step.h"
 
 // --- Splash State ---
@@ -122,41 +123,8 @@ void ReplayingState::enter() {
 }
 
 void ReplayingState::update() {
-    // First, replay recorded roguelike choices at their exact frame.
-    while (m_choiceHistoryIndex < m_context.bestChoiceHistorySize()) {
-        int frame = 0;
-        int choiceIndex = 0;
-        if (!m_context.bestChoiceAt(m_choiceHistoryIndex, frame, choiceIndex)) {
-            break;
-        }
-        if (frame == m_context.currentTick()) {
-            m_context.selectChoice(choiceIndex);
-            m_choiceHistoryIndex++;
-            break;
-        } else if (frame > m_context.currentTick()) {
-            break;
-        } else {
-            m_choiceHistoryIndex++;
-        }
-    }
-
-    // Then, replay movement input for the same tick timeline.
-    while (m_historyIndex < m_context.bestInputHistorySize()) {
-        int frame = 0;
-        int dx = 0;
-        int dy = 0;
-        if (!m_context.bestInputFrameAt(m_historyIndex, frame, dx, dy)) {
-            break;
-        }
-        if (frame == m_context.currentTick()) {
-            m_context.setDirection(QPoint(dx, dy));
-            m_historyIndex++;
-        } else if (frame > m_context.currentTick()) {
-            break;
-        } else {
-            m_historyIndex++;
-        }
-    }
+    snakegb::core::applyReplayChoicesForCurrentTick(m_context, m_choiceHistoryIndex);
+    snakegb::core::applyReplayInputsForCurrentTick(m_context, m_historyIndex);
 
     // Run normal step simulation using replay-driven direction.
     snakegb::core::runSessionStep(m_context, {
