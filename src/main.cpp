@@ -15,17 +15,28 @@
 
 namespace {
 auto releaseLogFilter(QtMsgType type, const QMessageLogContext &, const QString &msg) -> void {
-    if (type == QtCriticalMsg || type == QtFatalMsg) {
-        fprintf(stderr, "%s\n", msg.toLocal8Bit().constData());
-    }
+    Q_UNUSED(msg);
     if (type == QtFatalMsg) {
         abort();
     }
+}
+
+void silenceStderrForRelease() {
+#ifdef _WIN32
+    if (freopen("NUL", "w", stderr) == nullptr) {
+        return;
+    }
+#else
+    if (freopen("/dev/null", "w", stderr) == nullptr) {
+        return;
+    }
+#endif
 }
 }
 
 auto main(int argc, char *argv[]) -> int {
 #if defined(QT_NO_DEBUG_OUTPUT) && defined(QT_NO_INFO_OUTPUT) && defined(QT_NO_WARNING_OUTPUT)
+    silenceStderrForRelease();
     qInstallMessageHandler(releaseLogFilter);
 #endif
 
