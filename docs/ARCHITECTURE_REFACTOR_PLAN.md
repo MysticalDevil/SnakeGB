@@ -1,0 +1,189 @@
+# SnakeGB Architecture Refactor Plan
+
+Last updated: 2026-02-21
+Scope: architecture baseline review + GameLogic core/adapter decoupling roadmap.
+
+## 1. Executive Summary
+
+Current state:
+- The project has passed the "basically maintainable" line.
+- Input semantics unification has progressed well.
+- `GameLogic` is still a high-load class and remains the main coupling hotspot.
+
+Key conclusion:
+- The decoupling is **not enough yet** for a reusable pseudo-emulator shell.
+- The next milestone is not "more feature work", but "extract a true game core and shrink adapter responsibilities".
+
+## 2. Current Architecture Assessment
+
+## 2.1 What is already good
+
+- FSM is interface-driven (`IGameEngine`) and no longer tightly bound to one concrete state owner.
+- Sound output is mostly event-driven and assembled in app wiring.
+- Profile/save responsibilities are separated into manager-level components.
+- Input semantics are normalized through a single action dispatch entry.
+
+## 2.2 What is still overloaded
+
+Primary hotspot:
+- `src/game_logic.cpp` is still very large and mixes rule execution, persistence access, resource loading, timing, and UI-facing mapping.
+
+Symptoms:
+- One class owns too many behaviors and changes for unrelated reasons.
+- QML still talks to many `GameLogic` methods directly.
+- Partial magic-number state checks still exist in QML pages.
+
+Risk:
+- Any new game mode / level system / UI page increases regression surface.
+- Reusing shell + screen + controls for another mini game will be expensive.
+
+## 2.3 Scorecard
+
+- Module boundary clarity: 7/10
+- Replaceability of gameplay core: 5/10
+- Testability of game rules (headless): 5/10
+- QML coupling control: 6/10
+- Extensibility for multi-game shell: 6/10
+
+Overall: **5.8/10** (needs refactor before scaling).
+
+## 3. Target Architecture (Core + Adapter)
+
+## 3.1 Design goals
+
+- Keep gameplay rules independent from QML presentation.
+- Keep shell/input/navigation independent from a specific game implementation.
+- Enable future multi-game integration with additive adapters.
+
+## 3.2 Layer model
+
+1. `core` (pure gameplay session core)
+- Owns deterministic rules: movement, collision, scoring, buff, replay timeline.
+- Exposes command API + state snapshot API.
+- No QML dependency.
+- Avoid direct persistence/device I/O.
+
+2. `adapter` (Qt/QML boundary)
+- Maps input actions to core commands.
+- Maps core snapshot to QML-friendly properties/models.
+- Owns Qt timers and UI timing policy.
+- Owns integration with profile/audio/asset services.
+
+3. `services` (infra)
+- profile persistence service
+- level data source / fallback provider
+- audio event sink
+- optional sensor provider
+
+## 3.3 Proposed module split
+
+- `src/core/`
+  - `game_session_core.h/.cpp`
+  - `state_snapshot.h`
+  - `rules/` (`collision`, `buff_runtime`, `scoring`, `replay`)
+
+- `src/adapter/`
+  - `qml_game_adapter.h/.cpp` (final QML-facing entry)
+  - `input_router_adapter.h/.cpp`
+  - `profile_adapter.h/.cpp`
+
+- `src/services/`
+  - `level_repository.h/.cpp`
+  - `audio_bus.h/.cpp`
+  - `save_repository.h/.cpp`
+
+Note:
+- Existing `GameLogic` should be gradually reduced into adapter responsibilities, then renamed or retired.
+
+## 4. Migration Plan (Atomic Steps)
+
+## Phase A: Core extraction without behavior change
+
+Goal:
+- Introduce `GameSessionCore` and move tick/rule progression first.
+
+Tasks:
+- Define minimal core command interface (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice`).
+- Define immutable snapshot struct for render/query.
+- Move collision/movement/score/buff update pipeline into core.
+- Keep old signals and QML API unchanged via adapter mapping.
+
+Acceptance:
+- Existing gameplay behavior remains unchanged.
+- Existing manual flows and scripts still pass.
+
+## Phase B: Adapter contraction
+
+Goal:
+- Make adapter thin and explicit.
+
+Tasks:
+- Move non-rule infra calls from adapter body into dedicated services.
+- Replace multi-method direct QML invocations with action-oriented adapter API.
+- Remove remaining state magic numbers in QML (`AppState.*` only).
+
+Acceptance:
+- QML does not call rule internals directly.
+- Adapter methods become orchestration-only.
+
+## Phase C: Headless reliability
+
+Goal:
+- Make gameplay verifiable without GUI.
+
+Tasks:
+- Add headless core tests for deterministic replay, collision edge cases, buff interactions.
+- Add replay consistency test (same seed + same input => same timeline).
+- Keep input semantics matrix tests for shell/navigation compatibility.
+
+Acceptance:
+- Core tests pass in CI without GUI runtime.
+- Input matrix + smoke tests remain green.
+
+## 5. Hard Acceptance KPIs
+
+Refactor considered complete only if all are met:
+
+1. `GameLogic` (or replacement adapter) no longer contains core rule branches.
+2. Core can run full session and replay in headless mode.
+3. QML-facing API remains compatible for menu/game/pause/catalog/achievements/easter paths.
+4. `GameLogic` file size shrinks significantly (target: implementation under 600 lines).
+5. QML state checks use symbolic `AppState` only (no magic numbers).
+6. Existing input semantics scripts and regression checks pass.
+
+## 6. Risks and Mitigations
+
+Risk 1: signal timing regressions during extraction.
+- Mitigation: move logic first, keep signal emission contract unchanged in adapter.
+
+Risk 2: save/replay compatibility break.
+- Mitigation: keep data schema stable during Phase A/B; introduce migration only in dedicated commit.
+
+Risk 3: large-bang refactor instability.
+- Mitigation: atomic commits per slice, each with compile + focused validation.
+
+## 7. Execution Strategy
+
+Branch model:
+- Work on dedicated branch: `refactor/gamelogic-core-adapter`.
+- Keep one concern per commit:
+  - commit 1: core interfaces + snapshot
+  - commit 2: movement/collision pipeline move
+  - commit 3: buff/runtime pipeline move
+  - commit 4: adapter API cleanup
+  - commit 5: tests + docs sync
+
+Validation after each commit:
+- build (debug + release)
+- app boot smoke
+- input semantics smoke/matrix
+- targeted gameplay checks (pause/B/menu/level switch/replay trigger)
+
+## 8. Documentation Status
+
+- [x] Refactor objectives documented.
+- [x] Module boundaries defined.
+- [x] Phase plan and KPIs defined.
+- [ ] Phase A implementation started.
+- [ ] Phase B implementation completed.
+- [ ] Phase C test hardening completed.
