@@ -204,6 +204,7 @@ Validation after each commit:
   - level count extraction from JSON bytes
   - score-to-tick-interval mapping rule
   - replay frame/value object types into shared core type header
+  - roguelike choice pool picking/runtime selection algorithm
   - scripted level `onTick` runtime obstacle parsing/application
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
