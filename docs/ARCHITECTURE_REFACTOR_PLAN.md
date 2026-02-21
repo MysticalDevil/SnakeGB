@@ -238,6 +238,8 @@ Validation after each commit:
   `AdapterLevelScriptRuntimeTest`.
 - Ghost replay persistence (`ghost.dat` load/save + legacy compatibility) is extracted into
   `src/adapter/ghost_store.*`; behavior is covered by `AdapterGhostStoreTest`.
+- Profile session-map decoding is extracted into `src/adapter/session_state.*`; behavior is covered by
+  `AdapterSessionStateTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
