@@ -267,6 +267,7 @@ private slots:
     void update();
 
 private:
+    auto shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool;
     void applyMagnetAttraction();
     void deactivateBuff();
     void changeState(std::unique_ptr<GameState> newState);
@@ -314,6 +315,7 @@ private:
     int m_bestLevelIndex = 0;
     int m_gameTickCounter = 0;
     int m_ghostFrameIndex = 0;
+    int m_lastRoguelikeChoiceScore = -1000;
     qint64 m_sessionStartTime = 0;
     QPointF m_reflectionOffset = {0.0, 0.0};
     QJSEngine m_jsEngine;

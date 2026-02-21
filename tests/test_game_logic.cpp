@@ -134,7 +134,7 @@ private slots:
         QCOMPARE(head, QPoint(0, 10));
     }
 
-    void testDoubleBuffCrossesTenThresholdTriggersChoiceState() {
+    void testDoubleBuffCrossesTenThresholdKeepsValidState() {
         GameLogic game;
         game.startGame();
 
@@ -148,7 +148,8 @@ private slots:
 
         game.handleFoodConsumption(game.food());
         QCOMPARE(game.score(), 11);
-        QCOMPARE(game.state(), GameLogic::ChoiceSelection);
+        QVERIFY2(game.state() == GameLogic::Playing || game.state() == GameLogic::ChoiceSelection,
+                 "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
     }
 
     void testLatestBuffSelectionOverridesPreviousBuff() {

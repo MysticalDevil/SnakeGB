@@ -284,8 +284,8 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
     emit scoreChanged();
     spawnFood();
 
-    const bool crossedLevelUpThreshold = (previousScore / 10) < (m_score / 10);
-    if (m_score > 0 && crossedLevelUpThreshold) {
+    if (shouldTriggerRoguelikeChoice(previousScore, m_score)) {
+        m_lastRoguelikeChoiceScore = m_score;
         if (m_state == Replaying) {
             generateChoices();
         } else {
@@ -377,6 +377,7 @@ void GameLogic::restart() {
     m_rng.seed(m_randomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
+    m_lastRoguelikeChoiceScore = -1000;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();
@@ -416,6 +417,7 @@ void GameLogic::startReplay() {
     m_rng.seed(m_bestRandomSeed);
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
+    m_lastRoguelikeChoiceScore = -1000;
     m_timer->setInterval(InitialInterval);
     m_timer->start();
     spawnFood();
@@ -451,6 +453,7 @@ void GameLogic::loadLastSession() {
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();
+    m_lastRoguelikeChoiceScore = -1000;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
     m_buffTicksTotal = 0;
@@ -609,6 +612,7 @@ void GameLogic::selectChoice(int index) {
     }
     
     int type = m_choices[index].toMap().value(u"type"_s).toInt();
+    m_lastRoguelikeChoiceScore = m_score;
     m_activeBuff = static_cast<PowerUp>(type);
     
     if (m_profileManager) {
@@ -912,6 +916,35 @@ auto GameLogic::fruitLibrary() const -> QVariantList {
 }
 
 // --- Private Helpers ---
+
+auto GameLogic::shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool {
+    if (newScore < 8) {
+        return false;
+    }
+    // Prevent back-to-back choice prompts when score spikes with Double/Rich.
+    if (newScore - m_lastRoguelikeChoiceScore < 6) {
+        return false;
+    }
+    // Safety net: guarantee one choice each 20-point milestone.
+    if ((previousScore / 20) < (newScore / 20)) {
+        return true;
+    }
+
+    int chancePercent = 10;
+    if (newScore >= 40) {
+        chancePercent = 34;
+    } else if (newScore >= 25) {
+        chancePercent = 24;
+    } else if (newScore >= 15) {
+        chancePercent = 16;
+    }
+    // Crossing a 10-point band slightly boosts the roll.
+    if ((previousScore / 10) < (newScore / 10)) {
+        chancePercent += 8;
+    }
+    chancePercent = std::min(chancePercent, 65);
+    return m_rng.bounded(100) < chancePercent;
+}
 
 void GameLogic::applyMagnetAttraction() {
     if (m_activeBuff != Magnet || m_food == QPoint(-1, -1) || m_snakeModel.body().empty()) {
