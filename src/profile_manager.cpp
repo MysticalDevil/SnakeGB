@@ -59,7 +59,15 @@ void ProfileManager::saveSession(int score, const std::deque<QPoint> &body, cons
     m_settings.endGroup();
 }
 
-void ProfileManager::clearSession() { m_settings.remove(u"session"_s); }
+void ProfileManager::clearSession() {
+    // Clear the full session group and flush immediately so hasSession()
+    // does not observe stale keys in the same process.
+    m_settings.beginGroup(u"session"_s);
+    m_settings.remove(u""_s);
+    m_settings.endGroup();
+    m_settings.remove(u"session"_s);
+    m_settings.sync();
+}
 auto ProfileManager::hasSession() const -> bool { return m_settings.value(u"session/active"_s, false).toBool(); }
 auto ProfileManager::loadSession() -> QVariantMap {
     QVariantMap d; m_settings.beginGroup(u"session"_s);

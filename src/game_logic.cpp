@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QJSValue>
 #include <QAccelerometer>
+#include <QDebug>
 #ifdef Q_OS_ANDROID
 #include <QJniObject>
 #include <QtCore/qnativeinterface.h>
@@ -69,6 +70,21 @@ namespace {
         const auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
         return levels.isEmpty() ? fallbackCount : static_cast<int>(levels.size());
     }
+
+    auto stateName(int state) -> const char * {
+        switch (state) {
+            case GameLogic::Splash: return "Splash";
+            case GameLogic::StartMenu: return "StartMenu";
+            case GameLogic::Playing: return "Playing";
+            case GameLogic::Paused: return "Paused";
+            case GameLogic::GameOver: return "GameOver";
+            case GameLogic::Replaying: return "Replaying";
+            case GameLogic::ChoiceSelection: return "ChoiceSelection";
+            case GameLogic::Library: return "Library";
+            case GameLogic::MedalRoom: return "MedalRoom";
+            default: return "Unknown";
+        }
+    }
 }
 
 GameLogic::GameLogic(QObject *parent)
@@ -103,21 +119,27 @@ GameLogic::GameLogic(QObject *parent)
     });
 
     connect(this, &GameLogic::stateChanged, this, [this]() -> void {
+        qInfo().noquote() << "[AudioFlow][GameLogic] stateChanged ->"
+                          << stateName(m_state) << "(musicEnabled=" << m_musicEnabled << ")";
         if (m_state == StartMenu) {
             const int token = m_audioStateToken;
             QTimer::singleShot(650, this, [this, token]() -> void {
                 if (token != m_audioStateToken) {
+                    qInfo().noquote() << "[AudioFlow][GameLogic] menu BGM deferred start canceled by token";
                     return;
                 }
                 if (m_state == StartMenu && m_musicEnabled) {
+                    qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStartMusic (menu)";
                     emit audioStartMusic();
                 }
             });
         } else if (m_state == Playing || m_state == Replaying) {
             if (m_musicEnabled) {
+                qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStartMusic (playing/replaying)";
                 emit audioStartMusic();
             }
         } else if (m_state == Splash || m_state == GameOver) {
+            qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStopMusic (splash/gameover)";
             emit audioStopMusic();
         }
     });
@@ -136,6 +158,14 @@ GameLogic::GameLogic(QObject *parent)
             emit reflectionOffsetChanged();
         });
         m_accelerometer->start();
+        QTimer::singleShot(200, this, [this]() -> void {
+            if (!m_accelerometer) {
+                return;
+            }
+            qInfo().noquote() << "[SensorFlow][GameLogic] accelerometer connected="
+                              << m_accelerometer->isConnectedToBackend()
+                              << "active=" << m_accelerometer->isActive();
+        });
     }
 
     m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
@@ -156,6 +186,8 @@ GameLogic::~GameLogic() {
 void GameLogic::setInternalState(int s) {
     auto next = static_cast<State>(s);
     if (m_state != next) {
+        qInfo().noquote() << "[StateFlow][GameLogic] setInternalState:"
+                          << stateName(m_state) << "->" << stateName(next);
         m_state = next;
         m_audioStateToken++;
         emit audioSetPaused(m_state == Paused || m_state == ChoiceSelection || m_state == Library ||
@@ -166,9 +198,12 @@ void GameLogic::setInternalState(int s) {
 
 void GameLogic::requestStateChange(int newState) {
     if (m_stateCallbackInProgress) {
+        qInfo().noquote() << "[StateFlow][GameLogic] defer requestStateChange to"
+                          << stateName(newState) << "(inside callback)";
         m_pendingStateChange = newState;
         return;
     }
+    qInfo().noquote() << "[StateFlow][GameLogic] requestStateChange ->" << stateName(newState);
 
     auto s = static_cast<State>(newState);
     switch (s) {
@@ -528,6 +563,7 @@ void GameLogic::triggerHaptic(int magnitude) {
 }
 
 void GameLogic::playEventSound(int type, float pan) {
+    qInfo().noquote() << "[AudioFlow][GameLogic] playEventSound type=" << type << " pan=" << pan;
     if (type == 0) {
         emit foodEaten(pan);
     } else if (type == 1) {
@@ -734,6 +770,7 @@ void GameLogic::quitToMenu() {
 
 void GameLogic::toggleMusic() {
     m_musicEnabled = !m_musicEnabled;
+    qInfo().noquote() << "[AudioFlow][GameLogic] toggleMusic ->" << m_musicEnabled;
     emit audioSetMusicEnabled(m_musicEnabled);
     if (m_musicEnabled && m_state != Splash) {
         emit audioStartMusic();
@@ -780,7 +817,13 @@ void GameLogic::handleStart() {
 
 void GameLogic::deleteSave() {
     clearSavedState();
-    emit paletteChanged();
+    // Clearing save should also reset level selection to default.
+    m_levelIndex = 0;
+    if (m_profileManager) {
+        m_profileManager->setLevelIndex(m_levelIndex);
+    }
+    loadLevelData(m_levelIndex);
+    emit levelChanged();
 }
 
 // --- Property Getters ---

@@ -120,6 +120,48 @@ private slots:
         QVERIFY2(before != after, "Dynamic Pulse obstacles should change over time");
     }
 
+    void testDeleteSaveResetsLevelToClassicAndNewRunUsesClassic() {
+        GameLogic game;
+        game.requestStateChange(GameLogic::StartMenu);
+        game.deleteSave();
+
+        // Move away from Classic and create a save by returning to menu.
+        game.handleSelect();
+        game.handleSelect();
+        QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+        game.handleStart();
+        QVERIFY(game.state() == GameLogic::Playing || game.state() == GameLogic::Paused);
+        game.quitToMenu();
+        QVERIFY2(game.hasSave(), "Session save should exist after quitting from an active run");
+
+        // Clear save and start without selecting level again.
+        game.deleteSave();
+        QVERIFY2(!game.hasSave(), "Session save should be cleared");
+        QCOMPARE(game.currentLevelName(), QString("Classic"));
+
+        game.handleStart();
+        QVERIFY2(game.state() == GameLogic::Playing || game.state() == GameLogic::Paused,
+                 "Start should begin a new run, not reload old session");
+        QCOMPARE(game.obstacles().size(), 0);
+    }
+
+    void testDeleteSaveThenSelectStartsChosenLevel() {
+        GameLogic game;
+        game.requestStateChange(GameLogic::StartMenu);
+        game.deleteSave();
+        QCOMPARE(game.currentLevelName(), QString("Classic"));
+
+        // After reset to Classic, one select should choose The Cage.
+        game.handleSelect();
+        QCOMPARE(game.currentLevelName(), QString("The Cage"));
+
+        game.handleStart();
+        QVERIFY2(game.state() == GameLogic::Playing || game.state() == GameLogic::Paused,
+                 "Start should begin a new run");
+        QVERIFY2(game.obstacles().size() > 0,
+                 "The Cage run should use The Cage obstacles");
+    }
+
     void testHeadWrapsAtBoundary() {
         GameLogic game;
         game.requestStateChange(GameLogic::StartMenu);
