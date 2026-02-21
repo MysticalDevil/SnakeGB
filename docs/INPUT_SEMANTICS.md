@@ -16,7 +16,7 @@ Last updated: 2026-02-21
 - [x] Phase 1 (Part A): unified action dispatch entry added in QML (`dispatchAction` + action map).
 - [x] Phase 1 (Part B): runtime input injection channel added (file queue / FIFO + token mapping).
 - [x] Phase 1 (Part C): remove major direct key-to-logic entry points and add smoke script (`scripts/input_semantics_smoke.sh`).
-- [ ] Phase 2: introduce dedicated `InputRouter` abstraction + named state constants.
+- [x] Phase 2: introduce dedicated `InputRouter` abstraction + named state constants.
 - [ ] Phase 3: automated regression matrix for input semantics and easter no-side-effect rules.
 
 ---
@@ -132,6 +132,11 @@ Define actions first, then map physical keys to actions.
 ## 4.1 Introduce an action router
 Create `InputRouter` with a single entry:
 - Physical input -> normalized action -> dispatch chain.
+
+Status:
+- Implemented in `src/qml/main.qml` as layered action router (`QtObject`).
+- Layer order now follows: `icon overlay -> state overlay -> page -> game -> shell`.
+- Physical key/shell/touch/injected tokens all converge into `dispatchAction(...)`.
 
 ## 4.2 Dispatch priority
 - Overlay layer

@@ -55,35 +55,7 @@ Window {
         loops: Animation.Infinite 
     }
 
-    function handleDirection(dx, dy) {
-        var token = ""
-        if (dy < 0) token = "U"
-        else if (dy > 0) token = "D"
-        else if (dx < 0) token = "L"
-        else if (dx > 0) token = "R"
-
-        if (token !== "") {
-            var consumed = handleEasterInput(token)
-            if (iconDebugMode) {
-                screen.iconLabMove(dx, dy)
-                if (dy < 0) {
-                    shell.dpad.upPressed = true
-                } else if (dy > 0) {
-                    shell.dpad.downPressed = true
-                } else if (dx < 0) {
-                    shell.dpad.leftPressed = true
-                } else if (dx > 0) {
-                    shell.dpad.rightPressed = true
-                }
-                return
-            }
-            if (consumed) {
-                clearDpadVisuals()
-                return
-            }
-        }
-
-        gameLogic.move(dx, dy)
+    function setDpadPressed(dx, dy) {
         if (dy < 0) {
             shell.dpad.upPressed = true
         } else if (dy > 0) {
@@ -95,6 +67,52 @@ Window {
         }
     }
 
+    function handleDirection(dx, dy) {
+        gameLogic.move(dx, dy)
+        setDpadPressed(dx, dy)
+    }
+
+    function routeDirection(action) {
+        var dx = 0
+        var dy = 0
+        var token = ""
+        if (action === inputAction.NavUp) {
+            dy = -1
+            token = "U"
+        } else if (action === inputAction.NavDown) {
+            dy = 1
+            token = "D"
+        } else if (action === inputAction.NavLeft) {
+            dx = -1
+            token = "L"
+        } else if (action === inputAction.NavRight) {
+            dx = 1
+            token = "R"
+        } else {
+            return false
+        }
+
+        if (handleEasterInput(token)) {
+            clearDpadVisuals()
+            return true
+        }
+        handleDirection(dx, dy)
+        return true
+    }
+
+    function isOverlayState(state) {
+        return state === gameState.Paused || state === gameState.GameOver ||
+               state === gameState.Replaying || state === gameState.ChoiceSelection
+    }
+
+    function isPageState(state) {
+        return state === gameState.Library || state === gameState.MedalRoom
+    }
+
+    function isGameplayState(state) {
+        return state === gameState.Playing
+    }
+
     function toggleIconLab() {
         iconDebugMode = !iconDebugMode
         konamiIndex = 0
@@ -104,62 +122,170 @@ Window {
         }
     }
 
-    function dispatchAction(action) {
-        if (action === inputAction.NavUp) {
-            handleDirection(0, -1)
-            return
+    QtObject {
+        id: inputRouter
+
+        // Layer priority: icon overlay -> state overlay -> page -> game -> shell fallback.
+        function route(action) {
+            if (routeGlobal(action)) return true
+            if (window.iconDebugMode) return routeIconLayer(action)
+
+            var state = gameLogic.state
+            if (isOverlayState(state)) return routeOverlayLayer(action)
+            if (isPageState(state)) return routePageLayer(action)
+            if (isGameplayState(state)) return routeGameLayer(action)
+            return routeShellLayer(action)
         }
-        if (action === inputAction.NavDown) {
-            handleDirection(0, 1)
-            return
-        }
-        if (action === inputAction.NavLeft) {
-            handleDirection(-1, 0)
-            return
-        }
-        if (action === inputAction.NavRight) {
-            handleDirection(1, 0)
-            return
-        }
-        if (action === inputAction.Primary) {
-            handleAButton()
-            return
-        }
-        if (action === inputAction.Secondary) {
-            handleBButton()
-            return
-        }
-        if (action === inputAction.Start) {
-            handleStartButton()
-            return
-        }
-        if (action === inputAction.SelectShort) {
-            handleSelectShortPress()
-            return
-        }
-        if (action === inputAction.Back) {
-            handleBackAction()
-            return
-        }
-        if (action === inputAction.Escape) {
-            if (iconDebugMode) {
-                exitIconLabToMenu()
-            } else {
-                gameLogic.quit()
+
+        function routeGlobal(action) {
+            if (action === inputAction.ToggleIconLab) {
+                toggleIconLab()
+                return true
             }
-            return
+            if (action === inputAction.ToggleShellColor) {
+                gameLogic.nextShellColor()
+                return true
+            }
+            if (action === inputAction.ToggleMusic) {
+                gameLogic.toggleMusic()
+                return true
+            }
+            if (action === inputAction.Escape) {
+                if (window.iconDebugMode) {
+                    exitIconLabToMenu()
+                } else {
+                    gameLogic.quit()
+                }
+                return true
+            }
+            return false
         }
-        if (action === inputAction.ToggleIconLab) {
-            toggleIconLab()
-            return
+
+        function routeIconLayer(action) {
+            var dx = 0
+            var dy = 0
+            var token = ""
+            if (action === inputAction.NavUp) {
+                dy = -1
+                token = "U"
+            } else if (action === inputAction.NavDown) {
+                dy = 1
+                token = "D"
+            } else if (action === inputAction.NavLeft) {
+                dx = -1
+                token = "L"
+            } else if (action === inputAction.NavRight) {
+                dx = 1
+                token = "R"
+            }
+            if (token !== "") {
+                handleEasterInput(token)
+                if (window.iconDebugMode) {
+                    screen.iconLabMove(dx, dy)
+                    setDpadPressed(dx, dy)
+                }
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                exitIconLabToMenu()
+                return true
+            }
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Start || action === inputAction.SelectShort) {
+                return true
+            }
+            return false
         }
-        if (action === inputAction.ToggleShellColor) {
-            gameLogic.nextShellColor()
-            return
+
+        function routeOverlayLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary || action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                gameLogic.quitToMenu()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                return true
+            }
+            return false
         }
-        if (action === inputAction.ToggleMusic) {
-            gameLogic.toggleMusic()
+
+        function routePageLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                gameLogic.quitToMenu()
+                return true
+            }
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            return false
         }
+
+        function routeGameLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Secondary) {
+                handleBButton()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            if (action === inputAction.Back) {
+                handleBackAction()
+                return true
+            }
+            return false
+        }
+
+        function routeShellLayer(action) {
+            if (routeDirection(action)) return true
+            if (action === inputAction.Primary) {
+                handleAButton()
+                return true
+            }
+            if (action === inputAction.Secondary || action === inputAction.Back) {
+                handleBackAction()
+                return true
+            }
+            if (action === inputAction.Start) {
+                handleStartButton()
+                return true
+            }
+            if (action === inputAction.SelectShort) {
+                handleSelectShortPress()
+                return true
+            }
+            return false
+        }
+    }
+
+    function dispatchAction(action) {
+        inputRouter.route(action)
     }
 
     function dispatchInjectedToken(rawToken) {
