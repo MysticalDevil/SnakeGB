@@ -206,7 +206,7 @@ Validation after each commit:
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
   - magnet movement candidate selection
-  - collision probing (while keeping buff/shield side effects in adapter)
+  - collision probing and collision outcome policy (while keeping haptic/signal side effects in adapter)
 - Remaining Phase A focus:
   - continue shrinking adapter-owned rule branches into `GameSessionCore`-style interfaces.
   - keep signal/timer/QML contract unchanged during extraction.
