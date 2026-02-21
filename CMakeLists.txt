@@ -123,6 +123,8 @@ set_tests_properties(GameLogicTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offsc
 add_executable(core-rules-tests
     tests/test_core_rules.cpp
     src/core/game_rules.cpp
+    src/core/buff_runtime.cpp
+    src/core/replay_timeline.cpp
     src/core/level_runtime.cpp
 )
 target_include_directories(core-rules-tests PRIVATE src)
