@@ -124,4 +124,16 @@ auto resolvedLevelDataFromJsonBytes(const QByteArray &levelsJsonBytes, const int
     return resolvedLevelDataFromJson(levels, levelIndex);
 }
 
+auto levelCountFromJsonBytes(const QByteArray &levelsJsonBytes, const int fallbackCount) -> int {
+    const QJsonDocument document = QJsonDocument::fromJson(levelsJsonBytes);
+    if (!document.isObject()) {
+        return fallbackCount;
+    }
+    const QJsonArray levels = document.object().value(QStringLiteral("levels")).toArray();
+    if (levels.isEmpty()) {
+        return fallbackCount;
+    }
+    return static_cast<int>(levels.size());
+}
+
 } // namespace snakegb::core

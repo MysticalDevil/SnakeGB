@@ -22,6 +22,7 @@ private slots:
     void testWallsFromJsonArrayParsesCoordinates();
     void testResolvedLevelDataFromJsonMapsIndexAndFields();
     void testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope();
+    void testLevelCountFromJsonBytesUsesFallbackOnInvalidData();
     void testBuffRuntimeRules();
     void testReplayTimelineAppliesOnlyOnMatchingTicks();
 };
@@ -239,6 +240,19 @@ void TestCoreRules::testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope() {
 
     const auto invalid = snakegb::core::resolvedLevelDataFromJsonBytes(QByteArrayLiteral("not-json"), 0);
     QVERIFY(!invalid.has_value());
+}
+
+void TestCoreRules::testLevelCountFromJsonBytesUsesFallbackOnInvalidData() {
+    const QJsonDocument valid(QJsonObject{
+        {"levels", QJsonArray{
+            QJsonObject{{"name", "A"}},
+            QJsonObject{{"name", "B"}},
+            QJsonObject{{"name", "C"}}
+        }}
+    });
+    QCOMPARE(snakegb::core::levelCountFromJsonBytes(valid.toJson(), 6), 3);
+    QCOMPARE(snakegb::core::levelCountFromJsonBytes(QByteArrayLiteral("x"), 6), 6);
+    QCOMPARE(snakegb::core::levelCountFromJsonBytes(QJsonDocument(QJsonObject{}).toJson(), 6), 6);
 }
 
 void TestCoreRules::testBuffRuntimeRules() {

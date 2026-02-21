@@ -73,8 +73,7 @@ namespace {
         if (!f.open(QIODevice::ReadOnly)) {
             return fallbackCount;
         }
-        const auto levels = QJsonDocument::fromJson(f.readAll()).object().value(u"levels"_s).toArray();
-        return levels.isEmpty() ? fallbackCount : static_cast<int>(levels.size());
+        return snakegb::core::levelCountFromJsonBytes(f.readAll(), fallbackCount);
     }
 
     auto stateName(int state) -> const char * {
