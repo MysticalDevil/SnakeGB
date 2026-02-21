@@ -101,14 +101,14 @@ Rectangle {
 
         Text {
             anchors.left: parent.left
-            anchors.leftMargin: 14
+            anchors.leftMargin: 16
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: 11
             text: "DOT MATRIX WITH STEREO SOUND"
-            color: "#9fa3ac"
-            font.pixelSize: 8
-            font.bold: true
-            opacity: 0.75
+            color: "#8e939d"
+            font.pixelSize: 7
+            font.bold: false
+            opacity: 0.62
         }
     }
 
@@ -202,9 +202,9 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: -1
         anchors.verticalCenter: screenBorder.verticalCenter
-        anchors.verticalCenterOffset: 14
-        width: 20
-        height: 84
+        anchors.verticalCenterOffset: 16
+        width: 18
+        height: 74
         property int detentCount: 16
 
         function clamp01(v) {
@@ -252,7 +252,7 @@ Rectangle {
             id: wheelViewport
             x: 4
             y: 4
-            width: 11
+            width: 9
             height: parent.height - 8
             clip: true
 
@@ -324,7 +324,7 @@ Rectangle {
                 }
                 onPositionChanged: {
                     if (!pressed) return
-                    var delta = (startY - mouse.y) / 76.0
+                    var delta = (startY - mouse.y) / 66.0
                     volumeControl.setDetentVolume(startVolume + delta, true)
                 }
             }
