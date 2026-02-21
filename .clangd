@@ -1,0 +1,13 @@
+CompileFlags:
+  CompilationDatabase: build-review
+  Add:
+    - -std=c++23
+  Remove:
+    - -mno-direct-extern-access
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: Strict
+
+Index:
+  Background: Build

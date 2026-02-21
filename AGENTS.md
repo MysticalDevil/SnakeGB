@@ -40,6 +40,7 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 - Framework: `Qt6::Test` via `game-tests` target and `ctest` (`GameLogicTest`).
 - Add tests in `tests/test_*.cpp`; keep test names descriptive by behavior (for example, `test_portalWrap_keepsHeadInsideBounds`).
 - For UI/input regressions, use scripts such as `scripts/ui_self_check.sh` and `scripts/input_semantics_matrix_wayland.sh` when relevant.
+- Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commit style seen in history: `feat(ui): ...`, `fix(runtime+ui): ...`, `refactor(input): ...`, `docs(arch): ...`.
