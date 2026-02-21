@@ -5,6 +5,7 @@
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "adapter/ghost_store.h"
+#include "adapter/library_models.h"
 #include "adapter/session_state.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
@@ -831,21 +832,7 @@ auto GameLogic::achievements() const -> QVariantList {
 }
 
 auto GameLogic::medalLibrary() const -> QVariantList {
-    QVariantList list;
-    auto createMedal = [](const QString &id, const QString &hint) -> QVariantMap {
-        QVariantMap m;
-        m.insert(u"id"_s, id);
-        m.insert(u"hint"_s, hint);
-        return m;
-    };
-    list << createMedal(u"Gold Medal (50 Pts)"_s, u"Reach 50 points"_s)
-         << createMedal(u"Silver Medal (20 Pts)"_s, u"Reach 20 points"_s)
-         << createMedal(u"Centurion (100 Crashes)"_s, u"Crash 100 times"_s)
-         << createMedal(u"Gourmet (500 Food)"_s, u"Eat 500 food"_s)
-         << createMedal(u"Untouchable"_s, u"20 Ghost triggers"_s)
-         << createMedal(u"Speed Demon"_s, u"Max speed reached"_s)
-         << createMedal(u"Pacifist (60s No Food)"_s, u"60s no food"_s);
-    return list;
+    return snakegb::adapter::buildMedalLibraryModel();
 }
 
 auto GameLogic::coverage() const noexcept -> float { 
@@ -865,28 +852,8 @@ void GameLogic::setVolume(float v) {
 }
 
 auto GameLogic::fruitLibrary() const -> QVariantList {
-    QVariantList list;
-    QList<int> discovered = m_profileManager ? 
-                            m_profileManager->discoveredFruits() : QList<int>();
-    auto add = [&](int t, QString n, QString d) -> void {
-        bool isDiscovered = discovered.contains(t);
-        QVariantMap m;
-        m.insert(u"type"_s, t);
-        m.insert(u"name"_s, isDiscovered ? n : u"??????"_s);
-        m.insert(u"desc"_s, isDiscovered ? d : u"Eat this fruit in-game to unlock its data."_s);
-        m.insert(u"discovered"_s, isDiscovered);
-        list << m;
-    };
-    add(Ghost, u"Ghost"_s, u"Pass through yourself."_s);
-    add(Slow, u"Slow"_s, u"Slows the game down."_s);
-    add(Magnet, u"Magnet"_s, u"Standard nutritious food."_s);
-    add(Shield, u"Shield"_s, u"Survive one collision."_s);
-    add(Portal, u"Portal"_s, u"Pass through obstacle walls."_s);
-    add(Double, u"Golden"_s, u"2x points per food."_s);
-    add(Rich, u"Diamond"_s, u"3x points per food."_s);
-    add(Laser, u"Laser"_s, u"Breaks one obstacle."_s);
-    add(Mini, u"Mini"_s, u"Shrinks body by 50%."_s);
-    return list;
+    const QList<int> discovered = m_profileManager ? m_profileManager->discoveredFruits() : QList<int>{};
+    return snakegb::adapter::buildFruitLibraryModel(discovered);
 }
 
 // --- Private Helpers ---
