@@ -17,190 +17,140 @@ Item {
     signal rightClicked
 
     readonly property int armThickness: 30
-    readonly property int crossSpan: 86
-    readonly property int pressOffsetX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
-    readonly property int pressOffsetY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
+    readonly property int crossSize: 84
+    readonly property int pressX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
+    readonly property int pressY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
 
     Item {
-        id: dpadVisual
-        width: crossSpan
-        height: crossSpan
+        id: crossRoot
         anchors.centerIn: parent
-        x: dpad.pressOffsetX
-        y: dpad.pressOffsetY
+        width: dpad.crossSize
+        height: dpad.crossSize
+        x: dpad.pressX
+        y: dpad.pressY
 
-        // Shadow under one-piece cross.
         Item {
             anchors.fill: parent
             x: 1
             y: 2
-            opacity: 0.25
+            opacity: 0.28
             Rectangle {
                 anchors.centerIn: parent
                 width: dpad.armThickness
                 height: parent.height
                 radius: 2
-                color: "black"
+                color: "#000000"
             }
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.width
                 height: dpad.armThickness
                 radius: 2
-                color: "black"
+                color: "#000000"
             }
         }
 
-        // Main plastic body.
-        Item {
-            anchors.fill: parent
-
-            Rectangle {
-                id: verticalArm
-                anchors.centerIn: parent
-                width: dpad.armThickness
-                height: parent.height
-                radius: 2
-                color: "#2a2f36"
-                border.color: "#141920"
-                border.width: 2
-            }
-
-            Rectangle {
-                id: horizontalArm
-                anchors.centerIn: parent
-                width: parent.width
-                height: dpad.armThickness
-                radius: 2
-                color: "#2a2f36"
-                border.color: "#141920"
-                border.width: 2
-            }
-
-            // Bevel-like highlight and shade to avoid flat look.
-            Rectangle {
-                anchors.fill: verticalArm
-                anchors.margins: 2
-                radius: 1
-                color: "transparent"
-                border.color: Qt.rgba(1, 1, 1, 0.10)
-                border.width: 1
-            }
-
-            Rectangle {
-                anchors.fill: horizontalArm
-                anchors.margins: 2
-                radius: 1
-                color: "transparent"
-                border.color: Qt.rgba(1, 1, 1, 0.10)
-                border.width: 1
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: Qt.rgba(0, 0, 0, 0.24)
-                border.width: 1
-                visible: false
-            }
-        }
-
-        // Pressed arm tint.
         Rectangle {
-            x: (crossSpan - dpad.armThickness) / 2
+            anchors.centerIn: parent
+            width: dpad.armThickness
+            height: parent.height
+            radius: 2
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#343b47" }
+                GradientStop { position: 1.0; color: "#252b34" }
+            }
+            border.color: "#10161c"
+            border.width: 2
+        }
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: dpad.armThickness
+            radius: 2
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#343b47" }
+                GradientStop { position: 1.0; color: "#252b34" }
+            }
+            border.color: "#10161c"
+            border.width: 2
+        }
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: dpad.armThickness - 4
+            height: parent.height - 6
+            radius: 1
+            color: "transparent"
+            border.color: Qt.rgba(1, 1, 1, 0.08)
+            border.width: 1
+        }
+
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width - 6
+            height: dpad.armThickness - 4
+            radius: 1
+            color: "transparent"
+            border.color: Qt.rgba(1, 1, 1, 0.08)
+            border.width: 1
+        }
+
+        Rectangle {
+            x: (parent.width - dpad.armThickness) / 2
             y: 0
             width: dpad.armThickness
-            height: (crossSpan - dpad.armThickness) / 2 + 2
-            color: Qt.rgba(1, 1, 1, 0.11)
+            height: (parent.height - dpad.armThickness) / 2 + 1
+            color: Qt.rgba(0, 0, 0, 0.18)
             visible: dpad.upPressed
         }
         Rectangle {
-            x: (crossSpan - dpad.armThickness) / 2
-            y: (crossSpan + dpad.armThickness) / 2 - 2
+            x: (parent.width - dpad.armThickness) / 2
+            y: (parent.height + dpad.armThickness) / 2 - 1
             width: dpad.armThickness
-            height: (crossSpan - dpad.armThickness) / 2 + 2
-            color: Qt.rgba(1, 1, 1, 0.11)
+            height: (parent.height - dpad.armThickness) / 2 + 1
+            color: Qt.rgba(0, 0, 0, 0.18)
             visible: dpad.downPressed
         }
         Rectangle {
             x: 0
-            y: (crossSpan - dpad.armThickness) / 2
-            width: (crossSpan - dpad.armThickness) / 2 + 2
+            y: (parent.height - dpad.armThickness) / 2
+            width: (parent.width - dpad.armThickness) / 2 + 1
             height: dpad.armThickness
-            color: Qt.rgba(1, 1, 1, 0.11)
+            color: Qt.rgba(0, 0, 0, 0.18)
             visible: dpad.leftPressed
         }
         Rectangle {
-            x: (crossSpan + dpad.armThickness) / 2 - 2
-            y: (crossSpan - dpad.armThickness) / 2
-            width: (crossSpan - dpad.armThickness) / 2 + 2
+            x: (parent.width + dpad.armThickness) / 2 - 1
+            y: (parent.height - dpad.armThickness) / 2
+            width: (parent.width - dpad.armThickness) / 2 + 1
             height: dpad.armThickness
-            color: Qt.rgba(1, 1, 1, 0.11)
+            color: Qt.rgba(0, 0, 0, 0.18)
             visible: dpad.rightPressed
         }
 
-        // Center pivot cap.
         Rectangle {
             anchors.centerIn: parent
-            width: 22
-            height: 22
-            radius: 11
-            color: "#171b21"
-            border.color: "#0f1319"
+            width: 20
+            height: 20
+            radius: 10
+            color: "#151a20"
+            border.color: "#0c1015"
             border.width: 1
         }
 
         Rectangle {
             anchors.centerIn: parent
             anchors.verticalCenterOffset: -1
-            width: 14
-            height: 7
-            radius: 3
-            color: Qt.rgba(1, 1, 1, 0.06)
-        }
-
-        // Subtle embossed arrows.
-        Text {
-            text: "▲"
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: 8
-            color: dpad.upPressed ? "#9ea6b3" : "#4c5562"
-            font.pixelSize: 11
-            font.bold: true
-            opacity: 0.75
-        }
-        Text {
-            text: "▼"
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: parent.height - 20
-            color: dpad.downPressed ? "#9ea6b3" : "#4c5562"
-            font.pixelSize: 11
-            font.bold: true
-            opacity: 0.75
-        }
-        Text {
-            text: "◀"
-            x: 8
-            anchors.verticalCenter: parent.verticalCenter
-            color: dpad.leftPressed ? "#9ea6b3" : "#4c5562"
-            font.pixelSize: 11
-            font.bold: true
-            opacity: 0.72
-        }
-        Text {
-            text: "▶"
-            x: parent.width - 20
-            anchors.verticalCenter: parent.verticalCenter
-            color: dpad.rightPressed ? "#9ea6b3" : "#4c5562"
-            font.pixelSize: 11
-            font.bold: true
-            opacity: 0.72
+            width: 12
+            height: 5
+            radius: 2
+            color: Qt.rgba(1, 1, 1, 0.07)
         }
     }
 
-    // Hit areas.
     Item {
-        anchors.fill: dpadVisual
+        anchors.fill: crossRoot
         anchors.centerIn: parent
 
         MouseArea {
