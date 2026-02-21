@@ -200,9 +200,9 @@ Rectangle {
     Item {
         id: volumeControl
         anchors.right: parent.right
-        anchors.rightMargin: -2
-        anchors.top: parent.top
-        anchors.topMargin: 158
+        anchors.rightMargin: -1
+        anchors.verticalCenter: screenBorder.verticalCenter
+        anchors.verticalCenterOffset: 14
         width: 20
         height: 84
         property int detentCount: 16
@@ -313,16 +313,6 @@ Rectangle {
                 border.width: 1
             }
 
-            Rectangle {
-                // Soft contact shadow where wheel meets the shell edge.
-                anchors.left: parent.left
-                anchors.leftMargin: 1
-                anchors.verticalCenter: parent.verticalCenter
-                width: 2
-                height: parent.height - 10
-                radius: 1
-                color: Qt.rgba(0, 0, 0, 0.20)
-            }
 
             MouseArea {
                 anchors.fill: parent
