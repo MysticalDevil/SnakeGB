@@ -133,7 +133,7 @@ void GameLogic::setInternalState(int s) {
 }
 
 void GameLogic::requestStateChange(int newState) {
-    if (m_stateUpdateInProgress) {
+    if (m_stateCallbackInProgress) {
         m_pendingStateChange = newState;
         return;
     }
@@ -634,7 +634,14 @@ void GameLogic::selectChoice(int index) {
 
 void GameLogic::move(int dx, int dy) {
     if (m_fsmState) {
+        m_stateCallbackInProgress = true;
         m_fsmState->handleInput(dx, dy);
+        m_stateCallbackInProgress = false;
+        if (m_pendingStateChange.has_value()) {
+            const int pendingState = *m_pendingStateChange;
+            m_pendingStateChange.reset();
+            requestStateChange(pendingState);
+        }
     }
 
     if (m_state == Playing && m_inputQueue.size() < 2) {
@@ -709,13 +716,27 @@ void GameLogic::handleSelect() {
         return;
     }
     if (m_fsmState) {
+        m_stateCallbackInProgress = true;
         m_fsmState->handleSelect();
+        m_stateCallbackInProgress = false;
+        if (m_pendingStateChange.has_value()) {
+            const int pendingState = *m_pendingStateChange;
+            m_pendingStateChange.reset();
+            requestStateChange(pendingState);
+        }
     }
 }
 
 void GameLogic::handleStart() {
     if (m_fsmState) {
+        m_stateCallbackInProgress = true;
         m_fsmState->handleStart();
+        m_stateCallbackInProgress = false;
+        if (m_pendingStateChange.has_value()) {
+            const int pendingState = *m_pendingStateChange;
+            m_pendingStateChange.reset();
+            requestStateChange(pendingState);
+        }
     }
 }
 
@@ -1213,9 +1234,9 @@ void GameLogic::update() {
         }
         // Defer state replacement while executing a state callback to avoid
         // invalidating the current state object mid-function.
-        m_stateUpdateInProgress = true;
+        m_stateCallbackInProgress = true;
         m_fsmState->update();
-        m_stateUpdateInProgress = false;
+        m_stateCallbackInProgress = false;
         if (m_pendingStateChange.has_value()) {
             const int pendingState = *m_pendingStateChange;
             m_pendingStateChange.reset();

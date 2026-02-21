@@ -324,7 +324,7 @@ private:
     std::deque<QPoint> m_inputQueue;
     std::unique_ptr<GameState> m_fsmState;
     bool m_musicEnabled = true;
-    bool m_stateUpdateInProgress = false;
+    bool m_stateCallbackInProgress = false;
     std::optional<int> m_pendingStateChange;
 
     static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
