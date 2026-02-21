@@ -195,11 +195,11 @@ Rectangle {
     Item {
         id: volumeControl
         anchors.right: parent.right
-        anchors.rightMargin: -7
+        anchors.rightMargin: -6
         anchors.top: parent.top
-        anchors.topMargin: 160
-        width: 28
-        height: 84
+        anchors.topMargin: 156
+        width: 27
+        height: 88
         property int detentCount: 16
 
         function clamp01(v) {
@@ -219,65 +219,96 @@ Rectangle {
             }
         }
 
-        Text {
-            anchors.right: parent.left
-            anchors.rightMargin: 3
-            anchors.verticalCenter: parent.verticalCenter
-            text: "VOL"
-            rotation: -90
-            transformOrigin: Item.Center
-            color: Qt.rgba(0, 0, 0, 0.45)
-            font.pixelSize: 8
-            font.bold: true
-        }
-
+        // Molded side opening where the wheel sits.
         Rectangle {
             id: sideCut
             x: 0
-            y: 0
+            y: 3
             width: 10
-            height: parent.height
+            height: parent.height - 6
             radius: 5
-            color: Qt.darker(shell.color, 1.25)
-            border.color: Qt.darker(shell.color, 1.45)
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: Qt.darker(shell.color, 1.18) }
+                GradientStop { position: 0.5; color: Qt.darker(shell.color, 1.30) }
+                GradientStop { position: 1.0; color: Qt.darker(shell.color, 1.20) }
+            }
+            border.color: Qt.darker(shell.color, 1.40)
             border.width: 1
-            opacity: 0.85
+            opacity: 0.90
         }
 
         Rectangle {
-            id: wheelBody
-            x: 8
-            y: 0
-            width: 14
-            height: parent.height
-            radius: 7
-            color: "#5f6776"
-            border.color: "#2c3139"
+            anchors.fill: sideCut
+            anchors.margins: 1
+            radius: sideCut.radius - 1
+            color: "transparent"
+            border.color: Qt.rgba(1, 1, 1, 0.07)
             border.width: 1
-            property real spinPhase: gameLogic.volume * 64
+        }
+
+        Item {
+            id: wheelViewport
+            x: 8
+            y: 4
+            width: 14
+            height: parent.height - 8
+            clip: true
 
             Rectangle {
+                id: wheelBody
                 anchors.fill: parent
-                anchors.margins: 1
-                radius: parent.radius - 1
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#8c96a9" }
-                    GradientStop { position: 0.45; color: "#666f80" }
-                    GradientStop { position: 1.0; color: "#4a5260" }
+                radius: 7
+                color: "#5f6776"
+                border.color: "#333a45"
+                border.width: 1
+                property real spinPhase: gameLogic.volume * 90
+                property real groovePitch: 5
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    radius: parent.radius - 1
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: "#8f9aae" }
+                        GradientStop { position: 0.5; color: "#6c7689" }
+                        GradientStop { position: 1.0; color: "#4c5564" }
+                    }
+                }
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.leftMargin: 2
+                    anchors.top: parent.top
+                    anchors.topMargin: 2
+                    width: 2
+                    height: parent.height - 4
+                    radius: 1
+                    color: Qt.rgba(1, 1, 1, 0.11)
+                }
+
+                Repeater {
+                    model: Math.ceil(wheelBody.height / wheelBody.groovePitch) + 3
+                    delegate: Rectangle {
+                        required property int index
+                        width: wheelBody.width - 3
+                        height: 1
+                        radius: 1
+                        x: 1.5
+                        property real yPos: index * wheelBody.groovePitch - (wheelBody.spinPhase % wheelBody.groovePitch) - wheelBody.groovePitch
+                        y: yPos
+                        visible: yPos >= 1 && yPos <= wheelBody.height - 2
+                        color: "#2b3440"
+                        opacity: 0.48
+                    }
                 }
             }
 
-            Repeater {
-                model: 14
-                delegate: Rectangle {
-                    width: wheelBody.width - 4
-                    height: 1
-                    radius: 1
-                    x: 2
-                    y: ((index * 6 + wheelBody.spinPhase) % (wheelBody.height + 6)) - 3
-                    color: "#2f3540"
-                    opacity: 0.8
-                }
+            Rectangle {
+                anchors.fill: wheelBody
+                radius: wheelBody.radius
+                color: "transparent"
+                border.color: Qt.rgba(0, 0, 0, 0.16)
+                border.width: 1
             }
 
             MouseArea {
@@ -290,7 +321,7 @@ Rectangle {
                 }
                 onPositionChanged: {
                     if (!pressed) return
-                    var delta = (startY - mouse.y) / 74.0
+                    var delta = (startY - mouse.y) / 76.0
                     volumeControl.setDetentVolume(startVolume + delta, true)
                 }
             }
@@ -302,6 +333,17 @@ Rectangle {
                     volumeControl.setDetentVolume(gameLogic.volume + step, true)
                 }
             }
+        }
+
+        Text {
+            x: 1
+            y: sideCut.y + sideCut.height / 2 - 10
+            rotation: 90
+            text: "VOL"
+            font.pixelSize: 9
+            font.bold: true
+            color: Qt.rgba(0, 0, 0, 0.28)
+            opacity: 0.72
         }
     }
 }
