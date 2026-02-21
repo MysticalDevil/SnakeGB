@@ -1,4 +1,5 @@
 #include "game_logic.h"
+#include "core/game_rules.h"
 #include "fsm/states.h"
 #include "profile_manager.h"
 #include <QCoreApplication>
@@ -251,9 +252,7 @@ auto GameLogic::hasReplay() const noexcept -> bool {
 }
 
 auto GameLogic::checkCollision(const QPoint &head) -> bool {
-    QPoint p = head;
-    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
 
     for (int i = 0; i < m_obstacles.size(); ++i) {
         if (m_obstacles[i] == p) {
@@ -295,9 +294,7 @@ auto GameLogic::checkCollision(const QPoint &head) -> bool {
 }
 
 void GameLogic::handleFoodConsumption(const QPoint &head) {
-    QPoint p = head;
-    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
 
     if (p != m_food) {
         return;
@@ -338,9 +335,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head) {
 }
 
 void GameLogic::handlePowerUpConsumption(const QPoint &head) {
-    QPoint p = head;
-    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
 
     if (p != m_powerUpPos) {
         return;
@@ -384,9 +379,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
 }
 
 void GameLogic::applyMovement(const QPoint &newHead, bool grew) {
-    QPoint p = newHead;
-    p.setX((p.x() + BOARD_WIDTH) % BOARD_WIDTH);
-    p.setY((p.y() + BOARD_HEIGHT) % BOARD_HEIGHT);
+    const QPoint p = snakegb::core::wrapPoint(newHead, BOARD_WIDTH, BOARD_HEIGHT);
     
     m_snakeModel.moveHead(p, grew);
     m_currentRecording.append(p);
@@ -987,31 +980,17 @@ auto GameLogic::fruitLibrary() const -> QVariantList {
 // --- Private Helpers ---
 
 auto GameLogic::shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool {
-    if (newScore < 8) {
-        return false;
-    }
-    // Prevent back-to-back choice prompts when score spikes with Double/Rich.
-    if (newScore - m_lastRoguelikeChoiceScore < 6) {
-        return false;
-    }
-    // Safety net: guarantee one choice each 20-point milestone.
-    if ((previousScore / 20) < (newScore / 20)) {
+    const int chancePercent = snakegb::core::roguelikeChoiceChancePercent({
+        .previousScore = previousScore,
+        .newScore = newScore,
+        .lastChoiceScore = m_lastRoguelikeChoiceScore,
+    });
+    if (chancePercent >= 100) {
         return true;
     }
-
-    int chancePercent = 10;
-    if (newScore >= 40) {
-        chancePercent = 34;
-    } else if (newScore >= 25) {
-        chancePercent = 24;
-    } else if (newScore >= 15) {
-        chancePercent = 16;
+    if (chancePercent <= 0) {
+        return false;
     }
-    // Crossing a 10-point band slightly boosts the roll.
-    if ((previousScore / 10) < (newScore / 10)) {
-        chancePercent += 8;
-    }
-    chancePercent = std::min(chancePercent, 65);
     return m_rng.bounded(100) < chancePercent;
 }
 
@@ -1026,11 +1005,6 @@ void GameLogic::applyMagnetAttraction() {
         return;
     }
 
-    auto wrapAxis = [](int value, int size) -> int {
-        int v = value % size;
-        if (v < 0) v += size;
-        return v;
-    };
     auto axisStepToward = [](int from, int to, int size) -> int {
         if (from == to) return 0;
         const int forward = (to - from + size) % size;
@@ -1046,10 +1020,10 @@ void GameLogic::applyMagnetAttraction() {
     auto pushCandidate = [&](bool xAxis) -> void {
         if (xAxis) {
             if (stepX == 0) return;
-            candidates.append(QPoint(wrapAxis(m_food.x() + stepX, BOARD_WIDTH), m_food.y()));
+            candidates.append(QPoint(snakegb::core::wrapAxis(m_food.x() + stepX, BOARD_WIDTH), m_food.y()));
         } else {
             if (stepY == 0) return;
-            candidates.append(QPoint(m_food.x(), wrapAxis(m_food.y() + stepY, BOARD_HEIGHT)));
+            candidates.append(QPoint(m_food.x(), snakegb::core::wrapAxis(m_food.y() + stepY, BOARD_HEIGHT)));
         }
     };
     if (preferX) {
@@ -1262,40 +1236,7 @@ void GameLogic::loadLevelData(int i) {
 }
 
 auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint> {
-    auto wrapAxis = [](int value, int size) -> int {
-        int v = value % size;
-        if (v < 0) {
-            v += size;
-        }
-        return v;
-    };
-    auto blocked = [this](const QPoint &p) -> bool {
-        for (const QPoint &op : m_obstacles) {
-            if (op == p) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    QList<QPoint> candidates;
-    candidates << QPoint(10, 10) << QPoint(10, 8) << QPoint(10, 6)
-               << QPoint(5, 10) << QPoint(15, 10);
-    for (int y = 0; y < BOARD_HEIGHT; ++y) {
-        for (int x = 0; x < BOARD_WIDTH; ++x) {
-            candidates << QPoint(x, y);
-        }
-    }
-
-    for (const QPoint &head : candidates) {
-        const QPoint b1(head.x(), wrapAxis(head.y() + 1, BOARD_HEIGHT));
-        const QPoint b2(head.x(), wrapAxis(head.y() + 2, BOARD_HEIGHT));
-        if (!blocked(head) && !blocked(b1) && !blocked(b2)) {
-            return {head, b1, b2};
-        }
-    }
-
-    return {{10, 10}, {10, 11}, {10, 12}};
+    return snakegb::core::buildSafeInitialSnakeBody(m_obstacles, BOARD_WIDTH, BOARD_HEIGHT);
 }
 
 void GameLogic::checkAchievements() {

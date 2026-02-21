@@ -26,6 +26,8 @@ qt_add_executable(SnakeGB
     src/input_injection_pipe.cpp
     src/input_injection_pipe.h
     src/app_state.h
+    src/core/game_rules.cpp
+    src/core/game_rules.h
     src/fsm/states.cpp
     src/fsm/states.h
     src/fsm/game_state.h
@@ -93,6 +95,7 @@ enable_testing()
 add_executable(game-tests
     tests/test_game_logic.cpp
     src/game_logic.cpp
+    src/core/game_rules.cpp
     src/sound_manager.cpp
     src/profile_manager.cpp
     src/fsm/states.cpp

@@ -1,0 +1,78 @@
+#include "game_rules.h"
+
+#include <algorithm>
+
+namespace snakegb::core {
+
+auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext &ctx) -> int {
+    if (ctx.newScore < 8) {
+        return 0;
+    }
+    // Prevent back-to-back prompts when score spikes from high-value buffs.
+    if (ctx.newScore - ctx.lastChoiceScore < 6) {
+        return 0;
+    }
+    // Safety net: guarantee one choice each 20-point milestone.
+    if ((ctx.previousScore / 20) < (ctx.newScore / 20)) {
+        return 100;
+    }
+
+    int chancePercent = 10;
+    if (ctx.newScore >= 40) {
+        chancePercent = 34;
+    } else if (ctx.newScore >= 25) {
+        chancePercent = 24;
+    } else if (ctx.newScore >= 15) {
+        chancePercent = 16;
+    }
+
+    // Crossing a 10-point band slightly boosts the roll.
+    if ((ctx.previousScore / 10) < (ctx.newScore / 10)) {
+        chancePercent += 8;
+    }
+    return std::min(chancePercent, 65);
+}
+
+auto wrapAxis(int value, int size) -> int {
+    int wrapped = value % size;
+    if (wrapped < 0) {
+        wrapped += size;
+    }
+    return wrapped;
+}
+
+auto wrapPoint(const QPoint &point, int boardWidth, int boardHeight) -> QPoint {
+    return {wrapAxis(point.x(), boardWidth), wrapAxis(point.y(), boardHeight)};
+}
+
+auto buildSafeInitialSnakeBody(const QList<QPoint> &obstacles, int boardWidth, int boardHeight)
+    -> std::deque<QPoint> {
+    auto blocked = [&obstacles](const QPoint &point) -> bool {
+        for (const QPoint &obstaclePoint : obstacles) {
+            if (obstaclePoint == point) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    QList<QPoint> candidates;
+    candidates << QPoint(10, 10) << QPoint(10, 8) << QPoint(10, 6) << QPoint(5, 10) << QPoint(15, 10);
+    for (int y = 0; y < boardHeight; ++y) {
+        for (int x = 0; x < boardWidth; ++x) {
+            candidates << QPoint(x, y);
+        }
+    }
+
+    for (const QPoint &head : candidates) {
+        const QPoint body1(head.x(), wrapAxis(head.y() + 1, boardHeight));
+        const QPoint body2(head.x(), wrapAxis(head.y() + 2, boardHeight));
+        if (!blocked(head) && !blocked(body1) && !blocked(body2)) {
+            return {head, body1, body2};
+        }
+    }
+
+    return {{10, 10}, {10, 11}, {10, 12}};
+}
+
+} // namespace snakegb::core
