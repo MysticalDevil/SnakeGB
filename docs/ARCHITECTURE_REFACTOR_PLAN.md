@@ -217,6 +217,8 @@ Validation after each commit:
   method calls.
 - QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on
   `dispatchUiAction(...)`.
+- Action string parsing is extracted into `src/adapter/ui_action.*`; `GameLogic::dispatchUiAction` now delegates
+  parsing and keeps only semantic dispatch.
 
 ### Phase C progress snapshot (2026-02-21)
 
@@ -228,3 +230,5 @@ Validation after each commit:
 - Verification passed:
   - `ctest --output-on-failure` (GameLogicTest + CoreRulesTest)
   - `./scripts/input_semantics_matrix_wayland.sh` (input semantics compatibility matrix)
+- Added `AdapterTest` (`tests/test_ui_action_parser.cpp`) to validate parser behavior for known/unknown/indexed
+  actions in headless CI.
