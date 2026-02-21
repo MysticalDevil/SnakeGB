@@ -58,6 +58,29 @@ Item {
         return "?"
     }
 
+    function rarityTier(type) {
+        if (type === 7) return 4 // Diamond
+        if (type === 6 || type === 8) return 3 // Double / Laser
+        if (type === 4 || type === 5) return 2 // Shield / Portal
+        return 1 // Ghost / Slow / Magnet / Mini
+    }
+
+    function rarityName(type) {
+        var tier = rarityTier(type)
+        if (tier === 4) return "EPIC"
+        if (tier === 3) return "RARE"
+        if (tier === 2) return "UNCOMMON"
+        return "COMMON"
+    }
+
+    function rarityColor(type) {
+        var tier = rarityTier(type)
+        if (tier === 4) return "#7ee7ff"
+        if (tier === 3) return "#ffd700"
+        if (tier === 2) return "#9ef58a"
+        return p3
+    }
+
     width: 240
     height: 216
 
@@ -357,10 +380,14 @@ Item {
                     anchors.left: parent.left
                     anchors.topMargin: 4
                     anchors.leftMargin: 4
-                    width: 90
-                    height: 20
-                    color: p1
-                    border.color: p3
+                    width: 110
+                    height: 24
+                    property int buffTier: rarityTier(gameLogic.activeBuff)
+                    property color accent: rarityColor(gameLogic.activeBuff)
+                    color: gameLogic.activeBuff === 7
+                           ? Qt.rgba(0.10, 0.20, 0.24, 0.92)
+                           : Qt.rgba(p1.r, p1.g, p1.b, 0.95)
+                    border.color: accent
                     border.width: 1
                     z: 40
                     visible: (gameLogic.state === 2 || gameLogic.state === 5) &&
@@ -370,12 +397,25 @@ Item {
                         anchors.left: parent.left
                         anchors.leftMargin: 4
                         anchors.top: parent.top
-                        anchors.topMargin: 2
+                        anchors.topMargin: 1
                         text: buffName(gameLogic.activeBuff)
-                        color: p3
+                        color: parent.accent
                         font.family: gameFont
                         font.pixelSize: 7
                         font.bold: true
+                    }
+
+                    Text {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 4
+                        anchors.top: parent.top
+                        anchors.topMargin: 1
+                        text: rarityName(gameLogic.activeBuff)
+                        color: parent.accent
+                        font.family: gameFont
+                        font.pixelSize: 6
+                        font.bold: true
+                        opacity: 0.88
                     }
 
                     Rectangle {
@@ -387,7 +427,7 @@ Item {
                         anchors.bottomMargin: 3
                         height: 5
                         color: p0
-                        border.color: p3
+                        border.color: parent.accent
                         border.width: 1
 
                         Rectangle {
@@ -395,7 +435,17 @@ Item {
                             anchors.top: parent.top
                             anchors.bottom: parent.bottom
                             width: parent.width * (gameLogic.buffTicksRemaining / Math.max(1, gameLogic.buffTicksTotal))
-                            color: p3
+                            color: parent.parent.accent
+                        }
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: parent.parent.accent
+                            border.width: 1
+                            opacity: parent.parent.buffTier >= 3
+                                     ? ((Math.floor(elapsed * 8) % 2 === 0) ? 0.35 : 0.1)
+                                     : 0.0
                         }
                     }
                 }
@@ -459,36 +509,148 @@ Item {
                         model: gameLogic.choices
                         delegate: Rectangle {
                             width: parent.width
-                            height: 38
-                            color: gameLogic.choiceIndex === index ? p2 : p1
-                            border.color: p3
+                            height: 46
+                            property int powerType: Number(modelData.type)
+                            property color accent: rarityColor(powerType)
+                            color: gameLogic.choiceIndex === index
+                                   ? Qt.rgba(p2.r, p2.g, p2.b, 0.98)
+                                   : Qt.rgba(p1.r, p1.g, p1.b, 0.95)
+                            border.color: accent
                             border.width: gameLogic.choiceIndex === index ? 2 : 1
                             Row {
                                 anchors.fill: parent
                                 anchors.margins: 4
                                 spacing: 8
                                 Rectangle {
-                                    width: 22
-                                    height: 22
-                                    radius: 11
+                                    width: 28
+                                    height: 28
+                                    radius: 6
                                     color: p0
-                                    border.color: p3
+                                    border.color: parent.parent.accent
                                     border.width: 1
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text {
+
+                                    Item {
                                         anchors.centerIn: parent
-                                        text: choiceGlyph(modelData.type)
-                                        color: p3
-                                        font.family: gameFont
-                                        font.pixelSize: 9
-                                        font.bold: true
+                                        width: 22
+                                        height: 22
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: parent.parent.parent.accent
+                                            border.width: 1
+                                            visible: powerType === 1 // Ghost
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: width / 2
+                                            color: "transparent"
+                                            border.color: parent.parent.parent.accent
+                                            border.width: 2
+                                            visible: powerType === 2 // Slow
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: parent.parent.parent.accent
+                                            visible: powerType === 3 // Magnet
+                                            clip: true
+                                            Rectangle { width: 22; height: 22; rotation: 45; y: 11; color: p1 }
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: width / 2
+                                            color: "transparent"
+                                            border.color: parent.parent.parent.accent
+                                            border.width: 2
+                                            visible: powerType === 4 // Shield
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            radius: width / 2
+                                            color: "transparent"
+                                            border.color: parent.parent.parent.accent
+                                            border.width: 1
+                                            visible: powerType === 5 // Portal
+                                            Rectangle {
+                                                anchors.centerIn: parent
+                                                width: 10
+                                                height: 10
+                                                radius: 5
+                                                border.color: parent.parent.parent.parent.accent
+                                                border.width: 1
+                                                color: "transparent"
+                                            }
+                                        }
+                                        Rectangle {
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            rotation: 45
+                                            color: "#ffd700"
+                                            visible: powerType === 6 // Double
+                                        }
+                                        Rectangle {
+                                            anchors.centerIn: parent
+                                            width: 16
+                                            height: 16
+                                            rotation: 45
+                                            color: "#00ffff"
+                                            visible: powerType === 7 // Diamond
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: "#ff4d4d"
+                                            border.width: 2
+                                            visible: powerType === 8 // Laser
+                                        }
+                                        Rectangle {
+                                            anchors.fill: parent
+                                            color: "transparent"
+                                            border.color: parent.parent.parent.accent
+                                            border.width: 1
+                                            visible: powerType === 9 // Mini
+                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
+                                        }
                                     }
                                 }
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text { text: modelData.name; color: p3; font.bold: true; font.pixelSize: 9 }
-                                    Text { text: modelData.desc; color: p3; font.pixelSize: 6; opacity: 0.8; width: parent.width - 30; wrapMode: Text.WordWrap }
+                                    width: parent.width - 44
+                                    Text { text: modelData.name; color: parent.parent.parent.accent; font.bold: true; font.pixelSize: 9 }
+                                    Text { text: modelData.desc; color: p3; font.pixelSize: 6; opacity: 0.85; width: parent.width; wrapMode: Text.WordWrap }
                                 }
+                            }
+
+                            Rectangle {
+                                anchors.right: parent.right
+                                anchors.top: parent.top
+                                anchors.rightMargin: 4
+                                anchors.topMargin: 3
+                                height: 10
+                                width: 44
+                                radius: 3
+                                color: Qt.rgba(p0.r, p0.g, p0.b, 0.85)
+                                border.color: parent.accent
+                                border.width: 1
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: rarityName(parent.parent.powerType)
+                                    color: parent.parent.accent
+                                    font.family: gameFont
+                                    font.pixelSize: 6
+                                    font.bold: true
+                                }
+                            }
+
+                            Rectangle {
+                                anchors.fill: parent
+                                color: "transparent"
+                                border.color: parent.accent
+                                border.width: 1
+                                opacity: rarityTier(parent.powerType) >= 3
+                                         ? ((Math.floor(elapsed * 6) % 2 === 0) ? 0.35 : 0.08)
+                                         : 0.0
                             }
                         }
                     }
