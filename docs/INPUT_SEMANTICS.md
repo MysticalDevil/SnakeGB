@@ -18,7 +18,7 @@ Last updated: 2026-02-21
 - [x] Phase 1 (Part C): remove major direct key-to-logic entry points and add smoke script (`scripts/input_semantics_smoke.sh`).
 - [x] Phase 2: introduce dedicated `InputRouter` abstraction + named state constants.
 - [x] Phase 3 (Part A): destructive save-clear action now requires `START + SELECT` hold.
-- [ ] Phase 3: automated regression matrix for input semantics and easter no-side-effect rules.
+- [x] Phase 3: automated regression matrix for input semantics and easter no-side-effect rules.
 
 ---
 
@@ -185,6 +185,17 @@ Each layer returns `handled: true/false`.
   - state transition + input matrix checks
   - easter enter/exit no-side-effect checks
   - destructive action guard checks
+
+Implemented:
+- `scripts/input_semantics_matrix_wayland.sh`
+  - Runs a deterministic Wayland matrix with isolated config per case.
+  - Covers:
+    - menu `B` exits app
+    - menu `Esc` exits app
+    - menu `Select` does not exit
+    - gameplay pause + `B` returns to menu
+    - icon lab (`F6`) + `B` returns to menu without crash
+    - Konami sequence does not crash and remains recoverable
 
 ---
 
