@@ -768,7 +768,9 @@ void GameLogic::handleBAction() {
 }
 
 void GameLogic::quitToMenu() {
-    saveCurrentState();
+    if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
+        saveCurrentState();
+    }
     requestStateChange(StartMenu);
 }
 
@@ -785,7 +787,9 @@ void GameLogic::toggleMusic() {
 }
 
 void GameLogic::quit() {
-    saveCurrentState();
+    if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
+        saveCurrentState();
+    }
     QCoreApplication::quit();
 }
 

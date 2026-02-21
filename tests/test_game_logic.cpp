@@ -220,6 +220,26 @@ private slots:
                  "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
     }
 
+    void testQuitToMenuFromGameOverDoesNotCreateSave() {
+        GameLogic game;
+        game.requestStateChange(GameLogic::StartMenu);
+        game.deleteSave();
+        QVERIFY(!game.hasSave());
+
+        game.handleStart();
+        QVERIFY(game.state() == GameLogic::Playing || game.state() == GameLogic::Paused);
+
+        game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
+        game.setDirection(QPoint(1, 0));
+        game.forceUpdate();
+        QCOMPARE(game.state(), GameLogic::GameOver);
+        QVERIFY(!game.hasSave());
+
+        game.quitToMenu();
+        QCOMPARE(game.state(), GameLogic::StartMenu);
+        QVERIFY2(!game.hasSave(), "GameOver back-to-menu should not generate a continue save");
+    }
+
     void testLatestBuffSelectionOverridesPreviousBuff() {
         GameLogic game;
         game.startGame();
