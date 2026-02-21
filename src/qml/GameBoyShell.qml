@@ -200,11 +200,11 @@ Rectangle {
     Item {
         id: volumeControl
         anchors.right: parent.right
-        anchors.rightMargin: -6
+        anchors.rightMargin: -2
         anchors.top: parent.top
-        anchors.topMargin: 156
-        width: 27
-        height: 88
+        anchors.topMargin: 158
+        width: 20
+        height: 84
         property int detentCount: 16
 
         function clamp01(v) {
@@ -224,19 +224,19 @@ Rectangle {
         // Molded side opening where the wheel sits.
         Rectangle {
             id: sideCut
-            x: 0
-            y: 5
-            width: 9
-            height: parent.height - 10
-            radius: 4
+            x: 1
+            y: 4
+            width: 6
+            height: parent.height - 8
+            radius: 3
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#30404f" }
-                GradientStop { position: 0.5; color: "#1f2a35" }
-                GradientStop { position: 1.0; color: "#2e3c4a" }
+                GradientStop { position: 0.0; color: "#25333f" }
+                GradientStop { position: 0.55; color: "#18222b" }
+                GradientStop { position: 1.0; color: "#22303b" }
             }
-            border.color: "#162029"
+            border.color: Qt.rgba(0, 0, 0, 0.35)
             border.width: 1
-            opacity: 0.96
+            opacity: 0.9
         }
 
         Rectangle {
@@ -250,9 +250,9 @@ Rectangle {
 
         Item {
             id: wheelViewport
-            x: 8
+            x: 4
             y: 4
-            width: 14
+            width: 11
             height: parent.height - 8
             clip: true
 
@@ -261,7 +261,7 @@ Rectangle {
                 anchors.fill: parent
                 radius: 7
                 color: "#5f6776"
-                border.color: "#333a45"
+                border.color: "#3a4350"
                 border.width: 1
                 property real spinPhase: shell.volume * 90
                 property real groovePitch: 5
@@ -295,7 +295,7 @@ Rectangle {
                         width: wheelBody.width - 3
                         height: 1
                         radius: 1
-                        x: 1.5
+                        x: 1
                         property real yPos: index * wheelBody.groovePitch - (wheelBody.spinPhase % wheelBody.groovePitch) - wheelBody.groovePitch
                         y: yPos
                         visible: yPos >= 1 && yPos <= wheelBody.height - 2
@@ -311,6 +311,17 @@ Rectangle {
                 color: "transparent"
                 border.color: Qt.rgba(0, 0, 0, 0.16)
                 border.width: 1
+            }
+
+            Rectangle {
+                // Soft contact shadow where wheel meets the shell edge.
+                anchors.left: parent.left
+                anchors.leftMargin: 1
+                anchors.verticalCenter: parent.verticalCenter
+                width: 2
+                height: parent.height - 10
+                radius: 1
+                color: Qt.rgba(0, 0, 0, 0.20)
             }
 
             MouseArea {
@@ -338,14 +349,14 @@ Rectangle {
         }
 
         Text {
-            x: 1
+            x: 0
             y: sideCut.y + sideCut.height / 2 - 10
             rotation: 90
             text: "VOL"
-            font.pixelSize: 9
+            font.pixelSize: 8
             font.bold: true
-            color: Qt.rgba(0, 0, 0, 0.28)
-            opacity: 0.72
+            color: Qt.rgba(0, 0, 0, 0.22)
+            opacity: 0.56
         }
     }
 }
