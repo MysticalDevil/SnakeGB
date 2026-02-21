@@ -1,0 +1,30 @@
+---
+# CLion-like default profile baseline, tuned for this repository.
+Checks: >-
+  -*,
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  -readability-identifier-length,
+  -readability-magic-numbers,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-owning-memory,
+  -modernize-use-trailing-return-type
+WarningsAsErrors: ''
+HeaderFilterRegex: '^(src|tests)/'
+FormatStyle: file
+CheckOptions:
+  - key: readability-function-cognitive-complexity.Threshold
+    value: '40'
+  - key: readability-function-size.LineThreshold
+    value: '220'
+  - key: readability-function-size.StatementThreshold
+    value: '180'
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+...
