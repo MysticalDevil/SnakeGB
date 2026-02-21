@@ -202,6 +202,7 @@ Validation after each commit:
   - level JSON entry resolution/index normalization
   - level JSON envelope decoding from raw bytes
   - level count extraction from JSON bytes
+  - scripted level `onTick` runtime obstacle parsing/application
   - dynamic scripted-level fallback obstacle evolution
   - achievement unlock rule evaluation
   - magnet movement candidate selection
@@ -230,6 +231,8 @@ Validation after each commit:
   covered by `AdapterLevelLoaderTest`.
 - Level apply/fallback decision flow is extracted into `src/adapter/level_applier.*`; behavior is covered by
   `AdapterLevelApplierTest`.
+- Scripted level runtime evaluation is extracted into `src/adapter/level_script_runtime.*`; behavior is covered by
+  `AdapterLevelScriptRuntimeTest`.
 
 ### Phase C progress snapshot (2026-02-21)
 
