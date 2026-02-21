@@ -1,6 +1,7 @@
 #include "game_logic.h"
 #include "core/buff_runtime.h"
 #include "core/achievement_rules.h"
+#include "core/choice_runtime.h"
 #include "core/game_rules.h"
 #include "core/level_runtime.h"
 #include "adapter/ghost_store.h"
@@ -542,27 +543,13 @@ void GameLogic::lazyInitState() {
 
 void GameLogic::generateChoices() {
     m_choices.clear();
-    struct ChoiceInfo { int type; QString name; QString desc; };
-    QList<ChoiceInfo> allChoices = {
-        {.type=Ghost, .name=u"Ghost"_s, .desc=u"Pass through self"_s},
-        {.type=Slow, .name=u"Slow"_s, .desc=u"Decrease speed"_s},
-        {.type=Magnet, .name=u"Magnet"_s, .desc=u"Attract food"_s},
-        {.type=Shield, .name=u"Shield"_s, .desc=u"One extra life"_s},
-        {.type=Portal, .name=u"Portal"_s, .desc=u"Phase through walls"_s},
-        {.type=Double, .name=u"Double"_s, .desc=u"Double points"_s},
-        {.type=Rich, .name=u"Diamond"_s, .desc=u"Triple points"_s},
-        {.type=Laser, .name=u"Laser"_s, .desc=u"Break obstacle"_s},
-        {.type=Mini, .name=u"Mini"_s, .desc=u"Shrink body"_s}
-    };
-    
-    std::shuffle(allChoices.begin(), allChoices.end(), 
-                 std::default_random_engine(m_rng.generate()));
-    
-    for (int i = 0; i < 3; ++i) {
+
+    const QList<snakegb::core::ChoiceSpec> allChoices = snakegb::core::pickRoguelikeChoices(m_rng.generate(), 3);
+    for (const auto &choice : allChoices) {
         QVariantMap m;
-        m.insert(u"type"_s, allChoices[i].type);
-        m.insert(u"name"_s, allChoices[i].name);
-        m.insert(u"desc"_s, allChoices[i].desc);
+        m.insert(u"type"_s, choice.type);
+        m.insert(u"name"_s, choice.name);
+        m.insert(u"desc"_s, choice.description);
         m_choices.append(m);
     }
     emit choicesChanged();

@@ -1,6 +1,7 @@
 #include "core/game_rules.h"
 #include "core/replay_timeline.h"
 #include "core/buff_runtime.h"
+#include "core/choice_runtime.h"
 #include "core/level_runtime.h"
 #include "game_engine_interface.h"
 
@@ -20,6 +21,7 @@ private slots:
     void testProbeCollisionRespectsGhostFlag();
     void testCollisionOutcomeMatchesPortalLaserAndShieldSemantics();
     void testTickIntervalForScoreUsesSpeedFloor();
+    void testPickRoguelikeChoicesIsBoundedAndDeterministic();
     void testDynamicLevelFallbackProducesObstacles();
     void testWallsFromJsonArrayParsesCoordinates();
     void testResolvedLevelDataFromJsonMapsIndexAndFields();
@@ -211,6 +213,20 @@ void TestCoreRules::testTickIntervalForScoreUsesSpeedFloor() {
     QCOMPARE(snakegb::core::tickIntervalForScore(0), 200);
     QCOMPARE(snakegb::core::tickIntervalForScore(25), 160);
     QCOMPARE(snakegb::core::tickIntervalForScore(200), 60);
+}
+
+void TestCoreRules::testPickRoguelikeChoicesIsBoundedAndDeterministic() {
+    const QList<snakegb::core::ChoiceSpec> pickA = snakegb::core::pickRoguelikeChoices(1234U, 3);
+    const QList<snakegb::core::ChoiceSpec> pickB = snakegb::core::pickRoguelikeChoices(1234U, 3);
+    QCOMPARE(pickA.size(), 3);
+    QCOMPARE(pickA.size(), pickB.size());
+    for (int i = 0; i < pickA.size(); ++i) {
+        QCOMPARE(pickA[i].type, pickB[i].type);
+        QCOMPARE(pickA[i].name, pickB[i].name);
+    }
+
+    const QList<snakegb::core::ChoiceSpec> bounded = snakegb::core::pickRoguelikeChoices(99U, 99);
+    QCOMPARE(bounded.size(), 9);
 }
 
 void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {

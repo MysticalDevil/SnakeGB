@@ -51,6 +51,8 @@ qt_add_executable(SnakeGB
     src/core/level_runtime.h
     src/core/achievement_rules.cpp
     src/core/achievement_rules.h
+    src/core/choice_runtime.cpp
+    src/core/choice_runtime.h
     src/fsm/states.cpp
     src/fsm/states.h
     src/fsm/game_state.h
@@ -124,6 +126,7 @@ add_executable(game-tests
     src/core/replay_timeline.cpp
     src/core/level_runtime.cpp
     src/core/achievement_rules.cpp
+    src/core/choice_runtime.cpp
     src/sound_manager.cpp
     src/profile_manager.cpp
     src/adapter/ui_action.cpp
@@ -145,6 +148,7 @@ add_executable(core-rules-tests
     src/core/buff_runtime.cpp
     src/core/replay_timeline.cpp
     src/core/level_runtime.cpp
+    src/core/choice_runtime.cpp
 )
 target_include_directories(core-rules-tests PRIVATE src)
 target_link_libraries(core-rules-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui)
