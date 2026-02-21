@@ -251,6 +251,7 @@ signals:
     void volumeChanged(); void reflectionOffsetChanged();
     void choicesChanged(); void choicePendingChanged(); void choiceIndexChanged();
     void libraryIndexChanged(); void medalIndexChanged();
+    void eventPrompt(QString text);
     
     void foodEaten(float pan); void powerUpEaten(); void playerCrashed(); void uiInteractTriggered();
     void audioPlayBeep(int frequencyHz, int durationMs, float pan);

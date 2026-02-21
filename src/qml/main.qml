@@ -93,6 +93,9 @@ Window {
         function onAchievementEarned(title) { 
             screen.showOSD("UNLOCKED: " + title) 
         }
+        function onEventPrompt(text) {
+            screen.showOSD(">> " + text + " <<")
+        }
     }
 
     Timer {

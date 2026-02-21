@@ -18,6 +18,7 @@
 #include <QtCore/qnativeinterface.h>
 #endif
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 using namespace Qt::StringLiterals;
@@ -26,6 +27,33 @@ namespace {
     constexpr int InitialInterval = 200;
     constexpr int BuffDurationTicks = 40; 
     constexpr quint32 GHOST_FILE_MAGIC = 0x534E4B04;
+
+    auto rollWeightedPowerUp(QRandomGenerator &rng) -> GameLogic::PowerUp {
+        // Lower Mini probability while keeping other fruits reasonably common.
+        static constexpr std::array<std::pair<GameLogic::PowerUp, int>, 9> weightedTable{{
+            {GameLogic::Ghost, 3},
+            {GameLogic::Slow, 3},
+            {GameLogic::Magnet, 3},
+            {GameLogic::Shield, 3},
+            {GameLogic::Portal, 3},
+            {GameLogic::Double, 3},
+            {GameLogic::Rich, 2},
+            {GameLogic::Laser, 2},
+            {GameLogic::Mini, 1}
+        }};
+        int totalWeight = 0;
+        for (const auto &item : weightedTable) {
+            totalWeight += item.second;
+        }
+        int pick = rng.bounded(totalWeight);
+        for (const auto &item : weightedTable) {
+            if (pick < item.second) {
+                return item.first;
+            }
+            pick -= item.second;
+        }
+        return GameLogic::Ghost;
+    }
 
     auto getGhostFilePath() -> QString {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -298,6 +326,7 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head) {
             }
             m_snakeModel.reset(nb);
         }
+        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
         m_activeBuff = None;
     }
 
@@ -600,6 +629,7 @@ void GameLogic::selectChoice(int index) {
             }
             m_snakeModel.reset(nb);
         }
+        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
         m_activeBuff = None;
     }
     
@@ -990,7 +1020,7 @@ void GameLogic::spawnPowerUp() {
     }
     if (!freeSpots.isEmpty()) {
         m_powerUpPos = freeSpots[m_rng.bounded(freeSpots.size())];
-        m_powerUpType = static_cast<PowerUp>(m_rng.bounded(1, 10));
+        m_powerUpType = rollWeightedPowerUp(m_rng);
         emit powerUpChanged();
     }
 }
