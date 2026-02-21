@@ -1,18 +1,21 @@
 import QtQuick
 import QtQuick.Controls
+import "ThemeCatalog.js" as ThemeCatalog
 
 Rectangle {
     id: shell
     anchors.fill: parent
     property color shellColor: "#4aa3a8"
+    property string shellThemeName: "Teal"
     property real volume: 1.0
+    readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
 
     signal shellColorToggleRequested()
     signal volumeRequested(real value, bool withHaptic)
 
     color: shell.shellColor
     radius: 16
-    border.color: Qt.darker(color, 1.35)
+    border.color: shell.shellTheme.shellBorder
     border.width: 2
 
     property alias screenContainer: screenPlaceholder
@@ -40,9 +43,9 @@ Rectangle {
         anchors.margins: 2
         radius: shell.radius - 2
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.lighter(shell.color, 1.16) }
+            GradientStop { position: 0.0; color: shell.shellTheme.shellHighlight }
             GradientStop { position: 0.28; color: Qt.lighter(shell.color, 1.06) }
-            GradientStop { position: 1.0; color: Qt.darker(shell.color, 1.12) }
+            GradientStop { position: 1.0; color: shell.shellTheme.shellShade }
         }
         opacity: 0.42
     }
@@ -67,9 +70,9 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         width: 300
         height: 270
-        color: "#3c3f45"
+        color: shell.shellTheme.bezelBase
         radius: 12
-        border.color: "#202328"
+        border.color: shell.shellTheme.bezelEdge
         border.width: 2
 
         Rectangle {
@@ -77,8 +80,8 @@ Rectangle {
             anchors.margins: 2
             radius: parent.radius - 2
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#50545c" }
-                GradientStop { position: 1.0; color: "#2e3137" }
+                GradientStop { position: 0.0; color: Qt.lighter(shell.shellTheme.bezelBase, 1.18) }
+                GradientStop { position: 1.0; color: Qt.darker(shell.shellTheme.bezelBase, 1.12) }
             }
             opacity: 0.72
         }
@@ -87,8 +90,8 @@ Rectangle {
             anchors.fill: parent
             anchors.margins: 10
             radius: 8
-            color: "#111417"
-            border.color: "#5c6068"
+            color: shell.shellTheme.bezelInner
+            border.color: shell.shellTheme.bezelInnerBorder
             border.width: 1
         }
 
@@ -105,7 +108,7 @@ Rectangle {
             anchors.top: parent.top
             anchors.topMargin: 11
             text: "DOT MATRIX WITH STEREO SOUND"
-            color: "#8e939d"
+            color: shell.shellTheme.labelInk
             font.pixelSize: 7
             font.bold: false
             opacity: 0.62
@@ -118,7 +121,7 @@ Rectangle {
         anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
         text: "SnakeGB"
-        color: Qt.darker(shell.color, 2.2)
+        color: shell.shellTheme.brandInk
         font.family: "Monospace"
         font.pixelSize: 14
         font.bold: true
@@ -138,7 +141,7 @@ Rectangle {
         anchors.topMargin: 32
         anchors.horizontalCenter: parent.horizontalCenter
         text: "Portable Entertainment System"
-        color: Qt.darker(shell.color, 2.0)
+        color: shell.shellTheme.subtitleInk
         font.pixelSize: 8
         font.italic: true
         opacity: 0.6
@@ -191,7 +194,7 @@ Rectangle {
                 radius: 1
                 x: 20 + index * 5
                 y: 8 + index * 8
-                color: "#25272b"
+                color: shell.shellTheme.grillInk
             }
         }
     }
@@ -230,9 +233,9 @@ Rectangle {
             height: parent.height - 8
             radius: 3
             gradient: Gradient {
-                GradientStop { position: 0.0; color: "#273744" }
-                GradientStop { position: 0.55; color: "#22313d" }
-                GradientStop { position: 1.0; color: "#263540" }
+                GradientStop { position: 0.0; color: shell.shellTheme.wheelTrackA }
+                GradientStop { position: 0.55; color: shell.shellTheme.wheelTrackB }
+                GradientStop { position: 1.0; color: shell.shellTheme.wheelTrackA }
             }
             border.color: Qt.rgba(0, 0, 0, 0.24)
             border.width: 1
@@ -260,8 +263,8 @@ Rectangle {
                 id: wheelBody
                 anchors.fill: parent
                 radius: 7
-                color: "#596476"
-                border.color: "#435061"
+                color: shell.shellTheme.wheelBody
+                border.color: shell.shellTheme.wheelBodyDark
                 border.width: 1
                 property real spinPhase: shell.volume * 90
                 property real groovePitch: 5
@@ -271,9 +274,9 @@ Rectangle {
                     anchors.margins: 1
                     radius: parent.radius - 1
                     gradient: Gradient {
-                        GradientStop { position: 0.0; color: "#707c90" }
-                        GradientStop { position: 0.5; color: "#657184" }
-                        GradientStop { position: 1.0; color: "#5a6578" }
+                        GradientStop { position: 0.0; color: shell.shellTheme.wheelBodyLight }
+                        GradientStop { position: 0.5; color: shell.shellTheme.wheelBody }
+                        GradientStop { position: 1.0; color: shell.shellTheme.wheelBodyDark }
                     }
                 }
 
@@ -288,7 +291,7 @@ Rectangle {
                         property real yPos: index * wheelBody.groovePitch - (wheelBody.spinPhase % wheelBody.groovePitch) - wheelBody.groovePitch
                         y: yPos
                         visible: yPos >= 1 && yPos <= wheelBody.height - 2
-                        color: "#4a5567"
+                        color: shell.shellTheme.wheelBodyDark
                         opacity: 0.36
                     }
                 }

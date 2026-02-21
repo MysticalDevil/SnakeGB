@@ -72,6 +72,7 @@ class GameLogic final : public QObject, public IGameEngine {
     Q_PROPERTY(QString paletteName READ paletteName NOTIFY paletteChanged)
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QColor shellColor READ shellColor NOTIFY shellColorChanged)
+    Q_PROPERTY(QString shellName READ shellName NOTIFY shellColorChanged)
     Q_PROPERTY(bool hasSave READ hasSave NOTIFY hasSaveChanged)
     Q_PROPERTY(bool hasReplay READ hasReplay NOTIFY highScoreChanged)
     Q_PROPERTY(int level READ level NOTIFY levelChanged)
@@ -221,6 +222,7 @@ public:
     [[nodiscard]] auto paletteName() const -> QString;
     [[nodiscard]] auto obstacles() const -> QVariantList;
     [[nodiscard]] auto shellColor() const -> QColor;
+    [[nodiscard]] auto shellName() const -> QString;
     [[nodiscard]] auto level() const noexcept -> int { return m_levelIndex; }
     [[nodiscard]] auto currentLevelName() const noexcept -> QString { return m_currentLevelName; }
     [[nodiscard]] auto ghost() const -> QVariantList;

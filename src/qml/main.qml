@@ -127,6 +127,7 @@ Window {
                 id: shell
                 anchors.fill: parent
                 shellColor: gameLogic.shellColor
+                shellThemeName: gameLogic.shellName
                 volume: gameLogic.volume
 
                 onShellColorToggleRequested: {

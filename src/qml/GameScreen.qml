@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import "ThemeCatalog.js" as ThemeCatalog
 
 Item {
     id: root
@@ -127,74 +128,18 @@ Item {
     }
 
     function menuColor(role) {
-        var n = gameLogic.paletteName
-        if (n === "Original DMG") {
-            if (role === "cardPrimary") return "#d7e7b2"
-            if (role === "cardSecondary") return "#c7d99d"
-            if (role === "actionCard") return "#4e7a39"
-            if (role === "hintCard") return "#92b65a"
-            if (role === "borderPrimary") return "#39582a"
-            if (role === "borderSecondary") return "#577d3e"
-            if (role === "titleInk") return "#213319"
-            if (role === "secondaryInk") return "#253a1b"
-            if (role === "actionInk") return "#f2f8e4"
-            if (role === "hintInk") return "#1d2d15"
-        } else if (n === "Pocket B&W") {
-            if (role === "cardPrimary") return "#e3e5dd"
-            if (role === "cardSecondary") return "#d4d8cc"
-            if (role === "actionCard") return "#5a6250"
-            if (role === "hintCard") return "#b8bead"
-            if (role === "borderPrimary") return "#4f5648"
-            if (role === "borderSecondary") return "#646b5b"
-            if (role === "titleInk") return "#1d211b"
-            if (role === "secondaryInk") return "#242822"
-            if (role === "actionInk") return "#edf1e8"
-            if (role === "hintInk") return "#22261f"
-        } else if (n === "Golden Lux") {
-            if (role === "cardPrimary") return "#f5cf5d"
-            if (role === "cardSecondary") return "#e9bf45"
-            if (role === "actionCard") return "#825118"
-            if (role === "hintCard") return "#c89030"
-            if (role === "borderPrimary") return "#6d4412"
-            if (role === "borderSecondary") return "#89591b"
-            if (role === "titleInk") return "#2a1a06"
-            if (role === "secondaryInk") return "#342109"
-            if (role === "actionInk") return "#fff4c5"
-            if (role === "hintInk") return "#2d1d0a"
-        } else if (n === "Ice Blue") {
-            if (role === "cardPrimary") return "#78d9df"
-            if (role === "cardSecondary") return "#67c1c8"
-            if (role === "actionCard") return "#1e5f68"
-            if (role === "hintCard") return "#327f87"
-            if (role === "borderPrimary") return "#184c53"
-            if (role === "borderSecondary") return "#2c747b"
-            if (role === "titleInk") return "#08272d"
-            if (role === "secondaryInk") return "#0d3138"
-            if (role === "actionInk") return "#dcfbff"
-            if (role === "hintInk") return "#e6fcff"
-        } else if (n === "Virtual Red") {
-            if (role === "cardPrimary") return "#d44f4f"
-            if (role === "cardSecondary") return "#c53f3f"
-            if (role === "actionCard") return "#4e1111"
-            if (role === "hintCard") return "#7a2626"
-            if (role === "borderPrimary") return "#6c2424"
-            if (role === "borderSecondary") return "#8f3939"
-            if (role === "titleInk") return "#2b0a0a"
-            if (role === "secondaryInk") return "#320d0d"
-            if (role === "actionInk") return "#ffe7df"
-            if (role === "hintInk") return "#f9e3dc"
+        if (role === "cardPrimary") return ThemeCatalog.menuColor(gameLogic.paletteName, role, clampedSurface(p0, p1, 0.78, 0.28, 0.52, 0.80))
+        if (role === "cardSecondary") return ThemeCatalog.menuColor(gameLogic.paletteName, role, clampedSurface(p0, p1, 0.64, 0.24, 0.46, 0.76))
+        if (role === "actionCard") return ThemeCatalog.menuColor(gameLogic.paletteName, role, clampedSurface(p2, p3, 0.58, 0.22, 0.30, 0.52))
+        if (role === "hintCard") return ThemeCatalog.menuColor(gameLogic.paletteName, role, clampedSurface(p1, p2, 0.40, 0.30, 0.34, 0.60))
+        if (role === "borderPrimary") return ThemeCatalog.menuColor(gameLogic.paletteName, role, blendColor(p2, p3, 0.55))
+        if (role === "borderSecondary") return ThemeCatalog.menuColor(gameLogic.paletteName, role, blendColor(p2, p3, 0.35))
+        if (role === "titleInk" || role === "secondaryInk") {
+            return ThemeCatalog.menuColor(gameLogic.paletteName, role, readableText(menuColor("cardPrimary")))
         }
-
-        if (role === "cardPrimary") return clampedSurface(p0, p1, 0.78, 0.28, 0.52, 0.80)
-        if (role === "cardSecondary") return clampedSurface(p0, p1, 0.64, 0.24, 0.46, 0.76)
-        if (role === "actionCard") return clampedSurface(p2, p3, 0.58, 0.22, 0.30, 0.52)
-        if (role === "hintCard") return clampedSurface(p1, p2, 0.40, 0.30, 0.34, 0.60)
-        if (role === "borderPrimary") return blendColor(p2, p3, 0.55)
-        if (role === "borderSecondary") return blendColor(p2, p3, 0.35)
-        if (role === "titleInk" || role === "secondaryInk") return readableText(menuColor("cardPrimary"))
-        if (role === "actionInk") return readableText(menuColor("actionCard"))
-        if (role === "hintInk") return readableText(menuColor("hintCard"))
-        return p3
+        if (role === "actionInk") return ThemeCatalog.menuColor(gameLogic.paletteName, role, readableText(menuColor("actionCard")))
+        if (role === "hintInk") return ThemeCatalog.menuColor(gameLogic.paletteName, role, readableText(menuColor("hintCard")))
+        return ThemeCatalog.menuColor(gameLogic.paletteName, role, p3)
     }
 
     width: 240
@@ -912,16 +857,18 @@ Item {
             // --- STATE 7: LIBRARY ---
             Rectangle {
                 anchors.fill: parent
-                color: p0
+                readonly property var catalogTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
+                color: catalogTheme.pageBg
                 visible: gameLogic.state === 7
                 z: 800
                 Column {
                     anchors.fill: parent
                     anchors.margins: 15
                     spacing: 10
-                    Text { text: "CATALOG"; color: p3; font.family: gameFont; font.pixelSize: 20; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "CATALOG"; color: parent.parent.catalogTheme.title; font.family: gameFont; font.pixelSize: 20; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                     ListView {
                         id: libraryList
+                        readonly property var catalogTheme: parent.parent.catalogTheme
                         width: parent.width
                         height: parent.height - 60
                         model: gameLogic.fruitLibrary
@@ -968,16 +915,29 @@ Item {
                         ScrollBar.vertical: ScrollBar {
                             policy: ScrollBar.AsNeeded
                             width: 6
+                            contentItem: Rectangle {
+                                implicitWidth: 6
+                                radius: 3
+                                color: parent.parent.catalogTheme.scrollbarHandle
+                            }
+                            background: Rectangle {
+                                radius: 3
+                                color: parent.parent.catalogTheme.scrollbarTrack
+                                opacity: 0.35
+                            }
                         }
                         delegate: Rectangle {
                             id: libraryCard
                             width: parent.width
                             height: 46
-                            color: libraryList.currentIndex === index ? p2 : p1
-                            border.color: p3
+                            color: libraryList.currentIndex === index ? libraryList.catalogTheme.cardSelected : libraryList.catalogTheme.cardNormal
+                            border.color: libraryList.catalogTheme.cardBorder
                             border.width: libraryList.currentIndex === index ? 2 : 1
-                            readonly property color labelColor: root.readableText(color)
-                            readonly property color descColor: root.readableSecondaryText(color)
+                            readonly property bool selected: libraryList.currentIndex === index
+                            readonly property color labelColor: selected ? libraryList.catalogTheme.badgeText : libraryList.catalogTheme.primaryText
+                            readonly property color descColor: selected
+                                                               ? Qt.rgba(libraryList.catalogTheme.badgeText.r, libraryList.catalogTheme.badgeText.g, libraryList.catalogTheme.badgeText.b, 0.86)
+                                                               : libraryList.catalogTheme.secondaryText
                             Row {
                                 anchors.fill: parent
                                 anchors.margins: 5
@@ -990,31 +950,31 @@ Item {
                                         anchors.centerIn: parent
                                         width: 20
                                         height: 20
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 1 }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 2
-                                            Rectangle { width: 10; height: 2; color: p3; anchors.centerIn: parent }
+                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 1 }
+                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 2; visible: modelData.discovered && modelData.type === 2
+                                            Rectangle { width: 10; height: 2; color: libraryList.catalogTheme.iconStroke; anchors.centerIn: parent }
                                         }
-                                        Rectangle { anchors.fill: parent; color: p3; visible: modelData.discovered && modelData.type === 3; clip: true
-                                            Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: p1 }
+                                        Rectangle { anchors.fill: parent; color: libraryList.catalogTheme.iconStroke; visible: modelData.discovered && modelData.type === 3; clip: true
+                                            Rectangle { width: 20; height: 20; rotation: 45; y: 10; color: libraryList.catalogTheme.iconFill }
                                         }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
-                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 5
-                                            Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: p3; border.width: 1 }
+                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
+                                        Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 5
+                                            Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: libraryList.catalogTheme.iconStroke; border.width: 1 }
                                         }
                                         Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#ffd700"; visible: modelData.discovered && modelData.type === 6 }
                                         Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#00ffff"; visible: modelData.discovered && modelData.type === 7 }
                                         Rectangle { anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2; visible: modelData.discovered && modelData.type === 8 }
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: p3; border.width: 1; visible: modelData.discovered && modelData.type === 9
-                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: "white" }
+                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 9
+                                            Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: libraryList.catalogTheme.iconFill }
                                         }
-                                        Text { text: "?"; color: p0; visible: !modelData.discovered; anchors.centerIn: parent; font.bold: true; font.pixelSize: 12 }
+                                        Text { text: "?"; color: libraryList.catalogTheme.unknownText; visible: !modelData.discovered; anchors.centerIn: parent; font.bold: true; font.pixelSize: 12 }
                                     }
                                 }
                                 Column {
                                     width: parent.width - 50
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text { text: modelData.name; color: libraryCard.labelColor; font.family: gameFont; font.pixelSize: 11; font.bold: true; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.25) }
-                                    Text { text: modelData.desc; color: libraryCard.descColor; font.family: gameFont; font.pixelSize: 9; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap; style: Text.Outline; styleColor: Qt.rgba(0, 0, 0, 0.2) }
+                                    Text { text: modelData.name; color: libraryCard.labelColor; font.family: gameFont; font.pixelSize: 11; font.bold: true }
+                                    Text { text: modelData.desc; color: libraryCard.descColor; font.family: gameFont; font.pixelSize: 9; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap }
                                 }
                             }
                         }
@@ -1029,6 +989,7 @@ Item {
                 p1: root.p1
                 p2: root.p2
                 p3: root.p3
+                visualTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
                 gameFont: root.gameFont
                 visible: gameLogic.state === 8
                 z: 900

@@ -884,6 +884,20 @@ auto GameLogic::shellColor() const -> QColor {
     return colors[idx];
 }
 
+auto GameLogic::shellName() const -> QString {
+    static const QStringList names = {
+        u"Matte Silver"_s,
+        u"Cloud White"_s,
+        u"Lavender"_s,
+        u"Crimson"_s,
+        u"Teal"_s,
+        u"Sunburst"_s,
+        u"Graphite"_s
+    };
+    const int idx = m_profileManager ? m_profileManager->shellIndex() % names.size() : 0;
+    return names[idx];
+}
+
 auto GameLogic::ghost() const -> QVariantList {
     if (m_state == Replaying) {
         return {};

@@ -41,7 +41,9 @@ qt_add_resources(SnakeGB "res"
         "src/qml/OSDLayer.qml"
         "src/qml/MedalRoom.qml"
         "src/qml/GameBoyShell.qml"
+        "src/qml/ThemeCatalog.js"
         "src/qml/icon.svg"
+        "src/themes/theme_catalog.json"
         "src/levels/levels.json"
 )
 

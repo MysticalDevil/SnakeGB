@@ -9,6 +9,7 @@ WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
 WAIT_SECONDS="${WAIT_SECONDS:-14}"
 BOOT_SETTLE_SECONDS="${BOOT_SETTLE_SECONDS:-4.2}"
 NAV_STEP_DELAY="${NAV_STEP_DELAY:-0.25}"
+NAV_RETRIES="${NAV_RETRIES:-2}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.6}"
 PALETTE_STEPS="${PALETTE_STEPS:-0}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
@@ -104,27 +105,6 @@ send_key() {
   sleep "${NAV_STEP_DELAY}"
 }
 
-case "${TARGET}" in
-  menu)
-    ;;
-  game)
-    send_key "Return"
-    ;;
-  achievements|medals)
-    send_key "Up"
-    ;;
-  replay)
-    send_key "Down"
-    ;;
-  catalog|library)
-    send_key "Left"
-    ;;
-  *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library"
-    exit 3
-    ;;
-esac
-
 if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
   i=0
   while (( i < PALETTE_STEPS )); do
@@ -132,6 +112,43 @@ if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
     ((i += 1))
   done
 fi
+
+case "${TARGET}" in
+  menu)
+    ;;
+  game)
+    i=0
+    while (( i < NAV_RETRIES )); do
+      send_key "Return"
+      ((i += 1))
+    done
+    ;;
+  achievements|medals)
+    i=0
+    while (( i < NAV_RETRIES )); do
+      send_key "Up"
+      ((i += 1))
+    done
+    ;;
+  replay)
+    i=0
+    while (( i < NAV_RETRIES )); do
+      send_key "Down"
+      ((i += 1))
+    done
+    ;;
+  catalog|library)
+    i=0
+    while (( i < NAV_RETRIES )); do
+      send_key "Left"
+      ((i += 1))
+    done
+    ;;
+  *)
+    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library"
+    exit 3
+    ;;
+esac
 
 sleep "${POST_NAV_WAIT}"
 mkdir -p "$(dirname "${OUT_PNG}")"

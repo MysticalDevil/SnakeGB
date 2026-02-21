@@ -4,13 +4,13 @@ import QtQuick.Controls
 Rectangle {
     id: medalRoot
     anchors.fill: parent
-    color: p0
     z: 1000
 
     property color p0
     property color p1
     property color p2
     property color p3
+    property var visualTheme: ({})
     property string gameFont
 
     function luminance(colorValue) {
@@ -39,6 +39,21 @@ Rectangle {
         return Qt.rgba(c.r, c.g, c.b, 0.78)
     }
 
+    readonly property color pageBg: visualTheme.pageBg || p0
+    readonly property color titleColor: visualTheme.title || p3
+    readonly property color dividerColor: visualTheme.divider || p3
+    readonly property color cardNormal: visualTheme.cardNormal || p1
+    readonly property color cardSelected: visualTheme.cardSelected || p2
+    readonly property color cardBorder: visualTheme.cardBorder || p3
+    readonly property color badgeFill: visualTheme.badgeFill || p3
+    readonly property color badgeText: visualTheme.badgeText || p0
+    readonly property color iconFill: visualTheme.iconFill || p0
+    readonly property color unknownText: visualTheme.unknownText || p0
+    readonly property color scrollbarHandle: visualTheme.scrollbarHandle || p2
+    readonly property color scrollbarTrack: visualTheme.scrollbarTrack || p1
+
+    color: pageBg
+
     Column {
         anchors.fill: parent
         anchors.margins: 15
@@ -46,14 +61,14 @@ Rectangle {
 
         Text {
             text: "ACHIEVEMENTS"
-            color: p3
+            color: titleColor
             font.family: gameFont
             font.pixelSize: 20
             font.bold: true
             anchors.horizontalCenter: parent.horizontalCenter
         }
 
-        Rectangle { width: parent.width; height: 2; color: p3; opacity: 0.5 }
+        Rectangle { width: parent.width; height: 2; color: dividerColor; opacity: 0.5 }
 
         ListView {
             id: medalList
@@ -103,16 +118,32 @@ Rectangle {
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
                 width: 6
+                contentItem: Rectangle {
+                    implicitWidth: 6
+                    radius: 3
+                    color: medalRoot.scrollbarHandle
+                }
+                background: Rectangle {
+                    radius: 3
+                    color: medalRoot.scrollbarTrack
+                    opacity: 0.35
+                }
             }
 
             delegate: Rectangle {
+                id: medalCard
                 width: parent.width
                 height: 48
-                color: medalList.currentIndex === index ? p2 : p1
-                border.color: p3
+                color: medalList.currentIndex === index ? medalRoot.cardSelected : medalRoot.cardNormal
+                border.color: medalRoot.cardBorder
                 border.width: medalList.currentIndex === index ? 2 : 1
 
                 readonly property bool unlocked: gameLogic.achievements.indexOf(modelData.id) !== -1
+                readonly property bool selected: medalList.currentIndex === index
+                readonly property color titleColor: selected ? medalRoot.badgeText : medalRoot.titleColor
+                readonly property color hintColor: selected
+                                                 ? Qt.rgba(medalRoot.badgeText.r, medalRoot.badgeText.g, medalRoot.badgeText.b, 0.86)
+                                                 : Qt.rgba(medalRoot.titleColor.r, medalRoot.titleColor.g, medalRoot.titleColor.b, 0.78)
 
                 Row {
                     anchors.fill: parent
@@ -121,15 +152,15 @@ Rectangle {
                     
                     Rectangle {
                         width: 28; height: 28
-                        color: unlocked ? p3 : p0
+                        color: unlocked ? medalRoot.badgeFill : medalRoot.iconFill
                         radius: 14
-                        border.color: p3
+                        border.color: medalRoot.cardBorder
                         border.width: 1
                         anchors.verticalCenter: parent.verticalCenter
                         Text {
                             anchors.centerIn: parent
                             text: unlocked ? "★" : "?"
-                            color: unlocked ? p0 : p3
+                            color: unlocked ? medalRoot.badgeText : medalRoot.unknownText
                             font.pixelSize: 14
                             font.bold: true
                         }
@@ -140,23 +171,19 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
                         Text {
                             text: unlocked ? modelData.id : "?????????"
-                            color: medalRoot.readableText(parent.parent.color)
+                            color: medalCard.titleColor
                             font.family: gameFont
                             font.pixelSize: 12
                             font.bold: true
-                            style: Text.Outline
-                            styleColor: Qt.rgba(0, 0, 0, 0.24)
                         }
                         Text {
                             text: unlocked ? "UNLOCKED" : modelData.hint
-                            color: medalRoot.readableSecondaryText(parent.parent.color)
+                            color: medalCard.hintColor
                             font.family: gameFont
                             font.pixelSize: 9
                             opacity: 1.0
                             width: parent.width
                             wrapMode: Text.WordWrap
-                            style: Text.Outline
-                            styleColor: Qt.rgba(0, 0, 0, 0.20)
                         }
                     }
                 }
