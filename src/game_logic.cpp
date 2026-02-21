@@ -24,7 +24,6 @@
 #include <QtCore/qnativeinterface.h>
 #endif
 #include <algorithm>
-#include <array>
 #include <cmath>
 
 using namespace Qt::StringLiterals;
@@ -32,33 +31,6 @@ using namespace Qt::StringLiterals;
 namespace {
     constexpr int InitialInterval = 200;
     constexpr int BuffDurationTicks = 40; 
-
-    auto rollWeightedPowerUp(QRandomGenerator &rng) -> GameLogic::PowerUp {
-        // Lower Mini probability while keeping other fruits reasonably common.
-        static constexpr std::array<std::pair<GameLogic::PowerUp, int>, 9> weightedTable{{
-            {GameLogic::Ghost, 3},
-            {GameLogic::Slow, 3},
-            {GameLogic::Magnet, 3},
-            {GameLogic::Shield, 3},
-            {GameLogic::Portal, 3},
-            {GameLogic::Double, 3},
-            {GameLogic::Rich, 2},
-            {GameLogic::Laser, 2},
-            {GameLogic::Mini, 1}
-        }};
-        int totalWeight = 0;
-        for (const auto &item : weightedTable) {
-            totalWeight += item.second;
-        }
-        int pick = rng.bounded(totalWeight);
-        for (const auto &item : weightedTable) {
-            if (pick < item.second) {
-                return item.first;
-            }
-            pick -= item.second;
-        }
-        return GameLogic::Ghost;
-    }
 
     auto stateName(int state) -> const char * {
         switch (state) {
@@ -1088,7 +1060,10 @@ void GameLogic::spawnPowerUp() {
         pickedPoint);
     if (found) {
         m_powerUpPos = pickedPoint;
-        m_powerUpType = rollWeightedPowerUp(m_rng);
+        m_powerUpType = static_cast<PowerUp>(static_cast<int>(
+            snakegb::core::weightedRandomBuffId([this](const int maxExclusive) -> int {
+                return m_rng.bounded(maxExclusive);
+            })));
         emit powerUpChanged();
     }
 }

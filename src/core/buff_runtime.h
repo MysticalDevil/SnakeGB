@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 
 namespace snakegb::core {
 
@@ -20,5 +21,6 @@ enum class BuffId : int {
 auto foodPointsForBuff(BuffId activeBuff) -> int;
 auto buffDurationTicks(BuffId acquiredBuff, int baseDurationTicks) -> int;
 auto miniShrinkTargetLength(std::size_t currentLength, std::size_t minimumLength = 3) -> std::size_t;
+auto weightedRandomBuffId(const std::function<int(int)> &pickBounded) -> BuffId;
 
 } // namespace snakegb::core
