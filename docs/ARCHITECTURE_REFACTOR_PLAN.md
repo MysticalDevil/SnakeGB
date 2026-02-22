@@ -1,6 +1,6 @@
 # SnakeGB Architecture Refactor Plan
 
-Last updated: 2026-02-21
+Last updated: 2026-02-22
 Scope: architecture baseline review + GameLogic core/adapter decoupling roadmap.
 
 ## 1. Executive Summary
@@ -251,6 +251,14 @@ Validation after each commit:
   `*State` classes directly, reducing adapter-to-state implementation coupling.
 - UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `GameLogic` now binds
   orchestration lambdas instead of owning the large action switch.
+- `GameLogic` implementation is now split into focused translation units:
+  - `src/game_logic.cpp` (bootstrap + state bridge + device wiring)
+  - `src/game_logic_input.cpp` (QML/action input orchestration)
+  - `src/game_logic_runtime.cpp` (tick/runtime orchestration)
+  - `src/game_logic_session.cpp` (session/replay/persistence orchestration)
+- Main hotspot file `src/game_logic.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
+  while preserving the existing QML-facing interface.
+- `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
 
 ### Phase C progress snapshot (2026-02-21)
 
