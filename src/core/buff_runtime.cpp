@@ -55,4 +55,13 @@ auto weightedRandomBuffId(const std::function<int(int)> &pickBounded) -> BuffId 
     return BuffId::Ghost;
 }
 
+auto tickBuffCountdown(int &remainingTicks) -> bool
+{
+    if (remainingTicks <= 0) {
+        return false;
+    }
+    remainingTicks -= 1;
+    return remainingTicks <= 0;
+}
+
 } // namespace snakegb::core

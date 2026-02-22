@@ -28,6 +28,7 @@ private slots:
     void testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope();
     void testLevelCountFromJsonBytesUsesFallbackOnInvalidData();
     void testBuffRuntimeRules();
+    void testTickBuffCountdown();
     void testWeightedRandomBuffIdUsesWeightsAndFallback();
     void testReplayTimelineAppliesOnlyOnMatchingTicks();
 };
@@ -318,6 +319,18 @@ void TestCoreRules::testBuffRuntimeRules() {
     QCOMPARE(snakegb::core::miniShrinkTargetLength(10), 5);
     QCOMPARE(snakegb::core::miniShrinkTargetLength(5), 3);
     QCOMPARE(snakegb::core::miniShrinkTargetLength(2), 3);
+}
+
+void TestCoreRules::testTickBuffCountdown() {
+    int ticks = 0;
+    QVERIFY(!snakegb::core::tickBuffCountdown(ticks));
+    QCOMPARE(ticks, 0);
+
+    ticks = 2;
+    QVERIFY(!snakegb::core::tickBuffCountdown(ticks));
+    QCOMPARE(ticks, 1);
+    QVERIFY(snakegb::core::tickBuffCountdown(ticks));
+    QCOMPARE(ticks, 0);
 }
 
 void TestCoreRules::testWeightedRandomBuffIdUsesWeightsAndFallback() {

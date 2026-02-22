@@ -283,10 +283,9 @@ auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool
 void GameLogic::update()
 {
     if (m_fsmState) {
-        if (m_activeBuff != None && m_buffTicksRemaining > 0) {
-            if (--m_buffTicksRemaining <= 0) {
-                deactivateBuff();
-            }
+        if (m_activeBuff != None &&
+            snakegb::core::tickBuffCountdown(m_buffTicksRemaining)) {
+            deactivateBuff();
         }
         dispatchStateCallback([](GameState &state) -> void { state.update(); });
         applyPostTickTasks();
