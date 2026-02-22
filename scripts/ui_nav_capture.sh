@@ -217,8 +217,35 @@ case "${TARGET}" in
     sleep 0.3
     send_token "B"
     ;;
+  dbg-menu)
+    send_token "DBG_MENU"
+    ;;
+  dbg-play)
+    send_token "DBG_PLAY"
+    ;;
+  dbg-pause)
+    send_token "DBG_PAUSE"
+    ;;
+  dbg-gameover)
+    send_token "DBG_GAMEOVER"
+    ;;
+  dbg-replay)
+    send_token "DBG_REPLAY"
+    ;;
+  dbg-choice)
+    send_token "DBG_CHOICE"
+    ;;
+  dbg-catalog)
+    send_token "DBG_CATALOG"
+    ;;
+  dbg-achievements)
+    send_token "DBG_ACHIEVEMENTS"
+    ;;
+  dbg-icons)
+    send_token "DBG_ICONS"
+    ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b"
+    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons"
     exit 3
     ;;
 esac

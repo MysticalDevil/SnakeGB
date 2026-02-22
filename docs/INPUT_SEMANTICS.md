@@ -74,3 +74,19 @@ Restricting Konami detection to `Paused` avoids collisions with real gameplay/me
 - `B` in gameplay must always toggle palette
 
 This keeps hidden debug entry deterministic without stealing normal controls.
+
+## Debug Injection Tokens
+
+For automation or manual debug through `inputInjector`, these direct tokens are supported:
+
+- `DBG_MENU`: jump to main menu
+- `DBG_PLAY`: jump to playing state
+- `DBG_PAUSE`: jump to paused overlay
+- `DBG_GAMEOVER`: jump to game-over overlay
+- `DBG_REPLAY`: jump to replay state
+- `DBG_CHOICE`: jump to roguelike choice overlay
+- `DBG_CATALOG`: jump to catalog page
+- `DBG_ACHIEVEMENTS`: jump to achievements page
+- `DBG_ICONS`: enter Icon Lab directly
+
+These tokens are debug-only shortcuts. They do not change the runtime semantics of physical buttons.

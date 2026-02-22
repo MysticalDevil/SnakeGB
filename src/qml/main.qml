@@ -309,8 +309,69 @@ Window {
         inputRouter.route(action)
     }
 
+    function dispatchDebugToken(token) {
+        if (token === "DBG_MENU") {
+            if (iconDebugMode) {
+                exitIconLabToMenu()
+            } else {
+                gameLogic.dispatchUiAction("state_start_menu")
+                screen.showOSD("DBG: MENU")
+            }
+            return true
+        }
+        if (token === "DBG_PLAY") {
+            gameLogic.dispatchUiAction("state_start_menu")
+            gameLogic.dispatchUiAction(inputAction.Start)
+            screen.showOSD("DBG: PLAY")
+            return true
+        }
+        if (token === "DBG_PAUSE") {
+            gameLogic.dispatchUiAction("state_start_menu")
+            gameLogic.dispatchUiAction(inputAction.Start)
+            gameLogic.dispatchUiAction(inputAction.Start)
+            screen.showOSD("DBG: PAUSE")
+            return true
+        }
+        if (token === "DBG_GAMEOVER") {
+            gameLogic.requestStateChange(AppState.GameOver)
+            screen.showOSD("DBG: GAMEOVER")
+            return true
+        }
+        if (token === "DBG_REPLAY") {
+            gameLogic.requestStateChange(AppState.Replaying)
+            screen.showOSD("DBG: REPLAY")
+            return true
+        }
+        if (token === "DBG_CHOICE") {
+            gameLogic.requestStateChange(AppState.ChoiceSelection)
+            screen.showOSD("DBG: CHOICE")
+            return true
+        }
+        if (token === "DBG_CATALOG") {
+            gameLogic.requestStateChange(AppState.Library)
+            screen.showOSD("DBG: CATALOG")
+            return true
+        }
+        if (token === "DBG_ACHIEVEMENTS") {
+            gameLogic.requestStateChange(AppState.MedalRoom)
+            screen.showOSD("DBG: ACHIEVEMENTS")
+            return true
+        }
+        if (token === "DBG_ICONS") {
+            if (!iconDebugMode) {
+                toggleIconLab()
+            }
+            screen.showOSD("DBG: ICON LAB")
+            return true
+        }
+        return false
+    }
+
     function dispatchInjectedToken(rawToken) {
         var token = String(rawToken).trim().toUpperCase()
+        if (dispatchDebugToken(token)) {
+            return
+        }
         if (token === "UP" || token === "U") {
             dispatchAction(inputAction.NavUp)
             return
