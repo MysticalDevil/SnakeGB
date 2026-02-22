@@ -1,19 +1,9 @@
 #include "game_logic.h"
 
-#include <QDateTime>
-
 #include "adapter/level_loader.h"
 #include "adapter/profile_bridge.h"
 #include "core/game_rules.h"
-#include "fsm/game_state.h"
-#include "fsm/state_factory.h"
-
 using namespace Qt::StringLiterals;
-
-namespace
-{
-constexpr int InitialInterval = 200;
-} // namespace
 
 auto GameLogic::hasSave() const -> bool
 {
@@ -48,65 +38,6 @@ void GameLogic::resetReplayRuntimeTracking()
     m_currentChoiceHistory.clear();
 }
 
-void GameLogic::restart()
-{
-    resetTransientRuntimeState();
-    resetReplayRuntimeTracking();
-    m_score = 0;
-
-    m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
-    m_rng.seed(m_randomSeed);
-
-    loadLevelData(m_levelIndex);
-    m_snakeModel.reset(buildSafeInitialSnakeBody());
-    clearSavedState();
-
-    m_timer->setInterval(InitialInterval);
-    m_timer->start();
-    spawnFood();
-
-    emit buffChanged();
-    emit powerUpChanged();
-    emit scoreChanged();
-    emit foodChanged();
-    requestStateChange(Playing);
-}
-
-void GameLogic::startReplay()
-{
-    if (m_bestInputHistory.isEmpty()) {
-        return;
-    }
-
-    setInternalState(Replaying);
-    resetTransientRuntimeState();
-    resetReplayRuntimeTracking();
-    m_score = 0;
-
-    loadLevelData(m_bestLevelIndex);
-    m_snakeModel.reset(buildSafeInitialSnakeBody());
-    m_rng.seed(m_bestRandomSeed);
-    m_timer->setInterval(InitialInterval);
-    m_timer->start();
-    spawnFood();
-
-    emit scoreChanged();
-    emit foodChanged();
-    emit ghostChanged();
-    if (auto nextState = snakegb::fsm::createStateFor(*this, Replaying); nextState) {
-        changeState(std::move(nextState));
-    }
-}
-
-void GameLogic::togglePause()
-{
-    if (m_state == Playing) {
-        requestStateChange(Paused);
-    } else if (m_state == Paused) {
-        requestStateChange(Playing);
-    }
-}
-
 void GameLogic::nextLevel()
 {
     const int levelCount{
@@ -118,15 +49,6 @@ void GameLogic::nextLevel()
     }
     emit levelChanged();
     snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
-}
-
-void GameLogic::lazyInitState()
-{
-    if (!m_fsmState) {
-        if (auto nextState = snakegb::fsm::createStateFor(*this, Splash); nextState) {
-            changeState(std::move(nextState));
-        }
-    }
 }
 
 auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint>
