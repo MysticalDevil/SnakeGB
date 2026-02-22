@@ -464,6 +464,8 @@ private:
     void updateHighScore();
     void saveCurrentState();
     void clearSavedState();
+    void resetTransientRuntimeState();
+    void resetReplayRuntimeTracking();
     void loadLevelData(int index);
     void applyFallbackLevelData(int levelIndex);
     [[nodiscard]] auto buildSafeInitialSnakeBody() const -> std::deque<QPoint>;

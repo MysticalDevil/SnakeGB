@@ -380,6 +380,7 @@ Window {
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
+        clearDpadVisuals()
         gameLogic.dispatchUiAction("state_start_menu")
         screen.showOSD("ICON LAB OFF")
     }
@@ -432,9 +433,9 @@ Window {
         if (status === "toggle") {
             return true
         }
-        // Let the first token pass through for normal controls; consume the rest
-        // of a potential Konami sequence to avoid gameplay/menu side effects.
-        return beforeIndex > 0
+        // Consume the full Konami sequence (including the first token) to avoid
+        // gameplay/menu side effects while entering the easter input.
+        return beforeIndex > 0 || token === konamiSeq[0]
     }
 
     function beginSelectPress() {

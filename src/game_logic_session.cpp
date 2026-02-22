@@ -34,11 +34,10 @@ auto GameLogic::hasReplay() const noexcept -> bool
     return !m_bestInputHistory.isEmpty();
 }
 
-void GameLogic::restart()
+void GameLogic::resetTransientRuntimeState()
 {
     m_direction = {0, -1};
     m_inputQueue.clear();
-    m_score = 0;
     m_activeBuff = None;
     m_buffTicksRemaining = 0;
     m_buffTicksTotal = 0;
@@ -46,15 +45,26 @@ void GameLogic::restart()
     m_powerUpPos = QPoint(-1, -1);
     m_choicePending = false;
     m_choiceIndex = 0;
+}
 
-    m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
-    m_rng.seed(m_randomSeed);
+void GameLogic::resetReplayRuntimeTracking()
+{
     m_gameTickCounter = 0;
     m_ghostFrameIndex = 0;
     m_lastRoguelikeChoiceScore = -1000;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();
+}
+
+void GameLogic::restart()
+{
+    resetTransientRuntimeState();
+    resetReplayRuntimeTracking();
+    m_score = 0;
+
+    m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
+    m_rng.seed(m_randomSeed);
 
     loadLevelData(m_levelIndex);
     m_snakeModel.reset(buildSafeInitialSnakeBody());
@@ -78,22 +88,13 @@ void GameLogic::startReplay()
     }
 
     setInternalState(Replaying);
-    m_currentRecording.clear();
-    m_direction = {0, -1};
-    m_inputQueue.clear();
+    resetTransientRuntimeState();
+    resetReplayRuntimeTracking();
     m_score = 0;
-    m_activeBuff = None;
-    m_buffTicksRemaining = 0;
-    m_buffTicksTotal = 0;
-    m_shieldActive = false;
-    m_powerUpPos = QPoint(-1, -1);
 
     loadLevelData(m_bestLevelIndex);
     m_snakeModel.reset(buildSafeInitialSnakeBody());
     m_rng.seed(m_bestRandomSeed);
-    m_gameTickCounter = 0;
-    m_ghostFrameIndex = 0;
-    m_lastRoguelikeChoiceScore = -1000;
     m_timer->setInterval(InitialInterval);
     m_timer->start();
     spawnFood();
@@ -119,14 +120,9 @@ void GameLogic::loadLastSession()
     m_obstacles = snapshot->obstacles;
     m_snakeModel.reset(snapshot->body);
     m_inputQueue.clear();
-    m_currentInputHistory.clear();
-    m_currentRecording.clear();
-    m_currentChoiceHistory.clear();
-    m_lastRoguelikeChoiceScore = -1000;
-    m_activeBuff = None;
-    m_buffTicksRemaining = 0;
-    m_buffTicksTotal = 0;
-    m_shieldActive = false;
+    resetTransientRuntimeState();
+    resetReplayRuntimeTracking();
+    m_direction = snapshot->direction;
 
     for (const auto &p : snapshot->body) {
         m_currentRecording.append(p);

@@ -13,6 +13,7 @@ NAV_RETRIES="${NAV_RETRIES:-2}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.6}"
 PALETTE_STEPS="${PALETTE_STEPS:-0}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
+INPUT_FILE="${INPUT_FILE:-/tmp/snakegb_ui_input.txt}"
 TARGET="${1:-menu}"
 OUT_PNG="${2:-/tmp/snakegb_ui_nav_${TARGET}.png}"
 
@@ -54,7 +55,8 @@ pkill -f "${APP_BIN}" >/dev/null 2>&1 || true
 sleep 0.2
 
 echo "[info] Launching ${APP_BIN}"
-"${APP_BIN}" >/tmp/snakegb_ui_nav_runtime.log 2>&1 &
+rm -f "${INPUT_FILE}" >/dev/null 2>&1 || true
+SNAKEGB_INPUT_FILE="${INPUT_FILE}" "${APP_BIN}" >/tmp/snakegb_ui_nav_runtime.log 2>&1 &
 APP_PID=$!
 cleanup() {
   kill "${APP_PID}" >/dev/null 2>&1 || true
@@ -74,8 +76,8 @@ while (( SECONDS < DEADLINE )); do
     continue
   fi
 
-  WINDOW_INFO="$(jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" --argjson pid "${APP_PID}" '
-    .[] | select((.pid == $pid) or (.class == $cls) or ((.title // "") | contains($ttl))) |
+  WINDOW_INFO="$(jq -r --argjson pid "${APP_PID}" '
+    .[] | select(.pid == $pid) |
     "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
   ' <<<"${CLIENTS_JSON}" | head -n1)"
 
@@ -92,31 +94,26 @@ if [[ -z "${WINDOW_ADDR}" || -z "${GEOM}" ]]; then
   exit 2
 fi
 
-# Focus the exact window by address so key injection is deterministic.
-hyprctl dispatch focuswindow "address:${WINDOW_ADDR}" >/dev/null || true
 sleep "${BOOT_SETTLE_SECONDS}"
 
-send_key() {
-  local key="$1"
-  # Prefer targeting by address. Fallback to active-window dispatch.
-  if ! hyprctl dispatch sendshortcut ",${key},address:${WINDOW_ADDR}" >/dev/null 2>&1; then
-    hyprctl dispatch sendshortcut ",${key}," >/dev/null 2>&1 || true
-  fi
+send_token() {
+  local token="$1"
+  printf '%s\n' "${token}" >>"${INPUT_FILE}"
   sleep "${NAV_STEP_DELAY}"
 }
 
 send_konami() {
-  local seq=(Up Up Down Down Left Right Left Right X Z)
+  local seq=(U U D D L R L R B A)
   local k
   for k in "${seq[@]}"; do
-    send_key "${k}"
+    send_token "${k}"
   done
 }
 
 if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
   i=0
   while (( i < PALETTE_STEPS )); do
-    send_key "B"
+    send_token "B"
     ((i += 1))
   done
 fi
@@ -127,42 +124,42 @@ case "${TARGET}" in
   game)
     i=0
     while (( i < NAV_RETRIES )); do
-      send_key "Return"
+      send_token "START"
       ((i += 1))
     done
     ;;
   achievements|medals)
     i=0
     while (( i < NAV_RETRIES )); do
-      send_key "Up"
+      send_token "UP"
       ((i += 1))
     done
     ;;
   replay)
     i=0
     while (( i < NAV_RETRIES )); do
-      send_key "Down"
+      send_token "DOWN"
       ((i += 1))
     done
     ;;
   catalog|library)
     i=0
     while (( i < NAV_RETRIES )); do
-      send_key "Left"
+      send_token "LEFT"
       ((i += 1))
     done
     ;;
   icons)
     i=0
     while (( i < 1 )); do
-      send_key "F6"
+      send_token "F6"
       ((i += 1))
     done
     ;;
   icons-right)
-    send_key "F6"
+    send_token "F6"
     sleep 0.3
-    send_key "Right"
+    send_token "RIGHT"
     ;;
   konami-on)
     send_konami
@@ -173,9 +170,9 @@ case "${TARGET}" in
     send_konami
     ;;
   icons-exit-b)
-    send_key "F6"
+    send_token "F6"
     sleep 0.3
-    send_key "X"
+    send_token "B"
     ;;
   *)
     echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|icons-exit-b"

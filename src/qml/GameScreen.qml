@@ -41,12 +41,19 @@ Item {
     }
 
     function powerColor(type) {
-        if (type === 6) return "#ffd700"
-        if (type === 7) return "#7ee7ff"
-        if (type === 8) return "#ff6666"
-        if (type === 4) return "#8aff8a"
-        if (type === 5) return "#b78bff"
-        return p3
+        var palette = gameLogic.paletteName
+        var borderStrong = ThemeCatalog.menuColor(palette, "borderPrimary", p3)
+        var borderSoft = ThemeCatalog.menuColor(palette, "borderSecondary", p2)
+        var accent = ThemeCatalog.menuColor(palette, "actionCard", p2)
+        var accentInk = ThemeCatalog.menuColor(palette, "actionInk", p3)
+        var hint = ThemeCatalog.menuColor(palette, "hintCard", p1)
+        var hintInk = ThemeCatalog.menuColor(palette, "hintInk", p3)
+        if (type === 6) return blendColor(accentInk, hint, 0.32)      // Double
+        if (type === 7) return blendColor(accentInk, hintInk, 0.58)   // Diamond
+        if (type === 8) return blendColor(accent, Qt.rgba(1, 0.35, 0.35, 1), 0.45) // Laser
+        if (type === 4) return blendColor(hintInk, accentInk, 0.28)   // Shield
+        if (type === 5) return blendColor(accentInk, borderSoft, 0.42) // Portal
+        return blendColor(borderStrong, accentInk, 0.22)              // Common
     }
 
     function drawFoodSymbol(ctx, w, h) {
@@ -1013,12 +1020,22 @@ Item {
                 visible: root.iconDebugMode
                 anchors.fill: parent
                 color: p0
+                clip: true
                 z: 1600
                 readonly property int contentMargin: 8
                 readonly property int contentSpacing: 4
-                readonly property int headerHeight: 28
-                readonly property int infoHeight: 32
-                readonly property int footerHeight: 16
+                readonly property int headerHeight: 24
+                readonly property int infoHeight: 28
+                readonly property int footerHeight: 14
+                readonly property color panelBgStrong: menuColor("cardPrimary")
+                readonly property color panelBg: menuColor("cardSecondary")
+                readonly property color panelBgSoft: menuColor("hintCard")
+                readonly property color panelAccent: menuColor("actionCard")
+                readonly property color borderStrong: menuColor("borderPrimary")
+                readonly property color borderSoft: menuColor("borderSecondary")
+                readonly property color textStrong: menuColor("titleInk")
+                readonly property color textMuted: menuColor("secondaryInk")
+                readonly property color textOnAccent: menuColor("actionInk")
                 onVisibleChanged: {
                     if (visible) {
                         iconLabSelection = 0
@@ -1028,8 +1045,8 @@ Item {
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: 6
-                    color: Qt.rgba(p1.r, p1.g, p1.b, 0.36)
-                    border.color: p2
+                    color: Qt.rgba(iconLabLayer.panelBgStrong.r, iconLabLayer.panelBgStrong.g, iconLabLayer.panelBgStrong.b, 0.44)
+                    border.color: iconLabLayer.borderStrong
                     border.width: 1
                 }
 
@@ -1042,8 +1059,8 @@ Item {
                         width: parent.width
                         height: iconLabLayer.headerHeight
                         radius: 3
-                        color: Qt.rgba(p1.r, p1.g, p1.b, 0.66)
-                        border.color: p3
+                        color: Qt.rgba(iconLabLayer.panelBgStrong.r, iconLabLayer.panelBgStrong.g, iconLabLayer.panelBgStrong.b, 0.86)
+                        border.color: iconLabLayer.borderStrong
                         border.width: 1
 
                         Column {
@@ -1051,14 +1068,14 @@ Item {
                             spacing: 0
                             Text {
                                 text: "ICON LAB"
-                                color: p3
+                                color: iconLabLayer.textStrong
                                 font.family: gameFont
                                 font.pixelSize: 12
                                 font.bold: true
                             }
                             Text {
                                 text: "F6 / KONAMI TO EXIT"
-                                color: Qt.rgba(p3.r, p3.g, p3.b, 0.82)
+                                color: Qt.rgba(iconLabLayer.textMuted.r, iconLabLayer.textMuted.g, iconLabLayer.textMuted.b, 0.9)
                                 font.family: gameFont
                                 font.pixelSize: 6
                                 font.bold: true
@@ -1073,8 +1090,8 @@ Item {
                             width: 90
                             height: iconLabLayer.infoHeight
                             radius: 3
-                            color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
-                            border.color: p3
+                            color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.84)
+                            border.color: iconLabLayer.borderSoft
                             border.width: 1
 
                             Row {
@@ -1084,8 +1101,8 @@ Item {
                                     width: 20
                                     height: 20
                                     radius: 3
-                                    color: Qt.rgba(p0.r, p0.g, p0.b, 0.72)
-                                    border.color: p3
+                                    color: Qt.rgba(iconLabLayer.panelBgSoft.r, iconLabLayer.panelBgSoft.g, iconLabLayer.panelBgSoft.b, 0.86)
+                                    border.color: iconLabLayer.borderStrong
                                     border.width: 1
                                     Canvas {
                                         anchors.fill: parent
@@ -1101,8 +1118,8 @@ Item {
                                 }
                                 Column {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    Text { text: "FOOD"; color: p3; font.family: gameFont; font.pixelSize: 7; font.bold: true }
-                                    Text { text: "BASE"; color: Qt.rgba(p3.r, p3.g, p3.b, 0.82); font.family: gameFont; font.pixelSize: 6; font.bold: true }
+                                    Text { text: "FOOD"; color: iconLabLayer.textStrong; font.family: gameFont; font.pixelSize: 7; font.bold: true }
+                                    Text { text: "BASE"; color: iconLabLayer.textMuted; font.family: gameFont; font.pixelSize: 6; font.bold: true }
                                 }
                             }
                         }
@@ -1111,13 +1128,13 @@ Item {
                             width: Math.max(64, parent.width - 90 - iconLabLayer.contentSpacing)
                             height: iconLabLayer.infoHeight
                             radius: 3
-                            color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
-                            border.color: p3
+                            color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.84)
+                            border.color: iconLabLayer.borderSoft
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent
                                 text: "POWERUP ICON SUITE"
-                                color: p3
+                                color: iconLabLayer.textStrong
                                 font.family: gameFont
                                 font.pixelSize: 8
                                 font.bold: true
@@ -1128,8 +1145,10 @@ Item {
                     Grid {
                         id: iconLabGrid
                         width: parent.width
-                        height: parent.height - iconLabLayer.headerHeight - iconLabLayer.infoHeight
-                                - iconLabLayer.footerHeight - (iconLabLayer.contentSpacing * 3)
+                        height: Math.max(
+                                    0,
+                                    parent.height - iconLabLayer.headerHeight - iconLabLayer.infoHeight
+                                    - iconLabLayer.footerHeight - (iconLabLayer.contentSpacing * 3))
                         columns: 3
                         columnSpacing: iconLabLayer.contentSpacing
                         rowSpacing: iconLabLayer.contentSpacing
@@ -1137,18 +1156,19 @@ Item {
                         Repeater {
                             model: [1,2,3,4,5,6,7,8,9]
                             delegate: Rectangle {
-                                width: (iconLabGrid.width - (iconLabGrid.columnSpacing * 2)) / 3
-                                height: (iconLabGrid.height - (iconLabGrid.rowSpacing * 2)) / 3
+                                width: Math.floor((iconLabGrid.width - (iconLabGrid.columnSpacing * 2)) / 3)
+                                height: Math.floor((iconLabGrid.height - (iconLabGrid.rowSpacing * 2)) / 3)
                                 radius: 3
                                 property int iconIdx: index
-                                color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
+                                clip: true
+                                color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.8)
                                 border.color: powerColor(modelData)
                                 border.width: root.iconLabSelection === iconIdx ? 2 : 1
 
                                 Rectangle {
                                     anchors.fill: parent
                                     color: "transparent"
-                                    border.color: Qt.rgba(p3.r, p3.g, p3.b, 0.9)
+                                    border.color: iconLabLayer.borderStrong
                                     border.width: 1
                                     visible: root.iconLabSelection === iconIdx
                                     opacity: (Math.floor(elapsed * 8) % 2 === 0) ? 0.9 : 0.5
@@ -1163,13 +1183,13 @@ Item {
                                     height: 9
                                     radius: 2
                                     visible: root.iconLabSelection === iconIdx
-                                    color: p3
-                                    border.color: p0
+                                    color: iconLabLayer.panelAccent
+                                    border.color: iconLabLayer.borderStrong
                                     border.width: 1
                                     Text {
                                         anchors.centerIn: parent
                                         text: "SEL"
-                                        color: p0
+                                        color: iconLabLayer.textOnAccent
                                         font.family: gameFont
                                         font.pixelSize: 6
                                         font.bold: true
@@ -1180,13 +1200,14 @@ Item {
                                     anchors.fill: parent
                                     anchors.margins: 4
                                     spacing: 4
+                                    clip: true
 
                                     Rectangle {
                                         width: Math.max(16, parent.height - 10)
                                         height: width
                                         radius: 4
-                                        color: Qt.rgba(p0.r, p0.g, p0.b, 0.72)
-                                        border.color: p3
+                                        color: Qt.rgba(iconLabLayer.panelBgSoft.r, iconLabLayer.panelBgSoft.g, iconLabLayer.panelBgSoft.b, 0.86)
+                                        border.color: iconLabLayer.borderStrong
                                         border.width: 1
                                         anchors.verticalCenter: parent.verticalCenter
 
@@ -1208,7 +1229,7 @@ Item {
                                         spacing: 0
                                         Text {
                                             text: buffName(modelData)
-                                            color: p3
+                                            color: iconLabLayer.textStrong
                                             font.family: gameFont
                                             font.pixelSize: 7
                                             font.bold: true
@@ -1222,7 +1243,7 @@ Item {
                                         }
                                         Text {
                                             text: "GLYPH " + powerGlyph(modelData)
-                                            color: Qt.rgba(p3.r, p3.g, p3.b, 0.72)
+                                            color: iconLabLayer.textMuted
                                             font.family: gameFont
                                             font.pixelSize: 6
                                             font.bold: true
@@ -1238,13 +1259,13 @@ Item {
                         width: parent.width
                         height: iconLabLayer.footerHeight
                         radius: 3
-                        color: Qt.rgba(p1.r, p1.g, p1.b, 0.62)
-                        border.color: p3
+                        color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.84)
+                        border.color: iconLabLayer.borderSoft
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
                             text: "SELECTED: " + buffName(root.iconLabSelection + 1)
-                            color: p3
+                            color: iconLabLayer.textStrong
                             font.family: gameFont
                             font.pixelSize: 7
                             font.bold: true

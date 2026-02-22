@@ -261,6 +261,9 @@ Validation after each commit:
 - Main hotspot file `src/game_logic.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
+- Session bootstrap/reset orchestration is further contracted in `src/game_logic_session.cpp` via
+  `resetTransientRuntimeState()` and `resetReplayRuntimeTracking()`, reducing duplicate mutable-state branches across
+  restart/replay/resume paths before the remaining core-session extraction.
 
 ### Phase C progress snapshot (2026-02-21)
 
