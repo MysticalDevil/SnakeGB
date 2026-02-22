@@ -129,6 +129,32 @@ case "${TARGET}" in
       ((i += 1))
     done
     ;;
+  pause)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    ;;
+  pause-back)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    sleep 0.25
+    send_token "SELECT"
+    ;;
+  pause-back-b)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    sleep 0.25
+    send_token "B"
+    ;;
+  pause-resume)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    ;;
   achievements|medals)
     i=0
     while (( i < NAV_RETRIES )); do
@@ -170,13 +196,29 @@ case "${TARGET}" in
     sleep 0.4
     send_konami
     ;;
+  konami-on-paused)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    sleep 0.25
+    send_konami
+    ;;
+  konami-off-paused)
+    send_token "START"
+    sleep 0.25
+    send_token "START"
+    sleep 0.25
+    send_konami
+    sleep 0.4
+    send_konami
+    ;;
   icons-exit-b)
     send_token "F6"
     sleep 0.3
     send_token "B"
     ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|icons-exit-b"
+    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b"
     exit 3
     ;;
 esac

@@ -42,18 +42,12 @@ Item {
 
     function powerColor(type) {
         var palette = gameLogic.paletteName
-        var borderStrong = ThemeCatalog.menuColor(palette, "borderPrimary", p3)
-        var borderSoft = ThemeCatalog.menuColor(palette, "borderSecondary", p2)
-        var accent = ThemeCatalog.menuColor(palette, "actionCard", p2)
-        var accentInk = ThemeCatalog.menuColor(palette, "actionInk", p3)
-        var hint = ThemeCatalog.menuColor(palette, "hintCard", p1)
-        var hintInk = ThemeCatalog.menuColor(palette, "hintInk", p3)
-        if (type === 6) return blendColor(accentInk, hint, 0.32)      // Double
-        if (type === 7) return blendColor(accentInk, hintInk, 0.58)   // Diamond
-        if (type === 8) return blendColor(accent, Qt.rgba(1, 0.35, 0.35, 1), 0.45) // Laser
-        if (type === 4) return blendColor(hintInk, accentInk, 0.28)   // Shield
-        if (type === 5) return blendColor(accentInk, borderSoft, 0.42) // Portal
-        return blendColor(borderStrong, accentInk, 0.22)              // Common
+        if (type === 6) return ThemeCatalog.menuColor(palette, "actionInk", p0)      // Double
+        if (type === 7) return ThemeCatalog.menuColor(palette, "hintInk", p3)         // Diamond
+        if (type === 8) return ThemeCatalog.menuColor(palette, "borderSecondary", p2) // Laser
+        if (type === 4) return ThemeCatalog.menuColor(palette, "secondaryInk", p3)    // Shield
+        if (type === 5) return ThemeCatalog.menuColor(palette, "borderPrimary", p3)   // Portal
+        return ThemeCatalog.menuColor(palette, "titleInk", p3)                         // Common
     }
 
     function drawFoodSymbol(ctx, w, h) {
@@ -190,11 +184,12 @@ Item {
     }
 
     function rarityColor(type) {
+        var palette = gameLogic.paletteName
         var tier = rarityTier(type)
-        if (tier === 4) return "#7ee7ff"
-        if (tier === 3) return "#ffd700"
-        if (tier === 2) return "#9ef58a"
-        return p3
+        if (tier === 4) return ThemeCatalog.menuColor(palette, "actionInk", p0)
+        if (tier === 3) return ThemeCatalog.menuColor(palette, "borderPrimary", p3)
+        if (tier === 2) return ThemeCatalog.menuColor(palette, "secondaryInk", p3)
+        return ThemeCatalog.menuColor(palette, "titleInk", p3)
     }
 
     function luminance(colorValue) {
@@ -743,7 +738,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 6
                     Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 20; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "START: RESUME   B: MENU"; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "START: RESUME   SELECT: MENU"; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
 
@@ -759,7 +754,7 @@ Item {
                     spacing: 10
                     Text { text: "GAME OVER"; color: p0; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "SCORE: " + gameLogic.score; color: p0; font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "START: RESTART   B: MENU"; color: p0; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "START: RESTART   SELECT: MENU"; color: p0; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
 

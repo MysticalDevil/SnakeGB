@@ -203,14 +203,27 @@ Window {
         function routeOverlayLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Primary || action === inputAction.Start) {
+                if (action === inputAction.Primary && handleEasterInput("A")) {
+                    return true
+                }
                 handleStartButton()
                 return true
             }
-            if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.dispatchUiAction(inputAction.Back)
+            if (action === inputAction.Secondary) {
+                // In overlay states, B is reserved for debug sequence entry and
+                // should not force return-to-menu.
+                handleEasterInput("B")
                 return true
             }
             if (action === inputAction.SelectShort) {
+                if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver) {
+                    gameLogic.dispatchUiAction(inputAction.Back)
+                    return true
+                }
+                return true
+            }
+            if (action === inputAction.Back) {
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             return false
@@ -415,7 +428,9 @@ Window {
     }
 
     function handleEasterInput(token) {
-        var trackEaster = iconDebugMode || gameLogic.state !== AppState.Splash
+        // Keep Konami isolated from normal navigation:
+        // only allow entering sequence from paused overlay (or while already in icon lab).
+        var trackEaster = iconDebugMode || gameLogic.state === AppState.Paused
         if (!trackEaster) {
             return false
         }
@@ -437,9 +452,9 @@ Window {
         if (status === "toggle") {
             return true
         }
-        // Consume the full Konami sequence (including the first token) to avoid
-        // gameplay/menu side effects while entering the easter input.
-        return beforeIndex > 0 || token === konamiSeq[0]
+        // Let the first token pass through for normal controls; consume the rest
+        // of a potential Konami sequence to avoid gameplay/menu side effects.
+        return beforeIndex > 0
     }
 
     function beginSelectPress() {
