@@ -39,20 +39,23 @@ Input is routed by layer in this order:
 - D-pad: snake direction
 - `START`: pause
 - `B`: next palette
+- `A`: no-op (reserved for future game-specific action)
 - `BACK`: no-op
 
 ### Paused / GameOver / Replaying / ChoiceSelection
 
 - `START`: continue / state start action
-- `Paused`: `SELECT` returns to main menu, `B` is reserved for hidden sequence input
-- `GameOver`: `SELECT` returns to main menu (`START` restarts)
-- `Replaying` / `ChoiceSelection`: `B` / `BACK` returns to main menu
+- `SELECT`: return to main menu (all overlay states)
+- `Paused`: `B` is reserved for hidden sequence input
+- `GameOver`: `START` restarts
+- `A`: no-op on overlays (except Konami `A` token while paused)
 - D-pad: state-specific navigation
 
 ### Catalog / Achievements
 
 - D-pad `UP/DOWN`: list navigation
 - `B` / `BACK`: return to main menu
+- `A` / `START` / `SELECT`: no-op
 - Mouse wheel / touch drag: list scroll
 
 ## Icon Lab (Easter)

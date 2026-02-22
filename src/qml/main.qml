@@ -202,24 +202,29 @@ Window {
 
         function routeOverlayLayer(action) {
             if (routeDirection(action)) return true
-            if (action === inputAction.Primary || action === inputAction.Start) {
-                if (action === inputAction.Primary && handleEasterInput("A")) {
-                    return true
-                }
+            if (action === inputAction.Start) {
                 handleStartButton()
+                return true
+            }
+            if (action === inputAction.Primary) {
+                // Overlay screens do not bind A to gameplay/menu actions.
+                // Only keep A for paused Konami sequence entry.
+                if (gameLogic.state === AppState.Paused) {
+                    handleEasterInput("A")
+                }
                 return true
             }
             if (action === inputAction.Secondary) {
                 // In overlay states, B is reserved for debug sequence entry and
                 // should not force return-to-menu.
-                handleEasterInput("B")
+                if (gameLogic.state === AppState.Paused) {
+                    handleEasterInput("B")
+                }
                 return true
             }
             if (action === inputAction.SelectShort) {
-                if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver) {
-                    gameLogic.dispatchUiAction(inputAction.Back)
-                    return true
-                }
+                // Unified overlay semantics: SELECT returns to menu.
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             if (action === inputAction.Back) {
@@ -236,15 +241,15 @@ Window {
                 return true
             }
             if (action === inputAction.Primary) {
-                handleAButton()
+                // Catalog/Achievements do not bind A.
                 return true
             }
             if (action === inputAction.Start) {
-                handleStartButton()
+                // Catalog/Achievements do not bind START.
                 return true
             }
             if (action === inputAction.SelectShort) {
-                handleSelectShortPress()
+                // Catalog/Achievements do not bind SELECT.
                 return true
             }
             return false
@@ -253,7 +258,7 @@ Window {
         function routeGameLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Primary) {
-                handleAButton()
+                // Gameplay does not bind A.
                 return true
             }
             if (action === inputAction.Secondary) {
