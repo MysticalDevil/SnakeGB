@@ -258,6 +258,10 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   `AdapterLibraryModelsTest`.
 - `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
+- Runtime simulation flow is split into dedicated translation units to contract `game_logic_runtime.cpp`:
+  - `src/game_logic_board.cpp`: spawn and occupancy helpers
+  - `src/game_logic_consumption.cpp`: food/power-up consumption and buff effect application
+  - `src/game_logic_simulation.cpp`: collision/movement/post-tick simulation path
 - QML-facing view/property mapping methods are now extracted into `src/game_logic_view.cpp` so the main runtime
   adapter file can continue shrinking around orchestration logic.
 - FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
