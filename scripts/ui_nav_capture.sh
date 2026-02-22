@@ -12,6 +12,7 @@ NAV_STEP_DELAY="${NAV_STEP_DELAY:-0.25}"
 NAV_RETRIES="${NAV_RETRIES:-2}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.6}"
 PALETTE_STEPS="${PALETTE_STEPS:-0}"
+PALETTE_TOKEN="${PALETTE_TOKEN:-PALETTE}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
 INPUT_FILE="${INPUT_FILE:-/tmp/snakegb_ui_input.txt}"
 TARGET="${1:-menu}"
@@ -113,7 +114,7 @@ send_konami() {
 if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
   i=0
   while (( i < PALETTE_STEPS )); do
-    send_token "B"
+    send_token "${PALETTE_TOKEN}"
     ((i += 1))
   done
 fi
@@ -181,6 +182,11 @@ case "${TARGET}" in
 esac
 
 sleep "${POST_NAV_WAIT}"
+if ! kill -0 "${APP_PID}" >/dev/null 2>&1; then
+  echo "[error] App exited before screenshot. Recent log:"
+  tail -n 80 /tmp/snakegb_ui_nav_runtime.log || true
+  exit 5
+fi
 mkdir -p "$(dirname "${OUT_PNG}")"
 grim -g "${GEOM}" "${OUT_PNG}"
 echo "[ok] Target: ${TARGET}"

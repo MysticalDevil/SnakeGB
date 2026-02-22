@@ -341,6 +341,10 @@ Window {
             dispatchAction(inputAction.ToggleShellColor)
             return
         }
+        if (token === "PALETTE" || token === "NEXT_PALETTE") {
+            gameLogic.dispatchUiAction("next_palette")
+            return
+        }
         if (token === "MUSIC") {
             dispatchAction(inputAction.ToggleMusic)
             return

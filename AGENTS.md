@@ -28,6 +28,10 @@ cd build-debug && ctest --output-on-failure
 ```bash
 CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 ```
+- Palette screenshot matrix (Wayland, current input semantics):
+```bash
+./scripts/palette_capture_matrix.sh /tmp/snakegb_palette_matrix
+```
 
 ## Coding Style & Naming Conventions
 - C++ standard: C++23 (`CMakeLists.txt`).
@@ -40,6 +44,7 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 - Framework: `Qt6::Test` via `game-tests` target and `ctest` (`GameLogicTest`).
 - Add tests in `tests/test_*.cpp`; keep test names descriptive by behavior (for example, `test_portalWrap_keepsHeadInsideBounds`).
 - For UI/input regressions, use scripts such as `scripts/ui_self_check.sh` and `scripts/input_semantics_matrix_wayland.sh` when relevant.
+- For palette/readability verification, use `scripts/palette_capture_matrix.sh` (captures 5 palette variants for menu/page/icon-lab flows).
 - Enforce this validation order for C++ changes: `clang-tidy` first, then build, then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/clang_tidy_cached.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
