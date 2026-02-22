@@ -286,7 +286,11 @@ Window {
                 handleAButton()
                 return true
             }
-            if (action === inputAction.Secondary || action === inputAction.Back) {
+            if (action === inputAction.Secondary) {
+                handleBButton()
+                return true
+            }
+            if (action === inputAction.Back) {
                 handleBackAction()
                 return true
             }

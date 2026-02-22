@@ -85,6 +85,10 @@ void PausedState::handleStart() {
     m_context.requestStateChange(IGameEngine::Playing);
 }
 
+void PausedState::handleSelect() {
+    m_context.requestStateChange(IGameEngine::StartMenu);
+}
+
 // --- GameOver State ---
 void GameOverState::enter() {
     m_context.setInternalState(IGameEngine::GameOver);
@@ -93,6 +97,10 @@ void GameOverState::enter() {
 
 void GameOverState::handleStart() {
     m_context.restart();
+}
+
+void GameOverState::handleSelect() {
+    m_context.requestStateChange(IGameEngine::StartMenu);
 }
 
 // --- Choice State ---
@@ -113,6 +121,10 @@ void ChoiceState::handleInput(int /*dx*/, int dy) {
 
 void ChoiceState::handleStart() {
     m_context.selectChoice(m_context.choiceIndex());
+}
+
+void ChoiceState::handleSelect() {
+    m_context.requestStateChange(IGameEngine::StartMenu);
 }
 
 // --- Replaying State ---
@@ -137,6 +149,10 @@ void ReplayingState::update() {
 }
 
 void ReplayingState::handleStart() {
+    m_context.requestStateChange(IGameEngine::StartMenu);
+}
+
+void ReplayingState::handleSelect() {
     m_context.requestStateChange(IGameEngine::StartMenu);
 }
 

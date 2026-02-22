@@ -86,22 +86,12 @@ void GameLogic::nextShellColor()
 void GameLogic::handleBAction()
 {
     // Unified semantics:
-    // - Active gameplay states: secondary visual action (palette cycle)
-    // - Navigation/overlay states: back to menu
-    // - Menu root: palette cycle (quit uses Back/Esc)
-    if (m_state == Playing || m_state == ChoiceSelection) {
-        nextPalette();
-        return;
-    }
-
-    if (m_state == StartMenu) {
-        nextPalette();
-        return;
-    }
-
-    if (m_state == Paused || m_state == GameOver || m_state == Replaying || m_state == Library ||
+    // - B is always the secondary visual action (palette cycle).
+    // - Back/menu navigation uses Select/Back action paths.
+    if (m_state == StartMenu || m_state == Playing || m_state == Paused || m_state == GameOver ||
+        m_state == Replaying || m_state == ChoiceSelection || m_state == Library ||
         m_state == MedalRoom) {
-        quitToMenu();
+        nextPalette();
     }
 }
 

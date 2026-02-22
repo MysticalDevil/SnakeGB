@@ -5,7 +5,7 @@ This document defines the global input contract for SnakeGB and future mini-game
 ## Core Principles
 
 - `A` is the primary/confirm action.
-- `B` is the secondary/back action.
+- `B` is the secondary action. In gameplay/menu it cycles palette; in page/overlay it is routed per state.
 - `START` is run control (start/resume).
 - `SELECT` is utility action (menu level switch; long-press combos where supported).
 - `BACK`/`Esc` is system back/quit.
@@ -46,7 +46,7 @@ Input is routed by layer in this order:
 
 - `START`: continue / state start action
 - `SELECT`: return to main menu (all overlay states)
-- `Paused`: `B` is reserved for hidden sequence input
+- `B`: no-op for gameplay/menu transitions (reserved for paused Konami sequence token)
 - `GameOver`: `START` restarts
 - `A`: no-op on overlays (except Konami `A` token while paused)
 - D-pad: state-specific navigation

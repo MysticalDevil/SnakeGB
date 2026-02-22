@@ -175,9 +175,11 @@ run_case() {
   cleanup_case
 }
 
-case_menu_b_exits() {
+case_menu_b_non_exit() {
   send_key "X"
-  expect_exit "case_menu_b_exits"
+  expect_alive "case_menu_b_non_exit"
+  send_key "Escape"
+  expect_exit "case_menu_b_non_exit/cleanup"
 }
 
 case_menu_escape_exits() {
@@ -192,13 +194,15 @@ case_menu_select_non_exit() {
   expect_exit "case_menu_select_non_exit/cleanup"
 }
 
-case_play_pause_b_to_menu_then_exit() {
+case_play_pause_b_non_exit_then_select_menu_then_exit() {
   send_key "Return"   # start game
   send_key "Return"   # pause
-  send_key "X"        # B -> back to menu
-  expect_alive "case_play_pause_b_to_menu_then_exit"
-  send_key "X"        # B at menu -> quit app
-  expect_exit "case_play_pause_b_to_menu_then_exit/cleanup"
+  send_key "X"        # B -> palette only
+  expect_alive "case_play_pause_b_non_exit_then_select_menu_then_exit"
+  send_key "Shift_L"  # SELECT -> back to menu
+  expect_alive "case_play_pause_b_non_exit_then_select_menu_then_exit"
+  send_key "Escape"   # quit app from menu
+  expect_exit "case_play_pause_b_non_exit_then_select_menu_then_exit/cleanup"
 }
 
 case_icon_lab_f6_b_exit_no_crash() {
@@ -210,9 +214,13 @@ case_icon_lab_f6_b_exit_no_crash() {
 }
 
 case_konami_sequence_no_crash() {
+  send_key "Return"   # start game
+  send_key "Return"   # pause (Konami input scope)
   send_konami
   expect_alive "case_konami_sequence_no_crash"
-  send_key "Escape"
+  send_key "Escape"   # icon lab -> menu
+  expect_alive "case_konami_sequence_no_crash"
+  send_key "Escape"   # menu -> quit
   expect_exit "case_konami_sequence_no_crash/cleanup"
 }
 
@@ -226,10 +234,10 @@ if [[ ! -x "${APP_BIN}" ]]; then
   exit 1
 fi
 
-run_case "menu_b_exits" case_menu_b_exits
+run_case "menu_b_non_exit" case_menu_b_non_exit
 run_case "menu_escape_exits" case_menu_escape_exits
 run_case "menu_select_non_exit" case_menu_select_non_exit
-run_case "play_pause_b_to_menu_then_exit" case_play_pause_b_to_menu_then_exit
+run_case "play_pause_b_non_exit_then_select_menu_then_exit" case_play_pause_b_non_exit_then_select_menu_then_exit
 run_case "icon_lab_f6_b_exit_no_crash" case_icon_lab_f6_b_exit_no_crash
 run_case "konami_sequence_no_crash" case_konami_sequence_no_crash
 
