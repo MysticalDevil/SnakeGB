@@ -256,6 +256,8 @@ Validation after each commit:
   - `src/game_logic_input.cpp` (QML/action input orchestration)
   - `src/game_logic_runtime.cpp` (tick/runtime orchestration)
   - `src/game_logic_session.cpp` (session/replay/persistence orchestration)
+- Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
+  operations, reducing direct `GameLogic -> ProfileManager` coupling across input/runtime/session/view units.
 - Main hotspot file `src/game_logic.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.

@@ -3,9 +3,9 @@
 #include <QCoreApplication>
 
 #include "adapter/input_semantics.h"
+#include "adapter/profile_bridge.h"
 #include "adapter/ui_action.h"
 #include "fsm/game_state.h"
-#include "profile_manager.h"
 
 using namespace Qt::StringLiterals;
 
@@ -63,22 +63,24 @@ void GameLogic::move(const int dx, const int dy)
 
 void GameLogic::nextPalette()
 {
-    if (m_profileManager) {
-        const int nextIdx = (m_profileManager->paletteIndex() + 1) % 5;
-        m_profileManager->setPaletteIndex(nextIdx);
-        emit paletteChanged();
-        emit uiInteractTriggered();
+    if (!m_profileManager) {
+        return;
     }
+    const int nextIdx = (snakegb::adapter::paletteIndex(m_profileManager.get()) + 1) % 5;
+    snakegb::adapter::setPaletteIndex(m_profileManager.get(), nextIdx);
+    emit paletteChanged();
+    emit uiInteractTriggered();
 }
 
 void GameLogic::nextShellColor()
 {
-    if (m_profileManager) {
-        const int nextIdx = (m_profileManager->shellIndex() + 1) % 7;
-        m_profileManager->setShellIndex(nextIdx);
-        emit shellColorChanged();
-        emit uiInteractTriggered();
+    if (!m_profileManager) {
+        return;
     }
+    const int nextIdx = (snakegb::adapter::shellIndex(m_profileManager.get()) + 1) % 7;
+    snakegb::adapter::setShellIndex(m_profileManager.get(), nextIdx);
+    emit shellColorChanged();
+    emit uiInteractTriggered();
 }
 
 void GameLogic::handleBAction()
@@ -151,9 +153,7 @@ void GameLogic::deleteSave()
     clearSavedState();
     // Clearing save should also reset level selection to default.
     m_levelIndex = 0;
-    if (m_profileManager) {
-        m_profileManager->setLevelIndex(m_levelIndex);
-    }
+    snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
     loadLevelData(m_levelIndex);
     emit levelChanged();
 }

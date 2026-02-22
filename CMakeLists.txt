@@ -41,6 +41,8 @@ qt_add_executable(SnakeGB
     src/adapter/library_models.h
     src/adapter/session_state.cpp
     src/adapter/session_state.h
+    src/adapter/profile_bridge.cpp
+    src/adapter/profile_bridge.h
     src/adapter/level_applier.cpp
     src/adapter/level_applier.h
     src/adapter/level_loader.cpp
@@ -158,6 +160,7 @@ add_executable(game-tests
     src/adapter/ghost_store.cpp
     src/adapter/library_models.cpp
     src/adapter/session_state.cpp
+    src/adapter/profile_bridge.cpp
     src/adapter/level_applier.cpp
     src/adapter/level_loader.cpp
     src/adapter/level_script_runtime.cpp

@@ -7,6 +7,7 @@
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
+#include "adapter/profile_bridge.h"
 #include "adapter/session_state.h"
 #include "core/achievement_rules.h"
 #include "core/choice_runtime.h"
@@ -14,7 +15,6 @@
 #include "core/level_runtime.h"
 #include "fsm/game_state.h"
 #include "fsm/state_factory.h"
-#include "profile_manager.h"
 
 using namespace Qt::StringLiterals;
 
@@ -26,10 +26,7 @@ constexpr int BuffDurationTicks = 40;
 
 auto GameLogic::hasSave() const -> bool
 {
-    if (m_profileManager) {
-        return m_profileManager->hasSession();
-    }
-    return false;
+    return snakegb::adapter::hasSession(m_profileManager.get());
 }
 
 auto GameLogic::hasReplay() const noexcept -> bool
@@ -111,11 +108,7 @@ void GameLogic::startReplay()
 
 void GameLogic::loadLastSession()
 {
-    if (!m_profileManager || !m_profileManager->hasSession()) {
-        return;
-    }
-
-    const auto snapshot = snakegb::adapter::decodeSessionSnapshot(m_profileManager->loadSession());
+    const auto snapshot = snakegb::adapter::loadSessionSnapshot(m_profileManager.get());
     if (!snapshot.has_value()) {
         return;
     }
@@ -168,26 +161,20 @@ void GameLogic::nextLevel()
         clearSavedState();
     }
     emit levelChanged();
-    if (m_profileManager) {
-        m_profileManager->setLevelIndex(m_levelIndex);
-    }
+    snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
 }
 
 void GameLogic::updatePersistence()
 {
     updateHighScore();
-    if (m_profileManager) {
-        m_profileManager->incrementCrashes();
-    }
+    snakegb::adapter::incrementCrashes(m_profileManager.get());
     clearSavedState();
 }
 
 void GameLogic::lazyInit()
 {
-    if (m_profileManager) {
-        m_levelIndex = m_profileManager->levelIndex();
-        emit audioSetVolume(m_profileManager->volume());
-    }
+    m_levelIndex = snakegb::adapter::levelIndex(m_profileManager.get());
+    emit audioSetVolume(snakegb::adapter::volume(m_profileManager.get()));
 
     snakegb::adapter::GhostSnapshot snapshot;
     if (snakegb::adapter::loadGhostSnapshot(snapshot)) {
@@ -263,8 +250,8 @@ void GameLogic::selectChoice(const int index)
 
 void GameLogic::updateHighScore()
 {
-    if (m_profileManager && m_score > m_profileManager->highScore()) {
-        m_profileManager->updateHighScore(m_score);
+    if (m_score > snakegb::adapter::highScore(m_profileManager.get())) {
+        snakegb::adapter::updateHighScore(m_profileManager.get(), m_score);
         m_bestInputHistory = m_currentInputHistory;
         m_bestRecording = m_currentRecording;
         m_bestChoiceHistory = m_currentChoiceHistory;
@@ -288,8 +275,8 @@ void GameLogic::updateHighScore()
 void GameLogic::saveCurrentState()
 {
     if (m_profileManager) {
-        m_profileManager->saveSession(m_score, m_snakeModel.body(), m_obstacles, m_food,
-                                      m_direction);
+        snakegb::adapter::saveSession(m_profileManager.get(), m_score, m_snakeModel.body(),
+                                      m_obstacles, m_food, m_direction);
         emit hasSaveChanged();
     }
 }
@@ -297,7 +284,7 @@ void GameLogic::saveCurrentState()
 void GameLogic::clearSavedState()
 {
     if (m_profileManager) {
-        m_profileManager->clearSession();
+        snakegb::adapter::clearSession(m_profileManager.get());
         emit hasSaveChanged();
     }
 }
@@ -355,15 +342,11 @@ auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint>
 
 void GameLogic::checkAchievements()
 {
-    if (!m_profileManager) {
-        return;
-    }
-
     const QStringList unlockedTitles =
         snakegb::core::unlockedAchievementTitles(m_score, m_timer->interval(), m_timer->isActive());
 
     auto unlockTitle = [this](const QString &title) -> void {
-        if (m_profileManager->unlockMedal(title)) {
+        if (snakegb::adapter::unlockMedal(m_profileManager.get(), title)) {
             emit achievementEarned(title);
             emit achievementsChanged();
         }

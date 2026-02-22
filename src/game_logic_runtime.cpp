@@ -2,11 +2,11 @@
 
 #include <QDateTime>
 
+#include "adapter/profile_bridge.h"
 #include "core/achievement_rules.h"
 #include "core/buff_runtime.h"
 #include "core/game_rules.h"
 #include "fsm/game_state.h"
-#include "profile_manager.h"
 
 #include <algorithm>
 #include <cmath>
@@ -53,9 +53,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
 
     const int previousScore = m_score;
     m_score += points;
-    if (m_profileManager) {
-        m_profileManager->logFoodEaten();
-    }
+    snakegb::adapter::logFoodEaten(m_profileManager.get());
 
     const float pan = (static_cast<float>(p.x()) / BOARD_WIDTH - 0.5F) * 1.4F;
     emit foodEaten(pan);
@@ -138,12 +136,11 @@ auto GameLogic::normalTickIntervalMs() const -> int
     return snakegb::core::tickIntervalForScore(m_score);
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void GameLogic::applyAcquiredBuffEffects(const int discoveredType, const int baseDurationTicks,
                                          const bool halfDurationForRich, const bool emitMiniPrompt)
 {
-    if (m_profileManager) {
-        m_profileManager->discoverFruit(discoveredType);
-    }
+    snakegb::adapter::discoverFruit(m_profileManager.get(), discoveredType);
 
     if (m_activeBuff == Shield) {
         m_shieldActive = true;
