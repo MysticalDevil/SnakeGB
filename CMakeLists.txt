@@ -10,6 +10,19 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 option(SNAKEGB_OPTIMIZE_SIZE "Enable binary size optimizations" ON)
+option(SNAKEGB_USE_CCACHE "Use ccache as compiler launcher when available" ON)
+
+if(SNAKEGB_USE_CCACHE)
+    find_program(SNAKEGB_CCACHE_PROGRAM ccache)
+    if(SNAKEGB_CCACHE_PROGRAM)
+        set(SNAKEGB_CCACHE_DIR "${CMAKE_BINARY_DIR}/.ccache")
+        set(CMAKE_C_COMPILER_LAUNCHER
+            "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${SNAKEGB_CCACHE_DIR};${SNAKEGB_CCACHE_PROGRAM}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER
+            "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${SNAKEGB_CCACHE_DIR};${SNAKEGB_CCACHE_PROGRAM}")
+        message(STATUS "ccache enabled: ${SNAKEGB_CCACHE_PROGRAM} (dir=${SNAKEGB_CCACHE_DIR})")
+    endif()
+endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL ShaderTools Test)
 find_package(Qt6 QUIET COMPONENTS Multimedia Sensors)

@@ -42,6 +42,8 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 - For UI/input regressions, use scripts such as `scripts/ui_self_check.sh` and `scripts/input_semantics_matrix_wayland.sh` when relevant.
 - Enforce this validation order for C++ changes: `clang-tidy` first, then build, then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
+- Prefer `scripts/clang_tidy_cached.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
+- Build uses `ccache` automatically when available (`SNAKEGB_USE_CCACHE=ON` in CMake).
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commit style seen in history: `feat(ui): ...`, `fix(runtime+ui): ...`, `refactor(input): ...`, `docs(arch): ...`.
