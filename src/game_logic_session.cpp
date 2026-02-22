@@ -4,6 +4,7 @@
 #include <QJSValue>
 
 #include "adapter/ghost_store.h"
+#include "adapter/choice_models.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
@@ -198,17 +199,9 @@ void GameLogic::lazyInitState()
 
 void GameLogic::generateChoices()
 {
-    m_choices.clear();
-
     const QList<snakegb::core::ChoiceSpec> allChoices =
         snakegb::core::pickRoguelikeChoices(m_rng.generate(), 3);
-    for (const auto &choice : allChoices) {
-        QVariantMap m;
-        m.insert(u"type"_s, choice.type);
-        m.insert(u"name"_s, choice.name);
-        m.insert(u"desc"_s, choice.description);
-        m_choices.append(m);
-    }
+    m_choices = snakegb::adapter::buildChoiceModel(allChoices);
     emit choicesChanged();
 }
 
@@ -222,10 +215,13 @@ void GameLogic::selectChoice(const int index)
         m_currentChoiceHistory.append({.frame = m_gameTickCounter, .index = index});
     }
 
-    const int type = m_choices[index].toMap().value(u"type"_s).toInt();
+    const auto type = snakegb::adapter::choiceTypeAt(m_choices, index);
+    if (!type.has_value()) {
+        return;
+    }
     m_lastRoguelikeChoiceScore = m_score;
-    m_activeBuff = static_cast<PowerUp>(type);
-    applyAcquiredBuffEffects(type, BuffDurationTicks * 2, false, true);
+    m_activeBuff = static_cast<PowerUp>(type.value());
+    applyAcquiredBuffEffects(type.value(), BuffDurationTicks * 2, false, true);
 
     emit buffChanged();
     if (m_state == Replaying) {

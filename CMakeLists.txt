@@ -50,6 +50,8 @@ qt_add_executable(SnakeGB
     src/adapter/input_semantics.h
     src/adapter/ghost_store.cpp
     src/adapter/ghost_store.h
+    src/adapter/choice_models.cpp
+    src/adapter/choice_models.h
     src/adapter/library_models.cpp
     src/adapter/library_models.h
     src/adapter/session_state.cpp
@@ -171,6 +173,7 @@ add_executable(game-tests
     src/adapter/ui_action.cpp
     src/adapter/input_semantics.cpp
     src/adapter/ghost_store.cpp
+    src/adapter/choice_models.cpp
     src/adapter/library_models.cpp
     src/adapter/session_state.cpp
     src/adapter/profile_bridge.cpp
@@ -288,3 +291,12 @@ target_include_directories(adapter-library-models-tests PRIVATE src)
 target_link_libraries(adapter-library-models-tests PRIVATE Qt6::Test Qt6::Core)
 add_test(NAME AdapterLibraryModelsTest COMMAND adapter-library-models-tests)
 set_tests_properties(AdapterLibraryModelsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-choice-models-tests
+    tests/test_choice_models_adapter.cpp
+    src/adapter/choice_models.cpp
+)
+target_include_directories(adapter-choice-models-tests PRIVATE src)
+target_link_libraries(adapter-choice-models-tests PRIVATE Qt6::Test Qt6::Core)
+add_test(NAME AdapterChoiceModelsTest COMMAND adapter-choice-models-tests)
+set_tests_properties(AdapterChoiceModelsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
