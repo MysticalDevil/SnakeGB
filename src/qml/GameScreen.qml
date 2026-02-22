@@ -762,12 +762,17 @@ Item {
             Rectangle {
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: 100
-                height: 20
+                width: 160
+                height: 32
                 color: p3
                 visible: gameLogic.state === AppState.Replaying
                 z: 600
-                Text { text: "REPLAY"; color: p0; anchors.centerIn: parent; font.bold: true }
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 1
+                    Text { text: "REPLAY"; color: p0; anchors.horizontalCenter: parent.horizontalCenter; font.bold: true; font.pixelSize: 11 }
+                    Text { text: "START: MENU   SELECT: MENU"; color: p0; anchors.horizontalCenter: parent.horizontalCenter; font.pixelSize: 7 }
+                }
             }
 
             // --- STATE 6: CHOICE SELECTION ---
@@ -865,6 +870,13 @@ Item {
                                          : 0.0
                             }
                         }
+                    }
+                    Text {
+                        text: "START: PICK   SELECT: MENU"
+                        color: p3
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        anchors.horizontalCenter: parent.horizontalCenter
                     }
                 }
             }
