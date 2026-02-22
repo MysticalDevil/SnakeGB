@@ -188,6 +188,19 @@ Validation after each commit:
 - [x] Phase B implementation completed.
 - [x] Phase C test hardening completed.
 
+## 9. Deferred Low-Priority Items
+
+These are explicitly deferred to keep the core/adapter refactor moving:
+
+- Theme token harmonization across all pages and overlays
+  - Some palette variants still show visual drift between Menu / Icon Lab / Catalog / Achievements.
+  - Target: all pages consume one shared token contract with minimal per-page overrides.
+  - Priority: **P3 (low)**, post-refactor stabilization.
+
+- Visual parity review against `main` / latest stable tag
+  - Run side-by-side screenshot matrix and tune only readability/consistency deltas.
+  - Priority: **P3 (low)**.
+
 ### Phase A progress snapshot (2026-02-21)
 
 - Extracted to `src/core`: `game_rules`, `buff_runtime`, `session_step`, `replay_timeline`, `level_runtime`,
