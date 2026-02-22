@@ -36,6 +36,7 @@ qt_add_executable(SnakeGB
     src/game_logic_input.cpp
     src/game_logic_runtime.cpp
     src/game_logic_session.cpp
+    src/game_logic_levels.cpp
     src/game_logic_view.cpp
     src/game_logic.h
     src/sound_manager.cpp
@@ -160,6 +161,7 @@ add_executable(game-tests
     src/game_logic_input.cpp
     src/game_logic_runtime.cpp
     src/game_logic_session.cpp
+    src/game_logic_levels.cpp
     src/game_logic_view.cpp
     src/core/game_rules.cpp
     src/core/buff_runtime.cpp

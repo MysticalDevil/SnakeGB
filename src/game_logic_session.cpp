@@ -1,19 +1,14 @@
 #include "game_logic.h"
 
 #include <QDateTime>
-#include <QJSValue>
 
 #include "adapter/ghost_store.h"
 #include "adapter/choice_models.h"
-#include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
-#include "adapter/level_script_runtime.h"
 #include "adapter/profile_bridge.h"
 #include "adapter/session_state.h"
-#include "core/achievement_rules.h"
 #include "core/choice_runtime.h"
 #include "core/game_rules.h"
-#include "core/level_runtime.h"
 #include "fsm/game_state.h"
 #include "fsm/state_factory.h"
 
@@ -150,8 +145,8 @@ void GameLogic::togglePause()
 
 void GameLogic::nextLevel()
 {
-    const int levelCount =
-        snakegb::adapter::readLevelCountFromResource(u"qrc:/src/levels/levels.json"_s, 6);
+    const int levelCount{
+        snakegb::adapter::readLevelCountFromResource(u"qrc:/src/levels/levels.json"_s, 6)};
     m_levelIndex = (m_levelIndex + 1) % levelCount;
     loadLevelData(m_levelIndex);
     if (m_state == StartMenu && hasSave()) {
@@ -281,82 +276,7 @@ void GameLogic::clearSavedState()
     }
 }
 
-void GameLogic::applyFallbackLevelData(const int levelIndex)
-{
-    const snakegb::core::FallbackLevelData fallback = snakegb::core::fallbackLevelData(levelIndex);
-    m_obstacles.clear();
-    m_currentLevelName = fallback.name;
-    m_currentScript = fallback.script;
-    if (!m_currentScript.isEmpty()) {
-        const QJSValue res = m_jsEngine.evaluate(m_currentScript);
-        if (!res.isError()) {
-            runLevelScript();
-        }
-    } else {
-        m_obstacles = fallback.walls;
-    }
-    emit obstaclesChanged();
-}
-
-void GameLogic::loadLevelData(const int i)
-{
-    const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
-    m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
-
-    const auto resolvedLevel =
-        snakegb::adapter::loadResolvedLevelFromResource(u"qrc:/src/levels/levels.json"_s, i);
-    if (!resolvedLevel.has_value()) {
-        applyFallbackLevelData(safeIndex);
-        return;
-    }
-
-    const bool applied = snakegb::adapter::applyResolvedLevelData(
-        *resolvedLevel, m_currentLevelName, m_currentScript, m_obstacles,
-        [this](const QString &script) -> bool {
-            const QJSValue res = m_jsEngine.evaluate(script);
-            if (res.isError()) {
-                return false;
-            }
-            runLevelScript();
-            return true;
-        });
-    if (!applied) {
-        applyFallbackLevelData(safeIndex);
-        return;
-    }
-    emit obstaclesChanged();
-}
-
 auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint>
 {
     return snakegb::core::buildSafeInitialSnakeBody(m_obstacles, BOARD_WIDTH, BOARD_HEIGHT);
-}
-
-void GameLogic::checkAchievements()
-{
-    const QStringList unlockedTitles =
-        snakegb::core::unlockedAchievementTitles(m_score, m_timer->interval(), m_timer->isActive());
-
-    auto unlockTitle = [this](const QString &title) -> void {
-        if (snakegb::adapter::unlockMedal(m_profileManager.get(), title)) {
-            emit achievementEarned(title);
-            emit achievementsChanged();
-        }
-    };
-
-    for (const QString &title : unlockedTitles) {
-        unlockTitle(title);
-    }
-}
-
-void GameLogic::runLevelScript()
-{
-    if (snakegb::adapter::tryApplyOnTickScript(m_jsEngine, m_gameTickCounter, m_obstacles)) {
-        emit obstaclesChanged();
-        return;
-    }
-    if (snakegb::adapter::applyDynamicLevelFallback(m_currentLevelName, m_gameTickCounter,
-                                                    m_obstacles)) {
-        emit obstaclesChanged();
-    }
 }
