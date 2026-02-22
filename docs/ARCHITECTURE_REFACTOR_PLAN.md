@@ -268,7 +268,11 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   - `src/game_logic.cpp` (bootstrap + state bridge + device wiring)
   - `src/game_logic_input.cpp` (QML/action input orchestration)
   - `src/game_logic_runtime.cpp` (tick/runtime orchestration)
-  - `src/game_logic_session.cpp` (session/replay/persistence orchestration)
+  - `src/game_logic_session.cpp` (session metadata + level selection orchestration)
+  - `src/game_logic_levels.cpp` (level loading/apply + achievement/script triggers)
+  - `src/game_logic_persistence.cpp` (save/load snapshot + high-score/ghost persistence)
+  - `src/game_logic_choices.cpp` (roguelike choice generation/selection runtime)
+  - `src/game_logic_lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
 - Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
   operations, reducing direct `GameLogic -> ProfileManager` coupling across input/runtime/session/view units.
 - Main hotspot file `src/game_logic.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
@@ -277,6 +281,13 @@ These are explicitly deferred to keep the core/adapter refactor moving:
 - Session bootstrap/reset orchestration is further contracted in `src/game_logic_session.cpp` via
   `resetTransientRuntimeState()` and `resetReplayRuntimeTracking()`, reducing duplicate mutable-state branches across
   restart/replay/resume paths before the remaining core-session extraction.
+- Level/achievement orchestration is separated from session flow into `src/game_logic_levels.cpp`, keeping
+  level script/apply concerns isolated from lifecycle concerns.
+- Persistence and replay snapshot paths are separated into `src/game_logic_persistence.cpp`, reducing adapter
+  coupling around profile/session/ghost I/O.
+- Roguelike choice flow and lifecycle transitions are isolated in `src/game_logic_choices.cpp` and
+  `src/game_logic_lifecycle.cpp`, shrinking `game_logic_session.cpp` further and making future
+  `GameSessionCore` extraction more mechanical.
 
 ### Phase C progress snapshot (2026-02-21)
 
