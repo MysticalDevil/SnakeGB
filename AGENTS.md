@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/`: C++ game/runtime code (`game_logic.*`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
+- `src/`: C++ game/runtime code (GameLogic adapter in `src/runtime/`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
 - `src/themes/` and `src/levels/`: JSON-driven theme and level data.
 - `tests/`: QtTest-based unit/integration tests (`tests/test_game_logic.cpp`).
 - `scripts/`: developer automation (desktop UI checks, input injection, Android deploy).

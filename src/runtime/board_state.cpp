@@ -1,4 +1,4 @@
-#include "game_logic.h"
+#include "runtime/game_logic.h"
 
 #include "core/buff_runtime.h"
 #include "core/game_rules.h"

@@ -1,4 +1,4 @@
-#include "game_logic.h"
+#include "runtime/game_logic.h"
 
 #include "adapter/level_loader.h"
 #include "adapter/profile_bridge.h"

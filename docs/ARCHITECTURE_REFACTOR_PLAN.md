@@ -26,7 +26,8 @@ Key conclusion:
 ## 2.2 What is still overloaded
 
 Primary hotspot:
-- `src/game_logic.cpp` is still very large and mixes rule execution, persistence access, resource loading, timing, and UI-facing mapping.
+- `src/runtime/engine_adapter.cpp` is still large and mixes rule execution, persistence access, resource loading,
+  timing, and UI-facing mapping.
 
 Symptoms:
 - One class owns too many behaviors and changes for unrelated reasons.
@@ -258,39 +259,39 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   `AdapterLibraryModelsTest`.
 - `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
-- Runtime simulation flow is split into dedicated translation units to contract `game_logic_runtime.cpp`:
-  - `src/game_logic_board.cpp`: spawn and occupancy helpers
-  - `src/game_logic_consumption.cpp`: food/power-up consumption and buff effect application
-  - `src/game_logic_simulation.cpp`: collision/movement/post-tick simulation path
-- QML-facing view/property mapping methods are now extracted into `src/game_logic_view.cpp` so the main runtime
+- Runtime simulation flow is split into dedicated translation units to contract `src/runtime/tick_driver.cpp`:
+  - `src/runtime/board_state.cpp`: spawn and occupancy helpers
+  - `src/runtime/consumption.cpp`: food/power-up consumption and buff effect application
+  - `src/runtime/simulation.cpp`: collision/movement/post-tick simulation path
+- QML-facing view/property mapping methods are now extracted into `src/runtime/view_model.cpp` so the main runtime
   adapter file can continue shrinking around orchestration logic.
 - FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
   `*State` classes directly, reducing adapter-to-state implementation coupling.
 - UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `GameLogic` now binds
   orchestration lambdas instead of owning the large action switch.
 - `GameLogic` implementation is now split into focused translation units:
-  - `src/game_logic.cpp` (bootstrap + state bridge + device wiring)
-  - `src/game_logic_input.cpp` (QML/action input orchestration)
-  - `src/game_logic_runtime.cpp` (tick/runtime orchestration)
-  - `src/game_logic_session.cpp` (session metadata + level selection orchestration)
-  - `src/game_logic_levels.cpp` (level loading/apply + achievement/script triggers)
-  - `src/game_logic_persistence.cpp` (save/load snapshot + high-score/ghost persistence)
-  - `src/game_logic_choices.cpp` (roguelike choice generation/selection runtime)
-  - `src/game_logic_lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
+  - `src/runtime/engine_adapter.cpp` (bootstrap + state bridge + device wiring)
+  - `src/runtime/input_router.cpp` (QML/action input orchestration)
+  - `src/runtime/tick_driver.cpp` (tick/runtime orchestration)
+  - `src/runtime/session_state.cpp` (session metadata + level selection orchestration)
+  - `src/runtime/level_flow.cpp` (level loading/apply + achievement/script triggers)
+  - `src/runtime/persistence.cpp` (save/load snapshot + high-score/ghost persistence)
+  - `src/runtime/choices.cpp` (roguelike choice generation/selection runtime)
+  - `src/runtime/lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
 - Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
   operations, reducing direct `GameLogic -> ProfileManager` coupling across input/runtime/session/view units.
-- Main hotspot file `src/game_logic.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
+- Main hotspot file `src/runtime/engine_adapter.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
-- Session bootstrap/reset orchestration is further contracted in `src/game_logic_session.cpp` via
+- Session bootstrap/reset orchestration is further contracted in `src/runtime/session_state.cpp` via
   `resetTransientRuntimeState()` and `resetReplayRuntimeTracking()`, reducing duplicate mutable-state branches across
   restart/replay/resume paths before the remaining core-session extraction.
-- Level/achievement orchestration is separated from session flow into `src/game_logic_levels.cpp`, keeping
+- Level/achievement orchestration is separated from session flow into `src/runtime/level_flow.cpp`, keeping
   level script/apply concerns isolated from lifecycle concerns.
-- Persistence and replay snapshot paths are separated into `src/game_logic_persistence.cpp`, reducing adapter
+- Persistence and replay snapshot paths are separated into `src/runtime/persistence.cpp`, reducing adapter
   coupling around profile/session/ghost I/O.
-- Roguelike choice flow and lifecycle transitions are isolated in `src/game_logic_choices.cpp` and
-  `src/game_logic_lifecycle.cpp`, shrinking `game_logic_session.cpp` further and making future
+- Roguelike choice flow and lifecycle transitions are isolated in `src/runtime/choices.cpp` and
+  `src/runtime/lifecycle.cpp`, shrinking `src/runtime/session_state.cpp` further and making future
   `GameSessionCore` extraction more mechanical.
 
 ### Phase C progress snapshot (2026-02-21)

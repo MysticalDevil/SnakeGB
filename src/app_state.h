@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "game_logic.h"
+#include "runtime/game_logic.h"
 
 class AppState final : public QObject {
     Q_OBJECT

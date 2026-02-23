@@ -36,19 +36,19 @@ set(CMAKE_AUTOUIC OFF)
 
 qt_add_executable(SnakeGB
     src/main.cpp
-    src/game_logic.cpp
-    src/game_logic_input.cpp
-    src/game_logic_runtime.cpp
-    src/game_logic_simulation.cpp
-    src/game_logic_board.cpp
-    src/game_logic_consumption.cpp
-    src/game_logic_session.cpp
-    src/game_logic_levels.cpp
-    src/game_logic_persistence.cpp
-    src/game_logic_choices.cpp
-    src/game_logic_lifecycle.cpp
-    src/game_logic_view.cpp
-    src/game_logic.h
+    src/runtime/engine_adapter.cpp
+    src/runtime/input_router.cpp
+    src/runtime/tick_driver.cpp
+    src/runtime/simulation.cpp
+    src/runtime/board_state.cpp
+    src/runtime/consumption.cpp
+    src/runtime/session_state.cpp
+    src/runtime/level_flow.cpp
+    src/runtime/persistence.cpp
+    src/runtime/choices.cpp
+    src/runtime/lifecycle.cpp
+    src/runtime/view_model.cpp
+    src/runtime/game_logic.h
     src/sound_manager.cpp
     src/sound_manager.h
     src/profile_manager.cpp
@@ -171,18 +171,18 @@ endif()
 enable_testing()
 add_executable(game-tests
     tests/test_game_logic.cpp
-    src/game_logic.cpp
-    src/game_logic_input.cpp
-    src/game_logic_runtime.cpp
-    src/game_logic_simulation.cpp
-    src/game_logic_board.cpp
-    src/game_logic_consumption.cpp
-    src/game_logic_session.cpp
-    src/game_logic_levels.cpp
-    src/game_logic_persistence.cpp
-    src/game_logic_choices.cpp
-    src/game_logic_lifecycle.cpp
-    src/game_logic_view.cpp
+    src/runtime/engine_adapter.cpp
+    src/runtime/input_router.cpp
+    src/runtime/tick_driver.cpp
+    src/runtime/simulation.cpp
+    src/runtime/board_state.cpp
+    src/runtime/consumption.cpp
+    src/runtime/session_state.cpp
+    src/runtime/level_flow.cpp
+    src/runtime/persistence.cpp
+    src/runtime/choices.cpp
+    src/runtime/lifecycle.cpp
+    src/runtime/view_model.cpp
     src/core/game_rules.cpp
     src/core/buff_runtime.cpp
     src/core/session_runtime.cpp

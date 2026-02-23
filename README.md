@@ -34,6 +34,9 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 - **Framework**: Qt 6.7+ (Quick, JSEngine, Multimedia, Sensors, ShaderTools)
 - **Build System**: CMake + Ninja
 
+## Project Layout
+- Runtime adapter implementation lives in `src/runtime/` (GameLogic split across focused translation units).
+
 ## Getting Started
 
 Release notes live in `CHANGELOG.md`.
