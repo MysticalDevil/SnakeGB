@@ -48,14 +48,14 @@ jobs:
       run: |
         export CC=gcc
         export CXX=g++
-        cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
+        cmake -S . -B build/debug -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     - name: Build
-      run: cmake --build build --parallel $(nproc)
+      run: cmake --build build/debug --parallel $(nproc)
 
     - name: Run Tests
       run: |
         export QT_QPA_PLATFORM=offscreen
-        cd build && xvfb-run ctest --output-on-failure
+        cd build/debug && xvfb-run ctest --output-on-failure

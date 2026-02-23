@@ -1,0 +1,82 @@
+name: SnakeGB CD
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ninja-build \
+            libgl1-mesa-dev \
+            libvulkan-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libsensors-dev \
+            libxcb-cursor0 \
+            libxcb-xinerama0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxkbcommon-x11-0
+
+      - name: Install Qt6 (Desktop)
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.2'
+          host: 'linux'
+          target: 'desktop'
+          modules: 'qtmultimedia qtshadertools qtsensors'
+
+      - name: Configure Release
+        run: |
+          cmake -S . -B build/release -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Build Release
+        run: cmake --build build/release --parallel $(nproc)
+
+      - name: Package Linux (AppImage placeholder)
+        run: |
+          mkdir -p dist/linux
+          cp -f build/release/SnakeGB dist/linux/
+          cp -f linux/org.devil.snakegb.desktop dist/linux/ || true
+          cp -f src/qml/icon.svg dist/linux/snakegb.svg || true
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snakegb-linux
+          path: dist/linux
+
+      - name: Build WASM (placeholder)
+        run: |
+          echo "WASM build requires Qt WASM toolchain in CI. Provide QT_WASM_PREFIX and emsdk to enable." > dist/wasm-placeholder.txt
+
+      - name: Upload WASM Placeholder
+        uses: actions/upload-artifact@v4
+        with:
+          name: snakegb-wasm-placeholder
+          path: dist/wasm-placeholder.txt
+
+      - name: Build Android (placeholder)
+        run: |
+          echo "Android build requires Qt Android toolchain, SDK/NDK, and signing; provide secrets to enable." > dist/android-placeholder.txt
+
+      - name: Upload Android Placeholder
+        uses: actions/upload-artifact@v4
+        with:
+          name: snakegb-android-placeholder
+          path: dist/android-placeholder.txt
