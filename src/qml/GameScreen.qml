@@ -344,7 +344,7 @@ Item {
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: 170
-                    text: "LOADING " + splashLayer.fakeLoad + "%"
+                    text: `LOADING ${splashLayer.fakeLoad}%`
                     font.family: gameFont
                     font.pixelSize: 8
                     color: splashLayer.accentInk
@@ -417,14 +417,14 @@ Item {
                             anchors.centerIn: parent
                             spacing: 16
                             Text {
-                                text: "HI " + gameLogic.highScore
+                            text: `HI ${gameLogic.highScore}`
                                 font.family: gameFont
                                 font.pixelSize: 11
                                 font.bold: true
                                 color: menuLayer.secondaryInk
                             }
                             Text {
-                                text: "LEVEL " + gameLogic.currentLevelName
+                            text: `LEVEL ${gameLogic.currentLevelName}`
                                 font.family: gameFont
                                 font.pixelSize: 11
                                 font.bold: true
@@ -757,7 +757,7 @@ Item {
                     anchors.centerIn: parent
                     spacing: 10
                     Text { text: "GAME OVER"; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "SCORE: " + gameLogic.score; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: `SCORE: ${gameLogic.score}`; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
                     Text { text: "START: RESTART   SELECT: MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
@@ -920,7 +920,7 @@ Item {
                             }
                             positionViewAtIndex(currentIndex, ListView.Contain)
                             if (currentIndex !== gameLogic.libraryIndex) {
-                                gameLogic.dispatchUiAction("set_library_index:" + currentIndex)
+                                gameLogic.dispatchUiAction(`set_library_index:${currentIndex}`)
                             }
                         }
                         Connections {
@@ -1497,7 +1497,7 @@ Item {
                                             font.bold: true
                                         }
                                         Text {
-                                            text: "GLYPH " + powerGlyph(modelData)
+                                            text: `GLYPH ${powerGlyph(modelData)}`
                                             color: iconLabLayer.textMuted
                                             font.family: gameFont
                                             font.pixelSize: 6
@@ -1519,7 +1519,7 @@ Item {
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
-                            text: "SELECTED: " + buffName(root.iconLabSelection + 1)
+                            text: `SELECTED: ${buffName(root.iconLabSelection + 1)}`
                             color: iconLabLayer.textStrong
                             font.family: gameFont
                             font.pixelSize: 7
@@ -1570,8 +1570,8 @@ Item {
             anchors.margins: 10
             z: 500
             visible: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
-            Text { text: "HI " + gameLogic.highScore; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
-            Text { text: "SC " + gameLogic.score; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
+            Text { text: `HI ${gameLogic.highScore}`; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.right: parent.right }
+            Text { text: `SC ${gameLogic.score}`; color: p3; font.family: gameFont; font.pixelSize: 12; font.bold: true; anchors.right: parent.right }
         }
         
         OSDLayer { id: osd; p0: root.p0; p3: root.p3; gameFont: root.gameFont; z: 3000 }

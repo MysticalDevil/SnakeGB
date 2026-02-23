@@ -131,7 +131,7 @@ Window {
             screen.showOSD("STATIC DEBUG OFF")
             return
         }
-        screen.showOSD("STATIC DEBUG: " + sceneName.toUpperCase())
+        screen.showOSD(`STATIC DEBUG: ${sceneName.toUpperCase()}`)
     }
 
     function cycleStaticDebug(direction) {
@@ -515,7 +515,7 @@ Window {
             setStaticDebugScene("")
             return
         }
-        screen.showOSD("UNKNOWN INPUT: " + token)
+        screen.showOSD(`UNKNOWN INPUT: ${token}`)
     }
 
     function clearDpadVisuals() {
@@ -683,10 +683,10 @@ Window {
             }
         }
         function onAchievementEarned(title) { 
-            screen.showOSD("UNLOCKED: " + title) 
+            screen.showOSD(`UNLOCKED: ${title}`) 
         }
         function onEventPrompt(text) {
-            screen.showOSD(">> " + text + " <<")
+            screen.showOSD(`>> ${text} <<`)
         }
     }
 
