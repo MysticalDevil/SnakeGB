@@ -11,19 +11,20 @@
 ## Build, Test, and Development Commands
 - Debug desktop build/run:
 ```bash
-cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-debug --parallel
-./build-debug/SnakeGB
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug --parallel
+./build/debug/SnakeGB
 ```
 - Release build:
 ```bash
-cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release --parallel
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --parallel
 ```
 - Run tests from an existing build directory:
 ```bash
-cd build-debug && ctest --output-on-failure
+cd build/debug && ctest --output-on-failure
 ```
+- Default build directories live under `build/<profile>`.
 - Android deploy (Qt + SDK/NDK environment required):
 ```bash
 CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
@@ -31,6 +32,14 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 - Palette screenshot matrix (Wayland, current input semantics):
 ```bash
 ./scripts/palette_capture_matrix.sh /tmp/snakegb_palette_matrix
+```
+- Optional Makefile shortcuts:
+```bash
+make debug
+make release
+make dev
+make test
+make tidy
 ```
 
 ## Coding Style & Naming Conventions

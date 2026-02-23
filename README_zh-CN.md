@@ -38,15 +38,15 @@ SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 Ga
 
 ### 编译并运行 (桌面端)
 ```bash
-cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-debug --parallel
-./build-debug/SnakeGB
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug --parallel
+./build/debug/SnakeGB
 ```
 
 ```bash
-cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release --parallel
-./build-release/SnakeGB
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --parallel
+./build/release/SnakeGB
 ```
 
 - `Debug`: 保留完整运行日志。
