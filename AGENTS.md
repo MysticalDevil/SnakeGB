@@ -33,6 +33,7 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 ```bash
 ./scripts/palette_capture_matrix.sh /tmp/snakegb_palette_matrix
 ```
+- Release notes live in `CHANGELOG.md`.
 - Optional Makefile shortcuts:
 ```bash
 make debug
