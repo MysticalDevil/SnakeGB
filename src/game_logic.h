@@ -452,10 +452,6 @@ private:
     void updateReflectionFallback();
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);
     void applyPendingStateChangeIfNeeded();
-    void applyMiniShrink();
-    void applyAcquiredBuffEffects(int discoveredType, int baseDurationTicks,
-                                  bool halfDurationForRich, bool emitMiniPrompt);
-    auto shouldTriggerRoguelikeChoice(int previousScore, int newScore) -> bool;
     void applyMagnetAttraction();
     void deactivateBuff();
     void changeState(std::unique_ptr<GameState> newState);

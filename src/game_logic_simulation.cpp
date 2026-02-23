@@ -1,6 +1,7 @@
 #include "game_logic.h"
 
 #include "core/game_rules.h"
+#include "core/session_runtime.h"
 
 auto GameLogic::checkCollision(const QPoint &head) -> bool
 {
@@ -54,26 +55,15 @@ void GameLogic::applyMagnetAttraction()
     }
 
     const QPoint head = m_snakeModel.body().front();
-    if (m_food == head) {
-        handleFoodConsumption(head);
-        return;
+    const auto result = snakegb::core::applyMagnetAttraction(
+        m_food, head, BOARD_WIDTH, BOARD_HEIGHT,
+        [this](const QPoint &pos) { return isOccupied(pos); }, m_powerUpPos);
+    if (result.moved) {
+        m_food = result.newFood;
+        emit foodChanged();
     }
-
-    const QList<QPoint> candidates =
-        snakegb::core::magnetCandidateSpots(m_food, head, BOARD_WIDTH, BOARD_HEIGHT);
-
-    for (const QPoint &candidate : candidates) {
-        if (candidate == m_food) {
-            continue;
-        }
-        if (candidate == head || (!isOccupied(candidate) && candidate != m_powerUpPos)) {
-            m_food = candidate;
-            emit foodChanged();
-            if (m_food == head) {
-                handleFoodConsumption(head);
-            }
-            return;
-        }
+    if (result.ate) {
+        handleFoodConsumption(head);
     }
 }
 

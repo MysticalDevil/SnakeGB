@@ -1,8 +1,12 @@
 #include "game_logic.h"
 
 #include "adapter/choice_models.h"
+#include "adapter/profile_bridge.h"
 #include "core/choice_runtime.h"
+#include "core/session_runtime.h"
 #include "fsm/game_state.h"
+
+using namespace Qt::StringLiterals;
 
 namespace
 {
@@ -32,8 +36,20 @@ void GameLogic::selectChoice(const int index)
         return;
     }
     m_lastRoguelikeChoiceScore = m_score;
-    m_activeBuff = static_cast<PowerUp>(type.value());
-    applyAcquiredBuffEffects(type.value(), BuffDurationTicks * 2, false, true);
+    const auto result =
+        snakegb::core::planPowerUpAcquisition(type.value(), BuffDurationTicks * 2, false);
+    snakegb::adapter::discoverFruit(m_profileManager.get(), type.value());
+    if (result.shieldActivated) {
+        m_shieldActive = true;
+    }
+    if (result.miniApplied) {
+        const auto nextBody = snakegb::core::applyMiniShrink(m_snakeModel.body(), 3);
+        m_snakeModel.reset(nextBody);
+        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
+    }
+    m_activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
+    m_buffTicksRemaining = result.buffTicksRemaining;
+    m_buffTicksTotal = result.buffTicksTotal;
 
     emit buffChanged();
     if (m_state == Replaying) {
