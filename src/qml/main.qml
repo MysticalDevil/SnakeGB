@@ -23,6 +23,7 @@ Window {
     property bool startPressActive: false
     property bool saveClearConfirmPending: false
     property bool iconDebugMode: false
+    property string staticDebugScene: ""
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -60,7 +61,15 @@ Window {
     }
 
     function handleDirection(dx, dy) {
-        gameLogic.move(dx, dy)
+        if (dy < 0) {
+            gameLogic.dispatchUiAction(inputAction.NavUp)
+        } else if (dy > 0) {
+            gameLogic.dispatchUiAction(inputAction.NavDown)
+        } else if (dx < 0) {
+            gameLogic.dispatchUiAction(inputAction.NavLeft)
+        } else if (dx > 0) {
+            gameLogic.dispatchUiAction(inputAction.NavRight)
+        }
         setDpadPressed(dx, dy)
     }
 
@@ -108,10 +117,35 @@ Window {
     function toggleIconLab() {
         iconDebugMode = !iconDebugMode
         konamiIndex = 0
+        staticDebugScene = ""
         screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
         if (!iconDebugMode) {
-            gameLogic.requestStateChange(AppState.StartMenu)
+            gameLogic.dispatchUiAction("state_start_menu")
         }
+    }
+
+    function setStaticDebugScene(sceneName) {
+        iconDebugMode = false
+        staticDebugScene = sceneName
+        if (sceneName === "") {
+            screen.showOSD("STATIC DEBUG OFF")
+            return
+        }
+        screen.showOSD("STATIC DEBUG: " + sceneName.toUpperCase())
+    }
+
+    function cycleStaticDebug(direction) {
+        var scenes = ["boot", "game", "replay"]
+        if (staticDebugScene === "") {
+            setStaticDebugScene("boot")
+            return
+        }
+        var idx = scenes.indexOf(staticDebugScene)
+        if (idx < 0) {
+            idx = 0
+        }
+        idx = (idx + direction + scenes.length) % scenes.length
+        setStaticDebugScene(scenes[idx])
     }
 
     QtObject {
@@ -120,6 +154,7 @@ Window {
         // Layer priority: icon overlay -> state overlay -> page -> game -> shell fallback.
         function route(action) {
             if (routeGlobal(action)) return true
+            if (window.staticDebugScene !== "") return routeStaticLayer(action)
             if (window.iconDebugMode) return routeIconLayer(action)
 
             var state = gameLogic.state
@@ -135,18 +170,20 @@ Window {
                 return true
             }
             if (action === inputAction.ToggleShellColor) {
-                gameLogic.nextShellColor()
+                gameLogic.dispatchUiAction("toggle_shell_color")
                 return true
             }
             if (action === inputAction.ToggleMusic) {
-                gameLogic.toggleMusic()
+                gameLogic.dispatchUiAction("toggle_music")
                 return true
             }
             if (action === inputAction.Escape) {
                 if (window.iconDebugMode) {
                     exitIconLabToMenu()
+                } else if (window.staticDebugScene !== "") {
+                    setStaticDebugScene("")
                 } else {
-                    gameLogic.quit()
+                    gameLogic.dispatchUiAction("quit")
                 }
                 return true
             }
@@ -192,17 +229,53 @@ Window {
             return false
         }
 
+        function routeStaticLayer(action) {
+            if (action === inputAction.NavUp || action === inputAction.NavLeft) {
+                cycleStaticDebug(-1)
+                return true
+            }
+            if (action === inputAction.NavDown || action === inputAction.NavRight) {
+                cycleStaticDebug(1)
+                return true
+            }
+            if (action === inputAction.SelectShort || action === inputAction.Back ||
+                    action === inputAction.Secondary || action === inputAction.Start ||
+                    action === inputAction.Primary) {
+                setStaticDebugScene("")
+                return true
+            }
+            return true
+        }
+
         function routeOverlayLayer(action) {
             if (routeDirection(action)) return true
-            if (action === inputAction.Primary || action === inputAction.Start) {
+            if (action === inputAction.Start) {
                 handleStartButton()
                 return true
             }
-            if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.quitToMenu()
+            if (action === inputAction.Primary) {
+                // Overlay screens do not bind A to gameplay/menu actions.
+                // Only keep A for paused Konami sequence entry.
+                if (gameLogic.state === AppState.Paused) {
+                    handleEasterInput("A")
+                }
+                return true
+            }
+            if (action === inputAction.Secondary) {
+                // In overlay states, B is reserved for debug sequence entry and
+                // should not force return-to-menu.
+                if (gameLogic.state === AppState.Paused) {
+                    handleEasterInput("B")
+                }
                 return true
             }
             if (action === inputAction.SelectShort) {
+                // Unified overlay semantics: SELECT returns to menu.
+                gameLogic.dispatchUiAction(inputAction.Back)
+                return true
+            }
+            if (action === inputAction.Back) {
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             return false
@@ -211,19 +284,19 @@ Window {
         function routePageLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.quitToMenu()
+                gameLogic.dispatchUiAction(inputAction.Back)
                 return true
             }
             if (action === inputAction.Primary) {
-                handleAButton()
+                // Catalog/Achievements do not bind A.
                 return true
             }
             if (action === inputAction.Start) {
-                handleStartButton()
+                // Catalog/Achievements do not bind START.
                 return true
             }
             if (action === inputAction.SelectShort) {
-                handleSelectShortPress()
+                // Catalog/Achievements do not bind SELECT.
                 return true
             }
             return false
@@ -232,7 +305,7 @@ Window {
         function routeGameLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Primary) {
-                handleAButton()
+                // Gameplay does not bind A.
                 return true
             }
             if (action === inputAction.Secondary) {
@@ -257,10 +330,18 @@ Window {
         function routeShellLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Primary) {
-                handleAButton()
+                // StartMenu and non-game shell states do not use A as a start shortcut.
+                // Keep A only for explicit confirmation flows (for example save clear confirm).
+                if (saveClearConfirmPending) {
+                    handleAButton()
+                }
                 return true
             }
-            if (action === inputAction.Secondary || action === inputAction.Back) {
+            if (action === inputAction.Secondary) {
+                handleBButton()
+                return true
+            }
+            if (action === inputAction.Back) {
                 handleBackAction()
                 return true
             }
@@ -283,8 +364,85 @@ Window {
         inputRouter.route(action)
     }
 
+    function dispatchDebugToken(token) {
+        if (token === "DBG_MENU") {
+            if (iconDebugMode) {
+                exitIconLabToMenu()
+            } else {
+                gameLogic.dispatchUiAction("state_start_menu")
+                screen.showOSD("DBG: MENU")
+            }
+            return true
+        }
+        if (token === "DBG_PLAY") {
+            gameLogic.dispatchUiAction("state_start_menu")
+            gameLogic.dispatchUiAction(inputAction.Start)
+            screen.showOSD("DBG: PLAY")
+            return true
+        }
+        if (token === "DBG_PAUSE") {
+            gameLogic.dispatchUiAction("state_start_menu")
+            gameLogic.dispatchUiAction(inputAction.Start)
+            gameLogic.dispatchUiAction(inputAction.Start)
+            screen.showOSD("DBG: PAUSE")
+            return true
+        }
+        if (token === "DBG_GAMEOVER") {
+            gameLogic.requestStateChange(AppState.GameOver)
+            screen.showOSD("DBG: GAMEOVER")
+            return true
+        }
+        if (token === "DBG_REPLAY") {
+            gameLogic.requestStateChange(AppState.Replaying)
+            screen.showOSD("DBG: REPLAY")
+            return true
+        }
+        if (token === "DBG_CHOICE") {
+            gameLogic.requestStateChange(AppState.ChoiceSelection)
+            screen.showOSD("DBG: CHOICE")
+            return true
+        }
+        if (token === "DBG_CATALOG") {
+            gameLogic.requestStateChange(AppState.Library)
+            screen.showOSD("DBG: CATALOG")
+            return true
+        }
+        if (token === "DBG_ACHIEVEMENTS") {
+            gameLogic.requestStateChange(AppState.MedalRoom)
+            screen.showOSD("DBG: ACHIEVEMENTS")
+            return true
+        }
+        if (token === "DBG_ICONS") {
+            if (!iconDebugMode) {
+                toggleIconLab()
+            }
+            screen.showOSD("DBG: ICON LAB")
+            return true
+        }
+        if (token === "DBG_STATIC_BOOT") {
+            setStaticDebugScene("boot")
+            return true
+        }
+        if (token === "DBG_STATIC_GAME") {
+            setStaticDebugScene("game")
+            return true
+        }
+        if (token === "DBG_STATIC_REPLAY") {
+            setStaticDebugScene("replay")
+            return true
+        }
+        if (token === "DBG_STATIC_OFF") {
+            setStaticDebugScene("")
+            return true
+        }
+        return false
+    }
+
     function dispatchInjectedToken(rawToken) {
         var token = String(rawToken).trim().toUpperCase()
+        if (dispatchDebugToken(token)) {
+            return
+        }
         if (token === "UP" || token === "U") {
             dispatchAction(inputAction.NavUp)
             return
@@ -333,8 +491,28 @@ Window {
             dispatchAction(inputAction.ToggleShellColor)
             return
         }
+        if (token === "PALETTE" || token === "NEXT_PALETTE") {
+            gameLogic.dispatchUiAction("next_palette")
+            return
+        }
         if (token === "MUSIC") {
             dispatchAction(inputAction.ToggleMusic)
+            return
+        }
+        if (token === "STATIC_BOOT") {
+            setStaticDebugScene("boot")
+            return
+        }
+        if (token === "STATIC_GAME") {
+            setStaticDebugScene("game")
+            return
+        }
+        if (token === "STATIC_REPLAY") {
+            setStaticDebugScene("replay")
+            return
+        }
+        if (token === "STATIC_OFF") {
+            setStaticDebugScene("")
             return
         }
         screen.showOSD("UNKNOWN INPUT: " + token)
@@ -351,28 +529,29 @@ Window {
         if (handleEasterInput("B")) {
             return
         }
-        gameLogic.handleBAction()
+        gameLogic.dispatchUiAction(inputAction.Secondary)
     }
 
     function handleAButton() {
         if (saveClearConfirmPending && gameLogic.state === AppState.StartMenu && gameLogic.hasSave) {
             saveClearConfirmPending = false
             saveClearConfirmTimer.stop()
-            gameLogic.deleteSave()
-            gameLogic.requestFeedback(8)
+            gameLogic.dispatchUiAction("delete_save")
+            gameLogic.dispatchUiAction("feedback_heavy")
             screen.showOSD("SAVE CLEARED")
             return
         }
         if (handleEasterInput("A")) {
             return
         }
-        gameLogic.handleStart()
+        gameLogic.dispatchUiAction(inputAction.Primary)
     }
 
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
-        gameLogic.requestStateChange(AppState.StartMenu)
+        clearDpadVisuals()
+        gameLogic.dispatchUiAction("state_start_menu")
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -386,7 +565,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    gameLogic.requestStateChange(AppState.StartMenu)
+                    gameLogic.dispatchUiAction("state_start_menu")
                 }
                 return "toggle"
             }
@@ -402,7 +581,9 @@ Window {
     }
 
     function handleEasterInput(token) {
-        var trackEaster = iconDebugMode || gameLogic.state !== AppState.Splash
+        // Keep Konami isolated from normal navigation:
+        // only allow entering sequence from paused overlay (or while already in icon lab).
+        var trackEaster = iconDebugMode || gameLogic.state === AppState.Paused
         if (!trackEaster) {
             return false
         }
@@ -417,7 +598,7 @@ Window {
         var status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                gameLogic.requestStateChange(AppState.StartMenu)
+                gameLogic.dispatchUiAction("state_start_menu")
             }
             return true
         }
@@ -448,14 +629,14 @@ Window {
             selectLongPressConsumed = false
             return
         }
-        gameLogic.handleSelect()
+        gameLogic.dispatchUiAction(inputAction.SelectShort)
     }
 
     function handleStartButton() {
         if (iconDebugMode) {
             return
         }
-        gameLogic.handleStart()
+        gameLogic.dispatchUiAction(inputAction.Start)
     }
 
     function beginStartPress() {
@@ -482,13 +663,7 @@ Window {
             exitIconLabToMenu()
             return
         }
-        if (gameLogic.state === AppState.Paused || gameLogic.state === AppState.GameOver ||
-            gameLogic.state === AppState.Replaying || gameLogic.state === AppState.ChoiceSelection ||
-            gameLogic.state === AppState.Library || gameLogic.state === AppState.MedalRoom) {
-            gameLogic.quitToMenu()
-        } else if (gameLogic.state === AppState.StartMenu) {
-            gameLogic.quit()
-        }
+        gameLogic.dispatchUiAction(inputAction.Back)
     }
 
     Connections {
@@ -573,14 +748,14 @@ Window {
                 volume: gameLogic.volume
 
                 onShellColorToggleRequested: {
-                    gameLogic.requestFeedback(5)
-                    gameLogic.nextShellColor()
+                    gameLogic.dispatchUiAction("feedback_ui")
+                    gameLogic.dispatchUiAction("toggle_shell_color")
                 }
 
                 onVolumeRequested: (value, withHaptic) => {
                     gameLogic.volume = value
                     if (withHaptic) {
-                        gameLogic.requestFeedback(1)
+                        gameLogic.dispatchUiAction("feedback_light")
                     }
                 }
                 
@@ -595,6 +770,7 @@ Window {
                     gameFont: window.gameFont
                     elapsed: window.elapsed
                     iconDebugMode: window.iconDebugMode
+                    staticDebugScene: window.staticDebugScene
                 }
 
                 Connections {
@@ -667,6 +843,9 @@ Window {
             }
             else if (event.key === Qt.Key_F6) {
                 dispatchAction(inputAction.ToggleIconLab)
+            }
+            else if (event.key === Qt.Key_F7) {
+                cycleStaticDebug(1)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shell.bButton.isPressed = true

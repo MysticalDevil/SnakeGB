@@ -36,17 +36,19 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 
 ## Getting Started
 
+Release notes live in `CHANGELOG.md`.
+
 ### Build and Run (Desktop)
 ```bash
-cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-debug --parallel
-./build-debug/SnakeGB
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug --parallel
+./build/debug/SnakeGB
 ```
 
 ```bash
-cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release --parallel
-./build-release/SnakeGB
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --parallel
+./build/release/SnakeGB
 ```
 
 - `Debug`: full runtime logs enabled.
@@ -60,6 +62,19 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 # Release build (logs disabled)
 CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 ```
+
+### Build and Deploy (WebAssembly)
+```bash
+# Qt WASM toolchain root (example path)
+export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
+
+# Build, package to /tmp/snakegb-wasm-dist, and serve locally on :8080
+./scripts/wasm_deploy.sh
+```
+
+- Set `SERVE=0` to only build/package without starting a web server.
+- Local serving uses `scripts/wasm_serve.py` with COOP/COEP headers so `SharedArrayBuffer` works in Chromium-based browsers.
+- `qtlogo.svg`/`favicon` are injected from project icon during packaging to keep wasm console/network logs clean.
 
 ## Controls
 - **Arrow Keys**: Move snake
@@ -77,7 +92,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 - **Back / Esc**: Quit App
 
 ## Input Architecture Notes
-- Input unification and migration plan: `docs/INPUT_SEMANTICS.md`
+- Architecture refactor roadmap: `docs/ARCHITECTURE_REFACTOR_PLAN.md`
 - Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `scripts/inject_input.sh`
 
 ## License

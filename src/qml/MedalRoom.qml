@@ -47,6 +47,7 @@ Rectangle {
     readonly property color cardBorder: visualTheme.cardBorder || p3
     readonly property color badgeFill: visualTheme.badgeFill || p3
     readonly property color badgeText: visualTheme.badgeText || p0
+    readonly property color secondaryText: visualTheme.secondaryText || titleColor
     readonly property color iconFill: visualTheme.iconFill || p0
     readonly property color unknownText: visualTheme.unknownText || p0
     readonly property color scrollbarHandle: visualTheme.scrollbarHandle || p2
@@ -92,7 +93,7 @@ Rectangle {
                 }
                 medalList.positionViewAtIndex(currentIndex, ListView.Contain)
                 if (currentIndex !== gameLogic.medalIndex) {
-                    gameLogic.setMedalIndex(currentIndex)
+                    gameLogic.dispatchUiAction("set_medal_index:" + currentIndex)
                 }
             }
             Connections {
@@ -142,8 +143,8 @@ Rectangle {
                 readonly property bool selected: medalList.currentIndex === index
                 readonly property color titleColor: selected ? medalRoot.badgeText : medalRoot.titleColor
                 readonly property color hintColor: selected
-                                                 ? Qt.rgba(medalRoot.badgeText.r, medalRoot.badgeText.g, medalRoot.badgeText.b, 0.86)
-                                                 : Qt.rgba(medalRoot.titleColor.r, medalRoot.titleColor.g, medalRoot.titleColor.b, 0.78)
+                                                 ? Qt.rgba(medalRoot.badgeText.r, medalRoot.badgeText.g, medalRoot.badgeText.b, 0.92)
+                                                 : Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.94)
 
                 Row {
                     anchors.fill: parent

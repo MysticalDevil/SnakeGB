@@ -36,17 +36,19 @@ SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 Ga
 
 ## 快速开始
 
+发行说明在 `CHANGELOG.md` 中维护。
+
 ### 编译并运行 (桌面端)
 ```bash
-cmake -S . -B build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build-debug --parallel
-./build-debug/SnakeGB
+cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/debug --parallel
+./build/debug/SnakeGB
 ```
 
 ```bash
-cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build-release --parallel
-./build-release/SnakeGB
+cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/release --parallel
+./build/release/SnakeGB
 ```
 
 - `Debug`: 保留完整运行日志。
@@ -77,7 +79,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/android_deploy.sh
 - **Back / Esc**: 退出应用
 
 ## 输入架构说明
-- 按键语义统一与迁移方案：`docs/INPUT_SEMANTICS.md`
+- 架构重构路线图：`docs/ARCHITECTURE_REFACTOR_PLAN.md`
 - 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `scripts/inject_input.sh` 发送按键 token
 
 ## 授权

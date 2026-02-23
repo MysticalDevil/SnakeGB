@@ -3,12 +3,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# shellcheck source=lib/build_paths.sh
+source "${PROJECT_ROOT}/scripts/lib/build_paths.sh"
 
 : "${QT_ANDROID_PREFIX:?Please set QT_ANDROID_PREFIX, e.g. ~/qt-toolchains/build-qt-android/build-android-arm64/qt-android-install}"
 
 QT_CMAKE_BIN="${QT_CMAKE_BIN:-${QT_ANDROID_PREFIX}/bin/qt-cmake}"
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-${HOME}/Android/Sdk}"
-BUILD_DIR="${BUILD_DIR:-${PROJECT_ROOT}/build-android-local}"
+BUILD_DIR="${BUILD_DIR:-$(resolve_build_dir android)}"
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-MinSizeRel}"
 ANDROID_ABI="${ANDROID_ABI:-arm64-v8a}"
 ANDROID_PLATFORM="${ANDROID_PLATFORM:-28}"

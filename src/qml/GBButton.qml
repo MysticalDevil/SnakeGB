@@ -98,7 +98,7 @@ Item {
             root.isPressed = false
         }
         onClicked: {
-            gameLogic.requestFeedback(5)
+            gameLogic.dispatchUiAction("feedback_ui")
             root.clicked()
         }
     }

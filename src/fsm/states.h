@@ -36,6 +36,7 @@ public:
     explicit PausedState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
+    void handleSelect() override;
 };
 
 class GameOverState : public GameState {
@@ -43,6 +44,7 @@ public:
     explicit GameOverState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
+    void handleSelect() override;
 };
 
 class ReplayingState : public GameState {
@@ -51,6 +53,7 @@ public:
     void enter() override;
     void update() override;
     void handleStart() override;
+    void handleSelect() override;
 private:
     int m_historyIndex = 0;
     int m_choiceHistoryIndex = 0;
@@ -61,6 +64,7 @@ public:
     explicit ChoiceState(IGameEngine &logic) : GameState(logic) {}
     void enter() override;
     void handleStart() override;
+    void handleSelect() override;
     void handleInput(int dx, int dy) override;
 };
 
