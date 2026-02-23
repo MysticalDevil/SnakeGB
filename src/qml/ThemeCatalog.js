@@ -1,6 +1,6 @@
 .pragma library
 
-var _catalog = {
+const _catalog = {
     menu: {
         "Original DMG": {cardPrimary:"#d7e7b2",cardSecondary:"#c7d99d",actionCard:"#4e7a39",hintCard:"#92b65a",borderPrimary:"#39582a",borderSecondary:"#577d3e",titleInk:"#213319",secondaryInk:"#253a1b",actionInk:"#f2f8e4",hintInk:"#1d2d15"},
         "Pocket B&W": {cardPrimary:"#e3e5dd",cardSecondary:"#d4d8cc",actionCard:"#5a6250",hintCard:"#b8bead",borderPrimary:"#4f5648",borderSecondary:"#646b5b",titleInk:"#1d211b",secondaryInk:"#242822",actionInk:"#edf1e8",hintInk:"#22261f"},
@@ -23,15 +23,15 @@ var _catalog = {
     }
 };
 
-function menuColor(paletteName, role, fallback) {
-    var table = _catalog.menu[paletteName];
+const menuColor = (paletteName, role, fallback) => {
+    const table = _catalog.menu[paletteName];
     if (table && Object.prototype.hasOwnProperty.call(table, role)) return table[role];
     if (fallback !== undefined) return fallback;
     return _catalog.menu["Original DMG"][role] || "#cadc9f";
-}
+};
 
-function pageTheme(paletteName, page) {
-    var base = {
+const pageTheme = (paletteName, page) => {
+    const base = {
         pageBg: menuColor(paletteName, "cardPrimary"),
         title: menuColor(paletteName, "titleInk"),
         divider: menuColor(paletteName, "borderPrimary"),
@@ -49,28 +49,26 @@ function pageTheme(paletteName, page) {
         scrollbarTrack: menuColor(paletteName, "hintCard")
     };
 
-    var overrides = _catalog.pages[page] ? _catalog.pages[page][paletteName] : undefined;
+    const overrides = _catalog.pages[page] ? _catalog.pages[page][paletteName] : undefined;
     if (!overrides) return base;
 
-    for (var k in overrides) {
-        if (Object.prototype.hasOwnProperty.call(overrides, k)) {
-            base[k] = overrides[k];
-        }
+    for (const key of Object.keys(overrides)) {
+        base[key] = overrides[key];
     }
     return base;
-}
+};
 
-function pageColor(paletteName, page, role, fallback) {
-    var t = pageTheme(paletteName, page);
+const pageColor = (paletteName, page, role, fallback) => {
+    const t = pageTheme(paletteName, page);
     if (Object.prototype.hasOwnProperty.call(t, role)) return t[role];
     return fallback;
-}
+};
 
-function shellTheme(shellName, shellColor) {
-    var t = _catalog.shells[shellName];
+const shellTheme = (shellName, shellColor) => {
+    const t = _catalog.shells[shellName];
     if (t) return t;
 
-    var base = shellColor || "#4aa3a8";
+    const base = shellColor || "#4aa3a8";
     return {
         shellBase: base,
         shellBorder: "#4b5a66",
@@ -90,20 +88,20 @@ function shellTheme(shellName, shellColor) {
         wheelBodyDark: "#4a5567",
         wheelBodyLight: "#78859b"
     };
-}
+};
 
-function powerAccent(paletteName, type, fallback) {
+const powerAccent = (paletteName, type, fallback) => {
     if (type === 6) return menuColor(paletteName, "actionInk", fallback);        // Double
     if (type === 7) return menuColor(paletteName, "hintInk", fallback);          // Diamond
     if (type === 8) return menuColor(paletteName, "borderSecondary", fallback);  // Laser
     if (type === 4) return menuColor(paletteName, "secondaryInk", fallback);     // Shield
     if (type === 5) return menuColor(paletteName, "borderPrimary", fallback);    // Portal
     return menuColor(paletteName, "titleInk", fallback);                          // Common
-}
+};
 
-function rarityAccent(paletteName, tier, fallback) {
+const rarityAccent = (paletteName, tier, fallback) => {
     if (tier === 4) return menuColor(paletteName, "actionInk", fallback);
     if (tier === 3) return menuColor(paletteName, "borderPrimary", fallback);
     if (tier === 2) return menuColor(paletteName, "secondaryInk", fallback);
     return menuColor(paletteName, "titleInk", fallback);
-}
+};
