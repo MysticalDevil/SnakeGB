@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/build_paths.sh
+source "${ROOT_DIR}/scripts/lib/build_paths.sh"
+DEFAULT_BUILD_DIR="$(resolve_build_dir dev)"
+
 ENDPOINT="${SNAKEGB_INPUT_PIPE:-${SNAKEGB_INPUT_FILE:-/tmp/snakegb-input.pipe}}"
 if [[ "${1:-}" == "-p" ]]; then
   if [[ $# -lt 2 ]]; then
@@ -14,9 +19,9 @@ fi
 if [[ ! -p "${ENDPOINT}" && ! -f "${ENDPOINT}" ]]; then
   echo "[error] Input endpoint not found: ${ENDPOINT}"
   echo "Start app with:"
-  echo "  SNAKEGB_INPUT_PIPE=${ENDPOINT} ./build-review/SnakeGB"
+  echo "  SNAKEGB_INPUT_PIPE=${ENDPOINT} ${DEFAULT_BUILD_DIR}/SnakeGB"
   echo "or"
-  echo "  SNAKEGB_INPUT_FILE=${ENDPOINT} ./build-review/SnakeGB"
+  echo "  SNAKEGB_INPUT_FILE=${ENDPOINT} ${DEFAULT_BUILD_DIR}/SnakeGB"
   exit 1
 fi
 

@@ -3,11 +3,13 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# shellcheck source=lib/build_paths.sh
+source "${PROJECT_ROOT}/scripts/lib/build_paths.sh"
 
 : "${QT_WASM_PREFIX:?Please set QT_WASM_PREFIX, e.g. ~/Qt/6.7.3/wasm_singlethread}"
 
 QT_CMAKE_BIN="${QT_CMAKE_BIN:-${QT_WASM_PREFIX}/bin/qt-cmake}"
-BUILD_DIR="${BUILD_DIR:-${PROJECT_ROOT}/build-wasm-local}"
+BUILD_DIR="${BUILD_DIR:-$(resolve_build_dir wasm)}"
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
 DIST_DIR="${DIST_DIR:-/tmp/snakegb-wasm-dist}"
 WASM_SHIMS_DIR="${WASM_SHIMS_DIR:-${PROJECT_ROOT}/cmake/wasm-shims}"

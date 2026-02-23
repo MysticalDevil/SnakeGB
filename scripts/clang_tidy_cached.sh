@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUILD_DIR="${1:-build-debug}"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=lib/build_paths.sh
+source "${ROOT_DIR}/scripts/lib/build_paths.sh"
+BUILD_DIR="${1:-$(resolve_build_dir debug)}"
 if [[ $# -gt 0 ]]; then
   shift
 fi

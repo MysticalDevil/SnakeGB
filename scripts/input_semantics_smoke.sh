@@ -2,7 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build-review}"
+# shellcheck source=lib/build_paths.sh
+source "${ROOT_DIR}/scripts/lib/build_paths.sh"
+BUILD_DIR="$(resolve_build_dir dev)"
 APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
 INPUT_FILE="${INPUT_FILE:-/tmp/snakegb-input.queue}"
 LOG_FILE="${LOG_FILE:-/tmp/snakegb_input_semantics_smoke.log}"

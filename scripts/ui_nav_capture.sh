@@ -2,7 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build-review}"
+# shellcheck source=lib/build_paths.sh
+source "${ROOT_DIR}/scripts/lib/build_paths.sh"
+BUILD_DIR="$(resolve_build_dir dev)"
 APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
 WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
 WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
@@ -120,6 +122,11 @@ if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
 fi
 
 case "${TARGET}" in
+  splash)
+    # Capture splash shortly after launch before transition to start menu.
+    sleep "${SPLASH_CAPTURE_DELAY:-0.02}"
+    POST_NAV_WAIT="${SPLASH_POST_WAIT:-0.02}"
+    ;;
   menu)
     ;;
   game)
@@ -177,14 +184,13 @@ case "${TARGET}" in
     done
     ;;
   icons)
-    i=0
-    while (( i < 1 )); do
-      send_token "F6"
-      ((i += 1))
-    done
+    send_token "DBG_ICONS"
+    ;;
+  icons-f6)
+    send_token "F6"
     ;;
   icons-right)
-    send_token "F6"
+    send_token "DBG_ICONS"
     sleep 0.3
     send_token "RIGHT"
     ;;
@@ -213,7 +219,7 @@ case "${TARGET}" in
     send_konami
     ;;
   icons-exit-b)
-    send_token "F6"
+    send_token "DBG_ICONS"
     sleep 0.3
     send_token "B"
     ;;
@@ -245,7 +251,7 @@ case "${TARGET}" in
     send_token "DBG_ICONS"
     ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons"
+    echo "[error] Unknown target '${TARGET}'. Supported: splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons"
     exit 3
     ;;
 esac
