@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=SnakeGB
+GenericName=Retro Snake Game
+Comment=Snake game in a Game Boy style shell
+Exec=SnakeGB
+Icon=snakegb
+Terminal=false
+Categories=Game;ArcadeGame;Qt;
+Keywords=snake;gameboy;retro;arcade;
+StartupNotify=true
