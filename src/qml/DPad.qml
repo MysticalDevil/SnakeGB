@@ -36,7 +36,7 @@ Item {
             y: 1
             opacity: 0.10
             onPaint: {
-                var ctx = getContext("2d")
+                const ctx = getContext("2d")
                 ctx.reset()
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.fillStyle = "#000000"
@@ -48,11 +48,11 @@ Item {
             id: crossBody
             anchors.fill: parent
             onPaint: {
-                var ctx = getContext("2d")
+                const ctx = getContext("2d")
                 ctx.reset()
                 drawCrossPath(ctx, width, height, dpad.arm)
 
-                var g = ctx.createLinearGradient(0, 0, width, height)
+                const g = ctx.createLinearGradient(0, 0, width, height)
                 g.addColorStop(0.0, "#3f4a5a")
                 g.addColorStop(0.48, "#384354")
                 g.addColorStop(1.0, "#313c4c")
@@ -68,7 +68,7 @@ Item {
                 ctx.save()
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.clip()
-                var hg = ctx.createLinearGradient(0, 0, width, height)
+                const hg = ctx.createLinearGradient(0, 0, width, height)
                 hg.addColorStop(0.0, "rgba(255,255,255,0.06)")
                 hg.addColorStop(0.45, "rgba(255,255,255,0.00)")
                 hg.addColorStop(1.0, "rgba(0,0,0,0.04)")
@@ -82,7 +82,7 @@ Item {
             id: pressMask
             anchors.fill: parent
             onPaint: {
-                var ctx = getContext("2d")
+                const ctx = getContext("2d")
                 ctx.reset()
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.clip()
@@ -107,7 +107,7 @@ Item {
             anchors.fill: parent
             opacity: 0.16
             onPaint: {
-                var ctx = getContext("2d")
+                const ctx = getContext("2d")
                 ctx.reset()
                 drawTri(ctx, width / 2, 15, 5, "up")
                 drawTri(ctx, width / 2, height - 15, 5, "down")
@@ -189,8 +189,8 @@ Item {
     }
 
     function drawCrossPath(ctx, w, h, arm) {
-        var t = (w - arm) / 2
-        var b = t + arm
+        const t = (w - arm) / 2
+        const b = t + arm
         ctx.beginPath()
         ctx.moveTo(t, 0)
         ctx.lineTo(b, 0)

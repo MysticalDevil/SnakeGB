@@ -215,10 +215,10 @@ Rectangle {
         }
 
         function setDetentVolume(v, withHaptic) {
-            var clamped = clamp01(v)
-            var snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
-            var oldStep = Math.round(shell.volume * (detentCount - 1))
-            var newStep = Math.round(snapped * (detentCount - 1))
+            const clamped = clamp01(v)
+            const snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
+            const oldStep = Math.round(shell.volume * (detentCount - 1))
+            const newStep = Math.round(snapped * (detentCount - 1))
             if (Math.abs(snapped - shell.volume) > 0.0001) {
                 shell.volumeRequested(snapped, withHaptic && oldStep !== newStep)
             }
@@ -316,7 +316,7 @@ Rectangle {
                 }
                 onPositionChanged: {
                     if (!pressed) return
-                    var delta = (startY - mouse.y) / 66.0
+                    const delta = (startY - mouse.y) / 66.0
                     volumeControl.setDetentVolume(startVolume + delta, true)
                 }
             }
@@ -324,7 +324,7 @@ Rectangle {
             WheelHandler {
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                 onWheel: (event) => {
-                    var step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeControl.detentCount - 1)
+                    const step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeControl.detentCount - 1)
                     volumeControl.setDetentVolume(shell.volume + step, true)
                 }
             }

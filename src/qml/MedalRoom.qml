@@ -24,18 +24,18 @@ Rectangle {
         if (p0 === undefined || p3 === undefined) {
             return "white"
         }
-        var d0 = Math.abs(luminance(p0) - luminance(bgColor))
-        var d3 = Math.abs(luminance(p3) - luminance(bgColor))
+        const d0 = Math.abs(luminance(p0) - luminance(bgColor))
+        const d3 = Math.abs(luminance(p3) - luminance(bgColor))
         return d3 >= d0 ? p3 : p0
     }
 
     function readableMutedText(bgColor) {
-        var c = readableText(bgColor)
+        const c = readableText(bgColor)
         return Qt.rgba(c.r, c.g, c.b, 0.9)
     }
 
     function readableSecondaryText(bgColor) {
-        var c = readableText(bgColor)
+        const c = readableText(bgColor)
         return Qt.rgba(c.r, c.g, c.b, 0.78)
     }
 

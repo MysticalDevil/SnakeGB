@@ -74,9 +74,9 @@ Window {
     }
 
     function routeDirection(action) {
-        var dx = 0
-        var dy = 0
-        var token = ""
+        let dx = 0
+        let dy = 0
+        let token = ""
         if (action === inputAction.NavUp) {
             dy = -1
             token = "U"
@@ -135,12 +135,12 @@ Window {
     }
 
     function cycleStaticDebug(direction) {
-        var scenes = ["boot", "game", "replay"]
+        const scenes = ["boot", "game", "replay"]
         if (staticDebugScene === "") {
             setStaticDebugScene("boot")
             return
         }
-        var idx = scenes.indexOf(staticDebugScene)
+        let idx = scenes.indexOf(staticDebugScene)
         if (idx < 0) {
             idx = 0
         }
@@ -157,7 +157,7 @@ Window {
             if (window.staticDebugScene !== "") return routeStaticLayer(action)
             if (window.iconDebugMode) return routeIconLayer(action)
 
-            var state = gameLogic.state
+            const state = gameLogic.state
             if (isOverlayState(state)) return routeOverlayLayer(action)
             if (isPageState(state)) return routePageLayer(action)
             if (isGameplayState(state)) return routeGameLayer(action)
@@ -191,9 +191,9 @@ Window {
         }
 
         function routeIconLayer(action) {
-            var dx = 0
-            var dy = 0
-            var token = ""
+            let dx = 0
+            let dy = 0
+            let token = ""
             if (action === inputAction.NavUp) {
                 dy = -1
                 token = "U"
@@ -439,7 +439,7 @@ Window {
     }
 
     function dispatchInjectedToken(rawToken) {
-        var token = String(rawToken).trim().toUpperCase()
+        const token = String(rawToken).trim().toUpperCase()
         if (dispatchDebugToken(token)) {
             return
         }
@@ -583,7 +583,7 @@ Window {
     function handleEasterInput(token) {
         // Keep Konami isolated from normal navigation:
         // only allow entering sequence from paused overlay (or while already in icon lab).
-        var trackEaster = iconDebugMode || gameLogic.state === AppState.Paused
+        const trackEaster = iconDebugMode || gameLogic.state === AppState.Paused
         if (!trackEaster) {
             return false
         }
@@ -594,8 +594,8 @@ Window {
             return true
         }
 
-        var beforeIndex = konamiIndex
-        var status = feedEasterInput(token)
+        const beforeIndex = konamiIndex
+        const status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
                 gameLogic.dispatchUiAction("state_start_menu")

@@ -141,12 +141,12 @@ Item {
     }
 
     function iconLabMove(dx, dy) {
-        var cols = 3
-        var idx = iconLabSelection
-        var col = idx % cols
-        var row = Math.floor(idx / cols)
-        var nextCol = Math.max(0, Math.min(cols - 1, col + (dx > 0 ? 1 : (dx < 0 ? -1 : 0))))
-        var nextRow = Math.max(0, Math.min(2, row + (dy > 0 ? 1 : (dy < 0 ? -1 : 0))))
+        const cols = 3
+        const idx = iconLabSelection
+        const col = idx % cols
+        const row = Math.floor(idx / cols)
+        const nextCol = Math.max(0, Math.min(cols - 1, col + (dx > 0 ? 1 : (dx < 0 ? -1 : 0))))
+        const nextRow = Math.max(0, Math.min(2, row + (dy > 0 ? 1 : (dy < 0 ? -1 : 0))))
         iconLabSelection = nextRow * cols + nextCol
     }
 
@@ -171,7 +171,7 @@ Item {
     }
 
     function rarityName(type) {
-        var tier = rarityTier(type)
+        const tier = rarityTier(type)
         if (tier === 4) return "EPIC"
         if (tier === 3) return "RARE"
         if (tier === 2) return "UNCOMMON"
@@ -179,7 +179,7 @@ Item {
     }
 
     function rarityColor(type) {
-        var tier = rarityTier(type)
+        const tier = rarityTier(type)
         return ThemeCatalog.rarityAccent(gameLogic.paletteName, tier, p3)
     }
 
@@ -192,17 +192,17 @@ Item {
     }
 
     function readableMutedText(bgColor) {
-        var c = readableText(bgColor)
+        const c = readableText(bgColor)
         return Qt.rgba(c.r, c.g, c.b, 0.9)
     }
 
     function readableSecondaryText(bgColor) {
-        var c = readableText(bgColor)
+        const c = readableText(bgColor)
         return Qt.rgba(c.r, c.g, c.b, 0.78)
     }
 
     function blendColor(a, b, t) {
-        var k = Math.max(0.0, Math.min(1.0, t))
+        const k = Math.max(0.0, Math.min(1.0, t))
         return Qt.rgba(
             a.r * (1.0 - k) + b.r * k,
             a.g * (1.0 - k) + b.g * k,
@@ -212,14 +212,14 @@ Item {
     }
 
     function tonedColor(c, amount) {
-        var l = luminance(c)
-        var gray = Qt.rgba(l, l, l, 1.0)
+        const l = luminance(c)
+        const gray = Qt.rgba(l, l, l, 1.0)
         return blendColor(c, gray, amount)
     }
 
     function clampedSurface(a, b, mix, desat, minL, maxL) {
-        var c = tonedColor(blendColor(a, b, mix), desat)
-        var l = luminance(c)
+        let c = tonedColor(blendColor(a, b, mix), desat)
+        const l = luminance(c)
         if (l < minL) {
             c = blendColor(c, Qt.rgba(1, 1, 1, 1), Math.min(1.0, (minL - l) * 1.4))
         } else if (l > maxL) {
@@ -502,13 +502,13 @@ Item {
                     z: 1
                     visible: gameWorld.visible
                     onPaint: {
-                        var ctx = getContext("2d")
+                        const ctx = getContext("2d")
                         ctx.reset()
-                        var cw = width / gameLogic.boardWidth
-                        var ch = height / gameLogic.boardHeight
+                        const cw = width / gameLogic.boardWidth
+                        const ch = height / gameLogic.boardHeight
                         ctx.strokeStyle = Qt.rgba(root.p2.r, root.p2.g, root.p2.b, 0.22)
                         ctx.lineWidth = 1
-                        var x = 0
+                        let x = 0
                         while (x <= width) {
                             ctx.beginPath()
                             ctx.moveTo(x + 0.5, 0)
@@ -516,7 +516,7 @@ Item {
                             ctx.stroke()
                             x += cw
                         }
-                        var y = 0
+                        let y = 0
                         while (y <= height) {
                             ctx.beginPath()
                             ctx.moveTo(0, y + 0.5)
@@ -590,7 +590,7 @@ Item {
                     Canvas {
                         anchors.fill: parent
                         onPaint: {
-                            var ctx = getContext("2d")
+                            const ctx = getContext("2d")
                             ctx.reset()
                             root.drawFoodSymbol(ctx, width, height)
                         }
@@ -643,7 +643,7 @@ Item {
                         id: worldPowerIcon
                         anchors.fill: parent
                         onPaint: {
-                            var ctx = getContext("2d")
+                            const ctx = getContext("2d")
                             ctx.reset()
                             root.drawPowerSymbol(ctx, width, height, gameLogic.powerUpType, powerColor(gameLogic.powerUpType))
                         }
@@ -825,7 +825,7 @@ Item {
                                         Canvas {
                                             anchors.fill: parent
                                             onPaint: {
-                                                var ctx = getContext("2d")
+                                                const ctx = getContext("2d")
                                                 ctx.reset()
                                                 root.drawPowerSymbol(ctx, width, height, powerType, choiceIcon.accent)
                                             }
@@ -1115,19 +1115,19 @@ Item {
                     Canvas {
                         anchors.fill: parent
                         onPaint: {
-                            var ctx = getContext("2d")
+                            const ctx = getContext("2d")
                             ctx.reset()
-                            var cw = width / gameLogic.boardWidth
-                            var ch = height / gameLogic.boardHeight
+                            const cw = width / gameLogic.boardWidth
+                            const ch = height / gameLogic.boardHeight
                             ctx.strokeStyle = Qt.rgba(root.p2.r, root.p2.g, root.p2.b, 0.24)
                             ctx.lineWidth = 1
-                            for (var x = 0; x <= width; x += cw) {
+                            for (let x = 0; x <= width; x += cw) {
                                 ctx.beginPath()
                                 ctx.moveTo(x + 0.5, 0)
                                 ctx.lineTo(x + 0.5, height)
                                 ctx.stroke()
                             }
-                            for (var y = 0; y <= height; y += ch) {
+                            for (let y = 0; y <= height; y += ch) {
                                 ctx.beginPath()
                                 ctx.moveTo(0, y + 0.5)
                                 ctx.lineTo(width, y + 0.5)
@@ -1176,7 +1176,7 @@ Item {
                         Canvas {
                             anchors.fill: parent
                             onPaint: {
-                                var ctx = getContext("2d")
+                                const ctx = getContext("2d")
                                 ctx.reset()
                                 root.drawFoodSymbol(ctx, width, height)
                             }
@@ -1362,7 +1362,7 @@ Item {
                                     Canvas {
                                         anchors.fill: parent
                                         onPaint: {
-                                            var ctx = getContext("2d")
+                                            const ctx = getContext("2d")
                                             ctx.reset()
                                             root.drawFoodSymbol(ctx, width, height)
                                         }
@@ -1469,7 +1469,7 @@ Item {
                                         Canvas {
                                             anchors.fill: parent
                                             onPaint: {
-                                                var ctx = getContext("2d")
+                                                const ctx = getContext("2d")
                                                 ctx.reset()
                                                 root.drawPowerSymbol(ctx, width, height, modelData, powerColor(modelData))
                                             }
@@ -1551,10 +1551,10 @@ Item {
             Canvas {
                 anchors.fill: parent
                 onPaint: { 
-                    var ctx = getContext("2d")
+                    const ctx = getContext("2d")
                     ctx.strokeStyle = Qt.rgba(root.p0.r, root.p0.g, root.p0.b, 0.65)
                     ctx.lineWidth = 1
-                    var i = 0
+                    let i = 0
                     while (i < height) {
                         ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke()
                         i = i + 3
