@@ -2,11 +2,11 @@
 
 #include <QJSValue>
 
+#include "adapter/achievement_runtime.h"
 #include "adapter/level_applier.h"
 #include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
 #include "adapter/profile_bridge.h"
-#include "core/achievement_rules.h"
 #include "core/level_runtime.h"
 
 using namespace Qt::StringLiterals;
@@ -59,30 +59,18 @@ void GameLogic::loadLevelData(const int i)
 
 void GameLogic::checkAchievements()
 {
-    const QStringList unlockedTitles =
-        snakegb::core::unlockedAchievementTitles(m_score, m_timer->interval(), m_timer->isActive());
-
-    auto unlockTitle = [this](const QString &title) -> void {
-        if (snakegb::adapter::unlockMedal(m_profileManager.get(), title)) {
-            emit achievementEarned(title);
-            emit achievementsChanged();
-        }
-    };
-
-    for (const QString &title : unlockedTitles) {
-        unlockTitle(title);
+    const QStringList newlyUnlocked = snakegb::adapter::unlockAchievements(
+        m_profileManager.get(), m_score, m_timer->interval(), m_timer->isActive());
+    for (const QString &title : newlyUnlocked) {
+        emit achievementEarned(title);
+        emit achievementsChanged();
     }
 }
 
 void GameLogic::runLevelScript()
 {
-    if (snakegb::adapter::tryApplyOnTickScript(m_jsEngine, m_gameTickCounter, m_obstacles)) {
-        emit obstaclesChanged();
-        return;
-    }
-    if (snakegb::adapter::applyDynamicLevelFallback(m_currentLevelName, m_gameTickCounter,
-                                                    m_obstacles)) {
+    if (snakegb::adapter::applyLevelScriptStep(m_jsEngine, m_currentLevelName, m_gameTickCounter,
+                                               m_obstacles)) {
         emit obstaclesChanged();
     }
 }
-

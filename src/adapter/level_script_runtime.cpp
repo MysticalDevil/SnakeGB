@@ -39,4 +39,13 @@ auto applyDynamicLevelFallback(const QStringView levelName, const int gameTickCo
     return true;
 }
 
+auto applyLevelScriptStep(QJSEngine &engine, const QStringView levelName, const int gameTickCounter,
+                          QList<QPoint> &obstacles) -> bool
+{
+    if (snakegb::adapter::tryApplyOnTickScript(engine, gameTickCounter, obstacles)) {
+        return true;
+    }
+    return snakegb::adapter::applyDynamicLevelFallback(levelName, gameTickCounter, obstacles);
+}
+
 } // namespace snakegb::adapter

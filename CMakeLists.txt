@@ -59,6 +59,8 @@ qt_add_executable(SnakeGB
     src/adapter/ui_action.h
     src/adapter/input_semantics.cpp
     src/adapter/input_semantics.h
+    src/adapter/achievement_runtime.cpp
+    src/adapter/achievement_runtime.h
     src/adapter/ghost_store.cpp
     src/adapter/ghost_store.h
     src/adapter/choice_models.cpp
@@ -193,6 +195,7 @@ add_executable(game-tests
     src/profile_manager.cpp
     src/adapter/ui_action.cpp
     src/adapter/input_semantics.cpp
+    src/adapter/achievement_runtime.cpp
     src/adapter/ghost_store.cpp
     src/adapter/choice_models.cpp
     src/adapter/library_models.cpp
