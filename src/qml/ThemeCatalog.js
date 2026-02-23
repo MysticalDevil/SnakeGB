@@ -4,9 +4,9 @@ var _catalog = {
     menu: {
         "Original DMG": {cardPrimary:"#d7e7b2",cardSecondary:"#c7d99d",actionCard:"#4e7a39",hintCard:"#92b65a",borderPrimary:"#39582a",borderSecondary:"#577d3e",titleInk:"#213319",secondaryInk:"#253a1b",actionInk:"#f2f8e4",hintInk:"#1d2d15"},
         "Pocket B&W": {cardPrimary:"#e3e5dd",cardSecondary:"#d4d8cc",actionCard:"#5a6250",hintCard:"#b8bead",borderPrimary:"#4f5648",borderSecondary:"#646b5b",titleInk:"#1d211b",secondaryInk:"#242822",actionInk:"#edf1e8",hintInk:"#22261f"},
-        "Golden Lux": {cardPrimary:"#f5cf5d",cardSecondary:"#e9bf45",actionCard:"#825118",hintCard:"#c89030",borderPrimary:"#6d4412",borderSecondary:"#89591b",titleInk:"#2a1a06",secondaryInk:"#342109",actionInk:"#fff4c5",hintInk:"#2d1d0a"},
-        "Ice Blue": {cardPrimary:"#78d9df",cardSecondary:"#67c1c8",actionCard:"#1e5f68",hintCard:"#327f87",borderPrimary:"#184c53",borderSecondary:"#2c747b",titleInk:"#08272d",secondaryInk:"#0d3138",actionInk:"#dcfbff",hintInk:"#e6fcff"},
-        "Virtual Red": {cardPrimary:"#d44f4f",cardSecondary:"#c53f3f",actionCard:"#4e1111",hintCard:"#7a2626",borderPrimary:"#6c2424",borderSecondary:"#8f3939",titleInk:"#2b0a0a",secondaryInk:"#320d0d",actionInk:"#ffe7df",hintInk:"#f9e3dc"}
+        "Sunset Glow": {cardPrimary:"#f5cf5d",cardSecondary:"#e9bf45",actionCard:"#825118",hintCard:"#c89030",borderPrimary:"#6d4412",borderSecondary:"#89591b",titleInk:"#2a1a06",secondaryInk:"#342109",actionInk:"#fff4c5",hintInk:"#2d1d0a"},
+        "Pixel Heat": {cardPrimary:"#d44f4f",cardSecondary:"#c53f3f",actionCard:"#4e1111",hintCard:"#7a2626",borderPrimary:"#6c2424",borderSecondary:"#8f3939",titleInk:"#2b0a0a",secondaryInk:"#320d0d",actionInk:"#ffe7df",hintInk:"#f9e3dc"},
+        "Neon Ice": {cardPrimary:"#78d9df",cardSecondary:"#67c1c8",actionCard:"#1e5f68",hintCard:"#327f87",borderPrimary:"#184c53",borderSecondary:"#2c747b",titleInk:"#08272d",secondaryInk:"#0d3138",actionInk:"#dcfbff",hintInk:"#e6fcff"}
     },
     pages: {
         catalog: {},
@@ -42,7 +42,7 @@ function pageTheme(paletteName, page) {
         secondaryText: menuColor(paletteName, "secondaryInk"),
         iconStroke: menuColor(paletteName, "titleInk"),
         iconFill: menuColor(paletteName, "cardPrimary"),
-        unknownText: menuColor(paletteName, "actionInk"),
+        unknownText: menuColor(paletteName, "secondaryInk"),
         badgeFill: menuColor(paletteName, "actionCard"),
         badgeText: menuColor(paletteName, "actionInk"),
         scrollbarHandle: menuColor(paletteName, "borderPrimary"),
@@ -90,4 +90,20 @@ function shellTheme(shellName, shellColor) {
         wheelBodyDark: "#4a5567",
         wheelBodyLight: "#78859b"
     };
+}
+
+function powerAccent(paletteName, type, fallback) {
+    if (type === 6) return menuColor(paletteName, "actionInk", fallback);        // Double
+    if (type === 7) return menuColor(paletteName, "hintInk", fallback);          // Diamond
+    if (type === 8) return menuColor(paletteName, "borderSecondary", fallback);  // Laser
+    if (type === 4) return menuColor(paletteName, "secondaryInk", fallback);     // Shield
+    if (type === 5) return menuColor(paletteName, "borderPrimary", fallback);    // Portal
+    return menuColor(paletteName, "titleInk", fallback);                          // Common
+}
+
+function rarityAccent(paletteName, tier, fallback) {
+    if (tier === 4) return menuColor(paletteName, "actionInk", fallback);
+    if (tier === 3) return menuColor(paletteName, "borderPrimary", fallback);
+    if (tier === 2) return menuColor(paletteName, "secondaryInk", fallback);
+    return menuColor(paletteName, "titleInk", fallback);
 }

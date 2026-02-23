@@ -15,11 +15,12 @@ auto GameLogic::highScore() const -> int
 auto GameLogic::palette() const -> QVariantList
 {
     static const QList<QVariantList> sets = {
-        {u"#0f380f"_s, u"#306230"_s, u"#8bac0f"_s, u"#9bbc0f"_s},
-        {u"#081820"_s, u"#346856"_s, u"#88c070"_s, u"#e0f8d0"_s},
-        {u"#2e1f27"_s, u"#624763"_s, u"#c15b7a"_s, u"#f7b267"_s},
-        {u"#111827"_s, u"#ef4444"_s, u"#fca5a5"_s, u"#fee2e2"_s},
-        {u"#042f2e"_s, u"#06b6d4"_s, u"#67e8f9"_s, u"#cffafe"_s}};
+        {u"#213319"_s, u"#39582a"_s, u"#92b65a"_s, u"#f2f8e4"_s}, // Original DMG
+        {u"#1d211b"_s, u"#4f5648"_s, u"#b8bead"_s, u"#edf1e8"_s}, // Pocket B&W
+        {u"#2a1a06"_s, u"#6d4412"_s, u"#c89030"_s, u"#fff4c5"_s}, // Sunset Glow
+        {u"#2b0a0a"_s, u"#6c2424"_s, u"#c53f3f"_s, u"#ffe7df"_s}, // Pixel Heat
+        {u"#08272d"_s, u"#184c53"_s, u"#67c1c8"_s, u"#dcfbff"_s}  // Neon Ice
+    };
     const qsizetype idx =
         static_cast<qsizetype>(snakegb::adapter::paletteIndex(m_profileManager.get())) %
         sets.size();

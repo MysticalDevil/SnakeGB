@@ -24,7 +24,7 @@
       "actionInk": "#edf1e8",
       "hintInk": "#22261f"
     },
-    "Golden Lux": {
+    "Sunset Glow": {
       "cardPrimary": "#f5cf5d",
       "cardSecondary": "#e9bf45",
       "actionCard": "#825118",
@@ -36,7 +36,7 @@
       "actionInk": "#fff4c5",
       "hintInk": "#2d1d0a"
     },
-    "Ice Blue": {
+    "Neon Ice": {
       "cardPrimary": "#78d9df",
       "cardSecondary": "#67c1c8",
       "actionCard": "#1e5f68",
@@ -48,7 +48,7 @@
       "actionInk": "#dcfbff",
       "hintInk": "#e6fcff"
     },
-    "Virtual Red": {
+    "Pixel Heat": {
       "cardPrimary": "#d44f4f",
       "cardSecondary": "#c53f3f",
       "actionCard": "#4e1111",

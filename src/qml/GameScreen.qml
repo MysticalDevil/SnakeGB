@@ -12,6 +12,7 @@ Item {
     property string gameFont
     property real elapsed
     property bool iconDebugMode: false
+    property string staticDebugScene: ""
     property int iconLabSelection: 0
 
     function buffName(type) {
@@ -41,13 +42,7 @@ Item {
     }
 
     function powerColor(type) {
-        var palette = gameLogic.paletteName
-        if (type === 6) return ThemeCatalog.menuColor(palette, "actionInk", p0)      // Double
-        if (type === 7) return ThemeCatalog.menuColor(palette, "hintInk", p3)         // Diamond
-        if (type === 8) return ThemeCatalog.menuColor(palette, "borderSecondary", p2) // Laser
-        if (type === 4) return ThemeCatalog.menuColor(palette, "secondaryInk", p3)    // Shield
-        if (type === 5) return ThemeCatalog.menuColor(palette, "borderPrimary", p3)   // Portal
-        return ThemeCatalog.menuColor(palette, "titleInk", p3)                         // Common
+        return ThemeCatalog.powerAccent(gameLogic.paletteName, type, p3)
     }
 
     function drawFoodSymbol(ctx, w, h) {
@@ -184,12 +179,8 @@ Item {
     }
 
     function rarityColor(type) {
-        var palette = gameLogic.paletteName
         var tier = rarityTier(type)
-        if (tier === 4) return ThemeCatalog.menuColor(palette, "actionInk", p0)
-        if (tier === 3) return ThemeCatalog.menuColor(palette, "borderPrimary", p3)
-        if (tier === 2) return ThemeCatalog.menuColor(palette, "secondaryInk", p3)
-        return ThemeCatalog.menuColor(palette, "titleInk", p3)
+        return ThemeCatalog.rarityAccent(gameLogic.paletteName, tier, p3)
     }
 
     function luminance(colorValue) {
@@ -275,7 +266,13 @@ Item {
             Rectangle {
                 id: splashLayer
                 anchors.fill: parent
-                color: p0
+                readonly property color pageBg: root.menuColor("cardPrimary")
+                readonly property color panelBg: root.menuColor("cardSecondary")
+                readonly property color panelAccent: root.menuColor("actionCard")
+                readonly property color panelBorder: root.menuColor("borderPrimary")
+                readonly property color titleInk: root.menuColor("titleInk")
+                readonly property color accentInk: root.menuColor("actionInk")
+                color: splashLayer.pageBg
                 visible: gameLogic.state === AppState.Splash
                 z: 1000
                 property real logoY: -56
@@ -322,7 +319,7 @@ Item {
                     anchors.horizontalCenter: parent.horizontalCenter
                     font.family: gameFont
                     font.pixelSize: 32
-                    color: p3
+                    color: splashLayer.titleInk
                     font.bold: true
                     y: splashLayer.logoY
                 }
@@ -332,15 +329,15 @@ Item {
                     y: 156
                     width: 120
                     height: 8
-                    color: p1
-                    border.color: p3
+                    color: splashLayer.panelBg
+                    border.color: splashLayer.panelBorder
                     border.width: 1
                     Rectangle {
                         x: 1
                         y: 1
                         width: (parent.width - 2) * (splashLayer.fakeLoad / 100.0)
                         height: parent.height - 2
-                        color: p3
+                        color: splashLayer.panelAccent
                     }
                 }
 
@@ -350,7 +347,7 @@ Item {
                     text: "LOADING " + splashLayer.fakeLoad + "%"
                     font.family: gameFont
                     font.pixelSize: 8
-                    color: p3
+                    color: splashLayer.accentInk
                     opacity: 0.92
                 }
             }
@@ -359,7 +356,7 @@ Item {
             Rectangle {
                 id: menuLayer
                 anchors.fill: parent
-                color: p0
+                color: menuLayer.cardPrimary
                 visible: gameLogic.state === AppState.StartMenu
                 z: 500
                 readonly property color cardPrimary: root.menuColor("cardPrimary")
@@ -383,7 +380,7 @@ Item {
                         width: parent.width
                         height: 44
                         radius: 4
-                        color: menuLayer.cardPrimary
+                        color: Qt.rgba(menuLayer.cardSecondary.r, menuLayer.cardSecondary.g, menuLayer.cardSecondary.b, 0.88)
                         border.color: menuLayer.borderPrimary
                         border.width: 1
 
@@ -465,8 +462,8 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         height: 36
                         radius: 4
-                        color: menuLayer.hintCard
-                        border.color: menuLayer.borderSecondary
+                        color: Qt.rgba(menuLayer.cardSecondary.r, menuLayer.cardSecondary.g, menuLayer.cardSecondary.b, 0.90)
+                        border.color: menuLayer.borderPrimary
                         border.width: 1
 
                         Column {
@@ -475,15 +472,15 @@ Item {
                             spacing: 1
                             Text {
                                 text: "UP: MEDALS   DOWN: REPLAY"
-                                color: Qt.rgba(menuLayer.hintInk.r, menuLayer.hintInk.g, menuLayer.hintInk.b, 0.93)
+                                color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
                                 font.pixelSize: 8
-                                font.bold: true
+                                font.bold: false
                             }
                             Text {
                                 text: "LEFT: CATALOG   SELECT: LEVEL"
-                                color: Qt.rgba(menuLayer.hintInk.r, menuLayer.hintInk.g, menuLayer.hintInk.b, 0.93)
+                                color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
                                 font.pixelSize: 8
-                                font.bold: true
+                                font.bold: false
                             }
                         }
                     }
@@ -552,9 +549,18 @@ Item {
                         y: model.pos.y * gameWorld.cellH
                         width: gameWorld.cellW
                         height: gameWorld.cellH
-                        color: gameLogic.activeBuff === 6 ? (Math.floor(elapsed * 10) % 2 === 0 ? "#ffd700" : p3) : (index === 0 ? p3 : p2)
+                        color: gameLogic.activeBuff === 6
+                               ? (Math.floor(elapsed * 10) % 2 === 0 ? powerColor(6) : p3)
+                               : (index === 0 ? p3 : p2)
                         radius: index === 0 ? 2 : 0
-                        Rectangle { anchors.fill: parent; anchors.margins: -2; border.color: "#00ffff"; border.width: 1; radius: parent.radius + 2; visible: index === 0 && gameLogic.shieldActive }
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: -2
+                            border.color: powerColor(4)
+                            border.width: 1
+                            radius: parent.radius + 2
+                            visible: index === 0 && gameLogic.shieldActive
+                        }
                     }
                 }
 
@@ -660,9 +666,7 @@ Item {
                     height: 24
                     property int buffTier: rarityTier(gameLogic.activeBuff)
                     property color accent: rarityColor(gameLogic.activeBuff)
-                    color: gameLogic.activeBuff === 7
-                           ? Qt.rgba(0.10, 0.20, 0.24, 0.92)
-                           : Qt.rgba(p1.r, p1.g, p1.b, 0.95)
+                    color: Qt.rgba(menuColor("cardSecondary").r, menuColor("cardSecondary").g, menuColor("cardSecondary").b, 0.95)
                     border.color: accent
                     border.width: 1
                     z: 40
@@ -731,14 +735,14 @@ Item {
             Rectangle {
                 id: pausedLayer
                 anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.7)
+                color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.72)
                 visible: gameLogic.state === AppState.Paused
                 z: 600
                 Column {
                     anchors.centerIn: parent
                     spacing: 6
-                    Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 20; color: p3; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "START: RESUME   SELECT: MENU"; color: p3; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 20; color: menuColor("titleInk"); font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "START: RESUME   SELECT: MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
 
@@ -746,15 +750,15 @@ Item {
             Rectangle {
                 id: gameOverLayer
                 anchors.fill: parent
-                color: Qt.rgba(p3.r, p3.g, p3.b, 0.95)
+                color: Qt.rgba(menuColor("actionCard").r, menuColor("actionCard").g, menuColor("actionCard").b, 0.95)
                 visible: gameLogic.state === AppState.GameOver
                 z: 700
                 Column {
                     anchors.centerIn: parent
                     spacing: 10
-                    Text { text: "GAME OVER"; color: p0; font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "SCORE: " + gameLogic.score; color: p0; font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
-                    Text { text: "START: RESTART   SELECT: MENU"; color: p0; font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "GAME OVER"; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "SCORE: " + gameLogic.score; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "START: RESTART   SELECT: MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
                 }
             }
 
@@ -764,28 +768,28 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: 160
                 height: 32
-                color: p3
+                color: menuColor("actionCard")
                 visible: gameLogic.state === AppState.Replaying
                 z: 600
                 Column {
                     anchors.centerIn: parent
                     spacing: 1
-                    Text { text: "REPLAY"; color: p0; anchors.horizontalCenter: parent.horizontalCenter; font.bold: true; font.pixelSize: 11 }
-                    Text { text: "START: MENU   SELECT: MENU"; color: p0; anchors.horizontalCenter: parent.horizontalCenter; font.pixelSize: 7 }
+                    Text { text: "REPLAY"; color: menuColor("actionInk"); anchors.horizontalCenter: parent.horizontalCenter; font.bold: true; font.pixelSize: 11 }
+                    Text { text: "START: MENU   SELECT: MENU"; color: menuColor("hintInk"); anchors.horizontalCenter: parent.horizontalCenter; font.pixelSize: 7 }
                 }
             }
 
             // --- STATE 6: CHOICE SELECTION ---
             Rectangle {
                 anchors.fill: parent
-                color: Qt.rgba(p0.r, p0.g, p0.b, 0.95)
+                color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.95)
                 visible: gameLogic.state === AppState.ChoiceSelection
                 z: 650
                 Column {
                     anchors.centerIn: parent
                     spacing: 8
                     width: parent.width - 40
-                    Text { text: "LEVEL UP!"; color: p3; font.pixelSize: 18; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+                    Text { text: "LEVEL UP!"; color: menuColor("titleInk"); font.pixelSize: 18; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
                     Repeater {
                         model: gameLogic.choices
                         delegate: Rectangle {
@@ -807,7 +811,7 @@ Item {
                                     width: 28
                                     height: 28
                                     radius: 6
-                                    color: p0
+                                color: menuColor("cardPrimary")
                                     border.color: parent.parent.accent
                                     border.width: 1
                                     anchors.verticalCenter: parent.verticalCenter
@@ -847,7 +851,7 @@ Item {
                                 height: 10
                                 width: 44
                                 radius: 3
-                                color: Qt.rgba(p0.r, p0.g, p0.b, 0.85)
+                                color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.85)
                                 border.color: parent.accent
                                 border.width: 1
                                 Text {
@@ -873,7 +877,7 @@ Item {
                     }
                     Text {
                         text: "START: PICK   SELECT: MENU"
-                        color: p3
+                        color: menuColor("hintInk")
                         font.family: gameFont
                         font.pixelSize: 8
                         anchors.horizontalCenter: parent.horizontalCenter
@@ -963,8 +967,8 @@ Item {
                             readonly property bool selected: libraryList.currentIndex === index
                             readonly property color labelColor: selected ? libraryList.catalogTheme.badgeText : libraryList.catalogTheme.primaryText
                             readonly property color descColor: selected
-                                                               ? Qt.rgba(libraryList.catalogTheme.badgeText.r, libraryList.catalogTheme.badgeText.g, libraryList.catalogTheme.badgeText.b, 0.86)
-                                                               : libraryList.catalogTheme.secondaryText
+                                                               ? Qt.rgba(libraryList.catalogTheme.badgeText.r, libraryList.catalogTheme.badgeText.g, libraryList.catalogTheme.badgeText.b, 0.92)
+                                                               : Qt.rgba(libraryList.catalogTheme.secondaryText.r, libraryList.catalogTheme.secondaryText.g, libraryList.catalogTheme.secondaryText.b, 0.96)
                             Row {
                                 anchors.fill: parent
                                 anchors.margins: 5
@@ -988,9 +992,9 @@ Item {
                                         Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 5
                                             Rectangle { anchors.centerIn: parent; width: 10; height: 10; radius: 5; border.color: libraryList.catalogTheme.iconStroke; border.width: 1 }
                                         }
-                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#ffd700"; visible: modelData.discovered && modelData.type === 6 }
-                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: "#00ffff"; visible: modelData.discovered && modelData.type === 7 }
-                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: "#ff0000"; border.width: 2; visible: modelData.discovered && modelData.type === 8 }
+                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: powerColor(6); visible: modelData.discovered && modelData.type === 6 }
+                                        Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: powerColor(7); visible: modelData.discovered && modelData.type === 7 }
+                                        Rectangle { anchors.fill: parent; color: "transparent"; border.color: powerColor(8); border.width: 2; visible: modelData.discovered && modelData.type === 8 }
                                         Rectangle { anchors.fill: parent; color: "transparent"; border.color: libraryList.catalogTheme.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 9
                                             Rectangle { anchors.centerIn: parent; width: 4; height: 4; color: libraryList.catalogTheme.iconFill }
                                         }
@@ -1020,6 +1024,250 @@ Item {
                 gameFont: root.gameFont
                 visible: gameLogic.state === AppState.MedalRoom
                 z: 900
+            }
+
+            Rectangle {
+                id: staticSceneLayer
+                anchors.fill: parent
+                visible: root.staticDebugScene !== ""
+                z: 1500
+                color: menuColor("cardPrimary")
+                clip: true
+                readonly property bool showBoot: root.staticDebugScene === "boot"
+                readonly property bool showGame: root.staticDebugScene === "game"
+                readonly property bool showReplay: root.staticDebugScene === "replay"
+                readonly property color panelBg: menuColor("cardSecondary")
+                readonly property color panelAccent: menuColor("actionCard")
+                readonly property color panelBorder: menuColor("borderPrimary")
+                readonly property color titleInk: menuColor("titleInk")
+                readonly property color accentInk: menuColor("actionInk")
+                readonly property color hintInk: menuColor("hintInk")
+
+                Rectangle {
+                    anchors.top: parent.top
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.topMargin: 6
+                    width: parent.width - 12
+                    height: 16
+                    radius: 3
+                    color: Qt.rgba(staticSceneLayer.panelBg.r, staticSceneLayer.panelBg.g, staticSceneLayer.panelBg.b, 0.9)
+                    border.color: staticSceneLayer.panelBorder
+                    border.width: 1
+                    Text {
+                        anchors.centerIn: parent
+                        text: root.staticDebugScene === "boot" ? "STATIC DEBUG: BOOT"
+                             : (root.staticDebugScene === "game" ? "STATIC DEBUG: GAME" : "STATIC DEBUG: REPLAY")
+                        color: staticSceneLayer.titleInk
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        font.bold: true
+                    }
+                }
+
+                Item {
+                    anchors.fill: parent
+                    anchors.topMargin: 24
+                    visible: staticSceneLayer.showBoot
+
+                    Text {
+                        text: "S N A K E"
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 70
+                        font.family: gameFont
+                        font.pixelSize: 32
+                        color: staticSceneLayer.titleInk
+                        font.bold: true
+                    }
+
+                    Rectangle {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 152
+                        width: 120
+                        height: 8
+                        color: staticSceneLayer.panelBg
+                        border.color: staticSceneLayer.panelBorder
+                        border.width: 1
+                        Rectangle {
+                            x: 1
+                            y: 1
+                            width: (parent.width - 2) * 0.72
+                            height: parent.height - 2
+                            color: staticSceneLayer.panelAccent
+                        }
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 166
+                        text: "LOADING 72%"
+                        font.family: gameFont
+                        font.pixelSize: 8
+                        color: staticSceneLayer.accentInk
+                        opacity: 0.92
+                    }
+                }
+
+                Item {
+                    anchors.fill: parent
+                    anchors.topMargin: 24
+                    visible: staticSceneLayer.showGame || staticSceneLayer.showReplay
+
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            var cw = width / gameLogic.boardWidth
+                            var ch = height / gameLogic.boardHeight
+                            ctx.strokeStyle = Qt.rgba(root.p2.r, root.p2.g, root.p2.b, 0.24)
+                            ctx.lineWidth = 1
+                            for (var x = 0; x <= width; x += cw) {
+                                ctx.beginPath()
+                                ctx.moveTo(x + 0.5, 0)
+                                ctx.lineTo(x + 0.5, height)
+                                ctx.stroke()
+                            }
+                            for (var y = 0; y <= height; y += ch) {
+                                ctx.beginPath()
+                                ctx.moveTo(0, y + 0.5)
+                                ctx.lineTo(width, y + 0.5)
+                                ctx.stroke()
+                            }
+                        }
+                        Component.onCompleted: requestPaint()
+                    }
+
+                    Rectangle {
+                        x: 88
+                        y: 88
+                        width: 10
+                        height: 10
+                        color: p2
+                    }
+                    Rectangle {
+                        x: 98
+                        y: 88
+                        width: 10
+                        height: 10
+                        color: p2
+                    }
+                    Rectangle {
+                        x: 108
+                        y: 88
+                        width: 10
+                        height: 10
+                        radius: 2
+                        color: p3
+                    }
+                    Rectangle {
+                        x: 168
+                        y: 98
+                        width: 10
+                        height: 10
+                        color: p2
+                        border.color: p3
+                        border.width: 1
+                    }
+                    Item {
+                        x: 138
+                        y: 118
+                        width: 10
+                        height: 10
+                        Canvas {
+                            anchors.fill: parent
+                            onPaint: {
+                                var ctx = getContext("2d")
+                                ctx.reset()
+                                root.drawFoodSymbol(ctx, width, height)
+                            }
+                            Component.onCompleted: requestPaint()
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.topMargin: 4
+                        anchors.leftMargin: 4
+                        width: 110
+                        height: 24
+                        color: Qt.rgba(staticSceneLayer.panelBg.r, staticSceneLayer.panelBg.g, staticSceneLayer.panelBg.b, 0.95)
+                        border.color: staticSceneLayer.panelBorder
+                        border.width: 1
+                        visible: staticSceneLayer.showGame
+                        Text {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 4
+                            anchors.top: parent.top
+                            anchors.topMargin: 1
+                            text: "MAGNET"
+                            color: staticSceneLayer.titleInk
+                            font.family: gameFont
+                            font.pixelSize: 7
+                            font.bold: true
+                        }
+                        Text {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 4
+                            anchors.top: parent.top
+                            anchors.topMargin: 1
+                            text: "COMMON"
+                            color: staticSceneLayer.titleInk
+                            font.family: gameFont
+                            font.pixelSize: 7
+                            font.bold: true
+                        }
+                    }
+
+                    Rectangle {
+                        anchors.top: parent.top
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.topMargin: 4
+                        width: 160
+                        height: 32
+                        color: staticSceneLayer.panelAccent
+                        border.color: Qt.rgba(staticSceneLayer.accentInk.r, staticSceneLayer.accentInk.g, staticSceneLayer.accentInk.b, 0.65)
+                        border.width: 1
+                        visible: staticSceneLayer.showReplay
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 1
+                            Text {
+                                text: "REPLAY"
+                                color: staticSceneLayer.accentInk
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                font.bold: true
+                                font.pixelSize: 11
+                            }
+                            Text {
+                                text: "START: MENU   SELECT: MENU"
+                                color: staticSceneLayer.hintInk
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                font.pixelSize: 7
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottomMargin: 4
+                    width: parent.width - 12
+                    height: 14
+                    radius: 3
+                    color: Qt.rgba(staticSceneLayer.panelBg.r, staticSceneLayer.panelBg.g, staticSceneLayer.panelBg.b, 0.84)
+                    border.color: staticSceneLayer.panelBorder
+                    border.width: 1
+                    Text {
+                        anchors.centerIn: parent
+                        text: "UP/DOWN SWITCH   SELECT/B EXIT"
+                        color: staticSceneLayer.hintInk
+                        font.family: gameFont
+                        font.pixelSize: 7
+                        font.bold: true
+                    }
+                }
             }
 
             Rectangle {

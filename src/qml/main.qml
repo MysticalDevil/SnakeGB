@@ -23,6 +23,7 @@ Window {
     property bool startPressActive: false
     property bool saveClearConfirmPending: false
     property bool iconDebugMode: false
+    property string staticDebugScene: ""
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -116,10 +117,35 @@ Window {
     function toggleIconLab() {
         iconDebugMode = !iconDebugMode
         konamiIndex = 0
+        staticDebugScene = ""
         screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
         if (!iconDebugMode) {
             gameLogic.dispatchUiAction("state_start_menu")
         }
+    }
+
+    function setStaticDebugScene(sceneName) {
+        iconDebugMode = false
+        staticDebugScene = sceneName
+        if (sceneName === "") {
+            screen.showOSD("STATIC DEBUG OFF")
+            return
+        }
+        screen.showOSD("STATIC DEBUG: " + sceneName.toUpperCase())
+    }
+
+    function cycleStaticDebug(direction) {
+        var scenes = ["boot", "game", "replay"]
+        if (staticDebugScene === "") {
+            setStaticDebugScene("boot")
+            return
+        }
+        var idx = scenes.indexOf(staticDebugScene)
+        if (idx < 0) {
+            idx = 0
+        }
+        idx = (idx + direction + scenes.length) % scenes.length
+        setStaticDebugScene(scenes[idx])
     }
 
     QtObject {
@@ -128,6 +154,7 @@ Window {
         // Layer priority: icon overlay -> state overlay -> page -> game -> shell fallback.
         function route(action) {
             if (routeGlobal(action)) return true
+            if (window.staticDebugScene !== "") return routeStaticLayer(action)
             if (window.iconDebugMode) return routeIconLayer(action)
 
             var state = gameLogic.state
@@ -153,6 +180,8 @@ Window {
             if (action === inputAction.Escape) {
                 if (window.iconDebugMode) {
                     exitIconLabToMenu()
+                } else if (window.staticDebugScene !== "") {
+                    setStaticDebugScene("")
                 } else {
                     gameLogic.dispatchUiAction("quit")
                 }
@@ -198,6 +227,24 @@ Window {
                 return true
             }
             return false
+        }
+
+        function routeStaticLayer(action) {
+            if (action === inputAction.NavUp || action === inputAction.NavLeft) {
+                cycleStaticDebug(-1)
+                return true
+            }
+            if (action === inputAction.NavDown || action === inputAction.NavRight) {
+                cycleStaticDebug(1)
+                return true
+            }
+            if (action === inputAction.SelectShort || action === inputAction.Back ||
+                    action === inputAction.Secondary || action === inputAction.Start ||
+                    action === inputAction.Primary) {
+                setStaticDebugScene("")
+                return true
+            }
+            return true
         }
 
         function routeOverlayLayer(action) {
@@ -283,7 +330,11 @@ Window {
         function routeShellLayer(action) {
             if (routeDirection(action)) return true
             if (action === inputAction.Primary) {
-                handleAButton()
+                // StartMenu and non-game shell states do not use A as a start shortcut.
+                // Keep A only for explicit confirmation flows (for example save clear confirm).
+                if (saveClearConfirmPending) {
+                    handleAButton()
+                }
                 return true
             }
             if (action === inputAction.Secondary) {
@@ -368,6 +419,22 @@ Window {
             screen.showOSD("DBG: ICON LAB")
             return true
         }
+        if (token === "DBG_STATIC_BOOT") {
+            setStaticDebugScene("boot")
+            return true
+        }
+        if (token === "DBG_STATIC_GAME") {
+            setStaticDebugScene("game")
+            return true
+        }
+        if (token === "DBG_STATIC_REPLAY") {
+            setStaticDebugScene("replay")
+            return true
+        }
+        if (token === "DBG_STATIC_OFF") {
+            setStaticDebugScene("")
+            return true
+        }
         return false
     }
 
@@ -430,6 +497,22 @@ Window {
         }
         if (token === "MUSIC") {
             dispatchAction(inputAction.ToggleMusic)
+            return
+        }
+        if (token === "STATIC_BOOT") {
+            setStaticDebugScene("boot")
+            return
+        }
+        if (token === "STATIC_GAME") {
+            setStaticDebugScene("game")
+            return
+        }
+        if (token === "STATIC_REPLAY") {
+            setStaticDebugScene("replay")
+            return
+        }
+        if (token === "STATIC_OFF") {
+            setStaticDebugScene("")
             return
         }
         screen.showOSD("UNKNOWN INPUT: " + token)
@@ -687,6 +770,7 @@ Window {
                     gameFont: window.gameFont
                     elapsed: window.elapsed
                     iconDebugMode: window.iconDebugMode
+                    staticDebugScene: window.staticDebugScene
                 }
 
                 Connections {
@@ -759,6 +843,9 @@ Window {
             }
             else if (event.key === Qt.Key_F6) {
                 dispatchAction(inputAction.ToggleIconLab)
+            }
+            else if (event.key === Qt.Key_F7) {
+                cycleStaticDebug(1)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shell.bButton.isPressed = true

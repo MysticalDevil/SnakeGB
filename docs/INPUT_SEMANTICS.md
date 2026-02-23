@@ -26,7 +26,8 @@ Input is routed by layer in this order:
 
 ### StartMenu
 
-- `START` / `A`: start game (load save if present, else new run)
+- `START`: start game (load save if present, else new run)
+- `A`: no-op (reserved, except explicit confirmation prompts such as save-clear confirm)
 - `SELECT`: switch level
 - `UP`: achievements
 - `DOWN`: replay
