@@ -122,8 +122,8 @@ Item {
                         Column {
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width - 44
-                            Text { text: modelData.name; color: readableText(choiceCard.color); font.bold: true; font.pixelSize: 9 }
-                            Text { text: modelData.desc; color: readableSecondaryText(choiceCard.color); font.pixelSize: 7; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap }
+                            Text { text: modelData.name; color: menuColor("titleInk"); font.bold: true; font.pixelSize: 9 }
+                            Text { text: modelData.desc; color: menuColor("secondaryInk"); font.pixelSize: 7; opacity: 1.0; width: parent.width; wrapMode: Text.WordWrap }
                         }
                     }
 

@@ -11,9 +11,10 @@
    - **Recommendation:** keep overlay backgrounds opaque (or near-opaque) and avoid additive transparency. Centralize overlay z-ordering so UI is always above gameplay.
    - **Status:** opaque paused/gameover overlays, replay banner opacity lifted, unified overlay z ordering.
 
-3. **Choice (Roguelike) cards contrast**
+3. **Choice (Roguelike) cards contrast** `[Done]`
    - **Issue:** card/background contrast shifts too much across palettes.
    - **Recommendation:** constrain card colors to `cardSecondary`/`actionCard` and keep text in `titleInk/secondaryInk`.
+   - **Status:** choice card text uses `titleInk/secondaryInk`; selection keeps `actionCard`/`cardSecondary`.
 
 4. **HUD visibility vs overlays**
    - **Issue:** HUD overlaps with Level-Up content.
