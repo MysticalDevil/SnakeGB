@@ -6,9 +6,10 @@
    - **Recommendation:** introduce a unified `sceneBase` layer for `Playing/Replaying/ChoiceSelection` (solid `cardPrimary` + subtle grid) and tune shader strength per state. Ensure overlays fully cover game content when active.
    - **Status:** `sceneBase` + shared grid + `lumaBoost` applied for gameplay/replay/choice + static debug game/replay.
 
-2. **Overlay layering and clarity**
+2. **Overlay layering and clarity** `[Done]`
    - **Issue:** overlays can appear hazy when mixed with shader history.
    - **Recommendation:** keep overlay backgrounds opaque (or near-opaque) and avoid additive transparency. Centralize overlay z-ordering so UI is always above gameplay.
+   - **Status:** opaque paused/gameover overlays, replay banner opacity lifted, unified overlay z ordering.
 
 3. **Choice (Roguelike) cards contrast**
    - **Issue:** card/background contrast shifts too much across palettes.

@@ -1,4 +1,5 @@
 import QtQuick
+import SnakeGB 1.0
 
 Item {
     id: overlays
@@ -12,15 +13,17 @@ Item {
     property var rarityColor
     property var readableText
     property var readableSecondaryText
+    property int overlayZBase: 800
+    property int overlayZModal: 900
 
     anchors.fill: parent
 
     Rectangle {
         id: pausedLayer
         anchors.fill: parent
-        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.72)
+        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.9)
         visible: gameLogic.state === AppState.Paused
-        z: 600
+        z: overlayZBase
         Column {
             anchors.centerIn: parent
             spacing: 6
@@ -32,14 +35,14 @@ Item {
     Rectangle {
         id: gameOverLayer
         anchors.fill: parent
-        color: Qt.rgba(menuColor("actionCard").r, menuColor("actionCard").g, menuColor("actionCard").b, 0.95)
+        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.94)
         visible: gameLogic.state === AppState.GameOver
-        z: 700
+        z: overlayZBase + 20
         Column {
             anchors.centerIn: parent
             spacing: 10
-            Text { text: "GAME OVER"; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-            Text { text: `SCORE: ${gameLogic.score}`; color: menuColor("actionInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
+            Text { text: "GAME OVER"; color: menuColor("titleInk"); font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+            Text { text: `SCORE: ${gameLogic.score}`; color: menuColor("secondaryInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
             Text { text: "START: RESTART   SELECT: MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 8; anchors.horizontalCenter: parent.horizontalCenter }
         }
     }
@@ -50,8 +53,9 @@ Item {
         width: 160
         height: 32
         color: menuColor("actionCard")
+        opacity: 0.96
         visible: gameLogic.state === AppState.Replaying
-        z: 600
+        z: overlayZBase + 10
         Column {
             anchors.centerIn: parent
             spacing: 1
@@ -62,9 +66,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.95)
+        color: menuColor("cardPrimary")
+        opacity: 1.0
         visible: gameLogic.state === AppState.ChoiceSelection
-        z: 650
+        z: overlayZModal
         Column {
             anchors.centerIn: parent
             spacing: 8
