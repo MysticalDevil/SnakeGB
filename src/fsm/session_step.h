@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../game_engine_interface.h"
+#include "game_engine_interface.h"
 
-namespace snakegb::core {
+namespace snakegb::fsm {
 
 struct SessionStepConfig {
     int activeState = IGameEngine::Playing;
@@ -14,4 +14,4 @@ struct SessionStepConfig {
 
 auto runSessionStep(IGameEngine &engine, const SessionStepConfig &config) -> bool;
 
-} // namespace snakegb::core
+} // namespace snakegb::fsm

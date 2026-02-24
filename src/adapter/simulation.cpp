@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include "core/game_rules.h"
 #include "core/session_runtime.h"
@@ -6,19 +6,20 @@
 auto GameLogic::checkCollision(const QPoint &head) -> bool
 {
     const snakegb::core::CollisionOutcome outcome = snakegb::core::collisionOutcomeForHead(
-        head, BOARD_WIDTH, BOARD_HEIGHT, m_obstacles, m_snakeModel.body(), m_activeBuff == Ghost,
-        m_activeBuff == Portal, m_activeBuff == Laser, m_shieldActive);
+        head, BOARD_WIDTH, BOARD_HEIGHT, m_session.obstacles, m_snakeModel.body(),
+        m_session.activeBuff == Ghost, m_session.activeBuff == Portal, m_session.activeBuff == Laser,
+        m_session.shieldActive);
 
     if (outcome.consumeLaser && outcome.obstacleIndex >= 0 &&
-        outcome.obstacleIndex < m_obstacles.size()) {
-        m_obstacles.removeAt(outcome.obstacleIndex);
-        m_activeBuff = None;
+        outcome.obstacleIndex < m_session.obstacles.size()) {
+        m_session.obstacles.removeAt(outcome.obstacleIndex);
+        m_session.activeBuff = None;
         emit obstaclesChanged();
         triggerHaptic(8);
         emit buffChanged();
     }
     if (outcome.consumeShield) {
-        m_shieldActive = false;
+        m_session.shieldActive = false;
         triggerHaptic(5);
         emit buffChanged();
     }
@@ -45,21 +46,22 @@ void GameLogic::applyPostTickTasks()
     if (!m_currentScript.isEmpty()) {
         runLevelScript();
     }
-    m_gameTickCounter++;
+    m_session.tickCounter++;
 }
 
 void GameLogic::applyMagnetAttraction()
 {
-    if (m_activeBuff != Magnet || m_food == QPoint(-1, -1) || m_snakeModel.body().empty()) {
+    if (m_session.activeBuff != Magnet || m_session.food == QPoint(-1, -1) ||
+        m_snakeModel.body().empty()) {
         return;
     }
 
     const QPoint head = m_snakeModel.body().front();
     const auto result = snakegb::core::applyMagnetAttraction(
-        m_food, head, BOARD_WIDTH, BOARD_HEIGHT,
-        [this](const QPoint &pos) { return isOccupied(pos); }, m_powerUpPos);
+        head, BOARD_WIDTH, BOARD_HEIGHT, m_session,
+        [this](const QPoint &pos) { return isOccupied(pos); });
     if (result.moved) {
-        m_food = result.newFood;
+        m_session.food = result.newFood;
         emit foodChanged();
     }
     if (result.ate) {
@@ -69,10 +71,10 @@ void GameLogic::applyMagnetAttraction()
 
 void GameLogic::deactivateBuff()
 {
-    m_activeBuff = None;
-    m_buffTicksRemaining = 0;
-    m_buffTicksTotal = 0;
-    m_shieldActive = false;
+    m_session.activeBuff = None;
+    m_session.buffTicksRemaining = 0;
+    m_session.buffTicksTotal = 0;
+    m_session.shieldActive = false;
     m_timer->setInterval(normalTickIntervalMs());
     emit buffChanged();
 }

@@ -1,0 +1,23 @@
+#pragma once
+
+#include <QList>
+#include <QPoint>
+
+namespace snakegb::core {
+
+struct SessionState {
+    QPoint food = {0, 0};
+    QPoint powerUpPos = {-1, -1};
+    int powerUpType = 0;
+    int activeBuff = 0;
+    int buffTicksRemaining = 0;
+    int buffTicksTotal = 0;
+    bool shieldActive = false;
+    QPoint direction = {0, -1};
+    int score = 0;
+    QList<QPoint> obstacles;
+    int tickCounter = 0;
+    int lastRoguelikeChoiceScore = -1000;
+};
+
+} // namespace snakegb::core

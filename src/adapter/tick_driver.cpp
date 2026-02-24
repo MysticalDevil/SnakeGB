@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include <QDateTime>
 
@@ -22,8 +22,8 @@ void GameLogic::updateReflectionFallback()
 void GameLogic::update()
 {
     if (m_fsmState) {
-        if (m_activeBuff != None &&
-            snakegb::core::tickBuffCountdown(m_buffTicksRemaining)) {
+        if (m_session.activeBuff != None &&
+            snakegb::core::tickBuffCountdown(m_session.buffTicksRemaining)) {
             deactivateBuff();
         }
         dispatchStateCallback([](GameState &state) -> void { state.update(); });

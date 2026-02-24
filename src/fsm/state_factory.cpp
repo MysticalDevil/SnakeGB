@@ -1,6 +1,6 @@
 #include "state_factory.h"
 
-#include "../game_engine_interface.h"
+#include "game_engine_interface.h"
 #include "states.h"
 
 namespace snakegb::fsm

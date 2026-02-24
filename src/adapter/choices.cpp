@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include "adapter/choice_models.h"
 #include "adapter/profile_bridge.h"
@@ -28,28 +28,28 @@ void GameLogic::selectChoice(const int index)
     }
 
     if (m_state != Replaying) {
-        m_currentChoiceHistory.append({.frame = m_gameTickCounter, .index = index});
+        m_currentChoiceHistory.append({.frame = m_session.tickCounter, .index = index});
     }
 
     const auto type = snakegb::adapter::choiceTypeAt(m_choices, index);
     if (!type.has_value()) {
         return;
     }
-    m_lastRoguelikeChoiceScore = m_score;
+    m_session.lastRoguelikeChoiceScore = m_session.score;
     const auto result =
         snakegb::core::planPowerUpAcquisition(type.value(), BuffDurationTicks * 2, false);
     snakegb::adapter::discoverFruit(m_profileManager.get(), type.value());
     if (result.shieldActivated) {
-        m_shieldActive = true;
+        m_session.shieldActive = true;
     }
     if (result.miniApplied) {
         const auto nextBody = snakegb::core::applyMiniShrink(m_snakeModel.body(), 3);
         m_snakeModel.reset(nextBody);
         emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
     }
-    m_activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
-    m_buffTicksRemaining = result.buffTicksRemaining;
-    m_buffTicksTotal = result.buffTicksTotal;
+    m_session.activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
+    m_session.buffTicksRemaining = result.buffTicksRemaining;
+    m_session.buffTicksTotal = result.buffTicksTotal;
 
     emit buffChanged();
     if (m_state == Replaying) {

@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include <QCoreApplication>
 
@@ -52,7 +52,7 @@ void GameLogic::move(const int dx, const int dy)
     dispatchStateCallback([dx, dy](GameState &state) -> void { state.handleInput(dx, dy); });
 
     if (m_state == Playing && m_inputQueue.size() < 2) {
-        const QPoint last = m_inputQueue.empty() ? m_direction : m_inputQueue.back();
+        const QPoint last = m_inputQueue.empty() ? m_session.direction : m_inputQueue.back();
         if (((dx != 0) && last.x() == -dx) || ((dy != 0) && last.y() == -dy)) {
             return;
         }

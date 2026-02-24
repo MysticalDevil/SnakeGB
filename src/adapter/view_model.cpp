@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include "adapter/library_models.h"
 #include "adapter/profile_bridge.h"
@@ -40,7 +40,7 @@ auto GameLogic::paletteName() const -> QString
 auto GameLogic::obstacles() const -> QVariantList
 {
     QVariantList list;
-    for (const auto &point : m_obstacles) {
+    for (const auto &point : m_session.obstacles) {
         list.append(point);
     }
     return list;

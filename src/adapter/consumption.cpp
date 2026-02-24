@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include "adapter/profile_bridge.h"
 #include "core/game_rules.h"
@@ -18,13 +18,13 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
 {
     const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
     const auto result = snakegb::core::planFoodConsumption(
-        p, m_food, BOARD_WIDTH, BOARD_HEIGHT, m_activeBuff, m_score, m_lastRoguelikeChoiceScore,
-        m_powerUpPos, [this](const int bound) { return m_rng.bounded(bound); });
+        p, m_session, BOARD_WIDTH, BOARD_HEIGHT,
+        [this](const int bound) { return m_rng.bounded(bound); });
     if (!result.ate) {
         return;
     }
 
-    m_score = result.newScore;
+    m_session.score = result.newScore;
     snakegb::adapter::logFoodEaten(m_profileManager.get());
 
     emit foodEaten(result.pan);
@@ -34,7 +34,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
     spawnFood();
 
     if (result.triggerChoice) {
-        m_lastRoguelikeChoiceScore = m_score;
+        m_session.lastRoguelikeChoiceScore = m_session.score;
         if (m_state == Replaying) {
             generateChoices();
         } else {
@@ -44,32 +44,32 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
         spawnPowerUp();
     }
 
-    triggerHaptic(std::min(5, 2 + (m_score / 10)));
+    triggerHaptic(std::min(5, 2 + (m_session.score / 10)));
 }
 
 void GameLogic::handlePowerUpConsumption(const QPoint &head)
 {
     const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
-    const auto result = snakegb::core::planPowerUpConsumption(
-        p, m_powerUpPos, m_powerUpType, BuffDurationTicks, true);
+    const auto result =
+        snakegb::core::planPowerUpConsumption(p, m_session, BuffDurationTicks, true);
     if (!result.ate) {
         return;
     }
 
-    snakegb::adapter::discoverFruit(m_profileManager.get(), m_powerUpType);
+    snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
     if (result.shieldActivated) {
-        m_shieldActive = true;
+        m_session.shieldActive = true;
     }
     if (result.miniApplied) {
         const auto nextBody = snakegb::core::applyMiniShrink(m_snakeModel.body(), 3);
         m_snakeModel.reset(nextBody);
         emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
     }
-    m_activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
-    m_buffTicksRemaining = result.buffTicksRemaining;
-    m_buffTicksTotal = result.buffTicksTotal;
+    m_session.activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
+    m_session.buffTicksRemaining = result.buffTicksRemaining;
+    m_session.buffTicksTotal = result.buffTicksTotal;
 
-    m_powerUpPos = QPoint(-1, -1);
+    m_session.powerUpPos = QPoint(-1, -1);
 
     emit powerUpEaten();
     m_timer->setInterval(result.slowMode ? 250 : normalTickIntervalMs());
@@ -81,8 +81,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head)
 
 auto GameLogic::normalTickIntervalMs() const -> int
 {
-    if (m_activeBuff == Slow) {
+    if (m_session.activeBuff == Slow) {
         return 250;
     }
-    return snakegb::core::tickIntervalForScore(m_score);
+    return snakegb::core::tickIntervalForScore(m_session.score);
 }

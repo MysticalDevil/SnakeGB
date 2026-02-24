@@ -1,6 +1,6 @@
 #include "input_semantics.h"
 
-#include "../game_engine_interface.h"
+#include "game_engine_interface.h"
 
 namespace snakegb::adapter {
 

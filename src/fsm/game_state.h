@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../game_engine_interface.h"
+#include "game_engine_interface.h"
 
 /**
  * @brief Abstract base class for Game States.

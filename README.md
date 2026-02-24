@@ -35,7 +35,7 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 - **Build System**: CMake + Ninja
 
 ## Project Layout
-- Runtime adapter implementation lives in `src/runtime/` (GameLogic split across focused translation units).
+- Runtime adapter implementation lives in `src/adapter/` (GameLogic split across focused translation units).
 
 ## Getting Started
 

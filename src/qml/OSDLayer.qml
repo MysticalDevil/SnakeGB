@@ -7,12 +7,12 @@ Rectangle {
     width: 180
     height: 40
     radius: 5
-    color: Qt.rgba(p3.r, p3.g, p3.b, 0.8)
+    color: Qt.rgba(bg.r, bg.g, bg.b, 0.8)
     visible: false
     z: 200
 
-    property color p0
-    property color p3
+    property color bg
+    property color ink
     property string gameFont
 
     function show(text) {
@@ -24,7 +24,7 @@ Rectangle {
     Text {
         id: osdLabel
         anchors.centerIn: parent
-        color: p0
+        color: ink
         font.family: gameFont
         font.bold: true
         font.pixelSize: 10

@@ -1,6 +1,6 @@
 #include "states.h"
-#include "../core/replay_timeline.h"
-#include "../core/session_step.h"
+#include "replay_timeline.h"
+#include "session_step.h"
 
 // --- Splash State ---
 void SplashState::enter() {
@@ -59,7 +59,7 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    snakegb::core::runSessionStep(m_context, {
+    snakegb::fsm::runSessionStep(m_context, {
                                             .activeState = IGameEngine::Playing,
                                             .collisionTargetState = IGameEngine::GameOver,
                                             .consumeInputQueue = true,
@@ -135,11 +135,11 @@ void ReplayingState::enter() {
 }
 
 void ReplayingState::update() {
-    snakegb::core::applyReplayChoicesForCurrentTick(m_context, m_choiceHistoryIndex);
-    snakegb::core::applyReplayInputsForCurrentTick(m_context, m_historyIndex);
+    snakegb::fsm::applyReplayChoicesForCurrentTick(m_context, m_choiceHistoryIndex);
+    snakegb::fsm::applyReplayInputsForCurrentTick(m_context, m_historyIndex);
 
     // Run normal step simulation using replay-driven direction.
-    snakegb::core::runSessionStep(m_context, {
+    snakegb::fsm::runSessionStep(m_context, {
                                             .activeState = IGameEngine::Replaying,
                                             .collisionTargetState = IGameEngine::StartMenu,
                                             .consumeInputQueue = false,

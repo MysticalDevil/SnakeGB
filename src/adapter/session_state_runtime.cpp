@@ -1,8 +1,11 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
+
+#include <QList>
 
 #include "adapter/level_loader.h"
 #include "adapter/profile_bridge.h"
 #include "core/game_rules.h"
+
 using namespace Qt::StringLiterals;
 
 auto GameLogic::hasSave() const -> bool
@@ -17,22 +20,22 @@ auto GameLogic::hasReplay() const noexcept -> bool
 
 void GameLogic::resetTransientRuntimeState()
 {
-    m_direction = {0, -1};
+    m_session.direction = {0, -1};
     m_inputQueue.clear();
-    m_activeBuff = None;
-    m_buffTicksRemaining = 0;
-    m_buffTicksTotal = 0;
-    m_shieldActive = false;
-    m_powerUpPos = QPoint(-1, -1);
+    m_session.activeBuff = None;
+    m_session.buffTicksRemaining = 0;
+    m_session.buffTicksTotal = 0;
+    m_session.shieldActive = false;
+    m_session.powerUpPos = QPoint(-1, -1);
     m_choicePending = false;
     m_choiceIndex = 0;
 }
 
 void GameLogic::resetReplayRuntimeTracking()
 {
-    m_gameTickCounter = 0;
+    m_session.tickCounter = 0;
     m_ghostFrameIndex = 0;
-    m_lastRoguelikeChoiceScore = -1000;
+    m_session.lastRoguelikeChoiceScore = -1000;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();
@@ -53,5 +56,5 @@ void GameLogic::nextLevel()
 
 auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint>
 {
-    return snakegb::core::buildSafeInitialSnakeBody(m_obstacles, BOARD_WIDTH, BOARD_HEIGHT);
+    return snakegb::core::buildSafeInitialSnakeBody(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
 }

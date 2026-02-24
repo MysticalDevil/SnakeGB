@@ -131,63 +131,20 @@ Rectangle {
                 }
             }
 
-            delegate: Rectangle {
-                id: medalCard
-                width: parent.width
-                height: 48
-                color: medalList.currentIndex === index ? medalRoot.cardSelected : medalRoot.cardNormal
-                border.color: medalRoot.cardBorder
-                border.width: medalList.currentIndex === index ? 2 : 1
-
-                readonly property bool unlocked: gameLogic.achievements.indexOf(modelData.id) !== -1
-                readonly property bool selected: medalList.currentIndex === index
-                readonly property color titleColor: selected ? medalRoot.badgeText : medalRoot.titleColor
-                readonly property color hintColor: selected
-                                                 ? Qt.rgba(medalRoot.badgeText.r, medalRoot.badgeText.g, medalRoot.badgeText.b, 0.92)
-                                                 : Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.94)
-
-                Row {
-                    anchors.fill: parent
-                    anchors.margins: 5
-                    spacing: 12
-                    
-                    Rectangle {
-                        width: 28; height: 28
-                        color: unlocked ? medalRoot.badgeFill : medalRoot.iconFill
-                        radius: 14
-                        border.color: medalRoot.cardBorder
-                        border.width: 1
-                        anchors.verticalCenter: parent.verticalCenter
-                        Text {
-                            anchors.centerIn: parent
-                            text: unlocked ? "★" : "?"
-                            color: unlocked ? medalRoot.badgeText : medalRoot.unknownText
-                            font.pixelSize: 14
-                            font.bold: true
-                        }
-                    }
-
-                    Column {
-                        width: parent.width - 50
-                        anchors.verticalCenter: parent.verticalCenter
-                        Text {
-                            text: unlocked ? modelData.id : "?????????"
-                            color: medalCard.titleColor
-                            font.family: gameFont
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-                        Text {
-                            text: unlocked ? "UNLOCKED" : modelData.hint
-                            color: medalCard.hintColor
-                            font.family: gameFont
-                            font.pixelSize: 9
-                            opacity: 1.0
-                            width: parent.width
-                            wrapMode: Text.WordWrap
-                        }
-                    }
-                }
+            delegate: MedalRoomCard {
+                modelData: modelData
+                gameLogic: gameLogic
+                selected: medalList.currentIndex === index
+                cardNormal: medalRoot.cardNormal
+                cardSelected: medalRoot.cardSelected
+                cardBorder: medalRoot.cardBorder
+                badgeFill: medalRoot.badgeFill
+                badgeText: medalRoot.badgeText
+                titleColor: medalRoot.titleColor
+                secondaryText: medalRoot.secondaryText
+                iconFill: medalRoot.iconFill
+                unknownText: medalRoot.unknownText
+                gameFont: medalRoot.gameFont
             }
         }
     }

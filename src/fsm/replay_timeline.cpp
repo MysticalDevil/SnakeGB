@@ -2,7 +2,7 @@
 
 #include <QPoint>
 
-namespace snakegb::core {
+namespace snakegb::fsm {
 
 auto applyReplayChoicesForCurrentTick(IGameEngine &engine, int &choiceHistoryIndex) -> void {
     while (choiceHistoryIndex < engine.bestChoiceHistorySize()) {
@@ -44,4 +44,4 @@ auto applyReplayInputsForCurrentTick(IGameEngine &engine, int &inputHistoryIndex
     }
 }
 
-} // namespace snakegb::core
+} // namespace snakegb::fsm

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/level_runtime.h"
+#include "core/level_runtime.h"
 
 #include <QStringView>
 #include <optional>

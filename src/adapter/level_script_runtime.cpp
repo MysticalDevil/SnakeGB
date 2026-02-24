@@ -1,6 +1,6 @@
 #include "level_script_runtime.h"
 
-#include "../core/level_runtime.h"
+#include "core/level_runtime.h"
 
 using namespace Qt::StringLiterals;
 

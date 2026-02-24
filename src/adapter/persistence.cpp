@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include "adapter/ghost_store.h"
 #include "adapter/profile_bridge.h"
@@ -14,15 +14,15 @@ void GameLogic::loadLastSession()
         return;
     }
 
-    m_score = snapshot->score;
-    m_food = snapshot->food;
-    m_direction = snapshot->direction;
-    m_obstacles = snapshot->obstacles;
+    m_session.score = snapshot->score;
+    m_session.food = snapshot->food;
+    m_session.direction = snapshot->direction;
+    m_session.obstacles = snapshot->obstacles;
     m_snakeModel.reset(snapshot->body);
     m_inputQueue.clear();
     resetTransientRuntimeState();
     resetReplayRuntimeTracking();
-    m_direction = snapshot->direction;
+    m_session.direction = snapshot->direction;
 
     for (const auto &p : snapshot->body) {
         m_currentRecording.append(p);
@@ -67,8 +67,8 @@ void GameLogic::lazyInit()
 
 void GameLogic::updateHighScore()
 {
-    if (m_score > snakegb::adapter::highScore(m_profileManager.get())) {
-        snakegb::adapter::updateHighScore(m_profileManager.get(), m_score);
+    if (m_session.score > snakegb::adapter::highScore(m_profileManager.get())) {
+        snakegb::adapter::updateHighScore(m_profileManager.get(), m_session.score);
         m_bestInputHistory = m_currentInputHistory;
         m_bestRecording = m_currentRecording;
         m_bestChoiceHistory = m_currentChoiceHistory;
@@ -92,8 +92,8 @@ void GameLogic::updateHighScore()
 void GameLogic::saveCurrentState()
 {
     if (m_profileManager) {
-        snakegb::adapter::saveSession(m_profileManager.get(), m_score, m_snakeModel.body(),
-                                      m_obstacles, m_food, m_direction);
+        snakegb::adapter::saveSession(m_profileManager.get(), m_session.score, m_snakeModel.body(),
+                                      m_session.obstacles, m_session.food, m_session.direction);
         emit hasSaveChanged();
     }
 }

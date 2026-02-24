@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include <QDateTime>
 
@@ -14,7 +14,7 @@ void GameLogic::restart()
 {
     resetTransientRuntimeState();
     resetReplayRuntimeTracking();
-    m_score = 0;
+    m_session.score = 0;
 
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);
@@ -43,7 +43,7 @@ void GameLogic::startReplay()
     setInternalState(Replaying);
     resetTransientRuntimeState();
     resetReplayRuntimeTracking();
-    m_score = 0;
+    m_session.score = 0;
 
     loadLevelData(m_bestLevelIndex);
     m_snakeModel.reset(buildSafeInitialSnakeBody());

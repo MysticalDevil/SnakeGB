@@ -1,6 +1,6 @@
 #include "session_step.h"
 
-namespace snakegb::core {
+namespace snakegb::fsm {
 
 auto runSessionStep(IGameEngine &engine, const SessionStepConfig &config) -> bool {
     if (config.consumeInputQueue) {
@@ -38,4 +38,4 @@ auto runSessionStep(IGameEngine &engine, const SessionStepConfig &config) -> boo
     return true;
 }
 
-} // namespace snakegb::core
+} // namespace snakegb::fsm

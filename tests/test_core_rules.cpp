@@ -1,5 +1,5 @@
 #include "core/game_rules.h"
-#include "core/replay_timeline.h"
+#include "fsm/replay_timeline.h"
 #include "core/buff_runtime.h"
 #include "core/choice_runtime.h"
 #include "core/level_runtime.h"
@@ -348,40 +348,40 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
     int choiceIndex = 0;
 
     engine.tick = 0;
-    snakegb::core::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
     QCOMPARE(engine.setDirectionCalls, 0);
     QCOMPARE(inputIndex, 0);
 
     engine.tick = 1;
-    snakegb::core::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
     QCOMPARE(engine.setDirectionCalls, 1);
     QCOMPARE(engine.lastDirection, QPoint(1, 0));
     QCOMPARE(inputIndex, 1);
 
     engine.tick = 3;
-    snakegb::core::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
     QCOMPARE(engine.setDirectionCalls, 3);
     QCOMPARE(engine.lastDirection, QPoint(-1, 0));
     QCOMPARE(inputIndex, 3);
 
     engine.tick = 7;
-    snakegb::core::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
     QCOMPARE(engine.setDirectionCalls, 3);
     QCOMPARE(inputIndex, 4);
 
     engine.tick = 2;
-    snakegb::core::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
     QCOMPARE(engine.selectedChoices.size(), 1);
     QCOMPARE(engine.selectedChoices.first(), 4);
     QCOMPARE(choiceIndex, 1);
 
-    snakegb::core::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
     QCOMPARE(engine.selectedChoices.size(), 2);
     QCOMPARE(engine.selectedChoices.last(), 5);
     QCOMPARE(choiceIndex, 2);
 
     engine.tick = 4;
-    snakegb::core::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
     QCOMPARE(engine.selectedChoices.size(), 3);
     QCOMPARE(engine.selectedChoices.last(), 1);
     QCOMPARE(choiceIndex, 3);

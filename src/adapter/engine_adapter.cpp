@@ -1,4 +1,4 @@
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 
 #include <QDebug>
 
@@ -75,7 +75,7 @@ GameLogic::~GameLogic()
 void GameLogic::setupAudioSignals()
 {
     connect(this, &GameLogic::foodEaten, this, [this](const float pan) -> void {
-        emit audioSetScore(m_score);
+        emit audioSetScore(m_session.score);
         emit audioPlayBeep(880, 100, pan);
         triggerHaptic(3);
     });

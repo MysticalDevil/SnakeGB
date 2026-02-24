@@ -12,7 +12,7 @@
 #include <cstdlib>
 
 #include "app_state.h"
-#include "runtime/game_logic.h"
+#include "adapter/game_logic.h"
 #include "input_injection_pipe.h"
 #include "sound_manager.h"
 

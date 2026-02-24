@@ -12,7 +12,7 @@ layout(std140, binding = 0) uniform buf {
 };
 
 layout(binding = 1) uniform sampler2D source;
-layout(binding = 2) uniform sampler2D history; 
+layout(binding = 2) uniform sampler2D history;
 
 void main() {
     // 1. Subtle Curvature

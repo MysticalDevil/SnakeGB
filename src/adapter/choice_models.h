@@ -5,7 +5,7 @@
 
 #include <optional>
 
-#include "../core/choice_runtime.h"
+#include "core/choice_runtime.h"
 
 namespace snakegb::adapter
 {

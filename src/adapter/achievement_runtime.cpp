@@ -1,7 +1,7 @@
 #include "achievement_runtime.h"
 
 #include "profile_bridge.h"
-#include "../core/achievement_rules.h"
+#include "core/achievement_rules.h"
 
 namespace snakegb::adapter {
 

@@ -75,6 +75,15 @@ auto planFoodConsumption(const QPoint &head, const QPoint &food, const int board
 }
 // NOLINTEND(bugprone-easily-swappable-parameters)
 
+auto planFoodConsumption(const QPoint &head, const SessionState &state, const int boardWidth,
+                         const int boardHeight, const std::function<int(int)> &randomBounded)
+    -> FoodConsumptionResult
+{
+    return planFoodConsumption(head, state.food, boardWidth, boardHeight, state.activeBuff,
+                               state.score, state.lastRoguelikeChoiceScore, state.powerUpPos,
+                               randomBounded);
+}
+
 auto planPowerUpConsumption(const QPoint &head, const QPoint &powerUpPos, const int powerUpType,
                             const int baseDurationTicks, const bool halfDurationForRich)
     -> PowerUpConsumptionResult
@@ -88,6 +97,14 @@ auto planPowerUpConsumption(const QPoint &head, const QPoint &powerUpPos, const 
     result = buildPowerUpResult(powerUpType, baseDurationTicks, halfDurationForRich);
     result.ate = true;
     return result;
+}
+
+auto planPowerUpConsumption(const QPoint &head, const SessionState &state,
+                            const int baseDurationTicks, const bool halfDurationForRich)
+    -> PowerUpConsumptionResult
+{
+    return planPowerUpConsumption(head, state.powerUpPos, state.powerUpType, baseDurationTicks,
+                                  halfDurationForRich);
 }
 
 auto planPowerUpAcquisition(const int powerUpType, const int baseDurationTicks,
@@ -136,6 +153,15 @@ auto applyMagnetAttraction(const QPoint &food, const QPoint &head, const int boa
         }
     }
     return result;
+}
+
+auto applyMagnetAttraction(const QPoint &head, const int boardWidth, const int boardHeight,
+                           const SessionState &state,
+                           const std::function<bool(const QPoint &)> &isOccupied)
+    -> MagnetAttractionResult
+{
+    return applyMagnetAttraction(state.food, head, boardWidth, boardHeight, isOccupied,
+                                 state.powerUpPos);
 }
 
 } // namespace snakegb::core

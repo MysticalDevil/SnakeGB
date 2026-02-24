@@ -18,7 +18,7 @@ Rectangle {
     border.color: shell.shellTheme.shellBorder
     border.width: 2
 
-    property alias screenContainer: screenPlaceholder
+    property alias screenContainer: screenBorder.screenContainer
     property alias dpad: dpadUI
     property alias bButton: bBtnUI
     property alias aButton: aBtnUI
@@ -29,122 +29,29 @@ Rectangle {
         ColorAnimation { duration: 300 }
     }
 
-    Rectangle {
+    ShellSurface {
         anchors.fill: parent
+        shellColor: shell.shellColor
+        shellTheme: shell.shellTheme
         radius: shell.radius
-        color: "transparent"
-        border.color: Qt.lighter(shell.color, 1.22)
-        border.width: 1
-        opacity: 0.5
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 2
-        radius: shell.radius - 2
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: shell.shellTheme.shellHighlight }
-            GradientStop { position: 0.28; color: Qt.lighter(shell.color, 1.06) }
-            GradientStop { position: 1.0; color: shell.shellTheme.shellShade }
-        }
-        opacity: 0.42
-    }
-
-    Repeater {
-        model: 48
-        delegate: Rectangle {
-            width: 2
-            height: 2
-            radius: 1
-            x: 10 + (index % 12) * 28
-            y: 14 + Math.floor(index / 12) * 72
-            color: Qt.rgba(0, 0, 0, 0.06)
-        }
     }
 
     // --- Screen Border ---
-    Rectangle {
+    ScreenBezel {
         id: screenBorder
         anchors.top: parent.top
         anchors.topMargin: 30
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 300
-        height: 270
-        color: shell.shellTheme.bezelBase
-        radius: 12
-        border.color: shell.shellTheme.bezelEdge
-        border.width: 2
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 2
-            radius: parent.radius - 2
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.lighter(shell.shellTheme.bezelBase, 1.18) }
-                GradientStop { position: 1.0; color: Qt.darker(shell.shellTheme.bezelBase, 1.12) }
-            }
-            opacity: 0.72
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 10
-            radius: 8
-            color: shell.shellTheme.bezelInner
-            border.color: shell.shellTheme.bezelInnerBorder
-            border.width: 1
-        }
-
-        Item {
-            id: screenPlaceholder
-            anchors.centerIn: parent
-            width: 240
-            height: 216
-        }
-
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 16
-            anchors.top: parent.top
-            anchors.topMargin: 11
-            text: "DOT MATRIX WITH STEREO SOUND"
-            color: shell.shellTheme.labelInk
-            font.pixelSize: 7
-            font.bold: false
-            opacity: 0.62
-        }
+        theme: shell.shellTheme
     }
 
     // --- Branding / Color Toggle ---
-    Text {
+    ShellBranding {
         anchors.top: screenBorder.bottom
-        anchors.topMargin: 10
+        anchors.topMargin: 12
         anchors.horizontalCenter: parent.horizontalCenter
-        text: "SnakeGB"
-        color: shell.shellTheme.brandInk
-        font.family: "Monospace"
-        font.pixelSize: 14
-        font.bold: true
-        font.letterSpacing: 2
-        opacity: 0.68
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: {
-                shell.shellColorToggleRequested()
-            }
-        }
-    }
-
-    Text {
-        anchors.top: screenBorder.bottom
-        anchors.topMargin: 32
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: "Portable Entertainment System"
-        color: shell.shellTheme.subtitleInk
-        font.pixelSize: 8
-        font.italic: true
-        opacity: 0.6
+        theme: shell.shellTheme
+        onLogoClicked: shell.shellColorToggleRequested()
     }
 
     // --- Controls ---
@@ -186,21 +93,11 @@ Rectangle {
         rotation: -20
         opacity: 0.72
 
-        Repeater {
-            model: 6
-            delegate: Rectangle {
-                width: 52
-                height: 2
-                radius: 1
-                x: 20 + index * 5
-                y: 8 + index * 8
-                color: shell.shellTheme.grillInk
-            }
-        }
+        SpeakerGrill { anchors.fill: parent; theme: shell.shellTheme }
     }
 
     // --- Physical Volume Wheel (Game Boy side thumbwheel style) ---
-    Item {
+    VolumeWheel {
         id: volumeControl
         anchors.right: parent.right
         anchors.rightMargin: -1
@@ -208,137 +105,8 @@ Rectangle {
         anchors.verticalCenterOffset: 16
         width: 18
         height: 74
-        property int detentCount: 16
-
-        function clamp01(v) {
-            return Math.max(0.0, Math.min(1.0, v))
-        }
-
-        function setDetentVolume(v, withHaptic) {
-            const clamped = clamp01(v)
-            const snapped = Math.round(clamped * (detentCount - 1)) / (detentCount - 1)
-            const oldStep = Math.round(shell.volume * (detentCount - 1))
-            const newStep = Math.round(snapped * (detentCount - 1))
-            if (Math.abs(snapped - shell.volume) > 0.0001) {
-                shell.volumeRequested(snapped, withHaptic && oldStep !== newStep)
-            }
-        }
-
-        // Molded side opening where the wheel sits.
-        Rectangle {
-            id: sideCut
-            x: 1
-            y: 4
-            width: 6
-            height: parent.height - 8
-            radius: 3
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: shell.shellTheme.wheelTrackA }
-                GradientStop { position: 0.55; color: shell.shellTheme.wheelTrackB }
-                GradientStop { position: 1.0; color: shell.shellTheme.wheelTrackA }
-            }
-            border.color: Qt.rgba(0, 0, 0, 0.24)
-            border.width: 1
-            opacity: 0.82
-        }
-
-        Rectangle {
-            anchors.fill: sideCut
-            anchors.margins: 1
-            radius: sideCut.radius - 1
-            color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.04)
-            border.width: 1
-        }
-
-        Item {
-            id: wheelViewport
-            x: 4
-            y: 4
-            width: 9
-            height: parent.height - 8
-            clip: true
-
-            Rectangle {
-                id: wheelBody
-                anchors.fill: parent
-                radius: 7
-                color: shell.shellTheme.wheelBody
-                border.color: shell.shellTheme.wheelBodyDark
-                border.width: 1
-                property real spinPhase: shell.volume * 90
-                property real groovePitch: 5
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 1
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: shell.shellTheme.wheelBodyLight }
-                        GradientStop { position: 0.5; color: shell.shellTheme.wheelBody }
-                        GradientStop { position: 1.0; color: shell.shellTheme.wheelBodyDark }
-                    }
-                }
-
-                Repeater {
-                    model: Math.ceil(wheelBody.height / wheelBody.groovePitch) + 3
-                    delegate: Rectangle {
-                        required property int index
-                        width: wheelBody.width - 3
-                        height: 1
-                        radius: 1
-                        x: 1
-                        property real yPos: index * wheelBody.groovePitch - (wheelBody.spinPhase % wheelBody.groovePitch) - wheelBody.groovePitch
-                        y: yPos
-                        visible: yPos >= 1 && yPos <= wheelBody.height - 2
-                        color: shell.shellTheme.wheelBodyDark
-                        opacity: 0.36
-                    }
-                }
-            }
-
-            Rectangle {
-                anchors.fill: wheelBody
-                radius: wheelBody.radius
-                color: "transparent"
-                border.color: Qt.rgba(0, 0, 0, 0.10)
-                border.width: 1
-            }
-
-
-            MouseArea {
-                anchors.fill: parent
-                property real startY: 0.0
-                property real startVolume: 0.0
-                onPressed: {
-                    startY = mouse.y
-                    startVolume = shell.volume
-                }
-                onPositionChanged: {
-                    if (!pressed) return
-                    const delta = (startY - mouse.y) / 66.0
-                    volumeControl.setDetentVolume(startVolume + delta, true)
-                }
-            }
-
-            WheelHandler {
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: (event) => {
-                    const step = (event.angleDelta.y > 0 ? 1 : -1) / Math.max(1, volumeControl.detentCount - 1)
-                    volumeControl.setDetentVolume(shell.volume + step, true)
-                }
-            }
-        }
-
-        Text {
-            x: 0
-            y: sideCut.y + sideCut.height / 2 - 10
-            rotation: 90
-            text: "VOL"
-            font.pixelSize: 8
-            font.bold: true
-            color: Qt.rgba(0, 0, 0, 0.18)
-            opacity: 0.44
-        }
+        theme: shell.shellTheme
+        volume: shell.volume
+        onVolumeRequested: shell.volumeRequested(value, withHaptic)
     }
 }

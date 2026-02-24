@@ -1,7 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QSet>
-#include "game_logic.h"
+#include "adapter/game_logic.h"
 
 class TestGameLogic : public QObject {
     Q_OBJECT

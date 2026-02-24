@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/`: C++ game/runtime code (GameLogic adapter in `src/runtime/`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
+- `src/`: C++ game/runtime code (GameLogic adapter in `src/adapter/`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
 - `src/themes/` and `src/levels/`: JSON-driven theme and level data.
 - `tests/`: QtTest-based unit/integration tests (`tests/test_game_logic.cpp`).
 - `scripts/`: developer automation (desktop UI checks, input injection, Android deploy).
@@ -34,13 +34,17 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 ./scripts/palette_capture_matrix.sh /tmp/snakegb_palette_matrix
 ```
 - Release notes live in `CHANGELOG.md`.
-- Optional Makefile shortcuts:
+- Optional Makefile shortcuts (recommended for consistent build dirs under `build/`):
 ```bash
 make debug
 make release
 make dev
 make test
 make tidy
+make fmt
+make android
+make wasm
+make clean
 ```
 
 ## Coding Style & Naming Conventions
@@ -48,6 +52,7 @@ make tidy
 - Formatting: `.clang-format` (LLVM base, 4-space indent, 100-column limit). Run `clang-format` before committing.
 - Naming: classes/types `PascalCase`, functions/variables `camelCase`, constants/macros `UPPER_SNAKE_CASE`.
 - Keep game-state transitions explicit; prefer named enums/states over numeric literals.
+- Avoid relative `#include` paths; prefer module-prefixed includes (for example, `core/...`, `adapter/...`, `fsm/...`).
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
 
 ## Testing Guidelines

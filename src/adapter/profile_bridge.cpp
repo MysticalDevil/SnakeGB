@@ -1,6 +1,6 @@
 #include "profile_bridge.h"
 
-#include "../profile_manager.h"
+#include "profile_manager.h"
 
 namespace snakegb::adapter
 {

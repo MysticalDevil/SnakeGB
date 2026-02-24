@@ -2,6 +2,7 @@
 
 #include "buff_runtime.h"
 #include "game_rules.h"
+#include "session_state.h"
 
 #include <QList>
 #include <QPoint>
@@ -41,9 +42,16 @@ auto planFoodConsumption(const QPoint &head, const QPoint &food, int boardWidth,
                          const std::function<int(int)> &randomBounded)
     -> FoodConsumptionResult;
 
+auto planFoodConsumption(const QPoint &head, const SessionState &state, int boardWidth,
+                         int boardHeight, const std::function<int(int)> &randomBounded)
+    -> FoodConsumptionResult;
+
 auto planPowerUpConsumption(const QPoint &head, const QPoint &powerUpPos, int powerUpType,
                             int baseDurationTicks, bool halfDurationForRich)
     -> PowerUpConsumptionResult;
+
+auto planPowerUpConsumption(const QPoint &head, const SessionState &state, int baseDurationTicks,
+                            bool halfDurationForRich) -> PowerUpConsumptionResult;
 
 auto planPowerUpAcquisition(int powerUpType, int baseDurationTicks, bool halfDurationForRich)
     -> PowerUpConsumptionResult;
@@ -54,5 +62,10 @@ auto applyMiniShrink(const std::deque<QPoint> &body, std::size_t minimumLength =
 auto applyMagnetAttraction(const QPoint &food, const QPoint &head, int boardWidth, int boardHeight,
                            const std::function<bool(const QPoint &)> &isOccupied,
                            const QPoint &powerUpPos) -> MagnetAttractionResult;
+
+auto applyMagnetAttraction(const QPoint &head, int boardWidth, int boardHeight,
+                           const SessionState &state,
+                           const std::function<bool(const QPoint &)> &isOccupied)
+    -> MagnetAttractionResult;
 
 } // namespace snakegb::core

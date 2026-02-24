@@ -26,7 +26,7 @@ Key conclusion:
 ## 2.2 What is still overloaded
 
 Primary hotspot:
-- `src/runtime/engine_adapter.cpp` is still large and mixes rule execution, persistence access, resource loading,
+- `src/adapter/engine_adapter.cpp` is still large and mixes rule execution, persistence access, resource loading,
   timing, and UI-facing mapping.
 
 Symptoms:
@@ -218,6 +218,13 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   - level count extraction from JSON bytes
   - score-to-tick-interval mapping rule
   - replay frame/value object types into shared core type header
+
+### Phase B progress snapshot (2026-02-23)
+
+- Runtime adapter translation units moved into `src/adapter/` to make core/adapter boundaries explicit.
+- FSM helpers (`session_step`, `replay_timeline`) moved into `src/fsm/` and namespaced under `snakegb::fsm`.
+  - consolidated per-session mutable data into `core::SessionState` (score, food, buffs, direction, obstacles, ticks)
+  - added `core::session_runtime` wrappers that take `SessionState` to reduce adapter parameter sprawl
   - roguelike choice pool picking/runtime selection algorithm
   - weighted power-up selection policy
   - scripted level `onTick` runtime obstacle parsing/application
@@ -259,39 +266,39 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   `AdapterLibraryModelsTest`.
 - `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
-- Runtime simulation flow is split into dedicated translation units to contract `src/runtime/tick_driver.cpp`:
-  - `src/runtime/board_state.cpp`: spawn and occupancy helpers
-  - `src/runtime/consumption.cpp`: food/power-up consumption and buff effect application
-  - `src/runtime/simulation.cpp`: collision/movement/post-tick simulation path
-- QML-facing view/property mapping methods are now extracted into `src/runtime/view_model.cpp` so the main runtime
+- Runtime simulation flow is split into dedicated translation units to contract `src/adapter/tick_driver.cpp`:
+  - `src/adapter/board_state.cpp`: spawn and occupancy helpers
+  - `src/adapter/consumption.cpp`: food/power-up consumption and buff effect application
+  - `src/adapter/simulation.cpp`: collision/movement/post-tick simulation path
+- QML-facing view/property mapping methods are now extracted into `src/adapter/view_model.cpp` so the main runtime
   adapter file can continue shrinking around orchestration logic.
 - FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
   `*State` classes directly, reducing adapter-to-state implementation coupling.
 - UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `GameLogic` now binds
   orchestration lambdas instead of owning the large action switch.
 - `GameLogic` implementation is now split into focused translation units:
-  - `src/runtime/engine_adapter.cpp` (bootstrap + state bridge + device wiring)
-  - `src/runtime/input_router.cpp` (QML/action input orchestration)
-  - `src/runtime/tick_driver.cpp` (tick/runtime orchestration)
-  - `src/runtime/session_state.cpp` (session metadata + level selection orchestration)
-  - `src/runtime/level_flow.cpp` (level loading/apply + achievement/script triggers)
-  - `src/runtime/persistence.cpp` (save/load snapshot + high-score/ghost persistence)
-  - `src/runtime/choices.cpp` (roguelike choice generation/selection runtime)
-  - `src/runtime/lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
+  - `src/adapter/engine_adapter.cpp` (bootstrap + state bridge + device wiring)
+  - `src/adapter/input_router.cpp` (QML/action input orchestration)
+  - `src/adapter/tick_driver.cpp` (tick/runtime orchestration)
+  - `src/adapter/session_state.cpp` (session metadata + level selection orchestration)
+  - `src/adapter/level_flow.cpp` (level loading/apply + achievement/script triggers)
+  - `src/adapter/persistence.cpp` (save/load snapshot + high-score/ghost persistence)
+  - `src/adapter/choices.cpp` (roguelike choice generation/selection runtime)
+  - `src/adapter/lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
 - Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
   operations, reducing direct `GameLogic -> ProfileManager` coupling across input/runtime/session/view units.
-- Main hotspot file `src/runtime/engine_adapter.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
+- Main hotspot file `src/adapter/engine_adapter.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
-- Session bootstrap/reset orchestration is further contracted in `src/runtime/session_state.cpp` via
+- Session bootstrap/reset orchestration is further contracted in `src/adapter/session_state.cpp` via
   `resetTransientRuntimeState()` and `resetReplayRuntimeTracking()`, reducing duplicate mutable-state branches across
   restart/replay/resume paths before the remaining core-session extraction.
-- Level/achievement orchestration is separated from session flow into `src/runtime/level_flow.cpp`, keeping
+- Level/achievement orchestration is separated from session flow into `src/adapter/level_flow.cpp`, keeping
   level script/apply concerns isolated from lifecycle concerns.
-- Persistence and replay snapshot paths are separated into `src/runtime/persistence.cpp`, reducing adapter
+- Persistence and replay snapshot paths are separated into `src/adapter/persistence.cpp`, reducing adapter
   coupling around profile/session/ghost I/O.
-- Roguelike choice flow and lifecycle transitions are isolated in `src/runtime/choices.cpp` and
-  `src/runtime/lifecycle.cpp`, shrinking `src/runtime/session_state.cpp` further and making future
+- Roguelike choice flow and lifecycle transitions are isolated in `src/adapter/choices.cpp` and
+  `src/adapter/lifecycle.cpp`, shrinking `src/adapter/session_state.cpp` further and making future
   `GameSessionCore` extraction more mechanical.
 
 ### Phase C progress snapshot (2026-02-21)

@@ -130,11 +130,7 @@ case "${TARGET}" in
   menu)
     ;;
   game)
-    i=0
-    while (( i < NAV_RETRIES )); do
-      send_token "START"
-      ((i += 1))
-    done
+    send_token "START"
     ;;
   pause)
     send_token "START"
@@ -250,8 +246,20 @@ case "${TARGET}" in
   dbg-icons)
     send_token "DBG_ICONS"
     ;;
+  dbg-static-boot)
+    send_token "DBG_STATIC_BOOT"
+    ;;
+  dbg-static-game)
+    send_token "DBG_STATIC_GAME"
+    ;;
+  dbg-static-replay)
+    send_token "DBG_STATIC_REPLAY"
+    ;;
+  dbg-static-off)
+    send_token "DBG_STATIC_OFF"
+    ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons"
+    echo "[error] Unknown target '${TARGET}'. Supported: splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-off"
     exit 3
     ;;
 esac

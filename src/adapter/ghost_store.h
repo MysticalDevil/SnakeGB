@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/replay_types.h"
+#include "core/replay_types.h"
 
 #include <QList>
 #include <QPoint>

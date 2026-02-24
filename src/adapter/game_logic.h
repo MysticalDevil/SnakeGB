@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QVariantList>
 #include "core/replay_types.h"
+#include "core/session_state.h"
 #include "game_engine_interface.h"
 #ifdef SNAKEGB_HAS_SENSORS
 #include <QAccelerometer>
@@ -162,15 +163,15 @@ public:
     }
     [[nodiscard]] auto currentDirection() const -> QPoint override
     {
-        return m_direction;
+        return m_session.direction;
     }
     void setDirection(const QPoint &direction) override
     {
-        m_direction = direction;
+        m_session.direction = direction;
     }
     [[nodiscard]] auto currentTick() const -> int override
     {
-        return m_gameTickCounter;
+        return m_session.tickCounter;
     }
     auto consumeQueuedInput(QPoint &nextInput) -> bool override
     {
@@ -185,7 +186,7 @@ public:
     void recordInputAtCurrentTick(const QPoint &input) override
     {
         m_currentInputHistory.append(
-            {.frame = m_gameTickCounter, .dx = input.x(), .dy = input.y()});
+            {.frame = m_session.tickCounter, .dx = input.x(), .dy = input.y()});
     }
     [[nodiscard]] auto bestInputHistorySize() const -> int override
     {
@@ -218,7 +219,7 @@ public:
     }
     [[nodiscard]] auto foodPos() const -> QPoint override
     {
-        return m_food;
+        return m_session.food;
     }
     [[nodiscard]] auto currentState() const -> int override
     {
@@ -322,19 +323,19 @@ public:
     }
     [[nodiscard]] auto food() const noexcept -> QPoint
     {
-        return m_food;
+        return m_session.food;
     }
     [[nodiscard]] auto powerUpPos() const noexcept -> QPoint
     {
-        return m_powerUpPos;
+        return m_session.powerUpPos;
     }
     [[nodiscard]] auto powerUpType() const noexcept -> int
     {
-        return static_cast<int>(m_powerUpType);
+        return m_session.powerUpType;
     }
     [[nodiscard]] auto score() const noexcept -> int
     {
-        return m_score;
+        return m_session.score;
     }
     [[nodiscard]] auto highScore() const -> int;
     [[nodiscard]] auto state() const noexcept -> State
@@ -375,19 +376,19 @@ public:
     }
     [[nodiscard]] auto activeBuff() const noexcept -> int
     {
-        return static_cast<int>(m_activeBuff);
+        return m_session.activeBuff;
     }
     [[nodiscard]] auto buffTicksRemaining() const noexcept -> int
     {
-        return m_buffTicksRemaining;
+        return m_session.buffTicksRemaining;
     }
     [[nodiscard]] auto buffTicksTotal() const noexcept -> int
     {
-        return m_buffTicksTotal;
+        return m_session.buffTicksTotal;
     }
     [[nodiscard]] auto shieldActive() const noexcept -> bool
     {
-        return m_shieldActive;
+        return m_session.shieldActive;
     }
     [[nodiscard]] auto choices() const -> QVariantList
     {
@@ -472,15 +473,7 @@ private:
 
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;
-    QPoint m_food = {0, 0};
-    QPoint m_powerUpPos = {-1, -1};
-    PowerUp m_powerUpType = None;
-    PowerUp m_activeBuff = None;
-    int m_buffTicksRemaining = 0;
-    int m_buffTicksTotal = 0;
-    bool m_shieldActive = false;
-    QPoint m_direction = {0, -1};
-    int m_score = 0;
+    snakegb::core::SessionState m_session;
     State m_state = Splash;
     bool m_choicePending = false;
     int m_choiceIndex = 0;
@@ -489,7 +482,6 @@ private:
     QVariantList m_choices;
     int m_levelIndex = 0;
     QString m_currentLevelName = QStringLiteral("Classic");
-    QList<QPoint> m_obstacles;
     QList<QPoint> m_currentRecording;
     QList<QPoint> m_bestRecording;
     QList<ReplayFrame> m_currentInputHistory;
@@ -501,9 +493,7 @@ private:
     uint m_randomSeed = 0;
     uint m_bestRandomSeed = 0;
     int m_bestLevelIndex = 0;
-    int m_gameTickCounter = 0;
     int m_ghostFrameIndex = 0;
-    int m_lastRoguelikeChoiceScore = -1000;
     qint64 m_sessionStartTime = 0;
     QPointF m_reflectionOffset = {0.0, 0.0};
     QJSEngine m_jsEngine;
