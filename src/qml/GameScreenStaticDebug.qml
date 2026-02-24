@@ -6,6 +6,7 @@ Rectangle {
     property string gameFont: ""
     property var menuColor
     property var gameLogic
+    property color playBg: "black"
     property color gameGrid: "gray"
     property color gameInk: "white"
     property color gameSubInk: "gray"
@@ -15,7 +16,7 @@ Rectangle {
     anchors.fill: parent
     visible: staticScene !== ""
     z: 1500
-    color: menuColor("cardPrimary")
+    color: (showGame || showReplay) ? playBg : menuColor("cardPrimary")
     clip: true
     readonly property bool showBoot: staticScene === "boot"
     readonly property bool showGame: staticScene === "game"

@@ -241,7 +241,7 @@ Item {
     readonly property color gameAccent: menuColor("actionCard")
     readonly property color gameAccentInk: menuColor("actionInk")
     readonly property color gameBorder: menuColor("borderPrimary")
-    readonly property color gameGrid: Qt.rgba(menuColor("borderSecondary").r, menuColor("borderSecondary").g, menuColor("borderSecondary").b, 0.03)
+    readonly property color gameGrid: Qt.rgba(menuColor("borderSecondary").r, menuColor("borderSecondary").g, menuColor("borderSecondary").b, 0.012)
     readonly property color gameFoodCore: menuColor("actionCard")
     readonly property color gameFoodHighlight: menuColor("cardPrimary")
     readonly property color gameFoodStem: menuColor("borderPrimary")
@@ -259,19 +259,51 @@ Item {
         Item {
             id: gameContent
             anchors.fill: parent
-            
-            Rectangle { 
-                anchors.fill: parent
-                color: gameBg
-                z: -2 
-            }
+
             Rectangle {
                 anchors.fill: parent
-                // Brighten gameplay/replay/choice to match menu palette luminance.
-                color: Qt.rgba(gameBg.r, gameBg.g, gameBg.b, 0.58)
-                z: -1
-                visible: (gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection) ||
-                         staticDebugScene === "game" || staticDebugScene === "replay"
+                color: gameBg
+                z: -3
+            }
+
+            Item {
+                id: sceneBase
+                anchors.fill: parent
+                z: -2
+                visible: root.staticDebugScene === "" &&
+                         gameLogic.state >= AppState.Playing &&
+                         gameLogic.state <= AppState.ChoiceSelection
+
+                Rectangle {
+                    anchors.fill: parent
+                    color: playBg
+                }
+
+                Canvas {
+                    anchors.fill: parent
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.reset()
+                        const cw = width / Math.max(1, gameLogic.boardWidth)
+                        const ch = height / Math.max(1, gameLogic.boardHeight)
+                        ctx.strokeStyle = root.gameGrid
+                        ctx.lineWidth = 1
+                        for (let x = 0; x <= width; x += cw) {
+                            ctx.beginPath()
+                            ctx.moveTo(x + 0.5, 0)
+                            ctx.lineTo(x + 0.5, height)
+                            ctx.stroke()
+                        }
+                        for (let y = 0; y <= height; y += ch) {
+                            ctx.beginPath()
+                            ctx.moveTo(0, y + 0.5)
+                            ctx.lineTo(width, y + 0.5)
+                            ctx.stroke()
+                        }
+                    }
+                    Component.onCompleted: requestPaint()
+                    onVisibleChanged: if (visible) requestPaint()
+                }
             }
 
             // --- STATE 0: SPLASH ---
@@ -299,12 +331,11 @@ Item {
                 elapsed: root.elapsed
                 gameFont: root.gameFont
                 menuColor: root.menuColor
-                gameBg: root.gameBg
+                gameBg: root.playBg
                 gamePanel: root.gamePanel
                 gameInk: root.gameInk
                 gameSubInk: root.gameSubInk
                 gameBorder: root.gameBorder
-                gameGrid: root.gameGrid
                 drawFoodSymbol: root.drawFoodSymbol
                 drawPowerSymbol: root.drawPowerSymbol
                 powerColor: root.powerColor
@@ -356,6 +387,7 @@ Item {
                 gameLogic: root.gameLogic
                 gameFont: root.gameFont
                 menuColor: root.menuColor
+                playBg: root.playBg
                 gameGrid: root.gameGrid
                 gameInk: root.gameInk
                 gameSubInk: root.gameSubInk
@@ -390,6 +422,11 @@ Item {
             property real time: root.elapsed
             property real reflectionX: gameLogic.reflectionOffset.x
             property real reflectionY: gameLogic.reflectionOffset.y
+            property real lumaBoost: (gameLogic.state === AppState.Playing ||
+                                      gameLogic.state === AppState.Replaying ||
+                                      gameLogic.state === AppState.ChoiceSelection ||
+                                      root.staticDebugScene === "game" ||
+                                      root.staticDebugScene === "replay") ? 1.12 : 1.0
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 

@@ -12,7 +12,6 @@ Item {
     property color gameInk: "white"
     property color gameSubInk: "gray"
     property color gameBorder: "gray"
-    property color gameGrid: "gray"
     property var drawFoodSymbol
     property var drawPowerSymbol
     property var powerColor
@@ -26,39 +25,6 @@ Item {
     visible: active
     readonly property real cellW: width / gameLogic.boardWidth
     readonly property real cellH: height / gameLogic.boardHeight
-
-    Canvas {
-        id: boardGrid
-        anchors.fill: parent
-        z: 1
-        visible: gameWorld.visible
-        onPaint: {
-            const ctx = getContext("2d")
-            ctx.reset()
-            const cw = width / gameLogic.boardWidth
-            const ch = height / gameLogic.boardHeight
-            ctx.strokeStyle = gameWorld.gameGrid
-            ctx.lineWidth = 1
-            let x = 0
-            while (x <= width) {
-                ctx.beginPath()
-                ctx.moveTo(x + 0.5, 0)
-                ctx.lineTo(x + 0.5, height)
-                ctx.stroke()
-                x += cw
-            }
-            let y = 0
-            while (y <= height) {
-                ctx.beginPath()
-                ctx.moveTo(0, y + 0.5)
-                ctx.lineTo(width, y + 0.5)
-                ctx.stroke()
-                y += ch
-            }
-        }
-        Component.onCompleted: requestPaint()
-        onVisibleChanged: if (visible) requestPaint()
-    }
 
     Repeater {
         model: gameLogic.ghost

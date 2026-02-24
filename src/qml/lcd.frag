@@ -13,6 +13,7 @@ layout(std140, binding = 0) uniform buf {
 
 layout(binding = 1) uniform sampler2D source;
 layout(binding = 2) uniform sampler2D history;
+uniform float lumaBoost;
 
 void main() {
     // 1. Subtle Curvature
@@ -35,7 +36,7 @@ void main() {
 
     // 3. Balanced LCD Ghosting
     vec4 historyTex = texture(history, uv);
-    vec4 tex = mix(currentTex, historyTex, 0.45);
+    vec4 tex = mix(currentTex, historyTex, 0.25);
     
     // 4. Scanline & Grid
     float scanline = 0.97 + 0.03 * sin(uv.y * 216.0 * 3.14159 * 2.0);
@@ -66,7 +67,7 @@ void main() {
     finalRGB += vec3(reflection * 0.6, reflection * 0.7, reflection * 0.8);
 
     // Gamma correction
-    finalRGB = pow(finalRGB, vec3(0.85)) * 1.05;
+    finalRGB = pow(finalRGB, vec3(0.85)) * 1.05 * lumaBoost;
 
     fragColor = vec4(finalRGB, tex.a) * edgeMask * qt_Opacity;
 }
