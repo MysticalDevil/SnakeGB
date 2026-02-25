@@ -1,4 +1,5 @@
 import QtQuick
+import SnakeGB 1.0
 
 Item {
     id: gameWorld
@@ -162,7 +163,7 @@ Item {
         height: 24
         property int buffTier: rarityTier(gameLogic.activeBuff)
         property color accent: rarityColor(gameLogic.activeBuff)
-        color: Qt.rgba(menuColor("cardSecondary").r, menuColor("cardSecondary").g, menuColor("cardSecondary").b, 0.95)
+        color: menuColor("cardPrimary")
         border.color: accent
         border.width: 1
         z: 40
@@ -175,7 +176,7 @@ Item {
             anchors.top: parent.top
             anchors.topMargin: 1
             text: buffName(gameLogic.activeBuff)
-            color: parent.accent
+            color: menuColor("titleInk")
             font.family: gameFont
             font.pixelSize: 7
             font.bold: true
@@ -187,7 +188,7 @@ Item {
             anchors.top: parent.top
             anchors.topMargin: 1
             text: rarityName(gameLogic.activeBuff)
-            color: parent.accent
+            color: menuColor("titleInk")
             font.family: gameFont
             font.pixelSize: 7
             font.bold: true
@@ -202,7 +203,7 @@ Item {
             anchors.rightMargin: 3
             anchors.bottomMargin: 3
             height: 5
-            color: gameWorld.gameBg
+            color: menuColor("cardSecondary")
             border.color: parent.accent
             border.width: 1
 
