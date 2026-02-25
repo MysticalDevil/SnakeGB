@@ -5,6 +5,7 @@ import "ThemeCatalog.js" as ThemeCatalog
 
 Item {
     id: root
+    property var gameLogic
     property color p0
     property color p1
     property color p2
@@ -203,38 +204,13 @@ Item {
         return Qt.rgba(c.r, c.g, c.b, 0.78)
     }
 
-    function blendColor(a, b, t) {
-        const k = Math.max(0.0, Math.min(1.0, t))
-        return Qt.rgba(
-            a.r * (1.0 - k) + b.r * k,
-            a.g * (1.0 - k) + b.g * k,
-            a.b * (1.0 - k) + b.b * k,
-            1.0
-        )
-    }
-
-    function tonedColor(c, amount) {
-        const l = luminance(c)
-        const gray = Qt.rgba(l, l, l, 1.0)
-        return blendColor(c, gray, amount)
-    }
-
-    function clampedSurface(a, b, mix, desat, minL, maxL) {
-        let c = tonedColor(blendColor(a, b, mix), desat)
-        const l = luminance(c)
-        if (l < minL) {
-            c = blendColor(c, Qt.rgba(1, 1, 1, 1), Math.min(1.0, (minL - l) * 1.4))
-        } else if (l > maxL) {
-            c = blendColor(c, Qt.rgba(0, 0, 0, 1), Math.min(1.0, (l - maxL) * 1.4))
-        }
-        return c
-    }
-
     function menuColor(role) {
         return ThemeCatalog.menuColor(gameLogic.paletteName, role)
     }
 
     readonly property color gameBg: menuColor("cardPrimary")
+    // Slightly lift the play/replay/choice background so it matches menu brightness after LCD shader.
+    readonly property color playBg: Qt.lighter(gameBg, 1.06)
     readonly property color gamePanel: menuColor("cardSecondary")
     readonly property color gameInk: menuColor("titleInk")
     readonly property color gameSubInk: menuColor("secondaryInk")
@@ -365,6 +341,7 @@ Item {
                 gameLogic: root.gameLogic
                 gameFont: root.gameFont
                 powerColor: root.powerColor
+                catalogTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
             }
 
             // --- STATE 8: MEDAL ROOM ---
@@ -375,6 +352,7 @@ Item {
                 p2: root.p2
                 p3: root.p3
                 visualTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
+                gameLogic: root.gameLogic
                 gameFont: root.gameFont
                 visible: gameLogic.state === AppState.MedalRoom
                 z: 900
@@ -457,7 +435,7 @@ Item {
             anchors.topMargin: 6
             anchors.rightMargin: 6
             z: 500
-            active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
+            active: gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying
             gameLogic: root.gameLogic
             gameFont: root.gameFont
             ink: root.gameInk

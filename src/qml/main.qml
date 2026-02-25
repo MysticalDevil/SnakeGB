@@ -15,6 +15,7 @@ Window {
     readonly property color p2: gameLogic.palette[2]
     readonly property color p3: gameLogic.palette[3]
     readonly property string gameFont: "Monospace"
+    property var gameLogicRef: gameLogic
 
     property real elapsed: 0.0
     property bool selectPressActive: false
@@ -763,6 +764,7 @@ Window {
                     id: screen
                     parent: shell.screenContainer
                     anchors.fill: parent
+                    gameLogic: gameLogicRef
                     p0: window.p0
                     p1: window.p1
                     p2: window.p2

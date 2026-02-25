@@ -11,6 +11,7 @@ Rectangle {
     property color p2
     property color p3
     property var visualTheme: ({})
+    property var gameLogic
     property string gameFont
 
     function luminance(colorValue) {
