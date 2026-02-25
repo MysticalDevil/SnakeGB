@@ -5,6 +5,15 @@ project(SnakeGB VERSION 1.5.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Place executables in the build root (not subdirectories like build/<profile>/src).
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if(CMAKE_CONFIGURATION_TYPES)
+    foreach(cfg IN LISTS CMAKE_CONFIGURATION_TYPES)
+        string(TOUPPER "${cfg}" cfg_upper)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${cfg_upper} ${CMAKE_BINARY_DIR})
+    endforeach()
+endif()
+
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not supported. Use: cmake -S . -B build/<profile>")
 endif()
@@ -42,12 +51,26 @@ qt_add_resources(SnakeGB "res"
     FILES
         "src/qml/main.qml"
         "src/qml/GameScreen.qml"
+        "src/qml/GameScreenIconLab.qml"
+        "src/qml/GameScreenHud.qml"
+        "src/qml/GameScreenLibrary.qml"
+        "src/qml/GameScreenMenu.qml"
+        "src/qml/GameScreenStaticDebug.qml"
+        "src/qml/GameScreenOverlays.qml"
+        "src/qml/GameScreenWorld.qml"
+        "src/qml/GameScreenSplash.qml"
         "src/qml/DPad.qml"
         "src/qml/GBButton.qml"
         "src/qml/SmallButton.qml"
         "src/qml/OSDLayer.qml"
         "src/qml/MedalRoom.qml"
+        "src/qml/MedalRoomCard.qml"
         "src/qml/GameBoyShell.qml"
+        "src/qml/ShellSurface.qml"
+        "src/qml/ScreenBezel.qml"
+        "src/qml/ShellBranding.qml"
+        "src/qml/SpeakerGrill.qml"
+        "src/qml/VolumeWheel.qml"
         "src/qml/ThemeCatalog.js"
         "src/qml/icon.svg"
         "src/themes/theme_catalog.json"
