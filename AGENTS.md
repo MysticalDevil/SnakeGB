@@ -53,6 +53,7 @@ make clean
 - Naming: classes/types `PascalCase`, functions/variables `camelCase`, constants/macros `UPPER_SNAKE_CASE`.
 - Keep game-state transitions explicit; prefer named enums/states over numeric literals.
 - Avoid relative `#include` paths; prefer module-prefixed includes (for example, `core/...`, `adapter/...`, `fsm/...`).
+- QML/JS: prefer ES6+ features (`const`/`let`, template strings, arrow functions, destructuring) where supported; avoid legacy `var` unless required by Qt/QML constraints.
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
 
 ## Testing Guidelines
