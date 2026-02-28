@@ -163,7 +163,7 @@ Rectangle {
 
             delegate: MedalRoomCard {
                 modelData: modelData
-                unlocked: modelData && medalRoot.unlockedAchievementIds.indexOf(modelData.id) !== -1
+                unlocked: !!modelData && medalRoot.unlockedAchievementIds.indexOf(modelData.id) !== -1
                 selected: medalList.currentIndex === index
                 cardNormal: medalRoot.cardNormal
                 cardSelected: medalRoot.cardSelected
