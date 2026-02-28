@@ -115,18 +115,10 @@ class EngineAdapter final : public QObject, public IGameEngine
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(int buffTicksRemaining READ buffTicksRemaining NOTIFY buffChanged)
     Q_PROPERTY(int buffTicksTotal READ buffTicksTotal NOTIFY buffChanged)
-    Q_PROPERTY(QVariantList achievements READ achievements NOTIFY achievementsChanged)
-    Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
     Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
     Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
-    Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
-    Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
-    Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
-    Q_PROPERTY(int libraryIndex READ libraryIndex NOTIFY libraryIndexChanged)
-    Q_PROPERTY(int medalIndex READ medalIndex NOTIFY medalIndexChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
-    Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
     explicit EngineAdapter(QObject *parent = nullptr);

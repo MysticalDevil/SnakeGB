@@ -302,8 +302,8 @@ Item {
                     anchors.fill: parent
                     z: LayerScale.stateLibrary
                     active: engineAdapter.state === AppState.Library
-                    fruitLibraryModel: engineAdapter.fruitLibrary
-                    libraryIndex: engineAdapter.libraryIndex
+                    fruitLibraryModel: selectionViewModel.fruitLibrary
+                    libraryIndex: selectionViewModel.libraryIndex
                     setLibraryIndex: function(index) {
                         root.engineAdapter.dispatchUiAction(`set_library_index:${index}`)
                     }
@@ -323,10 +323,10 @@ Item {
                     p3: root.p3
                     menuColor: root.menuColor
                     pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "achievements")
-                    medalLibraryModel: engineAdapter.medalLibrary
-                    medalIndex: engineAdapter.medalIndex
-                    unlockedCount: engineAdapter.achievements.length
-                    unlockedAchievementIds: engineAdapter.achievements
+                    medalLibraryModel: selectionViewModel.medalLibrary
+                    medalIndex: selectionViewModel.medalIndex
+                    unlockedCount: selectionViewModel.achievements.length
+                    unlockedAchievementIds: selectionViewModel.achievements
                     setMedalIndex: function(index) {
                         root.engineAdapter.dispatchUiAction(`set_medal_index:${index}`)
                     }
@@ -398,8 +398,8 @@ Item {
                 blurSourceItem: preOverlayContent
                 currentState: engineAdapter.state
                 currentScore: engineAdapter.score
-                choices: engineAdapter.choices
-                choiceIndex: engineAdapter.choiceIndex
+                choices: selectionViewModel.choices
+                choiceIndex: selectionViewModel.choiceIndex
                 menuColor: root.menuColor
                 gameFont: root.gameFont
                 elapsed: root.elapsed
