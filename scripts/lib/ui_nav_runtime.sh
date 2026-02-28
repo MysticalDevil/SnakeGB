@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1091
+# shellcheck source=lib/script_common.sh
+source "${ROOT_DIR}/scripts/lib/script_common.sh"
+# shellcheck disable=SC1091
+# shellcheck source=lib/ui_window_common.sh
+source "${ROOT_DIR}/scripts/lib/ui_window_common.sh"
+
 ui_nav_need_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "[error] Missing command: $1"
-    exit 1
-  fi
+  script_require_cmds "$1"
 }
 
 ui_nav_require_wayland() {
@@ -43,54 +47,28 @@ ui_nav_setup_isolated_config() {
 
   UI_NAV_CFG_TMP=""
   if [[ "${enabled}" == "1" ]]; then
-    UI_NAV_CFG_TMP="$(mktemp -d /tmp/snakegb_ui_cfg.XXXXXX)"
-    export XDG_CONFIG_HOME="${UI_NAV_CFG_TMP}"
+    ui_window_setup_isolated_config "/tmp/snakegb_ui_cfg"
+    UI_NAV_CFG_TMP="${UI_WINDOW_CFG_TMP}"
   fi
 }
 
 ui_nav_cleanup_runtime() {
   if [[ -n "${UI_NAV_APP_PID:-}" ]]; then
-    kill "${UI_NAV_APP_PID}" >/dev/null 2>&1 || true
+    ui_window_stop_app "${UI_NAV_APP_PID}"
   fi
-  if [[ -n "${UI_NAV_CFG_TMP:-}" && -d "${UI_NAV_CFG_TMP}" ]]; then
-    rm -rf "${UI_NAV_CFG_TMP}"
-  fi
+  ui_window_cleanup_isolated_config "${UI_NAV_CFG_TMP:-}"
 }
 
 ui_nav_find_window_for_pid() {
   local pid="$1"
   local wait_seconds="$2"
-  local deadline=$((SECONDS + wait_seconds))
-  local clients_json=""
-  local window_info=""
 
-  # shellcheck disable=SC2034 # Consumed by callers after this shared helper returns.
-  UI_NAV_WINDOW_ADDR=""
-  # shellcheck disable=SC2034 # Consumed by callers after this shared helper returns.
-  UI_NAV_GEOM=""
-
-  while (( SECONDS < deadline )); do
-    clients_json="$(hyprctl clients -j 2>&1 || true)"
-    if ! jq -e . >/dev/null 2>&1 <<<"${clients_json}"; then
-      sleep 0.2
-      continue
-    fi
-
-    window_info="$(jq -r --argjson pid "${pid}" '
-      .[] | select(.pid == $pid) |
-      "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
-    ' <<<"${clients_json}" | head -n 1)"
-
-    if [[ -n "${window_info}" ]]; then
-      UI_NAV_WINDOW_ADDR="${window_info%%$'\t'*}"
-      UI_NAV_GEOM="${window_info#*$'\t'}"
-      return 0
-    fi
-
-    sleep 0.2
-  done
-
-  return 1
+  if ! ui_window_wait_for_window "${pid}" "${wait_seconds}" "" ""; then
+    return 1
+  fi
+  UI_NAV_WINDOW_ADDR="${UI_WINDOW_ADDR}"
+  UI_NAV_GEOM="${UI_WINDOW_GEOM}"
+  return 0
 }
 
 ui_nav_launch_and_locate() {
@@ -108,8 +86,7 @@ ui_nav_launch_and_locate() {
   UI_NAV_GEOM=""
 
   while (( attempt <= max_launch_attempts )); do
-    pkill -f "${app_bin}" >/dev/null 2>&1 || true
-    sleep 0.2
+    ui_window_kill_existing "${app_bin}"
 
     if [[ "${max_launch_attempts}" -gt 1 ]]; then
       echo "[info] Launching ${app_bin} (attempt ${attempt}/${max_launch_attempts})"
@@ -124,7 +101,7 @@ ui_nav_launch_and_locate() {
       return 0
     fi
 
-    kill "${UI_NAV_APP_PID}" >/dev/null 2>&1 || true
+    ui_window_stop_app "${UI_NAV_APP_PID}"
     UI_NAV_APP_PID=""
     attempt=$((attempt + 1))
   done
@@ -157,12 +134,13 @@ ui_nav_send_token_list() {
   local nav_step_delay="$2"
   local raw="$3"
   local token=""
+  local -a tokens=()
 
   if [[ -z "${raw}" ]]; then
     return
   fi
 
-  IFS=',' read -r -a tokens <<<"${raw}"
+  script_split_csv_trimmed "${raw}" tokens
   for token in "${tokens[@]}"; do
     token="${token#"${token%%[![:space:]]*}"}"
     token="${token%"${token##*[![:space:]]}"}"

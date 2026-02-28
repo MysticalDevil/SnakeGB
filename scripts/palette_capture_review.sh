@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FOCUS_SCRIPT="${FOCUS_SCRIPT:-${ROOT_DIR}/scripts/palette_capture_focus.sh}"
 MATRIX_SCRIPT="${MATRIX_SCRIPT:-${ROOT_DIR}/scripts/palette_capture_matrix.sh}"
 HTML_RENDER_SCRIPT="${HTML_RENDER_SCRIPT:-${ROOT_DIR}/scripts/render_palette_review_html.sh}"
+# shellcheck source=lib/script_common.sh
+source "${ROOT_DIR}/scripts/lib/script_common.sh"
 
 OUT_DIR="${1:-/tmp/snakegb_palette_review}"
 HTML_OUT="${HTML_OUT:-${OUT_DIR}/index.html}"
@@ -14,23 +16,13 @@ PALETTES="${PALETTES:-0,1,2,3,4}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.8}"
 MONTAGE_FONT="${MONTAGE_FONT:-$(fc-match -f '%{file}\n' 'DejaVu Sans' | head -n 1)}"
 
-need_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "[error] Missing command: $1"
-    exit 1
-  fi
-}
-
-need_cmd bash
-need_cmd fc-match
-need_cmd montage
-need_cmd identify
+script_require_cmds bash fc-match montage identify
 
 mkdir -p "${OUT_DIR}/focus" "${OUT_DIR}/matrix" "${OUT_DIR}/sheets"
 
-IFS=',' read -r -a PALETTE_LIST <<<"${PALETTES}"
-IFS=',' read -r -a FOCUS_LIST <<<"${FOCUS_TARGETS}"
-IFS=',' read -r -a MATRIX_LIST <<<"${MATRIX_TARGETS}"
+script_split_csv_trimmed "${PALETTES}" PALETTE_LIST
+script_split_csv_trimmed "${FOCUS_TARGETS}" FOCUS_LIST
+script_split_csv_trimmed "${MATRIX_TARGETS}" MATRIX_LIST
 
 for palette in "${PALETTE_LIST[@]}"; do
   echo "[round] focus palette=${palette}"

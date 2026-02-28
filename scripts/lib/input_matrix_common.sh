@@ -1,43 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck disable=SC1091
+# shellcheck source=lib/script_common.sh
+source "${ROOT_DIR}/scripts/lib/script_common.sh"
+# shellcheck disable=SC1091
+# shellcheck source=lib/ui_window_common.sh
+source "${ROOT_DIR}/scripts/lib/ui_window_common.sh"
+
 APP_PID=""
 WINDOW_ADDR=""
 GEOM=""
 CFG_TMP=""
 
-need_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "[error] Missing command: $1"
-    exit 1
-  fi
-}
-
 app_is_alive() {
-  local stat
-  if [[ -z "${APP_PID}" ]]; then
-    return 1
-  fi
-  if ! kill -0 "${APP_PID}" 2>/dev/null; then
-    return 1
-  fi
-  stat="$(ps -p "${APP_PID}" -o stat= 2>/dev/null | tr -d '[:space:]')"
-  [[ -n "${stat}" && "${stat#Z}" == "${stat}" ]]
+  ui_window_app_is_alive "${APP_PID}"
 }
 
 stop_app() {
-  if app_is_alive; then
-    kill "${APP_PID}" >/dev/null 2>&1 || true
-    wait "${APP_PID}" >/dev/null 2>&1 || true
-  fi
+  ui_window_stop_app "${APP_PID}"
   APP_PID=""
 }
 
 cleanup_case() {
   stop_app
-  if [[ -n "${CFG_TMP}" && -d "${CFG_TMP}" ]]; then
-    rm -rf "${CFG_TMP}"
-  fi
+  ui_window_cleanup_isolated_config "${CFG_TMP}"
   CFG_TMP=""
 }
 
@@ -62,34 +49,19 @@ die_case() {
 }
 
 wait_window_ready() {
-  local deadline shell_clients window_info
-  deadline=$((SECONDS + WAIT_SECONDS))
-  while (( SECONDS < deadline )); do
-    shell_clients="$(hyprctl clients -j 2>&1 || true)"
-    if ! jq -e . >/dev/null 2>&1 <<<"${shell_clients}"; then
-      sleep 0.2
-      continue
-    fi
-    window_info="$(jq -r --arg cls "${WINDOW_CLASS}" --arg ttl "${WINDOW_TITLE}" --argjson pid "${APP_PID}" '
-      .[] | select((.pid == $pid) or (.class == $cls) or ((.title // "") | contains($ttl))) |
-      "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
-    ' <<<"${shell_clients}" | head -n1)"
-    if [[ -n "${window_info}" ]]; then
-      WINDOW_ADDR="${window_info%%$'\t'*}"
-      GEOM="${window_info#*$'\t'}"
-      return 0
-    fi
-    sleep 0.2
-  done
-  return 1
+  if ! ui_window_wait_for_window "${APP_PID}" "${WAIT_SECONDS}" "${WINDOW_CLASS}" "${WINDOW_TITLE}"; then
+    return 1
+  fi
+  WINDOW_ADDR="${UI_WINDOW_ADDR}"
+  GEOM="${UI_WINDOW_GEOM}"
+  return 0
 }
 
 launch_app() {
-  CFG_TMP="$(mktemp -d /tmp/snakegb_input_matrix_cfg.XXXXXX)"
-  export XDG_CONFIG_HOME="${CFG_TMP}"
+  ui_window_setup_isolated_config "/tmp/snakegb_input_matrix_cfg"
+  CFG_TMP="${UI_WINDOW_CFG_TMP}"
 
-  pkill -f "${APP_BIN}" >/dev/null 2>&1 || true
-  sleep 0.2
+  ui_window_kill_existing "${APP_BIN}"
 
   "${APP_BIN}" >/tmp/snakegb_input_matrix_runtime.log 2>&1 &
   APP_PID=$!
@@ -98,7 +70,7 @@ launch_app() {
     return 1
   fi
 
-  hyprctl dispatch focuswindow "address:${WINDOW_ADDR}" >/dev/null || true
+  ui_window_focus "${WINDOW_ADDR}"
   sleep "${BOOT_SETTLE_SECONDS}"
   return 0
 }

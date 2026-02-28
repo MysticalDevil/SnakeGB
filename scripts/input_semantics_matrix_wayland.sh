@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=lib/build_paths.sh
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
+# shellcheck source=lib/script_common.sh
+source "${ROOT_DIR}/scripts/lib/script_common.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
 APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
 WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
@@ -18,11 +20,7 @@ CASE_TIMEOUT="${CASE_TIMEOUT:-120}"
 source "${ROOT_DIR}/scripts/lib/input_matrix_common.sh"
 source "${ROOT_DIR}/scripts/input_semantics_cases_wayland.sh"
 
-need_cmd cmake
-need_cmd hyprctl
-need_cmd jq
-need_cmd grim
-need_cmd ps
+script_require_cmds cmake hyprctl jq grim ps
 
 if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
   echo "[error] This script expects Wayland (current: ${XDG_SESSION_TYPE:-unknown})"
