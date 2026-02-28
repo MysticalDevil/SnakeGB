@@ -143,20 +143,20 @@ if(ANDROID)
 endif()
 
 enable_testing()
-add_executable(game-tests
+add_executable(engine-adapter-tests
     tests/test_engine_adapter.cpp
 )
-target_include_directories(game-tests PRIVATE src)
-target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
+target_include_directories(engine-adapter-tests PRIVATE src)
+target_link_libraries(engine-adapter-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
 if(TARGET Qt6::Multimedia)
-    target_link_libraries(game-tests PRIVATE Qt6::Multimedia)
-    target_compile_definitions(game-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+    target_link_libraries(engine-adapter-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(engine-adapter-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
 endif()
 if(TARGET Qt6::Sensors)
-    target_link_libraries(game-tests PRIVATE Qt6::Sensors)
-    target_compile_definitions(game-tests PRIVATE SNAKEGB_HAS_SENSORS)
+    target_link_libraries(engine-adapter-tests PRIVATE Qt6::Sensors)
+    target_compile_definitions(engine-adapter-tests PRIVATE SNAKEGB_HAS_SENSORS)
 endif()
-add_test(NAME EngineAdapterTest COMMAND game-tests)
+add_test(NAME EngineAdapterTest COMMAND engine-adapter-tests)
 set_tests_properties(EngineAdapterTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(core-rules-tests

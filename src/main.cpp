@@ -17,7 +17,8 @@
 #include "sound_manager.h"
 
 namespace {
-auto releaseLogFilter(QtMsgType type, const QMessageLogContext &, const QString &msg) -> void {
+auto releaseLogFilter(QtMsgType type, const QMessageLogContext &logContext, const QString &msg) -> void {
+    Q_UNUSED(logContext);
     Q_UNUSED(msg);
     if (type == QtFatalMsg) {
         abort();
@@ -26,11 +27,11 @@ auto releaseLogFilter(QtMsgType type, const QMessageLogContext &, const QString 
 
 void silenceStderrForRelease() {
 #ifdef _WIN32
-    if (freopen("NUL", "w", stderr) == nullptr) {
+    if (freopen("NUL", "w", stderr) == nullptr) { // NOLINT(cppcoreguidelines-owning-memory)
         return;
     }
 #else
-    if (freopen("/dev/null", "w", stderr) == nullptr) {
+    if (freopen("/dev/null", "w", stderr) == nullptr) { // NOLINT(cppcoreguidelines-owning-memory)
         return;
     }
 #endif
