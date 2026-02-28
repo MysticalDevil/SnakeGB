@@ -38,9 +38,22 @@ if [[ -f .clang-tidy ]]; then
   CFG_HASH="$(sha256sum .clang-tidy | awk '{print $1}')"
 fi
 
+TIDY_HEADER_FILTER="$(awk -F"'" '/^HeaderFilterRegex:/ { print $2; exit }' .clang-tidy 2>/dev/null || true)"
+TIDY_ARGS=(--quiet)
+if [[ -n "${TIDY_HEADER_FILTER}" ]]; then
+  TIDY_ARGS+=(--header-filter="${TIDY_HEADER_FILTER}")
+fi
+
 checked=0
 skipped=0
 failed=0
+
+filter_tidy_noise() {
+  sed -E \
+    -e '/^[0-9]+ warnings generated\.$/d' \
+    -e '/^Suppressed [0-9]+ warnings? /d' \
+    -e '/^Use -header-filter=.*$/d'
+}
 
 for rel in "${INPUT_FILES[@]}"; do
   [[ -z "$rel" ]] && continue
@@ -67,10 +80,15 @@ for rel in "${INPUT_FILES[@]}"; do
   fi
 
   echo "[clang-tidy-cache] run: $rel"
-  if clang-tidy -p "${DB_DIR}" "$rel"; then
+  tidy_output="$(mktemp)"
+  if clang-tidy "${TIDY_ARGS[@]}" -p "${DB_DIR}" "$rel" >"${tidy_output}" 2>&1; then
+    filter_tidy_noise <"${tidy_output}"
+    rm -f "${tidy_output}"
     : > "$stamp"
     checked=$((checked + 1))
   else
+    filter_tidy_noise <"${tidy_output}" >&2
+    rm -f "${tidy_output}"
     failed=$((failed + 1))
   fi
 
