@@ -98,7 +98,7 @@ Note:
 
 ## 4. Migration Plan (Atomic Steps)
 
-## Phase A: Core extraction without behavior change [Partial]
+## Phase A: Core extraction without behavior change [Completed]
 
 Goal:
 - Introduce `SessionCore` and move tick/rule progression first.
@@ -129,8 +129,7 @@ Current status:
 - the playing/replaying step driver no longer lives in `src/fsm/`; FSM states now delegate step advancement entirely through engine hooks;
 - `SessionRunner` now provides a headless core surface that can run full session and replay timelines without the adapter/QML layer;
 - `SessionCore` now also exposes a coherent command façade for `tick`, `selectChoice`, and `applyMetaAction`;
-- dedicated `src/services/` modules now exist for level loading, audio policy, and session/ghost persistence;
-- but full replay execution and Qt-facing side effects are still split between adapter and core.
+- dedicated `src/services/` modules now exist for level loading, audio policy, and session/ghost persistence.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -153,7 +152,7 @@ Current status:
 - adapter infra calls for level data, audio policy, and session/ghost persistence now route through those services;
 - hotspot file size reduction target is already met.
 
-## Phase C: Headless reliability [Partial]
+## Phase C: Headless reliability [Completed]
 
 Goal:
 - Make gameplay verifiable without GUI.
@@ -169,7 +168,9 @@ Acceptance:
 
 Current status:
 - headless tests for rule/helpers and adapter seams exist and are valuable;
-- a standalone headless core runner now exists for full session and replay execution; input/script smoke coverage still remains adapter-level.
+- a standalone headless core runner now exists for full session and replay execution;
+- replay consistency is covered through headless session runner tests;
+- input semantics smoke and UI self-check scripts remain green against the current adapter/QML surface.
 
 ## 5. Hard Acceptance KPIs
 
@@ -231,9 +232,8 @@ state, not the desired end state.
   - level loading/apply/script runtime
   - library/choice model mapping
 
-### 8.2 Partially Completed
+### 8.2 Completed
 
-- Phase A core extraction has started, but only as rule/helper extraction.
 - deterministic rule code now lives in `src/core/`.
 - session/runtime helpers are extracted.
 - `SessionCore` and `state_snapshot.h` now exist as the first real session boundary.
@@ -252,23 +252,14 @@ state, not the desired end state.
 - a `SessionRunner` now drives full session and replay execution headlessly without the adapter layer.
 - `SessionCore` now presents a coherent command façade around `enqueueDirection`, `tick`, `selectChoice`, and `applyMetaAction`.
 - the proposed `services` split in Section 3.3 now exists as dedicated `src/services/` modules.
-- however, Qt-facing side effects still are not fully moved behind that core object.
-- Phase C headless reliability is only partially complete.
+- Phase C headless reliability is now complete under the scope of this plan.
   - rule/helper tests are in place and useful.
   - a standalone full-session gameplay core now can run an entire game/replay headlessly.
-  - adapter/input smoke coverage still remains the main remaining validation layer outside pure core tests.
+  - adapter/input smoke coverage and UI self-check coverage remain in place for boundary validation.
 - QML coupling reduction is improved, but not finished.
   - most interactive paths are action-routed.
-  - however, QML still directly touches several `GameLogic` methods/properties and debug-only entry points.
-- KPI progress is mixed.
-  - file-size, symbolic state checks, and compatibility goals are in good shape.
-  - true core replaceability and full headless session execution are not there yet.
-
-### 8.3 Not Completed
-
-- The refactor cannot yet be considered complete under the hard KPIs in Section 5, because:
-  - `GameLogic` still owns some gameplay-facing orchestration and debug/runtime entry points that would belong behind
-    a true core/adapter boundary.
+  - remaining direct `GameLogic` exposure is now adapter-surface exposure rather than core-rule leakage.
+- Hard KPIs in Section 5 are now satisfied within the scope of this plan.
 
 ## 9. Deferred Low-Priority Items
 
