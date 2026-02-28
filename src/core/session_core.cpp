@@ -2,7 +2,53 @@
 
 #include <utility>
 
-namespace snakegb::core {
+namespace snakegb::core
+{
+
+auto MetaAction::resetTransientRuntime() -> MetaAction
+{
+    return {.kind = Kind::ResetTransientRuntime};
+}
+
+auto MetaAction::resetReplayRuntime() -> MetaAction
+{
+    return {.kind = Kind::ResetReplayRuntime};
+}
+
+auto MetaAction::bootstrapForLevel(QList<QPoint> obstacles, const int boardWidth,
+                                   const int boardHeight) -> MetaAction
+{
+    return {
+        .kind = Kind::BootstrapForLevel,
+        .obstacles = std::move(obstacles),
+        .boardWidth = boardWidth,
+        .boardHeight = boardHeight,
+    };
+}
+
+auto MetaAction::restorePersistedSession(const StateSnapshot &snapshot) -> MetaAction
+{
+    return {
+        .kind = Kind::RestorePersistedSession,
+        .snapshot = snapshot,
+    };
+}
+
+auto MetaAction::seedPreviewState(const PreviewSeed &seed) -> MetaAction
+{
+    return {
+        .kind = Kind::SeedPreviewState,
+        .previewSeed = seed,
+    };
+}
+
+auto MetaAction::restoreSnapshot(const StateSnapshot &snapshot) -> MetaAction
+{
+    return {
+        .kind = Kind::RestoreSnapshot,
+        .snapshot = snapshot,
+    };
+}
 
 void SessionCore::setDirection(const QPoint &direction)
 {
@@ -85,15 +131,11 @@ void SessionCore::applyMovement(const QPoint &newHead, const bool grew)
 auto SessionCore::checkCollision(const QPoint &head, const int boardWidth, const int boardHeight)
     -> CollisionOutcome
 {
-    const auto outcome = collisionOutcomeForHead(head, boardWidth, boardHeight, m_state.obstacles,
-                                                 m_body,
-                                                 m_state.activeBuff ==
-                                                     static_cast<int>(BuffId::Ghost),
-                                                 m_state.activeBuff ==
-                                                     static_cast<int>(BuffId::Portal),
-                                                 m_state.activeBuff ==
-                                                     static_cast<int>(BuffId::Laser),
-                                                 m_state.shieldActive);
+    const auto outcome = collisionOutcomeForHead(
+        head, boardWidth, boardHeight, m_state.obstacles, m_body,
+        m_state.activeBuff == static_cast<int>(BuffId::Ghost),
+        m_state.activeBuff == static_cast<int>(BuffId::Portal),
+        m_state.activeBuff == static_cast<int>(BuffId::Laser), m_state.shieldActive);
 
     if (outcome.consumeLaser && outcome.obstacleIndex >= 0 &&
         outcome.obstacleIndex < m_state.obstacles.size()) {
@@ -109,11 +151,9 @@ auto SessionCore::checkCollision(const QPoint &head, const int boardWidth, const
 }
 
 auto SessionCore::consumeFood(const QPoint &head, const int boardWidth, const int boardHeight,
-                              const std::function<int(int)> &randomBounded)
-    -> FoodConsumptionResult
+                              const std::function<int(int)> &randomBounded) -> FoodConsumptionResult
 {
-    const auto result =
-        planFoodConsumption(head, m_state, boardWidth, boardHeight, randomBounded);
+    const auto result = planFoodConsumption(head, m_state, boardWidth, boardHeight, randomBounded);
     if (!result.ate) {
         return result;
     }
@@ -128,7 +168,8 @@ auto SessionCore::consumeFood(const QPoint &head, const int boardWidth, const in
 auto SessionCore::consumePowerUp(const QPoint &head, const int baseDurationTicks,
                                  const bool halfDurationForRich) -> PowerUpConsumptionResult
 {
-    const auto result = planPowerUpConsumption(head, m_state, baseDurationTicks, halfDurationForRich);
+    const auto result =
+        planPowerUpConsumption(head, m_state, baseDurationTicks, halfDurationForRich);
     if (!result.ate) {
         return result;
     }
@@ -139,13 +180,18 @@ auto SessionCore::consumePowerUp(const QPoint &head, const int baseDurationTicks
 }
 
 auto SessionCore::applyChoiceSelection(const int powerUpType, const int baseDurationTicks,
-                                       const bool halfDurationForRich)
-    -> PowerUpConsumptionResult
+                                       const bool halfDurationForRich) -> PowerUpConsumptionResult
 {
     m_state.lastRoguelikeChoiceScore = m_state.score;
     const auto result = planPowerUpAcquisition(powerUpType, baseDurationTicks, halfDurationForRich);
     applyPowerUpResult(result);
     return result;
+}
+
+auto SessionCore::selectChoice(const int powerUpType, const int baseDurationTicks,
+                               const bool halfDurationForRich) -> PowerUpConsumptionResult
+{
+    return applyChoiceSelection(powerUpType, baseDurationTicks, halfDurationForRich);
 }
 
 auto SessionCore::tickBuffCountdown() -> bool
@@ -184,14 +230,11 @@ auto SessionCore::spawnPowerUp(const int boardWidth, const int boardHeight,
     QPoint pickedPoint;
     const bool found = pickRandomFreeSpot(
         boardWidth, boardHeight,
-        [this](const QPoint &point) -> bool {
-            return isOccupied(point) || point == m_state.food;
-        },
+        [this](const QPoint &point) -> bool { return isOccupied(point) || point == m_state.food; },
         randomBounded, pickedPoint);
     if (found) {
         m_state.powerUpPos = pickedPoint;
-        m_state.powerUpType =
-            static_cast<int>(weightedRandomBuffId(randomBounded));
+        m_state.powerUpType = static_cast<int>(weightedRandomBuffId(randomBounded));
     }
     return found;
 }
@@ -204,17 +247,16 @@ auto SessionCore::applyMagnetAttraction(const int boardWidth, const int boardHei
         return {};
     }
 
-    auto result = snakegb::core::applyMagnetAttraction(
-        headPosition(), boardWidth, boardHeight, m_state,
-        [this](const QPoint &pos) { return isOccupied(pos); });
+    auto result =
+        snakegb::core::applyMagnetAttraction(headPosition(), boardWidth, boardHeight, m_state,
+                                             [this](const QPoint &pos) { return isOccupied(pos); });
     if (result.moved) {
         m_state.food = result.newFood;
     }
     return result;
 }
 
-auto SessionCore::applyReplayTimeline(const QList<ReplayFrame> &inputFrames,
-                                      int &inputHistoryIndex,
+auto SessionCore::applyReplayTimeline(const QList<ReplayFrame> &inputFrames, int &inputHistoryIndex,
                                       const QList<ChoiceRecord> &choiceFrames,
                                       int &choiceHistoryIndex) -> ReplayTimelineApplication
 {
@@ -260,6 +302,55 @@ auto SessionCore::beginRuntimeUpdate() -> RuntimeUpdateResult
 void SessionCore::finishRuntimeUpdate()
 {
     incrementTick();
+}
+
+auto SessionCore::tick(const TickCommand &command, const std::function<int(int)> &randomBounded)
+    -> TickResult
+{
+    TickResult result;
+
+    if (command.applyRuntimeHooks) {
+        result.runtimeUpdate = beginRuntimeUpdate();
+    }
+
+    if (command.replayInputFrames != nullptr && command.replayInputHistoryIndex != nullptr &&
+        command.replayChoiceFrames != nullptr && command.replayChoiceHistoryIndex != nullptr) {
+        result.replayTimeline =
+            applyReplayTimeline(*command.replayInputFrames, *command.replayInputHistoryIndex,
+                                *command.replayChoiceFrames, *command.replayChoiceHistoryIndex);
+    }
+
+    result.step = advanceSessionStep(command.advanceConfig, randomBounded);
+
+    if (command.applyRuntimeHooks) {
+        finishRuntimeUpdate();
+    }
+
+    return result;
+}
+
+void SessionCore::applyMetaAction(const MetaAction &action)
+{
+    switch (action.kind) {
+    case MetaAction::Kind::ResetTransientRuntime:
+        resetTransientRuntimeState();
+        break;
+    case MetaAction::Kind::ResetReplayRuntime:
+        resetReplayRuntimeState();
+        break;
+    case MetaAction::Kind::BootstrapForLevel:
+        bootstrapForLevel(action.obstacles, action.boardWidth, action.boardHeight);
+        break;
+    case MetaAction::Kind::RestorePersistedSession:
+        restorePersistedSession(action.snapshot);
+        break;
+    case MetaAction::Kind::SeedPreviewState:
+        seedPreviewState(action.previewSeed);
+        break;
+    case MetaAction::Kind::RestoreSnapshot:
+        restoreSnapshot(action.snapshot);
+        break;
+    }
 }
 
 auto SessionCore::advanceSessionStep(const SessionAdvanceConfig &config,
@@ -425,8 +516,9 @@ auto SessionCore::isOccupied(const QPoint &point) const -> bool
     if (inSnake) {
         return true;
     }
-    return std::ranges::any_of(m_state.obstacles,
-                               [&point](const QPoint &obstaclePoint) { return obstaclePoint == point; });
+    return std::ranges::any_of(m_state.obstacles, [&point](const QPoint &obstaclePoint) {
+        return obstaclePoint == point;
+    });
 }
 
 } // namespace snakegb::core

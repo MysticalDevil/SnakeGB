@@ -16,23 +16,33 @@ auto choiceSpecForType(const int type) -> std::optional<snakegb::core::ChoiceSpe
     using snakegb::core::ChoiceSpec;
     switch (type) {
     case GameLogic::Ghost:
-        return ChoiceSpec{.type = GameLogic::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
     case GameLogic::Slow:
-        return ChoiceSpec{.type = GameLogic::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
     case GameLogic::Magnet:
-        return ChoiceSpec{.type = GameLogic::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
     case GameLogic::Shield:
-        return ChoiceSpec{.type = GameLogic::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
     case GameLogic::Portal:
-        return ChoiceSpec{.type = GameLogic::Portal, .name = u"Portal"_s, .description = u"Phase through walls"_s};
+        return ChoiceSpec{.type = GameLogic::Portal,
+                          .name = u"Portal"_s,
+                          .description = u"Phase through walls"_s};
     case GameLogic::Double:
-        return ChoiceSpec{.type = GameLogic::Double, .name = u"Double"_s, .description = u"Double points"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Double, .name = u"Double"_s, .description = u"Double points"_s};
     case GameLogic::Rich:
-        return ChoiceSpec{.type = GameLogic::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
     case GameLogic::Laser:
-        return ChoiceSpec{.type = GameLogic::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
     case GameLogic::Mini:
-        return ChoiceSpec{.type = GameLogic::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
+        return ChoiceSpec{
+            .type = GameLogic::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
     default:
         return std::nullopt;
     }
@@ -88,7 +98,7 @@ void GameLogic::debugSeedChoicePreview(const QVariantList &types)
     stopEngineTimer();
     resetTransientRuntimeState();
     loadLevelData(m_levelIndex);
-    m_sessionCore.seedPreviewState({
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
         .obstacles = m_session.obstacles,
         .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
         .food = QPoint(12, 7),
@@ -97,7 +107,7 @@ void GameLogic::debugSeedChoicePreview(const QVariantList &types)
         .powerUpType = 0,
         .score = 42,
         .tickCounter = 64,
-    });
+    }));
     syncSnakeModelFromCore();
     m_choices = snakegb::adapter::buildChoiceModel(buildDebugChoiceSpecs(types));
     m_choiceIndex = 0;
@@ -127,7 +137,7 @@ void GameLogic::selectChoice(const int index)
     if (!type.has_value()) {
         return;
     }
-    const auto result = m_sessionCore.applyChoiceSelection(type.value(), BuffDurationTicks * 2, false);
+    const auto result = m_sessionCore.selectChoice(type.value(), BuffDurationTicks * 2, false);
     snakegb::adapter::discoverFruit(m_profileManager.get(), type.value());
     if (result.miniApplied) {
         syncSnakeModelFromCore();

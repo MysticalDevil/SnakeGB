@@ -128,6 +128,7 @@ Current status:
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM states owning replay cursors or persistence calls;
 - the playing/replaying step driver no longer lives in `src/fsm/`; FSM states now delegate step advancement entirely through engine hooks;
 - `SessionRunner` now provides a headless core surface that can run full session and replay timelines without the adapter/QML layer;
+- `SessionCore` now also exposes a coherent command façade for `tick`, `selectChoice`, and `applyMetaAction`;
 - dedicated `src/services/` modules now exist for level loading, audio policy, and session/ghost persistence;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
@@ -249,6 +250,7 @@ state, not the desired end state.
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM-local replay cursor state.
 - the playing/replaying step driver has also been removed from the FSM layer in favor of engine-owned hooks.
 - a `SessionRunner` now drives full session and replay execution headlessly without the adapter layer.
+- `SessionCore` now presents a coherent command façade around `enqueueDirection`, `tick`, `selectChoice`, and `applyMetaAction`.
 - the proposed `services` split in Section 3.3 now exists as dedicated `src/services/` modules.
 - however, Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
@@ -264,8 +266,6 @@ state, not the desired end state.
 
 ### 8.3 Not Completed
 
-- The minimal core command interface from Phase A is not implemented as one coherent core API
-  (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice` on a dedicated core object).
 - The refactor cannot yet be considered complete under the hard KPIs in Section 5, because:
   - `GameLogic` still owns some gameplay-facing orchestration and debug/runtime entry points that would belong behind
     a true core/adapter boundary.

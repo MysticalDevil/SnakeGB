@@ -25,6 +25,8 @@ private slots:
     void testCurrentTickIntervalTracksScoreAndSlowBuff();
     void testRuntimeUpdateHooksExpireBuffAndAdvanceTick();
     void testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields();
+    void testMetaActionFacadeRoutesBootstrapAndPreviewSeeding();
+    void testTickFacadeWrapsRuntimeReplayAndStepAdvancement();
 };
 
 void TestSessionCore::testEnqueueDirectionRejectsReverseAndConsumesInOrder()
@@ -222,8 +224,8 @@ void TestSessionCore::testApplyChoiceSelectionMutatesCoreBuffState()
     core.state().score = 18;
     core.state().lastRoguelikeChoiceScore = -1000;
 
-    const auto result = core.applyChoiceSelection(
-        static_cast<int>(snakegb::core::BuffId::Mini), 80, false);
+    const auto result =
+        core.applyChoiceSelection(static_cast<int>(snakegb::core::BuffId::Mini), 80, false);
 
     QVERIFY(result.ate);
     QVERIFY(result.miniApplied);
@@ -405,6 +407,79 @@ void TestSessionCore::testRestorePersistedSessionClearsTransientRuntimeButKeepsP
     QCOMPARE(core.state().lastRoguelikeChoiceScore, -1000);
     QCOMPARE(core.body(), snapshot.body);
     QVERIFY(core.inputQueue().empty());
+}
+
+void TestSessionCore::testMetaActionFacadeRoutesBootstrapAndPreviewSeeding()
+{
+    snakegb::core::SessionCore core;
+
+    core.applyMetaAction(snakegb::core::MetaAction::bootstrapForLevel({QPoint(2, 2)}, 20, 18));
+    QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(2, 2)}));
+    QCOMPARE(core.state().direction, QPoint(0, -1));
+    QCOMPARE(core.body().size(), std::size_t(3));
+
+    core.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+        .obstacles = {QPoint(4, 4)},
+        .body = {{10, 10}, {9, 10}, {8, 10}},
+        .food = QPoint(11, 10),
+        .direction = QPoint(1, 0),
+        .score = 7,
+        .tickCounter = 12,
+    }));
+    QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(4, 4)}));
+    QCOMPARE(core.headPosition(), QPoint(10, 10));
+    QCOMPARE(core.state().score, 7);
+    QCOMPARE(core.state().tickCounter, 12);
+}
+
+void TestSessionCore::testTickFacadeWrapsRuntimeReplayAndStepAdvancement()
+{
+    snakegb::core::SessionCore core;
+    core.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+        .obstacles = {},
+        .body = {{10, 10}, {9, 10}, {8, 10}},
+        .food = QPoint(11, 10),
+        .direction = QPoint(1, 0),
+        .score = 19,
+        .tickCounter = 5,
+        .activeBuff = static_cast<int>(snakegb::core::BuffId::Shield),
+        .buffTicksRemaining = 2,
+        .buffTicksTotal = 8,
+    }));
+
+    QList<ReplayFrame> inputFrames{{.frame = 5, .dx = 0, .dy = 1}};
+    QList<ChoiceRecord> choiceFrames{{.frame = 5, .index = 2}};
+    int inputIndex = 0;
+    int choiceIndex = 0;
+
+    const auto result = core.tick(
+        {
+            .advanceConfig =
+                {
+                    .boardWidth = 20,
+                    .boardHeight = 18,
+                    .consumeInputQueue = false,
+                    .pauseOnChoiceTrigger = false,
+                },
+            .replayInputFrames = &inputFrames,
+            .replayInputHistoryIndex = &inputIndex,
+            .replayChoiceFrames = &choiceFrames,
+            .replayChoiceHistoryIndex = &choiceIndex,
+            .applyRuntimeHooks = true,
+        },
+        [](const int upperBound) {
+            Q_UNUSED(upperBound);
+            return 0;
+        });
+
+    QVERIFY(!result.runtimeUpdate.buffExpired);
+    QVERIFY(result.replayTimeline.appliedInput);
+    QCOMPARE(result.replayTimeline.appliedDirection, QPoint(0, 1));
+    QVERIFY(result.replayTimeline.choiceIndex.has_value());
+    QCOMPARE(*result.replayTimeline.choiceIndex, 2);
+    QVERIFY(result.step.appliedMovement);
+    QCOMPARE(core.state().score, 19);
+    QCOMPARE(core.state().tickCounter, 6);
 }
 
 // NOLINTEND(readability-convert-member-functions-to-static,readability-function-cognitive-complexity)

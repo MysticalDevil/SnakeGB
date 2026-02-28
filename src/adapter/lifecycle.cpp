@@ -13,14 +13,15 @@ constexpr int InitialInterval = 200;
 void GameLogic::restart()
 {
     resetTransientRuntimeState();
-    m_sessionCore.resetReplayRuntimeState();
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::resetReplayRuntime());
     resetReplayRuntimeTracking();
 
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);
 
     loadLevelData(m_levelIndex);
-    m_sessionCore.bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::bootstrapForLevel(
+        m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
     syncSnakeModelFromCore();
     clearSavedState();
 
@@ -42,11 +43,12 @@ void GameLogic::startReplay()
     }
 
     resetTransientRuntimeState();
-    m_sessionCore.resetReplayRuntimeState();
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::resetReplayRuntime());
     resetReplayRuntimeTracking();
 
     loadLevelData(m_bestLevelIndex);
-    m_sessionCore.bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::bootstrapForLevel(
+        m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
     syncSnakeModelFromCore();
     m_rng.seed(m_bestRandomSeed);
     m_timer->setInterval(InitialInterval);
@@ -73,7 +75,7 @@ void GameLogic::debugSeedReplayBuffPreview()
     stopEngineTimer();
     resetTransientRuntimeState();
     loadLevelData(m_levelIndex);
-    m_sessionCore.seedPreviewState({
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
         .obstacles = m_session.obstacles,
         .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
         .food = QPoint(12, 7),
@@ -86,7 +88,7 @@ void GameLogic::debugSeedReplayBuffPreview()
         .buffTicksRemaining = 92,
         .buffTicksTotal = 120,
         .shieldActive = true,
-    });
+    }));
     syncSnakeModelFromCore();
 
     emit scoreChanged();

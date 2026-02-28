@@ -18,7 +18,8 @@ void GameLogic::loadLastSession()
     }
 
     resetReplayRuntimeTracking();
-    m_sessionCore.restorePersistedSession(snakegb::adapter::toCoreStateSnapshot(*snapshot));
+    m_sessionCore.applyMetaAction(snakegb::core::MetaAction::restorePersistedSession(
+        snakegb::adapter::toCoreStateSnapshot(*snapshot)));
     syncSnakeModelFromCore();
 
     for (const auto &p : snapshot->body) {

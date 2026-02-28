@@ -2,8 +2,8 @@
 
 #include "game_rules.h"
 #include "replay_types.h"
-#include "session_step_types.h"
 #include "session_runtime.h"
+#include "session_step_types.h"
 #include "state_snapshot.h"
 
 #include <QPoint>
@@ -12,9 +12,11 @@
 #include <deque>
 #include <optional>
 
-namespace snakegb::core {
+namespace snakegb::core
+{
 
-struct PreviewSeed {
+struct PreviewSeed
+{
     QList<QPoint> obstacles;
     std::deque<QPoint> body;
     QPoint food = {0, 0};
@@ -29,26 +31,91 @@ struct PreviewSeed {
     bool shieldActive = false;
 };
 
-struct ReplayTimelineApplication {
+struct ReplayTimelineApplication
+{
     bool appliedInput = false;
     QPoint appliedDirection = {0, 0};
     std::optional<int> choiceIndex;
 };
 
-struct RuntimeUpdateResult {
+struct RuntimeUpdateResult
+{
     bool buffExpired = false;
+};
+
+struct TickCommand
+{
+    SessionAdvanceConfig advanceConfig;
+    const QList<ReplayFrame> *replayInputFrames = nullptr;
+    int *replayInputHistoryIndex = nullptr;
+    const QList<ChoiceRecord> *replayChoiceFrames = nullptr;
+    int *replayChoiceHistoryIndex = nullptr;
+    bool applyRuntimeHooks = true;
+};
+
+struct TickResult
+{
+    RuntimeUpdateResult runtimeUpdate;
+    ReplayTimelineApplication replayTimeline;
+    SessionAdvanceResult step;
+};
+
+struct MetaAction
+{
+    enum class Kind
+    {
+        ResetTransientRuntime,
+        ResetReplayRuntime,
+        BootstrapForLevel,
+        RestorePersistedSession,
+        SeedPreviewState,
+        RestoreSnapshot,
+    };
+
+    Kind kind = Kind::ResetTransientRuntime;
+    QList<QPoint> obstacles;
+    StateSnapshot snapshot;
+    PreviewSeed previewSeed;
+    int boardWidth = 0;
+    int boardHeight = 0;
+
+    [[nodiscard]] static auto resetTransientRuntime() -> MetaAction;
+    [[nodiscard]] static auto resetReplayRuntime() -> MetaAction;
+    [[nodiscard]] static auto bootstrapForLevel(QList<QPoint> obstacles, int boardWidth,
+                                                int boardHeight) -> MetaAction;
+    [[nodiscard]] static auto restorePersistedSession(const StateSnapshot &snapshot) -> MetaAction;
+    [[nodiscard]] static auto seedPreviewState(const PreviewSeed &seed) -> MetaAction;
+    [[nodiscard]] static auto restoreSnapshot(const StateSnapshot &snapshot) -> MetaAction;
 };
 
 class SessionCore
 {
 public:
-    [[nodiscard]] auto state() -> SessionState & { return m_state; }
-    [[nodiscard]] auto state() const -> const SessionState & { return m_state; }
-    [[nodiscard]] auto body() -> std::deque<QPoint> & { return m_body; }
-    [[nodiscard]] auto body() const -> const std::deque<QPoint> & { return m_body; }
+    [[nodiscard]] auto state() -> SessionState &
+    {
+        return m_state;
+    }
+    [[nodiscard]] auto state() const -> const SessionState &
+    {
+        return m_state;
+    }
+    [[nodiscard]] auto body() -> std::deque<QPoint> &
+    {
+        return m_body;
+    }
+    [[nodiscard]] auto body() const -> const std::deque<QPoint> &
+    {
+        return m_body;
+    }
 
-    [[nodiscard]] auto inputQueue() -> std::deque<QPoint> & { return m_inputQueue; }
-    [[nodiscard]] auto inputQueue() const -> const std::deque<QPoint> & { return m_inputQueue; }
+    [[nodiscard]] auto inputQueue() -> std::deque<QPoint> &
+    {
+        return m_inputQueue;
+    }
+    [[nodiscard]] auto inputQueue() const -> const std::deque<QPoint> &
+    {
+        return m_inputQueue;
+    }
 
     void setDirection(const QPoint &direction);
     [[nodiscard]] auto direction() const -> QPoint;
@@ -69,6 +136,8 @@ public:
         -> PowerUpConsumptionResult;
     auto applyChoiceSelection(int powerUpType, int baseDurationTicks, bool halfDurationForRich)
         -> PowerUpConsumptionResult;
+    auto selectChoice(int powerUpType, int baseDurationTicks, bool halfDurationForRich)
+        -> PowerUpConsumptionResult;
     auto spawnFood(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
         -> bool;
     auto spawnPowerUp(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
@@ -79,8 +148,11 @@ public:
         -> ReplayTimelineApplication;
     auto beginRuntimeUpdate() -> RuntimeUpdateResult;
     void finishRuntimeUpdate();
+    auto tick(const TickCommand &command, const std::function<int(int)> &randomBounded)
+        -> TickResult;
     auto advanceSessionStep(const SessionAdvanceConfig &config,
                             const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
+    void applyMetaAction(const MetaAction &action);
     void bootstrapForLevel(QList<QPoint> obstacles, int boardWidth, int boardHeight);
     void restorePersistedSession(const StateSnapshot &snapshot);
     void seedPreviewState(const PreviewSeed &seed);
