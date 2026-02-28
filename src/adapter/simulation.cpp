@@ -139,7 +139,7 @@ void GameLogic::applyPostTickTasks()
     if (!m_currentScript.isEmpty()) {
         runLevelScript();
     }
-    m_sessionCore.incrementTick();
+    m_sessionCore.finishRuntimeUpdate();
 }
 
 void GameLogic::applyMagnetAttraction()

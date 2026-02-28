@@ -22,6 +22,7 @@ private slots:
     void testBootstrapForLevelPreservesAliasedObstacleInput();
     void testSeedPreviewStateOverwritesSessionWithPreviewState();
     void testApplyReplayTimelineConsumesMatchingFrames();
+    void testRuntimeUpdateHooksExpireBuffAndAdvanceTick();
     void testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields();
 };
 
@@ -179,14 +180,11 @@ void TestSessionCore::testSpawnMagnetAndBuffCountdownMutateCoreState()
     QCOMPARE(core.state().food, magnetResult.newFood);
 
     core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
-    core.state().buffTicksRemaining = 1;
+    core.state().buffTicksRemaining = 2;
     core.state().buffTicksTotal = 8;
     core.state().shieldActive = true;
-    QVERIFY(core.tickBuffCountdown());
-    QCOMPARE(core.state().activeBuff, 0);
-    QCOMPARE(core.state().buffTicksRemaining, 0);
-    QCOMPARE(core.state().buffTicksTotal, 0);
-    QVERIFY(!core.state().shieldActive);
+    QVERIFY(!core.beginRuntimeUpdate().buffExpired);
+    QCOMPARE(core.state().buffTicksRemaining, 1);
 }
 
 void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate()
@@ -337,6 +335,26 @@ void TestSessionCore::testApplyReplayTimelineConsumesMatchingFrames()
     QCOMPARE(choiceIndex, 2);
     QCOMPARE(inputHistoryIndex, 3);
     QCOMPARE(choiceHistoryIndex, 2);
+}
+
+void TestSessionCore::testRuntimeUpdateHooksExpireBuffAndAdvanceTick()
+{
+    snakegb::core::SessionCore core;
+    core.state().tickCounter = 7;
+    core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
+    core.state().buffTicksRemaining = 1;
+    core.state().buffTicksTotal = 8;
+    core.state().shieldActive = true;
+
+    const auto beginResult = core.beginRuntimeUpdate();
+    QVERIFY(beginResult.buffExpired);
+    QCOMPARE(core.state().activeBuff, 0);
+    QCOMPARE(core.state().buffTicksRemaining, 0);
+    QCOMPARE(core.state().buffTicksTotal, 0);
+    QVERIFY(!core.state().shieldActive);
+
+    core.finishRuntimeUpdate();
+    QCOMPARE(core.state().tickCounter, 8);
 }
 
 void TestSessionCore::testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields()

@@ -22,7 +22,8 @@ void GameLogic::updateReflectionFallback()
 void GameLogic::update()
 {
     if (m_fsmState) {
-        if (m_sessionCore.tickBuffCountdown()) {
+        const auto runtimeUpdate = m_sessionCore.beginRuntimeUpdate();
+        if (runtimeUpdate.buffExpired) {
             deactivateBuff();
         }
         dispatchStateCallback([](GameState &state) -> void { state.update(); });

@@ -122,6 +122,7 @@ Current status:
 - fresh-run bootstrap and persisted-session restore now route through `SessionCore` instead of adapter-owned session assembly;
 - replay frame application and debug preview seeding now also route through `SessionCore`;
 - save/load session persistence now reuses shared snapshot conversion helpers instead of adapter-local field assembly;
+- per-frame runtime bookkeeping now enters update flow through `SessionCore` begin/end hooks instead of adapter-managed tick mutation;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -234,6 +235,7 @@ state, not the desired end state.
 - fresh-run bootstrap and persisted-session restore now route through that core object as well.
 - replay frame application and debug preview seeding now also route through that core object.
 - save/load session persistence now also uses shared snapshot conversions around that core object.
+- per-frame runtime bookkeeping now also routes through begin/end hooks on that core object.
 - however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.

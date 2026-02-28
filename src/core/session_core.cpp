@@ -242,6 +242,18 @@ auto SessionCore::applyReplayTimeline(const QList<ReplayFrame> &inputFrames,
     return result;
 }
 
+auto SessionCore::beginRuntimeUpdate() -> RuntimeUpdateResult
+{
+    return {
+        .buffExpired = tickBuffCountdown(),
+    };
+}
+
+void SessionCore::finishRuntimeUpdate()
+{
+    incrementTick();
+}
+
 auto SessionCore::advanceSessionStep(const SessionAdvanceConfig &config,
                                      const std::function<int(int)> &randomBounded)
     -> SessionAdvanceResult

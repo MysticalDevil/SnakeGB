@@ -35,6 +35,10 @@ struct ReplayTimelineApplication {
     std::optional<int> choiceIndex;
 };
 
+struct RuntimeUpdateResult {
+    bool buffExpired = false;
+};
+
 class SessionCore
 {
 public:
@@ -50,7 +54,6 @@ public:
     [[nodiscard]] auto direction() const -> QPoint;
 
     [[nodiscard]] auto tickCounter() const -> int;
-    void incrementTick();
     [[nodiscard]] auto headPosition() const -> QPoint;
 
     auto enqueueDirection(const QPoint &direction, std::size_t maxQueueSize = 2) -> bool;
@@ -65,7 +68,6 @@ public:
         -> PowerUpConsumptionResult;
     auto applyChoiceSelection(int powerUpType, int baseDurationTicks, bool halfDurationForRich)
         -> PowerUpConsumptionResult;
-    auto tickBuffCountdown() -> bool;
     auto spawnFood(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
         -> bool;
     auto spawnPowerUp(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
@@ -74,6 +76,8 @@ public:
     auto applyReplayTimeline(const QList<ReplayFrame> &inputFrames, int &inputHistoryIndex,
                              const QList<ChoiceRecord> &choiceFrames, int &choiceHistoryIndex)
         -> ReplayTimelineApplication;
+    auto beginRuntimeUpdate() -> RuntimeUpdateResult;
+    void finishRuntimeUpdate();
     auto advanceSessionStep(const SessionAdvanceConfig &config,
                             const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
     void bootstrapForLevel(QList<QPoint> obstacles, int boardWidth, int boardHeight);
@@ -87,6 +91,8 @@ public:
     void restoreSnapshot(const StateSnapshot &snapshot);
 
 private:
+    void incrementTick();
+    auto tickBuffCountdown() -> bool;
     [[nodiscard]] auto isOccupied(const QPoint &point) const -> bool;
     void applyPowerUpResult(const PowerUpConsumptionResult &result);
 
