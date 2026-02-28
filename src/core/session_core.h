@@ -50,6 +50,8 @@ public:
     auto applyMagnetAttraction(int boardWidth, int boardHeight) -> MagnetAttractionResult;
     auto advanceSessionStep(const SessionAdvanceConfig &config,
                             const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
+    void bootstrapForLevel(QList<QPoint> obstacles, int boardWidth, int boardHeight);
+    void restorePersistedSession(const StateSnapshot &snapshot);
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();

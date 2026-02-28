@@ -1,5 +1,7 @@
 #include "session_core.h"
 
+#include <utility>
+
 namespace snakegb::core {
 
 void SessionCore::setDirection(const QPoint &direction)
@@ -261,6 +263,38 @@ auto SessionCore::advanceSessionStep(const SessionAdvanceConfig &config,
     }
 
     return result;
+}
+
+void SessionCore::bootstrapForLevel(QList<QPoint> obstacles, const int boardWidth,
+                                    const int boardHeight)
+{
+    m_state = {};
+    m_state.direction = {0, -1};
+    m_state.powerUpPos = QPoint(-1, -1);
+    m_state.lastRoguelikeChoiceScore = -1000;
+    m_state.obstacles = std::move(obstacles);
+    m_body = buildSafeInitialSnakeBody(m_state.obstacles, boardWidth, boardHeight);
+    m_inputQueue.clear();
+}
+
+void SessionCore::restorePersistedSession(const StateSnapshot &snapshot)
+{
+    m_state = snapshot.state;
+    m_body = snapshot.body;
+    m_inputQueue.clear();
+
+    const QPoint persistedDirection = m_state.direction;
+    const QPoint persistedFood = m_state.food;
+    const int persistedScore = m_state.score;
+    const QList<QPoint> persistedObstacles = m_state.obstacles;
+
+    resetTransientRuntimeState();
+    resetReplayRuntimeState();
+
+    m_state.direction = persistedDirection;
+    m_state.food = persistedFood;
+    m_state.score = persistedScore;
+    m_state.obstacles = persistedObstacles;
 }
 
 void SessionCore::resetTransientRuntimeState()

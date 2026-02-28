@@ -14,7 +14,8 @@ void GameLogic::loadLastSession()
         return;
     }
 
-    m_sessionCore.restoreSnapshot({
+    resetReplayRuntimeTracking();
+    m_sessionCore.restorePersistedSession({
         .state = {
             .food = snapshot->food,
             .direction = snapshot->direction,
@@ -24,9 +25,6 @@ void GameLogic::loadLastSession()
         .body = snapshot->body,
     });
     syncSnakeModelFromCore();
-    resetTransientRuntimeState();
-    resetReplayRuntimeTracking();
-    m_session.direction = snapshot->direction;
 
     for (const auto &p : snapshot->body) {
         m_currentRecording.append(p);

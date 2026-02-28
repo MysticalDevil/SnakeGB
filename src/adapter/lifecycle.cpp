@@ -13,14 +13,14 @@ constexpr int InitialInterval = 200;
 void GameLogic::restart()
 {
     resetTransientRuntimeState();
+    m_sessionCore.resetReplayRuntimeState();
     resetReplayRuntimeTracking();
-    m_session.score = 0;
 
     m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
     m_rng.seed(m_randomSeed);
 
     loadLevelData(m_levelIndex);
-    m_sessionCore.setBody(buildSafeInitialSnakeBody());
+    m_sessionCore.bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
     syncSnakeModelFromCore();
     clearSavedState();
 
@@ -43,11 +43,11 @@ void GameLogic::startReplay()
 
     setInternalState(Replaying);
     resetTransientRuntimeState();
+    m_sessionCore.resetReplayRuntimeState();
     resetReplayRuntimeTracking();
-    m_session.score = 0;
 
     loadLevelData(m_bestLevelIndex);
-    m_sessionCore.setBody(buildSafeInitialSnakeBody());
+    m_sessionCore.bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
     syncSnakeModelFromCore();
     m_rng.seed(m_bestRandomSeed);
     m_timer->setInterval(InitialInterval);

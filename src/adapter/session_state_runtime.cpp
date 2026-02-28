@@ -27,7 +27,6 @@ void GameLogic::resetTransientRuntimeState()
 
 void GameLogic::resetReplayRuntimeTracking()
 {
-    m_sessionCore.resetReplayRuntimeState();
     m_ghostFrameIndex = 0;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
@@ -45,9 +44,4 @@ void GameLogic::nextLevel()
     }
     emit levelChanged();
     snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
-}
-
-auto GameLogic::buildSafeInitialSnakeBody() const -> std::deque<QPoint>
-{
-    return snakegb::core::buildSafeInitialSnakeBody(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT);
 }

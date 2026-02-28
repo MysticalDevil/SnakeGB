@@ -449,7 +449,6 @@ private:
     void resetReplayRuntimeTracking();
     void loadLevelData(int index);
     void applyFallbackLevelData(int levelIndex);
-    [[nodiscard]] auto buildSafeInitialSnakeBody() const -> std::deque<QPoint>;
     void checkAchievements();
     void runLevelScript();
     static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
