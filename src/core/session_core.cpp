@@ -19,6 +19,14 @@ auto SessionCore::tickCounter() const -> int
     return m_state.tickCounter;
 }
 
+auto SessionCore::currentTickIntervalMs() const -> int
+{
+    if (m_state.activeBuff == static_cast<int>(BuffId::Slow)) {
+        return 250;
+    }
+    return tickIntervalForScore(m_state.score);
+}
+
 auto SessionCore::headPosition() const -> QPoint
 {
     return m_body.empty() ? QPoint() : m_body.front();

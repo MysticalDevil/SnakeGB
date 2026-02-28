@@ -54,6 +54,7 @@ public:
     [[nodiscard]] auto direction() const -> QPoint;
 
     [[nodiscard]] auto tickCounter() const -> int;
+    [[nodiscard]] auto currentTickIntervalMs() const -> int;
     [[nodiscard]] auto headPosition() const -> QPoint;
 
     auto enqueueDirection(const QPoint &direction, std::size_t maxQueueSize = 2) -> bool;

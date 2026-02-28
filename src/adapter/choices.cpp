@@ -136,7 +136,7 @@ void GameLogic::selectChoice(const int index)
 
     emit buffChanged();
     if (m_state == Replaying) {
-        m_timer->setInterval(normalTickIntervalMs());
+        m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
         return;
     }
 
@@ -144,7 +144,7 @@ void GameLogic::selectChoice(const int index)
 
     QTimer::singleShot(500, this, [this]() -> void {
         if (m_state == Playing) {
-            m_timer->setInterval(normalTickIntervalMs());
+            m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
         }
     });
 

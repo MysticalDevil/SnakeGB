@@ -22,6 +22,7 @@ private slots:
     void testBootstrapForLevelPreservesAliasedObstacleInput();
     void testSeedPreviewStateOverwritesSessionWithPreviewState();
     void testApplyReplayTimelineConsumesMatchingFrames();
+    void testCurrentTickIntervalTracksScoreAndSlowBuff();
     void testRuntimeUpdateHooksExpireBuffAndAdvanceTick();
     void testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields();
 };
@@ -335,6 +336,16 @@ void TestSessionCore::testApplyReplayTimelineConsumesMatchingFrames()
     QCOMPARE(choiceIndex, 2);
     QCOMPARE(inputHistoryIndex, 3);
     QCOMPARE(choiceHistoryIndex, 2);
+}
+
+void TestSessionCore::testCurrentTickIntervalTracksScoreAndSlowBuff()
+{
+    snakegb::core::SessionCore core;
+    core.state().score = 25;
+    QCOMPARE(core.currentTickIntervalMs(), 160);
+
+    core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Slow);
+    QCOMPARE(core.currentTickIntervalMs(), 250);
 }
 
 void TestSessionCore::testRuntimeUpdateHooksExpireBuffAndAdvanceTick()

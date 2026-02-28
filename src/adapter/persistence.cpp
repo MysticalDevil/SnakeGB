@@ -22,7 +22,7 @@ void GameLogic::loadLastSession()
         m_currentRecording.append(p);
     }
 
-    m_timer->setInterval(normalTickIntervalMs());
+    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
     m_timer->start();
 
     emit scoreChanged();

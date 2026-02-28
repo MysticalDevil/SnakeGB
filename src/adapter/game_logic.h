@@ -426,7 +426,6 @@ private slots:
 private:
     void setupAudioSignals();
     void setupSensorRuntime();
-    [[nodiscard]] auto normalTickIntervalMs() const -> int;
     void applyPostTickTasks();
     void updateReflectionFallback();
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);

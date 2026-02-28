@@ -69,7 +69,7 @@ void GameLogic::applyFoodConsumptionEffects(const float pan, const bool triggerC
                                             const bool spawnPowerUpAfterFood)
 {
     emit foodEaten(pan);
-    m_timer->setInterval(normalTickIntervalMs());
+    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
     emit scoreChanged();
     spawnFood();
 
@@ -92,7 +92,7 @@ void GameLogic::applyPowerUpConsumptionEffects(
     }
 
     emit powerUpEaten();
-    m_timer->setInterval(result.slowMode ? 250 : normalTickIntervalMs());
+    m_timer->setInterval(result.slowMode ? 250 : m_sessionCore.currentTickIntervalMs());
 
     triggerHaptic(5);
     emit buffChanged();
@@ -156,6 +156,6 @@ void GameLogic::applyMagnetAttraction()
 
 void GameLogic::deactivateBuff()
 {
-    m_timer->setInterval(normalTickIntervalMs());
+    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
     emit buffChanged();
 }

@@ -26,7 +26,7 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
 
     emit foodEaten(result.pan);
 
-    m_timer->setInterval(normalTickIntervalMs());
+    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
     emit scoreChanged();
     spawnFood();
 
@@ -57,17 +57,9 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head)
     }
 
     emit powerUpEaten();
-    m_timer->setInterval(result.slowMode ? 250 : normalTickIntervalMs());
+    m_timer->setInterval(result.slowMode ? 250 : m_sessionCore.currentTickIntervalMs());
 
     triggerHaptic(5);
     emit buffChanged();
     emit powerUpChanged();
-}
-
-auto GameLogic::normalTickIntervalMs() const -> int
-{
-    if (m_session.activeBuff == Slow) {
-        return 250;
-    }
-    return snakegb::core::tickIntervalForScore(m_session.score);
 }
