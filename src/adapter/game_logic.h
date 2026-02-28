@@ -207,9 +207,6 @@ public:
     void applyReplayTimelineForCurrentTick(int &inputHistoryIndex,
                                            int &choiceHistoryIndex) override;
 
-    void handleFoodConsumption(const QPoint &head);
-    void handlePowerUpConsumption(const QPoint &head);
-    void applyMovement(const QPoint &newHead, bool grew);
     auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
         -> snakegb::core::SessionAdvanceResult override;
 
@@ -430,7 +427,6 @@ private:
     void updateReflectionFallback();
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);
     void applyPendingStateChangeIfNeeded();
-    void applyMagnetAttraction();
     void applyCollisionMitigationEffects(const snakegb::core::SessionAdvanceResult &result);
     void applyChoiceTransition();
     void applyFoodConsumptionEffects(float pan, bool triggerChoice, bool spawnPowerUp);

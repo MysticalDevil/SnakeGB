@@ -21,6 +21,32 @@ private:
         return false;
     }
 
+    static void consumeCurrentFood(GameLogic &game) {
+        const QPoint food = game.food();
+
+        QPoint direction;
+        std::deque<QPoint> body;
+        if (food.x() >= 3) {
+            direction = QPoint(1, 0);
+            body = {
+                QPoint(food.x() - 1, food.y()),
+                QPoint(food.x() - 2, food.y()),
+                QPoint(food.x() - 3, food.y()),
+            };
+        } else {
+            direction = QPoint(-1, 0);
+            body = {
+                QPoint(food.x() + 1, food.y()),
+                QPoint(food.x() + 2, food.y()),
+                QPoint(food.x() + 3, food.y()),
+            };
+        }
+
+        game.snakeModelPtr()->reset(body);
+        game.setDirection(direction);
+        game.forceUpdate();
+    }
+
 private slots:
     void testInitialState() {
         GameLogic game;
@@ -207,14 +233,14 @@ private slots:
         game.startGame();
 
         for (int i = 0; i < 9; ++i) {
-            game.handleFoodConsumption(game.food());
+            consumeCurrentFood(game);
         }
         QCOMPARE(game.score(), 9);
 
         QVERIFY2(pickBuff(game, GameLogic::Double), "Failed to pick Double buff from generated choices");
         QCOMPARE(game.activeBuff(), static_cast<int>(GameLogic::Double));
 
-        game.handleFoodConsumption(game.food());
+        consumeCurrentFood(game);
         QCOMPARE(game.score(), 11);
         QVERIFY2(game.state() == GameLogic::Playing || game.state() == GameLogic::ChoiceSelection,
                  "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
@@ -258,7 +284,7 @@ private slots:
         game.move(1, 0);
         game.forceUpdate();
 
-        game.handleFoodConsumption(game.food());
+        consumeCurrentFood(game);
         QVERIFY(game.score() > 0);
 
         game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});

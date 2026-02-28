@@ -1,9 +1,6 @@
 #include "adapter/game_logic.h"
 
 #include "adapter/profile_bridge.h"
-#include "core/game_rules.h"
-#include "core/replay_timeline.h"
-#include "core/session_runtime.h"
 
 using namespace Qt::StringLiterals;
 
@@ -118,40 +115,12 @@ void GameLogic::applyMovementEffects(const snakegb::core::SessionAdvanceResult &
     checkAchievements();
 }
 
-void GameLogic::applyMovement(const QPoint &newHead, const bool grew)
-{
-    const QPoint p = snakegb::core::wrapPoint(newHead, BOARD_WIDTH, BOARD_HEIGHT);
-
-    m_sessionCore.applyMovement(p, grew);
-    syncSnakeModelFromCore();
-    m_currentRecording.append(p);
-
-    if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
-        m_ghostFrameIndex++;
-        emit ghostChanged();
-    }
-    applyMagnetAttraction();
-    checkAchievements();
-}
-
 void GameLogic::applyPostTickTasks()
 {
     if (!m_currentScript.isEmpty()) {
         runLevelScript();
     }
     m_sessionCore.finishRuntimeUpdate();
-}
-
-void GameLogic::applyMagnetAttraction()
-{
-    const QPoint head = m_sessionCore.headPosition();
-    const auto result = m_sessionCore.applyMagnetAttraction(BOARD_WIDTH, BOARD_HEIGHT);
-    if (result.moved) {
-        emit foodChanged();
-    }
-    if (result.ate) {
-        handleFoodConsumption(head);
-    }
 }
 
 void GameLogic::deactivateBuff()

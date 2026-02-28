@@ -26,7 +26,6 @@ add_library(snakegb_adapter
     adapter/tick_driver.cpp
     adapter/simulation.cpp
     adapter/board_state.cpp
-    adapter/consumption.cpp
     adapter/session_state_runtime.cpp
     adapter/session_state.cpp
     adapter/level_flow.cpp
