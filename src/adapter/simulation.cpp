@@ -46,17 +46,9 @@ void GameLogic::applyPostTickTasks()
 
 void GameLogic::applyMagnetAttraction()
 {
-    if (m_session.activeBuff != Magnet || m_session.food == QPoint(-1, -1) ||
-        m_sessionCore.body().empty()) {
-        return;
-    }
-
     const QPoint head = m_sessionCore.headPosition();
-    const auto result = snakegb::core::applyMagnetAttraction(
-        head, BOARD_WIDTH, BOARD_HEIGHT, m_session,
-        [this](const QPoint &pos) { return isOccupied(pos); });
+    const auto result = m_sessionCore.applyMagnetAttraction(BOARD_WIDTH, BOARD_HEIGHT);
     if (result.moved) {
-        m_session.food = result.newFood;
         emit foodChanged();
     }
     if (result.ate) {
@@ -66,10 +58,6 @@ void GameLogic::applyMagnetAttraction()
 
 void GameLogic::deactivateBuff()
 {
-    m_session.activeBuff = None;
-    m_session.buffTicksRemaining = 0;
-    m_session.buffTicksTotal = 0;
-    m_session.shieldActive = false;
     m_timer->setInterval(normalTickIntervalMs());
     emit buffChanged();
 }

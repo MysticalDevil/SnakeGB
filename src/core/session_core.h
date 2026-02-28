@@ -39,6 +39,12 @@ public:
                      const std::function<int(int)> &randomBounded) -> FoodConsumptionResult;
     auto consumePowerUp(const QPoint &head, int baseDurationTicks, bool halfDurationForRich)
         -> PowerUpConsumptionResult;
+    auto tickBuffCountdown() -> bool;
+    auto spawnFood(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
+        -> bool;
+    auto spawnPowerUp(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
+        -> bool;
+    auto applyMagnetAttraction(int boardWidth, int boardHeight) -> MagnetAttractionResult;
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();
@@ -47,6 +53,8 @@ public:
     void restoreSnapshot(const StateSnapshot &snapshot);
 
 private:
+    [[nodiscard]] auto isOccupied(const QPoint &point) const -> bool;
+
     SessionState m_state;
     std::deque<QPoint> m_body;
     std::deque<QPoint> m_inputQueue;

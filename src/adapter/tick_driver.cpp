@@ -22,8 +22,7 @@ void GameLogic::updateReflectionFallback()
 void GameLogic::update()
 {
     if (m_fsmState) {
-        if (m_session.activeBuff != None &&
-            snakegb::core::tickBuffCountdown(m_session.buffTicksRemaining)) {
+        if (m_sessionCore.tickBuffCountdown()) {
             deactivateBuff();
         }
         dispatchStateCallback([](GameState &state) -> void { state.update(); });

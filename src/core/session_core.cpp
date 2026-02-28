@@ -136,6 +136,71 @@ auto SessionCore::consumePowerUp(const QPoint &head, const int baseDurationTicks
     return result;
 }
 
+auto SessionCore::tickBuffCountdown() -> bool
+{
+    if (m_state.activeBuff == static_cast<int>(BuffId::None) ||
+        !snakegb::core::tickBuffCountdown(m_state.buffTicksRemaining)) {
+        return false;
+    }
+
+    m_state.activeBuff = static_cast<int>(BuffId::None);
+    m_state.buffTicksRemaining = 0;
+    m_state.buffTicksTotal = 0;
+    m_state.shieldActive = false;
+    return true;
+}
+
+auto SessionCore::spawnFood(const int boardWidth, const int boardHeight,
+                            const std::function<int(int)> &randomBounded) -> bool
+{
+    QPoint pickedPoint;
+    const bool found = pickRandomFreeSpot(
+        boardWidth, boardHeight,
+        [this](const QPoint &point) -> bool {
+            return isOccupied(point) || point == m_state.powerUpPos;
+        },
+        randomBounded, pickedPoint);
+    if (found) {
+        m_state.food = pickedPoint;
+    }
+    return found;
+}
+
+auto SessionCore::spawnPowerUp(const int boardWidth, const int boardHeight,
+                               const std::function<int(int)> &randomBounded) -> bool
+{
+    QPoint pickedPoint;
+    const bool found = pickRandomFreeSpot(
+        boardWidth, boardHeight,
+        [this](const QPoint &point) -> bool {
+            return isOccupied(point) || point == m_state.food;
+        },
+        randomBounded, pickedPoint);
+    if (found) {
+        m_state.powerUpPos = pickedPoint;
+        m_state.powerUpType =
+            static_cast<int>(weightedRandomBuffId(randomBounded));
+    }
+    return found;
+}
+
+auto SessionCore::applyMagnetAttraction(const int boardWidth, const int boardHeight)
+    -> MagnetAttractionResult
+{
+    if (m_state.activeBuff != static_cast<int>(BuffId::Magnet) || m_state.food == QPoint(-1, -1) ||
+        m_body.empty()) {
+        return {};
+    }
+
+    auto result = snakegb::core::applyMagnetAttraction(
+        headPosition(), boardWidth, boardHeight, m_state,
+        [this](const QPoint &pos) { return isOccupied(pos); });
+    if (result.moved) {
+        m_state.food = result.newFood;
+    }
+    return result;
+}
+
 void SessionCore::resetTransientRuntimeState()
 {
     m_state.direction = {0, -1};
@@ -166,6 +231,17 @@ void SessionCore::restoreSnapshot(const StateSnapshot &snapshot)
     m_state = snapshot.state;
     m_body = snapshot.body;
     m_inputQueue.clear();
+}
+
+auto SessionCore::isOccupied(const QPoint &point) const -> bool
+{
+    const bool inSnake = std::ranges::any_of(
+        m_body, [&point](const QPoint &bodyPoint) { return bodyPoint == point; });
+    if (inSnake) {
+        return true;
+    }
+    return std::ranges::any_of(m_state.obstacles,
+                               [&point](const QPoint &obstaclePoint) { return obstaclePoint == point; });
 }
 
 } // namespace snakegb::core

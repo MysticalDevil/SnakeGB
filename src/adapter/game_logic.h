@@ -481,7 +481,6 @@ private:
     [[nodiscard]] auto buildSafeInitialSnakeBody() const -> std::deque<QPoint>;
     void checkAchievements();
     void runLevelScript();
-    [[nodiscard]] auto isOccupied(const QPoint &p) const -> bool;
     static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
 
     SnakeModel m_snakeModel;

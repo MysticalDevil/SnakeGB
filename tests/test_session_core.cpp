@@ -134,6 +134,42 @@ private slots:
         QCOMPARE(core.state().powerUpPos, QPoint(-1, -1));
         QCOMPARE(core.body().size(), std::size_t(3));
     }
+
+    void testSpawnMagnetAndBuffCountdownMutateCoreState()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
+        core.state().obstacles = {QPoint(3, 3)};
+
+        QVERIFY(core.spawnFood(20, 18, [](int size) {
+            Q_UNUSED(size);
+            return 0;
+        }));
+        QCOMPARE(core.state().food, QPoint(0, 0));
+
+        QVERIFY(core.spawnPowerUp(20, 18, [](int size) {
+            Q_UNUSED(size);
+            return 0;
+        }));
+        QCOMPARE(core.state().powerUpPos, QPoint(0, 1));
+        QCOMPARE(core.state().powerUpType, static_cast<int>(snakegb::core::BuffId::Ghost));
+
+        core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Magnet);
+        core.state().food = QPoint(12, 10);
+        const auto magnetResult = core.applyMagnetAttraction(20, 18);
+        QVERIFY(magnetResult.moved);
+        QCOMPARE(core.state().food, magnetResult.newFood);
+
+        core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
+        core.state().buffTicksRemaining = 1;
+        core.state().buffTicksTotal = 8;
+        core.state().shieldActive = true;
+        QVERIFY(core.tickBuffCountdown());
+        QCOMPARE(core.state().activeBuff, 0);
+        QCOMPARE(core.state().buffTicksRemaining, 0);
+        QCOMPARE(core.state().buffTicksTotal, 0);
+        QVERIFY(!core.state().shieldActive);
+    }
 };
 
 QTEST_MAIN(TestSessionCore)
