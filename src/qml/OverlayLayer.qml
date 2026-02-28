@@ -109,123 +109,30 @@ Item {
         z: overlays.layerReplayBanner
     }
 
-    ModalSurface {
+    LevelUpModal {
         id: levelUpModal
+        anchors.fill: parent
         active: showReplayAndChoice && gameLogic.state === AppState.ChoiceSelection
         z: overlays.layerChoiceModal
+        gameLogic: overlays.gameLogic
+        gameFont: overlays.gameFont
+        elapsed: overlays.elapsed
+        drawPowerSymbol: overlays.drawPowerSymbol
+        rarityTier: overlays.rarityTier
+        rarityName: overlays.rarityName
+        rarityColor: overlays.rarityColor
         blurSourceItem: overlays.blurSourceItem
         blurScale: 1.4
         tintColor: overlays.modalTintColor
-        panelWidth: Math.max(184, width - 36)
-        panelHeight: Math.max(158, height - 36)
-        panelColor: overlays.modalPanelFill
-        panelBorderColor: overlays.modalPanelBorder
-        panelInnerBorderColor: overlays.modalInnerBorder
-        contentMargin: 8
-
-        Column {
-            id: choiceColumn
-            anchors.fill: parent
-            spacing: 3
-            readonly property int cardHeight: Math.max(
-                                                  36,
-                                                  Math.min(44, Math.floor((height - headerPanel.height - footerPanel.height - (spacing * 4)) / 3)))
-
-            Rectangle {
-                id: headerPanel
-                width: parent.width
-                height: 26
-                radius: 3
-                color: overlays.modalPanelFill
-                border.color: overlays.modalPanelBorder
-                border.width: 1
-
-                Column {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.verticalCenterOffset: 1
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: parent.width - 10
-                    spacing: -1
-
-                    Text {
-                        width: parent.width
-                        height: 14
-                        text: "LEVEL UP!"
-                        color: overlays.modalTitleInk
-                        font.family: overlays.gameFont
-                        font.pixelSize: 12
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Text {
-                        width: parent.width
-                        height: 8
-                        text: "CHOOSE 1 POWER"
-                        color: overlays.modalHintInk
-                        font.family: overlays.gameFont
-                        font.pixelSize: 6
-                        font.bold: false
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-            }
-
-            Repeater {
-                model: gameLogic.choices
-
-                delegate: ModalChoiceCard {
-                    width: parent.width
-                    height: choiceColumn.cardHeight
-                    gameFont: overlays.gameFont
-                    titleText: modelData.name
-                    descriptionText: modelData.desc
-                    badgeText: overlays.rarityName(Number(modelData.type))
-                    powerType: Number(modelData.type)
-                    selected: overlays.gameLogic.choiceIndex === index
-                    elapsed: overlays.elapsed
-                    accent: overlays.rarityColor(powerType)
-                    fillColor: overlays.modalCardFill
-                    fillSelectedColor: overlays.modalCardFillSelected
-                    borderColor: overlays.menuColor("borderSecondary")
-                    borderSelectedColor: overlays.modalPanelBorder
-                    titleColor: overlays.modalCardTitleInk
-                    descriptionColor: overlays.modalCardDescInk
-                    iconSocketColor: Qt.lighter(overlays.modalCardFill, 1.02)
-                    iconBorderColor: overlays.menuColor("borderSecondary")
-                    iconGlyphColor: selected ? Qt.darker(accent, 1.45) : Qt.darker(accent, 1.22)
-                    badgeColor: Qt.rgba(accent.r, accent.g, accent.b, selected ? 0.16 : 0.10)
-                    badgeBorderColor: selected ? Qt.darker(accent, 1.30) : overlays.menuColor("borderSecondary")
-                    badgeTextColor: overlays.modalCardTitleInk
-                    drawPowerSymbol: overlays.drawPowerSymbol
-                    rarityTier: overlays.rarityTier
-                }
-            }
-
-            Rectangle {
-                id: footerPanel
-                width: parent.width
-                height: 16
-                radius: 3
-                color: overlays.modalPanelFill
-                border.color: overlays.modalPanelBorder
-                border.width: 1
-
-                Text {
-                    anchors.fill: parent
-                    anchors.leftMargin: 4
-                    anchors.rightMargin: 4
-                    text: "START PICK   SELECT MENU"
-                    color: overlays.modalHintInk
-                    font.family: overlays.gameFont
-                    font.pixelSize: 7
-                    font.bold: false
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
-        }
+        modalPanelFill: overlays.modalPanelFill
+        modalPanelBorder: overlays.modalPanelBorder
+        modalInnerBorder: overlays.modalInnerBorder
+        modalTitleInk: overlays.modalTitleInk
+        modalHintInk: overlays.modalHintInk
+        modalCardFill: overlays.modalCardFill
+        modalCardFillSelected: overlays.modalCardFillSelected
+        modalCardTitleInk: overlays.modalCardTitleInk
+        modalCardDescInk: overlays.modalCardDescInk
+        cardBorderColor: overlays.menuColor("borderSecondary")
     }
 }
