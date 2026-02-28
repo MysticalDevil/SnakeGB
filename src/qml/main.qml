@@ -18,11 +18,6 @@ Window {
     property var gameLogicRef: gameLogic
 
     property real elapsed: 0.0
-    property bool selectPressActive: false
-    property bool selectLongPressConsumed: false
-    property bool selectKeyDown: false
-    property bool startPressActive: false
-    property bool saveClearConfirmPending: false
     property bool iconDebugMode: false
     property string staticDebugScene: ""
     readonly property var inputAction: ({
@@ -78,13 +73,17 @@ Window {
         konamiIndex = 0
     }
 
+    function dispatchRuntimeAction(action) {
+        gameLogic.dispatchUiAction(action)
+    }
+
     UiActionRouter {
         id: uiActionRouter
         gameLogic: gameLogicRef
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
-        saveClearConfirmPending: window.saveClearConfirmPending
+        saveClearConfirmPending: inputPressController.saveClearConfirmPending
         handleDirection: window.handleDirection
         toggleIconLabMode: debugTokenRouter.toggleIconLabMode
         setStaticScene: debugTokenRouter.setStaticScene
@@ -115,10 +114,18 @@ Window {
         resetKonamiProgress: window.resetKonamiProgress
     }
 
+    InputPressController {
+        id: inputPressController
+        currentState: gameLogic.state
+        hasSave: gameLogic.hasSave
+        iconDebugMode: window.iconDebugMode
+        actionMap: window.inputAction
+        showOsd: screen.showOSD
+        dispatchUiAction: window.dispatchRuntimeAction
+    }
+
     function dispatchAction(action) {
-        if (saveClearConfirmPending && action !== inputAction.Primary) {
-            cancelSaveClearConfirm(false)
-        }
+        inputPressController.beforeDispatch(action)
         uiActionRouter.route(action)
     }
 
@@ -214,12 +221,7 @@ Window {
     }
 
     function handleAButton() {
-        if (saveClearConfirmPending && gameLogic.state === AppState.StartMenu && gameLogic.hasSave) {
-            saveClearConfirmPending = false
-            saveClearConfirmTimer.stop()
-            gameLogic.dispatchUiAction("delete_save")
-            gameLogic.dispatchUiAction("feedback_heavy")
-            screen.showOSD("SAVE CLEARED")
+        if (inputPressController.confirmSaveClear()) {
             return
         }
         if (handleEasterInput("A")) {
@@ -291,26 +293,8 @@ Window {
         return beforeIndex > 0
     }
 
-    function beginSelectPress() {
-        selectPressActive = true
-        selectLongPressConsumed = false
-        selectHoldTimer.restart()
-    }
-
-    function endSelectPress() {
-        selectPressActive = false
-        selectHoldTimer.stop()
-    }
-
     function handleSelectShortPress() {
-        if (iconDebugMode) {
-            return
-        }
-        if (selectLongPressConsumed) {
-            selectLongPressConsumed = false
-            return
-        }
-        gameLogic.dispatchUiAction(inputAction.SelectShort)
+        inputPressController.triggerSelectShort()
     }
 
     function handleStartButton() {
@@ -320,23 +304,8 @@ Window {
         gameLogic.dispatchUiAction(inputAction.Start)
     }
 
-    function beginStartPress() {
-        startPressActive = true
-    }
-
-    function endStartPress() {
-        startPressActive = false
-    }
-
     function cancelSaveClearConfirm(showToast) {
-        if (!saveClearConfirmPending) {
-            return
-        }
-        saveClearConfirmPending = false
-        saveClearConfirmTimer.stop()
-        if (showToast) {
-            screen.showOSD("SAVE CLEAR CANCELED")
-        }
+        inputPressController.cancelSaveClearConfirm(showToast)
     }
 
     function handleBackAction() {
@@ -375,30 +344,6 @@ Window {
         target: inputInjector
         function onActionInjected(action) {
             dispatchInjectedToken(action)
-        }
-    }
-
-    Timer {
-        id: selectHoldTimer
-        interval: 700
-        repeat: false
-        onTriggered: {
-            if (!window.selectPressActive || window.selectLongPressConsumed) return
-            if (gameLogic.state === AppState.StartMenu && gameLogic.hasSave && window.startPressActive) {
-                window.selectLongPressConsumed = true
-                saveClearConfirmPending = true
-                saveClearConfirmTimer.restart()
-                screen.showOSD("PRESS A TO CLEAR SAVE")
-            }
-        }
-    }
-
-    Timer {
-        id: saveClearConfirmTimer
-        interval: 2600
-        repeat: false
-        onTriggered: {
-            cancelSaveClearConfirm(true)
         }
     }
 
@@ -461,11 +406,11 @@ Window {
         }
         function onPrimaryRequested() { dispatchAction(inputAction.Primary) }
         function onSecondaryRequested() { dispatchAction(inputAction.Secondary) }
-        function onSelectPressBegan() { beginSelectPress() }
-        function onSelectPressEnded() { endSelectPress() }
+        function onSelectPressBegan() { inputPressController.onSelectPressed() }
+        function onSelectPressEnded() { inputPressController.onSelectReleased() }
         function onSelectRequested() { dispatchAction(inputAction.SelectShort) }
-        function onStartPressBegan() { beginStartPress() }
-        function onStartPressEnded() { endStartPress() }
+        function onStartPressBegan() { inputPressController.onStartPressed() }
+        function onStartPressEnded() { inputPressController.onStartReleased() }
         function onStartRequested() { dispatchAction(inputAction.Start) }
         function onShellColorToggleRequested() {
             gameLogic.dispatchUiAction("feedback_ui")
@@ -489,7 +434,7 @@ Window {
             else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
                 shellBridge.startPressed = true
-                beginStartPress()
+                inputPressController.onStartPressed()
                 dispatchAction(inputAction.Start)
             }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
@@ -510,10 +455,10 @@ Window {
                 dispatchAction(inputAction.ToggleShellColor)
             }
             else if (event.key === Qt.Key_Shift) {
-                if (selectKeyDown) return
-                selectKeyDown = true
+                if (inputPressController.selectKeyDown) return
+                inputPressController.selectKeyDown = true
                 shellBridge.selectPressed = true
-                beginSelectPress()
+                inputPressController.onSelectPressed()
             }
             else if (event.key === Qt.Key_M) dispatchAction(inputAction.ToggleMusic)
             else if (event.key === Qt.Key_Back) {
@@ -528,13 +473,13 @@ Window {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startPressed = false
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) endStartPress()
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) inputPressController.onStartReleased()
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shellBridge.primaryPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shellBridge.secondaryPressed = false
             else if (event.key === Qt.Key_Shift) {
-                selectKeyDown = false
+                inputPressController.selectKeyDown = false
                 shellBridge.selectPressed = false
-                endSelectPress()
+                inputPressController.onSelectReleased()
                 dispatchAction(inputAction.SelectShort)
             }
         }
