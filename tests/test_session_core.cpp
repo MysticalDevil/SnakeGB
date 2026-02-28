@@ -94,6 +94,46 @@ private slots:
         QCOMPARE(core.body().front(), QPoint(12, 10));
         QCOMPARE(core.body().size(), std::size_t(4));
     }
+
+    void testCollisionConsumesLaserObstacleAndShield()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(5, 5), QPoint(4, 5), QPoint(3, 5)});
+        core.state().obstacles = {QPoint(6, 5)};
+        core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Laser);
+
+        const auto laserOutcome = core.checkCollision(QPoint(6, 5), 20, 18);
+        QVERIFY(!laserOutcome.collision);
+        QVERIFY(laserOutcome.consumeLaser);
+        QCOMPARE(core.state().obstacles.size(), 0);
+        QCOMPARE(core.state().activeBuff, 0);
+
+        core.state().shieldActive = true;
+        const auto shieldOutcome = core.checkCollision(QPoint(4, 5), 20, 18);
+        QVERIFY(!shieldOutcome.collision);
+        QVERIFY(shieldOutcome.consumeShield);
+        QVERIFY(!core.state().shieldActive);
+    }
+
+    void testFoodAndPowerUpConsumptionMutateSessionState()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)});
+        core.state().food = QPoint(11, 10);
+        core.state().powerUpPos = QPoint(12, 10);
+        core.state().powerUpType = static_cast<int>(snakegb::core::BuffId::Mini);
+        core.state().score = 9;
+
+        const auto foodResult = core.consumeFood(QPoint(11, 10), 20, 18, [](int) { return 0; });
+        QVERIFY(foodResult.ate);
+        QCOMPARE(core.state().score, foodResult.newScore);
+
+        const auto powerResult = core.consumePowerUp(QPoint(12, 10), 40, true);
+        QVERIFY(powerResult.ate);
+        QVERIFY(powerResult.miniApplied);
+        QCOMPARE(core.state().powerUpPos, QPoint(-1, -1));
+        QCOMPARE(core.body().size(), std::size_t(3));
+    }
 };
 
 QTEST_MAIN(TestSessionCore)

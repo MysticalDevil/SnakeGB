@@ -16,15 +16,12 @@ constexpr int BuffDurationTicks = 40;
 
 void GameLogic::handleFoodConsumption(const QPoint &head)
 {
-    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
-    const auto result = snakegb::core::planFoodConsumption(
-        p, m_session, BOARD_WIDTH, BOARD_HEIGHT,
-        [this](const int bound) { return m_rng.bounded(bound); });
+    const auto result = m_sessionCore.consumeFood(
+        head, BOARD_WIDTH, BOARD_HEIGHT, [this](const int bound) { return m_rng.bounded(bound); });
     if (!result.ate) {
         return;
     }
 
-    m_session.score = result.newScore;
     snakegb::adapter::logFoodEaten(m_profileManager.get());
 
     emit foodEaten(result.pan);
@@ -34,7 +31,6 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
     spawnFood();
 
     if (result.triggerChoice) {
-        m_session.lastRoguelikeChoiceScore = m_session.score;
         if (m_state == Replaying) {
             generateChoices();
         } else {
@@ -49,27 +45,16 @@ void GameLogic::handleFoodConsumption(const QPoint &head)
 
 void GameLogic::handlePowerUpConsumption(const QPoint &head)
 {
-    const QPoint p = snakegb::core::wrapPoint(head, BOARD_WIDTH, BOARD_HEIGHT);
-    const auto result =
-        snakegb::core::planPowerUpConsumption(p, m_session, BuffDurationTicks, true);
+    const auto result = m_sessionCore.consumePowerUp(head, BuffDurationTicks, true);
     if (!result.ate) {
         return;
     }
 
     snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
-    if (result.shieldActivated) {
-        m_session.shieldActive = true;
-    }
     if (result.miniApplied) {
-        m_sessionCore.setBody(snakegb::core::applyMiniShrink(m_sessionCore.body(), 3));
         syncSnakeModelFromCore();
         emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
     }
-    m_session.activeBuff = static_cast<PowerUp>(result.activeBuffAfter);
-    m_session.buffTicksRemaining = result.buffTicksRemaining;
-    m_session.buffTicksTotal = result.buffTicksTotal;
-
-    m_session.powerUpPos = QPoint(-1, -1);
 
     emit powerUpEaten();
     m_timer->setInterval(result.slowMode ? 250 : normalTickIntervalMs());

@@ -5,21 +5,15 @@
 
 auto GameLogic::checkCollision(const QPoint &head) -> bool
 {
-    const snakegb::core::CollisionOutcome outcome = snakegb::core::collisionOutcomeForHead(
-        head, BOARD_WIDTH, BOARD_HEIGHT, m_session.obstacles, m_sessionCore.body(),
-        m_session.activeBuff == Ghost, m_session.activeBuff == Portal, m_session.activeBuff == Laser,
-        m_session.shieldActive);
+    const auto outcome = m_sessionCore.checkCollision(head, BOARD_WIDTH, BOARD_HEIGHT);
 
     if (outcome.consumeLaser && outcome.obstacleIndex >= 0 &&
         outcome.obstacleIndex < m_session.obstacles.size()) {
-        m_session.obstacles.removeAt(outcome.obstacleIndex);
-        m_session.activeBuff = None;
         emit obstaclesChanged();
         triggerHaptic(8);
         emit buffChanged();
     }
     if (outcome.consumeShield) {
-        m_session.shieldActive = false;
         triggerHaptic(5);
         emit buffChanged();
     }

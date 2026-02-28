@@ -72,6 +72,70 @@ void SessionCore::applyMovement(const QPoint &newHead, const bool grew)
     }
 }
 
+auto SessionCore::checkCollision(const QPoint &head, const int boardWidth, const int boardHeight)
+    -> CollisionOutcome
+{
+    const auto outcome = collisionOutcomeForHead(head, boardWidth, boardHeight, m_state.obstacles,
+                                                 m_body,
+                                                 m_state.activeBuff ==
+                                                     static_cast<int>(BuffId::Ghost),
+                                                 m_state.activeBuff ==
+                                                     static_cast<int>(BuffId::Portal),
+                                                 m_state.activeBuff ==
+                                                     static_cast<int>(BuffId::Laser),
+                                                 m_state.shieldActive);
+
+    if (outcome.consumeLaser && outcome.obstacleIndex >= 0 &&
+        outcome.obstacleIndex < m_state.obstacles.size()) {
+        m_state.obstacles.removeAt(outcome.obstacleIndex);
+        m_state.activeBuff = static_cast<int>(BuffId::None);
+    }
+
+    if (outcome.consumeShield) {
+        m_state.shieldActive = false;
+    }
+
+    return outcome;
+}
+
+auto SessionCore::consumeFood(const QPoint &head, const int boardWidth, const int boardHeight,
+                              const std::function<int(int)> &randomBounded)
+    -> FoodConsumptionResult
+{
+    const auto result =
+        planFoodConsumption(head, m_state, boardWidth, boardHeight, randomBounded);
+    if (!result.ate) {
+        return result;
+    }
+
+    m_state.score = result.newScore;
+    if (result.triggerChoice) {
+        m_state.lastRoguelikeChoiceScore = m_state.score;
+    }
+    return result;
+}
+
+auto SessionCore::consumePowerUp(const QPoint &head, const int baseDurationTicks,
+                                 const bool halfDurationForRich) -> PowerUpConsumptionResult
+{
+    const auto result = planPowerUpConsumption(head, m_state, baseDurationTicks, halfDurationForRich);
+    if (!result.ate) {
+        return result;
+    }
+
+    if (result.shieldActivated) {
+        m_state.shieldActive = true;
+    }
+    if (result.miniApplied) {
+        m_body = applyMiniShrink(m_body, 3);
+    }
+    m_state.activeBuff = result.activeBuffAfter;
+    m_state.buffTicksRemaining = result.buffTicksRemaining;
+    m_state.buffTicksTotal = result.buffTicksTotal;
+    m_state.powerUpPos = QPoint(-1, -1);
+    return result;
+}
+
 void SessionCore::resetTransientRuntimeState()
 {
     m_state.direction = {0, -1};

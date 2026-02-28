@@ -116,7 +116,8 @@ Acceptance:
 Current status:
 - rule/helper extraction into `src/core/` is real and already useful;
 - `SessionCore` now exists and owns session state, queued input, snake body, and a dedicated snapshot type;
-- but the full gameplay tick/rule pipeline is still split between adapter and core, so the extraction is still partial.
+- the main session-step mechanics (`collision`, `food`, `power-up`, `movement`) now execute through `SessionCore`;
+- but tick orchestration, random spawning, replay integration, and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -222,7 +223,8 @@ state, not the desired end state.
 - session/runtime helpers are extracted.
 - `SessionCore` and `state_snapshot.h` now exist as the first real session boundary.
 - session state, input queue, and snake body ownership now live behind that core object.
-- however, the main tick/rule pipeline still is not fully moved behind that core object.
+- the main session-step mechanics now route through that core object.
+- however, tick orchestration, random spawning, replay integration, and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
   - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.

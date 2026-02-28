@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game_rules.h"
+#include "session_runtime.h"
 #include "state_snapshot.h"
 
 #include <QPoint>
@@ -32,6 +34,11 @@ public:
     void clearQueuedInput();
     void setBody(const std::deque<QPoint> &body);
     void applyMovement(const QPoint &newHead, bool grew);
+    auto checkCollision(const QPoint &head, int boardWidth, int boardHeight) -> CollisionOutcome;
+    auto consumeFood(const QPoint &head, int boardWidth, int boardHeight,
+                     const std::function<int(int)> &randomBounded) -> FoodConsumptionResult;
+    auto consumePowerUp(const QPoint &head, int baseDurationTicks, bool halfDurationForRich)
+        -> PowerUpConsumptionResult;
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();
