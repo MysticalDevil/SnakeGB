@@ -23,10 +23,13 @@ Item {
     property var readableText
 
     anchors.fill: parent
-    z: 10
     visible: active
     readonly property real cellW: width / gameLogic.boardWidth
     readonly property real cellH: height / gameLogic.boardHeight
+    readonly property int layerObstacle: 12
+    readonly property int layerFood: 20
+    readonly property int layerPowerUp: 30
+    readonly property int layerBuffPanel: 40
 
     Repeater {
         model: gameLogic.ghost
@@ -75,7 +78,7 @@ Item {
                    : gameWorld.gameSubInk
             border.color: gameWorld.gameBorder
             border.width: 1
-            z: 12
+            z: gameWorld.layerObstacle
         }
     }
 
@@ -84,7 +87,7 @@ Item {
         y: gameLogic.food.y * gameWorld.cellH
         width: gameWorld.cellW
         height: gameWorld.cellH
-        z: 20
+        z: gameWorld.layerFood
 
         Canvas {
             anchors.fill: parent
@@ -105,7 +108,7 @@ Item {
         y: gameLogic.powerUpPos.y * gameWorld.cellH
         width: gameWorld.cellW
         height: gameWorld.cellH
-        z: 30
+        z: gameWorld.layerPowerUp
 
         Rectangle {
             anchors.centerIn: parent
@@ -172,6 +175,6 @@ Item {
         buffTier: rarityTier(gameLogic.activeBuff)
         ticksRemaining: gameLogic.buffTicksRemaining
         ticksTotal: gameLogic.buffTicksTotal
-        z: 40
+        z: gameWorld.layerBuffPanel
     }
 }

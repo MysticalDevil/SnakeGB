@@ -19,7 +19,6 @@ Rectangle {
     anchors.fill: parent
     color: menuColor("cardPrimary")
     clip: true
-    z: 1600
 
     readonly property int contentMargin: 8
     readonly property int contentSpacing: 4

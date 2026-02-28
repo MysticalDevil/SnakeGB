@@ -42,7 +42,6 @@ Rectangle {
     anchors.fill: parent
     color: pageBg
     visible: active
-    z: 800
     clip: true
 
     Rectangle {
@@ -59,6 +58,7 @@ Rectangle {
         spacing: 6
 
         Rectangle {
+            id: headerPanel
             width: parent.width
             height: 28
             radius: 3
@@ -91,7 +91,9 @@ Rectangle {
         ListView {
             id: libraryList
             width: parent.width
-            height: parent.height - 72
+            height: Math.max(
+                        0,
+                        parent.height - headerPanel.height - footerPanel.height - (parent.spacing * 2))
             model: gameLogic.fruitLibrary
             property bool syncingFromLogic: false
             currentIndex: -1
@@ -292,8 +294,9 @@ Rectangle {
         }
 
         Rectangle {
+            id: footerPanel
             width: parent.width
-            height: 18
+            height: 16
             radius: 3
             color: Qt.rgba(libraryLayer.panelBgStrong.r, libraryLayer.panelBgStrong.g, libraryLayer.panelBgStrong.b, 0.82)
             border.color: libraryLayer.borderStrong

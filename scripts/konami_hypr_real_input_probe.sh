@@ -143,8 +143,8 @@ run_case() {
 
   # Enter paused overlay: Start game, then pause.
   # We verify this in logs before starting Konami to avoid false negatives.
-  local entered_playing=0 entered_paused=0 try=0
-  for try in 1 2 3; do
+  local entered_playing=0 entered_paused=0
+  for _ in 1 2 3; do
     hyprctl dispatch focuswindow "address:${WINDOW_ADDR}" >/dev/null 2>&1 || true
     send_key "Return"
     if wait_log_contains "${RUN_LOG}" "setInternalState: StartMenu -> Playing" 5; then

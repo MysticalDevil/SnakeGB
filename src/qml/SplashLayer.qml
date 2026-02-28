@@ -15,7 +15,6 @@ Rectangle {
 
     color: pageBg
     visible: active
-    z: 1000
     property real logoY: -56
     property int fakeLoad: 0
 

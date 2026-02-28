@@ -20,7 +20,6 @@ Rectangle {
 
     anchors.fill: parent
     visible: staticScene !== ""
-    z: 1500
     color: (showGame || showReplay) ? playBg : menuColor("cardPrimary")
     clip: true
 
@@ -35,6 +34,7 @@ Rectangle {
     readonly property color accentInk: menuColor("actionInk")
     readonly property color secondaryInk: menuColor("secondaryInk")
     readonly property color hintInk: menuColor("hintInk")
+    readonly property int layerHud: 60
     readonly property int previewHighScore: 0
     readonly property int previewScore: showReplay ? 42 : 18
     readonly property int previewBuffType: showReplay ? 4 : 3
@@ -244,7 +244,7 @@ Rectangle {
             anchors.right: parent.right
             anchors.topMargin: 4
             anchors.rightMargin: 4
-            z: 60
+            z: staticSceneLayer.layerHud
             active: staticSceneLayer.showGame || staticSceneLayer.showReplay
             gameLogic: staticSceneLayer.gameLogic
             gameFont: staticSceneLayer.gameFont

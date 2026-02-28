@@ -59,8 +59,11 @@ make clean
 - Avoid relative `#include` paths; prefer module-prefixed includes (for example, `core/...`, `adapter/...`, `fsm/...`).
 - QML/JS: prefer ES6+ features (`const`/`let`, template strings, arrow functions, destructuring) where supported; avoid legacy `var` unless required by Qt/QML constraints.
 - QML layering: keep a single documented stack and preserve it when editing.
-  - World/HUD that should receive the LCD shader must live inside the shader source tree.
-  - Modal overlays that must stay crisp (for example pause/game over) must live above the shader.
+  - World, HUD, and screen-space modal UI that should receive the LCD treatment must live inside the shader source tree.
+  - If a screen element belongs to the LCD itself, do not place it above the LCD shader just to make it easier to style.
+  - Treat `lcdShader` as the last in-screen composition pass: CRT/panel artifacts belong inside its source tree, not above it.
+  - Top-level screen `z` ordering must be assigned in `ScreenView.qml` via shared named layer tokens; leaf pages should not hardcode root-level `z` values.
+  - Inside a component, `z` is only for local draw order and should use named local properties instead of bare numbers.
   - Debug takeover layers (`IconLab`, `StaticDebug`) must suppress lower-priority overlays/HUD so only one top-level mode owns the screen at a time.
   - `OSDLayer` should remain topmost above CRT/screen treatment layers.
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
@@ -70,6 +73,8 @@ make clean
 - Add tests in `tests/test_*.cpp`; keep test names descriptive by behavior (for example, `test_portalWrap_keepsHeadInsideBounds`).
 - For UI/input regressions, use scripts such as `scripts/ui_self_check.sh` and `scripts/input_semantics_matrix_wayland.sh` when relevant.
 - For palette/readability verification, use `scripts/palette_capture_matrix.sh` (captures 5 palette variants for menu/page/icon-lab flows).
+- UI capture scripts must be run serially. Do not start `scripts/ui_nav_capture.sh`, `scripts/palette_capture_focus.sh`, `scripts/palette_capture_matrix.sh`, or `scripts/palette_capture_review.sh` in parallel.
+- `scripts/ui_nav_capture.sh` owns the global capture lock; if you need multiple captures, queue them in one shell loop or run them one-by-one.
 - Enforce this validation order for C++ changes: `clang-tidy` first, then build, then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/clang_tidy_cached.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.

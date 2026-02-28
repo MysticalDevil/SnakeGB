@@ -50,15 +50,7 @@ Window {
     }
 
     function setDpadPressed(dx, dy) {
-        if (dy < 0) {
-            shell.dpad.upPressed = true
-        } else if (dy > 0) {
-            shell.dpad.downPressed = true
-        } else if (dx < 0) {
-            shell.dpad.leftPressed = true
-        } else if (dx > 0) {
-            shell.dpad.rightPressed = true
-        }
+        shellBridge.setDirectionPressed(dx, dy)
     }
 
     function handleDirection(dx, dy) {
@@ -524,10 +516,7 @@ Window {
     }
 
     function clearDpadVisuals() {
-        shell.dpad.upPressed = false
-        shell.dpad.downPressed = false
-        shell.dpad.leftPressed = false
-        shell.dpad.rightPressed = false
+        shellBridge.clearDirectionPressed()
     }
 
     function handleBButton() {
@@ -738,6 +727,11 @@ Window {
     Item {
         id: rootContainer
         anchors.fill: parent
+
+        ShellBridge {
+            id: shellBridge
+        }
+
         Item {
             id: scaledWrapper
             width: 350
@@ -748,25 +742,13 @@ Window {
             Shell {
                 id: shell
                 anchors.fill: parent
+                bridge: shellBridge
                 shellColor: gameLogic.shellColor
                 shellThemeName: gameLogic.shellName
                 volume: gameLogic.volume
-
-                onShellColorToggleRequested: {
-                    gameLogic.dispatchUiAction("feedback_ui")
-                    gameLogic.dispatchUiAction("toggle_shell_color")
-                }
-
-                onVolumeRequested: (value, withHaptic) => {
-                    gameLogic.volume = value
-                    if (withHaptic) {
-                        gameLogic.dispatchUiAction("feedback_light")
-                    }
-                }
                 
                 ScreenView {
                     id: screen
-                    parent: shell.screenContainer
                     anchors.fill: parent
                     gameLogic: gameLogicRef
                     p0: window.p0
@@ -778,54 +760,34 @@ Window {
                     iconDebugMode: window.iconDebugMode
                     staticDebugScene: window.staticDebugScene
                 }
+            }
+        }
+    }
 
-                Connections {
-                    target: shell.dpad
-                    function onUpClicked() { dispatchAction(inputAction.NavUp) }
-                    function onDownClicked() { dispatchAction(inputAction.NavDown) }
-                    function onLeftClicked() { dispatchAction(inputAction.NavLeft) }
-                    function onRightClicked() { dispatchAction(inputAction.NavRight) }
-                }
-
-                Connections { 
-                    target: shell.aButton
-                    function onClicked() { dispatchAction(inputAction.Primary) } 
-                }
-
-                Connections { 
-                    target: shell.bButton
-                    function onClicked() {
-                        dispatchAction(inputAction.Secondary)
-                    }
-                }
-
-                Connections { 
-                    target: shell.selectButton
-                    function onPressed() { 
-                        shell.selectButton.isPressed = true
-                        beginSelectPress()
-                    }
-                    function onReleased() { 
-                        shell.selectButton.isPressed = false
-                        endSelectPress()
-                    }
-                    function onClicked() {
-                        dispatchAction(inputAction.SelectShort)
-                    } 
-                }
-
-                Connections { 
-                    target: shell.startButton
-                    function onPressed() {
-                        shell.startButton.isPressed = true
-                        beginStartPress()
-                    }
-                    function onReleased() {
-                        shell.startButton.isPressed = false
-                        endStartPress()
-                    }
-                    function onClicked() { dispatchAction(inputAction.Start) } 
-                }
+    Connections {
+        target: shellBridge
+        function onDirectionRequested(dx, dy) {
+            if (dy < 0) dispatchAction(inputAction.NavUp)
+            else if (dy > 0) dispatchAction(inputAction.NavDown)
+            else if (dx < 0) dispatchAction(inputAction.NavLeft)
+            else if (dx > 0) dispatchAction(inputAction.NavRight)
+        }
+        function onPrimaryRequested() { dispatchAction(inputAction.Primary) }
+        function onSecondaryRequested() { dispatchAction(inputAction.Secondary) }
+        function onSelectPressBegan() { beginSelectPress() }
+        function onSelectPressEnded() { endSelectPress() }
+        function onSelectRequested() { dispatchAction(inputAction.SelectShort) }
+        function onStartPressBegan() { beginStartPress() }
+        function onStartPressEnded() { endStartPress() }
+        function onStartRequested() { dispatchAction(inputAction.Start) }
+        function onShellColorToggleRequested() {
+            gameLogic.dispatchUiAction("feedback_ui")
+            gameLogic.dispatchUiAction("toggle_shell_color")
+        }
+        function onVolumeRequested(value, withHaptic) {
+            gameLogic.volume = value
+            if (withHaptic) {
+                gameLogic.dispatchUiAction("feedback_light")
             }
         }
     }
@@ -839,12 +801,12 @@ Window {
             else if (event.key === Qt.Key_Left) dispatchAction(inputAction.NavLeft)
             else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                shell.startButton.isPressed = true
+                shellBridge.startPressed = true
                 beginStartPress()
                 dispatchAction(inputAction.Start)
             }
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
-                shell.aButton.isPressed = true
+                shellBridge.primaryPressed = true
                 dispatchAction(inputAction.Primary)
             }
             else if (event.key === Qt.Key_F6) {
@@ -854,7 +816,7 @@ Window {
                 cycleStaticDebug(1)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                shell.bButton.isPressed = true
+                shellBridge.secondaryPressed = true
                 dispatchAction(inputAction.Secondary)
             }
             else if (event.key === Qt.Key_C || event.key === Qt.Key_Y) {
@@ -863,7 +825,7 @@ Window {
             else if (event.key === Qt.Key_Shift) {
                 if (selectKeyDown) return
                 selectKeyDown = true
-                shell.selectButton.isPressed = true
+                shellBridge.selectPressed = true
                 beginSelectPress()
             }
             else if (event.key === Qt.Key_M) dispatchAction(inputAction.ToggleMusic)
@@ -878,13 +840,13 @@ Window {
         Keys.onReleased: (event) => {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shell.startButton.isPressed = false
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startPressed = false
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) endStartPress()
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shell.aButton.isPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shell.bButton.isPressed = false
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shellBridge.primaryPressed = false
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shellBridge.secondaryPressed = false
             else if (event.key === Qt.Key_Shift) {
                 selectKeyDown = false
-                shell.selectButton.isPressed = false
+                shellBridge.selectPressed = false
                 endSelectPress()
                 dispatchAction(inputAction.SelectShort)
             }

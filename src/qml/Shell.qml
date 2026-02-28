@@ -8,22 +8,15 @@ Rectangle {
     property color shellColor: "#4aa3a8"
     property string shellThemeName: "Teal"
     property real volume: 1.0
+    property var bridge: null
     readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
-
-    signal shellColorToggleRequested()
-    signal volumeRequested(real value, bool withHaptic)
 
     color: shell.shellColor
     radius: 16
     border.color: shell.shellTheme.shellBorder
     border.width: 2
 
-    property alias screenContainer: screenBorder.screenContainer
-    property alias dpad: dpadUI
-    property alias bButton: bBtnUI
-    property alias aButton: aBtnUI
-    property alias selectButton: selectBtnUI
-    property alias startButton: startBtnUI
+    default property alias screenContent: screenBorder.content
 
     Behavior on color {
         ColorAnimation { duration: 300 }
@@ -50,8 +43,13 @@ Rectangle {
         anchors.top: screenBorder.bottom
         anchors.topMargin: 12
         anchors.horizontalCenter: parent.horizontalCenter
+        width: screenBorder.width
         theme: shell.shellTheme
-        onLogoClicked: shell.shellColorToggleRequested()
+        onLogoClicked: {
+            if (shell.bridge) {
+                shell.bridge.shellColorToggleRequested()
+            }
+        }
     }
 
     // --- Controls ---
@@ -61,6 +59,30 @@ Rectangle {
         anchors.bottomMargin: 110
         anchors.left: parent.left
         anchors.leftMargin: 25
+        externalUpPressed: shell.bridge ? shell.bridge.upPressed : false
+        externalDownPressed: shell.bridge ? shell.bridge.downPressed : false
+        externalLeftPressed: shell.bridge ? shell.bridge.leftPressed : false
+        externalRightPressed: shell.bridge ? shell.bridge.rightPressed : false
+        onUpClicked: {
+            if (shell.bridge) {
+                shell.bridge.directionRequested(0, -1)
+            }
+        }
+        onDownClicked: {
+            if (shell.bridge) {
+                shell.bridge.directionRequested(0, 1)
+            }
+        }
+        onLeftClicked: {
+            if (shell.bridge) {
+                shell.bridge.directionRequested(-1, 0)
+            }
+        }
+        onRightClicked: {
+            if (shell.bridge) {
+                shell.bridge.directionRequested(1, 0)
+            }
+        }
     }
 
     Row {
@@ -70,8 +92,26 @@ Rectangle {
         anchors.rightMargin: 22
         spacing: 18
         rotation: -15
-        GBButton { id: bBtnUI; text: "B" }
-        GBButton { id: aBtnUI; text: "A" }
+        GBButton {
+            id: bBtnUI
+            text: "B"
+            pressedExternally: shell.bridge ? shell.bridge.secondaryPressed : false
+            onClicked: {
+                if (shell.bridge) {
+                    shell.bridge.secondaryRequested()
+                }
+            }
+        }
+        GBButton {
+            id: aBtnUI
+            text: "A"
+            pressedExternally: shell.bridge ? shell.bridge.primaryPressed : false
+            onClicked: {
+                if (shell.bridge) {
+                    shell.bridge.primaryRequested()
+                }
+            }
+        }
     }
 
     Row {
@@ -79,8 +119,48 @@ Rectangle {
         anchors.bottomMargin: 36
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 28
-        SmallButton { id: selectBtnUI; text: "SELECT" }
-        SmallButton { id: startBtnUI; text: "START" }
+        SmallButton {
+            id: selectBtnUI
+            text: "SELECT"
+            theme: shell.shellTheme
+            pressedExternally: shell.bridge ? shell.bridge.selectPressed : false
+            onPressed: {
+                if (shell.bridge) {
+                    shell.bridge.selectPressBegan()
+                }
+            }
+            onReleased: {
+                if (shell.bridge) {
+                    shell.bridge.selectPressEnded()
+                }
+            }
+            onClicked: {
+                if (shell.bridge) {
+                    shell.bridge.selectRequested()
+                }
+            }
+        }
+        SmallButton {
+            id: startBtnUI
+            text: "START"
+            theme: shell.shellTheme
+            pressedExternally: shell.bridge ? shell.bridge.startPressed : false
+            onPressed: {
+                if (shell.bridge) {
+                    shell.bridge.startPressBegan()
+                }
+            }
+            onReleased: {
+                if (shell.bridge) {
+                    shell.bridge.startPressEnded()
+                }
+            }
+            onClicked: {
+                if (shell.bridge) {
+                    shell.bridge.startRequested()
+                }
+            }
+        }
     }
 
     Item {
@@ -107,6 +187,10 @@ Rectangle {
         height: 74
         theme: shell.shellTheme
         volume: shell.volume
-        onVolumeRequested: shell.volumeRequested(value, withHaptic)
+        onVolumeRequested: {
+            if (shell.bridge) {
+                shell.bridge.volumeRequested(value, withHaptic)
+            }
+        }
     }
 }

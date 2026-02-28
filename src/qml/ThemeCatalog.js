@@ -64,12 +64,73 @@ const pageColor = (paletteName, page, role, fallback) => {
     return fallback;
 };
 
+const _hexToRgb = (value) => {
+    const hex = String(value || "").replace("#", "");
+    if (hex.length !== 6) return {r: 0, g: 0, b: 0};
+    return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16)
+    };
+};
+
+const _rgbToHex = (rgb) => {
+    const ch = (n) => {
+        const v = Math.max(0, Math.min(255, Math.round(n)));
+        const s = v.toString(16);
+        return s.length === 1 ? `0${s}` : s;
+    };
+    return `#${ch(rgb.r)}${ch(rgb.g)}${ch(rgb.b)}`;
+};
+
+const _mix = (a, b, amount) => {
+    const t = Math.max(0, Math.min(1, amount));
+    return {
+        r: (a.r * (1 - t)) + (b.r * t),
+        g: (a.g * (1 - t)) + (b.g * t),
+        b: (a.b * (1 - t)) + (b.b * t)
+    };
+};
+
+const _linearize = (channel) => {
+    const s = channel / 255;
+    return s <= 0.04045 ? (s / 12.92) : Math.pow((s + 0.055) / 1.055, 2.4);
+};
+
+const _luminance = (value) => {
+    const rgb = _hexToRgb(value);
+    const r = _linearize(rgb.r);
+    const g = _linearize(rgb.g);
+    const b = _linearize(rgb.b);
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+};
+
+const _contrast = (fg, bg) => {
+    const l1 = _luminance(fg);
+    const l2 = _luminance(bg);
+    const hi = Math.max(l1, l2);
+    const lo = Math.min(l1, l2);
+    return (hi + 0.05) / (lo + 0.05);
+};
+
+const _readableInk = (background, darkInk, lightInk) => {
+    return _contrast(darkInk, background) >= _contrast(lightInk, background) ? darkInk : lightInk;
+};
+
+const _ensureContrast = (candidate, background, minimum, darkInk, lightInk) => {
+    if (candidate && _contrast(candidate, background) >= minimum) return candidate;
+    return _readableInk(background, darkInk, lightInk);
+};
+
+const _softenInk = (ink, background, amount, minimum, darkInk, lightInk) => {
+    const mixed = _rgbToHex(_mix(_hexToRgb(ink), _hexToRgb(background), amount));
+    return _ensureContrast(mixed, background, minimum, darkInk, lightInk);
+};
+
 const shellTheme = (shellName, shellColor) => {
     const t = _catalog.shells[shellName];
-    if (t) return t;
-
     const base = shellColor || "#4aa3a8";
-    return {
+    const theme = t ? Object.assign({}, t) : {
         shellBase: base,
         shellBorder: "#4b5a66",
         shellHighlight: "#6f7f8e",
@@ -88,6 +149,17 @@ const shellTheme = (shellName, shellColor) => {
         wheelBodyDark: "#4a5567",
         wheelBodyLight: "#78859b"
     };
+
+    const shellPrimaryInk = _ensureContrast(theme.brandInk, theme.shellBase, 4.6, "#1b1724", "#f4f1fb");
+    const shellSecondaryInk = _softenInk(shellPrimaryInk, theme.shellBase, 0.24, 3.4, shellPrimaryInk, "#ece8f5");
+    const buttonLabelInk = _ensureContrast(shellPrimaryInk, theme.shellBase, 5.0, "#16131d", "#faf7ff");
+    const bezelLabelInk = _ensureContrast(theme.labelInk, theme.bezelBase, 4.3, "#121820", "#dce4ee");
+
+    theme.brandInk = shellPrimaryInk;
+    theme.subtitleInk = shellSecondaryInk;
+    theme.buttonLabelInk = buttonLabelInk;
+    theme.labelInk = bezelLabelInk;
+    return theme;
 };
 
 const powerAccent = (paletteName, type, fallback) => {

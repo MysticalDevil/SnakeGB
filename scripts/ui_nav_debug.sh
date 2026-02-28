@@ -6,26 +6,23 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
 # shellcheck source=lib/ui_nav_targets.sh
 source "${ROOT_DIR}/scripts/lib/ui_nav_targets.sh"
+
 BUILD_DIR="$(resolve_build_dir dev)"
 APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
-WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
-WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
 WAIT_SECONDS="${WAIT_SECONDS:-14}"
 BOOT_SETTLE_SECONDS="${BOOT_SETTLE_SECONDS:-4.2}"
 NAV_STEP_DELAY="${NAV_STEP_DELAY:-0.25}"
 NAV_RETRIES="${NAV_RETRIES:-2}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.6}"
+MAX_LAUNCH_ATTEMPTS="${MAX_LAUNCH_ATTEMPTS:-3}"
 PALETTE_STEPS="${PALETTE_STEPS:-0}"
 PALETTE_TOKEN="${PALETTE_TOKEN:-PALETTE}"
 PRE_TOKENS="${PRE_TOKENS:-}"
 POST_TOKENS="${POST_TOKENS:-}"
-NO_SCREENSHOT="${NO_SCREENSHOT:-0}"
-HOLD_OPEN="${HOLD_OPEN:-0}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
 INPUT_FILE="${INPUT_FILE:-/tmp/snakegb_ui_input.txt}"
 CAPTURE_LOCK_FILE="${CAPTURE_LOCK_FILE:-/tmp/snakegb_ui_nav_capture.lock}"
 TARGET="${1:-menu}"
-OUT_PNG="${2:-/tmp/snakegb_ui_nav_${TARGET}.png}"
 
 need_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -34,11 +31,33 @@ need_cmd() {
   fi
 }
 
+usage() {
+  cat <<EOF
+Usage:
+  ./scripts/ui_nav_debug.sh <target>
+  ./scripts/ui_nav_debug.sh list
+
+Targets:
+  $(ui_nav_supported_targets)
+
+Useful env vars:
+  PRE_TOKENS=COLOR
+  POST_TOKENS=RIGHT,B
+  PALETTE_STEPS=4
+  ISOLATED_CONFIG=0
+  INPUT_FILE=/tmp/custom_input.txt
+EOF
+}
+
+if [[ "${TARGET}" == "list" || "${TARGET}" == "--help" || "${TARGET}" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
 need_cmd cmake
 need_cmd flock
 need_cmd hyprctl
 need_cmd jq
-need_cmd grim
 
 if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
   echo "[error] This script expects Wayland (current: ${XDG_SESSION_TYPE:-unknown})"
@@ -47,7 +66,7 @@ fi
 
 exec 9>"${CAPTURE_LOCK_FILE}"
 if ! flock -n 9; then
-  echo "[info] Another UI capture is running; waiting for ${CAPTURE_LOCK_FILE}"
+  echo "[info] Another UI navigation session is running; waiting for ${CAPTURE_LOCK_FILE}"
   flock 9
 fi
 
@@ -59,24 +78,18 @@ if [[ ! -x "${APP_BIN}" ]]; then
   exit 1
 fi
 
-# Use an isolated settings dir by default so palette/save persistence does not
-# pollute automated captures or make palette steps non-deterministic.
 CFG_TMP=""
 if [[ "${ISOLATED_CONFIG}" == "1" ]]; then
   CFG_TMP="$(mktemp -d /tmp/snakegb_ui_cfg.XXXXXX)"
   export XDG_CONFIG_HOME="${CFG_TMP}"
 fi
 
-# Prevent stale windows from previous runs from being matched.
-pkill -f "${APP_BIN}" >/dev/null 2>&1 || true
-sleep 0.2
+APP_PID=""
 
-echo "[info] Launching ${APP_BIN}"
-rm -f "${INPUT_FILE}" >/dev/null 2>&1 || true
-SNAKEGB_INPUT_FILE="${INPUT_FILE}" "${APP_BIN}" >/tmp/snakegb_ui_nav_runtime.log 2>&1 &
-APP_PID=$!
 cleanup() {
-  kill "${APP_PID}" >/dev/null 2>&1 || true
+  if [[ -n "${APP_PID}" ]]; then
+    kill "${APP_PID}" >/dev/null 2>&1 || true
+  fi
   if [[ -n "${CFG_TMP}" && -d "${CFG_TMP}" ]]; then
     rm -rf "${CFG_TMP}"
   fi
@@ -85,29 +98,49 @@ trap cleanup EXIT
 
 WINDOW_ADDR=""
 GEOM=""
-DEADLINE=$((SECONDS + WAIT_SECONDS))
-while (( SECONDS < DEADLINE )); do
-  CLIENTS_JSON="$(hyprctl clients -j 2>&1 || true)"
-  if ! jq -e . >/dev/null 2>&1 <<<"${CLIENTS_JSON}"; then
+attempt=1
+while (( attempt <= MAX_LAUNCH_ATTEMPTS )); do
+  pkill -f "${APP_BIN}" >/dev/null 2>&1 || true
+  sleep 0.2
+
+  echo "[info] Launching ${APP_BIN} (attempt ${attempt}/${MAX_LAUNCH_ATTEMPTS})"
+  rm -f "${INPUT_FILE}" >/dev/null 2>&1 || true
+  SNAKEGB_INPUT_FILE="${INPUT_FILE}" "${APP_BIN}" >/tmp/snakegb_ui_nav_runtime.log 2>&1 &
+  APP_PID=$!
+
+  DEADLINE=$((SECONDS + WAIT_SECONDS))
+  while (( SECONDS < DEADLINE )); do
+    CLIENTS_JSON="$(hyprctl clients -j 2>&1 || true)"
+    if ! jq -e . >/dev/null 2>&1 <<<"${CLIENTS_JSON}"; then
+      sleep 0.2
+      continue
+    fi
+
+    WINDOW_INFO="$(jq -r --argjson pid "${APP_PID}" '
+      .[] | select(.pid == $pid) |
+      "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
+    ' <<<"${CLIENTS_JSON}" | head -n1)"
+
+    if [[ -n "${WINDOW_INFO}" ]]; then
+      WINDOW_ADDR="${WINDOW_INFO%%$'\t'*}"
+      GEOM="${WINDOW_INFO#*$'\t'}"
+      break
+    fi
     sleep 0.2
-    continue
-  fi
+  done
 
-  WINDOW_INFO="$(jq -r --argjson pid "${APP_PID}" '
-    .[] | select(.pid == $pid) |
-    "\(.address)\t\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"
-  ' <<<"${CLIENTS_JSON}" | head -n1)"
-
-  if [[ -n "${WINDOW_INFO}" ]]; then
-    WINDOW_ADDR="${WINDOW_INFO%%$'\t'*}"
-    GEOM="${WINDOW_INFO#*$'\t'}"
+  if [[ -n "${WINDOW_ADDR}" && -n "${GEOM}" ]]; then
     break
   fi
-  sleep 0.2
+
+  kill "${APP_PID}" >/dev/null 2>&1 || true
+  APP_PID=""
+  attempt=$((attempt + 1))
 done
 
 if [[ -z "${WINDOW_ADDR}" || -z "${GEOM}" ]]; then
   echo "[error] Could not find game window."
+  tail -n 80 /tmp/snakegb_ui_nav_runtime.log || true
   exit 2
 fi
 
@@ -154,18 +187,16 @@ if [[ "${PALETTE_STEPS}" =~ ^[0-9]+$ ]] && (( PALETTE_STEPS > 0 )); then
 fi
 
 ui_nav_apply_target "${TARGET}"
-
 send_token_list "${POST_TOKENS}"
 
 sleep "${POST_NAV_WAIT}"
 if ! kill -0 "${APP_PID}" >/dev/null 2>&1; then
-  echo "[error] App exited before screenshot. Recent log:"
+  echo "[error] App exited during setup. Recent log:"
   tail -n 80 /tmp/snakegb_ui_nav_runtime.log || true
   exit 5
 fi
 
-if [[ "${HOLD_OPEN}" == "1" ]]; then
-  cat <<EOF
+cat <<EOF
 [ok] Target ready: ${TARGET}
 [ok] PID: ${APP_PID}
 [ok] Window: ${WINDOW_ADDR}
@@ -176,19 +207,5 @@ if [[ "${HOLD_OPEN}" == "1" ]]; then
        printf 'START\n' >> ${INPUT_FILE}
 [hint] Close the app normally, or press Ctrl+C in this terminal.
 EOF
-  wait "${APP_PID}"
-  exit $?
-fi
 
-if [[ "${NO_SCREENSHOT}" == "1" ]]; then
-  echo "[ok] Target: ${TARGET}"
-  echo "[ok] Palette steps: ${PALETTE_STEPS}"
-  exit 0
-fi
-
-mkdir -p "$(dirname "${OUT_PNG}")"
-grim -g "${GEOM}" "${OUT_PNG}"
-echo "[ok] Target: ${TARGET}"
-echo "[ok] Palette steps: ${PALETTE_STEPS}"
-echo "[ok] Screenshot saved: ${OUT_PNG}"
-echo "[ok] Geometry: ${GEOM}"
+wait "${APP_PID}"

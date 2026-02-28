@@ -4,7 +4,6 @@ import QtQuick.Controls
 Rectangle {
     id: medalRoot
     anchors.fill: parent
-    z: 1000
 
     property color p0
     property color p1
@@ -51,6 +50,7 @@ Rectangle {
         spacing: 6
 
         Rectangle {
+            id: headerPanel
             width: parent.width
             height: 28
             radius: 3
@@ -83,7 +83,9 @@ Rectangle {
         ListView {
             id: medalList
             width: parent.width
-            height: parent.height - 72
+            height: Math.max(
+                        0,
+                        parent.height - headerPanel.height - footerPanel.height - (parent.spacing * 2))
             model: gameLogic.medalLibrary
             property bool syncingFromLogic: false
             currentIndex: -1
@@ -166,8 +168,9 @@ Rectangle {
         }
 
         Rectangle {
+            id: footerPanel
             width: parent.width
-            height: 18
+            height: 16
             radius: 3
             color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.82)
             border.color: medalRoot.dividerColor

@@ -18,7 +18,7 @@ SERVE="${SERVE:-1}"
 PORT="${PORT:-8080}"
 
 if [[ -z "${EMSDK:-}" && -f "${EMSDK_ROOT}/emsdk_env.sh" ]]; then
-    # shellcheck disable=SC1090
+    # shellcheck disable=SC1090,SC1091
     source "${EMSDK_ROOT}/emsdk_env.sh" >/dev/null
 fi
 

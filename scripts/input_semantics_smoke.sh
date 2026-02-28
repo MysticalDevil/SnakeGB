@@ -27,6 +27,7 @@ SNAKEGB_INPUT_FILE="${INPUT_FILE}" \
 "${APP_BIN}" >"${LOG_FILE}" 2>&1 &
 APP_PID=$!
 
+# shellcheck disable=SC2329  # Invoked indirectly via trap on script exit.
 cleanup() {
   kill "${APP_PID}" >/dev/null 2>&1 || true
   rm -f "${INPUT_FILE}"

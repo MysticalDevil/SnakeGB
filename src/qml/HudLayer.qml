@@ -18,7 +18,6 @@ Column {
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 10
-    z: 500
     visible: active
     spacing: 1
 

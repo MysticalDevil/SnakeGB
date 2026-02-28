@@ -21,7 +21,6 @@ Rectangle {
 
     color: cardPrimary
     visible: active
-    z: 500
 
     Column {
         width: parent.width - 24
@@ -101,6 +100,7 @@ Rectangle {
                 Text {
                     text: gameLogic.hasSave ? "START  CONTINUE" : "START  NEW GAME"
                     color: menuLayer.actionInk
+                    font.family: gameFont
                     font.pixelSize: 11
                     font.bold: true
                     anchors.centerIn: parent
@@ -122,19 +122,56 @@ Rectangle {
 
             Column {
                 anchors.fill: parent
-                anchors.margins: 7
+                anchors.margins: 6
                 spacing: 1
-                Text {
-                    text: "UP MEDALS   DOWN REPLAY"
-                    color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                    font.pixelSize: 9
-                    font.bold: true
+                readonly property real cellWidth: (width - 10) / 2
+
+                Row {
+                    width: parent.width
+                    spacing: 10
+
+                    Text {
+                        width: parent.parent.cellWidth
+                        text: "UP MEDALS"
+                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
+                        font.family: gameFont
+                        font.pixelSize: 9
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                    Text {
+                        width: parent.parent.cellWidth
+                        text: "DOWN REPLAY"
+                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
+                        font.family: gameFont
+                        font.pixelSize: 9
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
                 }
-                Text {
-                    text: "LEFT CATALOG   SELECT LEVEL"
-                    color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                    font.pixelSize: 9
-                    font.bold: true
+
+                Row {
+                    width: parent.width
+                    spacing: 10
+
+                    Text {
+                        width: parent.parent.cellWidth
+                        text: "LEFT CATALOG"
+                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
+                        font.family: gameFont
+                        font.pixelSize: 9
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                    Text {
+                        width: parent.parent.cellWidth
+                        text: "SELECT LEVEL"
+                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
+                        font.family: gameFont
+                        font.pixelSize: 9
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                    }
                 }
             }
         }

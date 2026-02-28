@@ -3,7 +3,6 @@ import QtQuick
 Item {
     id: root
     property var theme
-    property alias screenContainer: screenSlot
     default property alias content: screenSlot.data
 
     width: 300
@@ -52,7 +51,7 @@ Item {
             color: theme.labelInk
             font.pixelSize: 7
             font.bold: false
-            opacity: 0.62
+            opacity: 0.78
         }
     }
 }

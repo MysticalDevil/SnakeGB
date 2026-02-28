@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import SnakeGB 1.0
 import "ThemeCatalog.js" as ThemeCatalog
+import "LayerScale.js" as LayerScale
 
 Item {
     id: root
@@ -236,172 +237,185 @@ Item {
             id: gameContent
             anchors.fill: parent
 
-            Rectangle {
-                anchors.fill: parent
-                color: gameBg
-                z: -3
-            }
-
             Item {
-                id: sceneBase
+                id: preOverlayContent
                 anchors.fill: parent
-                z: -2
-                visible: root.staticDebugScene === "" &&
-                         gameLogic.state >= AppState.Playing &&
-                         gameLogic.state <= AppState.ChoiceSelection
 
                 Rectangle {
                     anchors.fill: parent
-                    color: playBg
+                    color: gameBg
+                    z: LayerScale.screenBackdrop
                 }
 
-                Canvas {
+                Item {
+                    id: sceneBase
                     anchors.fill: parent
-                    onPaint: {
-                        const ctx = getContext("2d")
-                        ctx.reset()
-                        const cw = width / Math.max(1, gameLogic.boardWidth)
-                        const ch = height / Math.max(1, gameLogic.boardHeight)
-                        ctx.strokeStyle = root.gameGrid
-                        ctx.lineWidth = 1
-                        for (let x = 0; x <= width; x += cw) {
-                            ctx.beginPath()
-                            ctx.moveTo(x + 0.5, 0)
-                            ctx.lineTo(x + 0.5, height)
-                            ctx.stroke()
-                        }
-                        for (let y = 0; y <= height; y += ch) {
-                            ctx.beginPath()
-                            ctx.moveTo(0, y + 0.5)
-                            ctx.lineTo(width, y + 0.5)
-                            ctx.stroke()
-                        }
+                    z: LayerScale.screenSceneBase
+                    visible: root.staticDebugScene === "" &&
+                             gameLogic.state >= AppState.Playing &&
+                             gameLogic.state <= AppState.ChoiceSelection
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: playBg
                     }
-                    Component.onCompleted: requestPaint()
-                    onVisibleChanged: if (visible) requestPaint()
+
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            const ctx = getContext("2d")
+                            ctx.reset()
+                            const cw = width / Math.max(1, gameLogic.boardWidth)
+                            const ch = height / Math.max(1, gameLogic.boardHeight)
+                            ctx.strokeStyle = root.gameGrid
+                            ctx.lineWidth = 1
+                            for (let x = 0; x <= width; x += cw) {
+                                ctx.beginPath()
+                                ctx.moveTo(x + 0.5, 0)
+                                ctx.lineTo(x + 0.5, height)
+                                ctx.stroke()
+                            }
+                            for (let y = 0; y <= height; y += ch) {
+                                ctx.beginPath()
+                                ctx.moveTo(0, y + 0.5)
+                                ctx.lineTo(width, y + 0.5)
+                                ctx.stroke()
+                            }
+                        }
+                        Component.onCompleted: requestPaint()
+                        onVisibleChanged: if (visible) requestPaint()
+                    }
                 }
-            }
 
-            // --- STATE 0: SPLASH ---
-            SplashLayer {
-                anchors.fill: parent
-                active: gameLogic.state === AppState.Splash
-                gameFont: root.gameFont
-                menuColor: root.menuColor
-            }
+                // --- STATE 0: SPLASH ---
+                SplashLayer {
+                    anchors.fill: parent
+                    z: LayerScale.stateSplash
+                    active: gameLogic.state === AppState.Splash
+                    gameFont: root.gameFont
+                    menuColor: root.menuColor
+                }
 
-            // --- STATE 1: MENU ---
-            MenuLayer {
-                anchors.fill: parent
-                active: gameLogic.state === AppState.StartMenu
-                gameFont: root.gameFont
-                elapsed: root.elapsed
-                menuColor: root.menuColor
-                gameLogic: root.gameLogic
-            }
+                // --- STATE 1: MENU ---
+                MenuLayer {
+                    anchors.fill: parent
+                    z: LayerScale.stateMenu
+                    active: gameLogic.state === AppState.StartMenu
+                    gameFont: root.gameFont
+                    elapsed: root.elapsed
+                    menuColor: root.menuColor
+                    gameLogic: root.gameLogic
+                }
 
-            // --- STATE 2, 3, 4, 5, 6: WORLD ---
-            WorldLayer {
-                active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
-                gameLogic: root.gameLogic
-                elapsed: root.elapsed
-                gameFont: root.gameFont
-                menuColor: root.menuColor
-                gameBg: root.playBg
-                gamePanel: root.gamePanel
-                gameInk: root.gameInk
-                gameSubInk: root.gameSubInk
-                gameBorder: root.gameBorder
-                drawFoodSymbol: root.drawFoodSymbol
-                drawPowerSymbol: root.drawPowerSymbol
-                powerColor: root.powerColor
-                buffName: root.buffName
-                rarityTier: root.rarityTier
-                rarityName: root.rarityName
-                rarityColor: root.rarityColor
-                readableText: root.readableText
-            }
+                // --- STATE 2, 3, 4, 5, 6: WORLD ---
+                WorldLayer {
+                    id: worldLayer
+                    z: LayerScale.stateWorld
+                    active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
+                    gameLogic: root.gameLogic
+                    elapsed: root.elapsed
+                    gameFont: root.gameFont
+                    menuColor: root.menuColor
+                    gameBg: root.playBg
+                    gamePanel: root.gamePanel
+                    gameInk: root.gameInk
+                    gameSubInk: root.gameSubInk
+                    gameBorder: root.gameBorder
+                    drawFoodSymbol: root.drawFoodSymbol
+                    drawPowerSymbol: root.drawPowerSymbol
+                    powerColor: root.powerColor
+                    buffName: root.buffName
+                    rarityTier: root.rarityTier
+                    rarityName: root.rarityName
+                    rarityColor: root.rarityColor
+                    readableText: root.readableText
+                }
 
-            LibraryLayer {
-                anchors.fill: parent
-                active: gameLogic.state === AppState.Library
-                gameLogic: root.gameLogic
-                gameFont: root.gameFont
-                powerColor: root.powerColor
-                menuColor: root.menuColor
-                pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
-            }
+                LibraryLayer {
+                    anchors.fill: parent
+                    z: LayerScale.stateLibrary
+                    active: gameLogic.state === AppState.Library
+                    gameLogic: root.gameLogic
+                    gameFont: root.gameFont
+                    powerColor: root.powerColor
+                    menuColor: root.menuColor
+                    pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
+                }
 
-            // --- STATE 8: MEDAL ROOM ---
-            MedalRoom {
-                id: medalRoom
-                p0: root.p0
-                p1: root.p1
-                p2: root.p2
-                p3: root.p3
-                menuColor: root.menuColor
-                pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
-                gameLogic: root.gameLogic
-                gameFont: root.gameFont
-                visible: gameLogic.state === AppState.MedalRoom
-                z: 900
-            }
+                // --- STATE 8: MEDAL ROOM ---
+                MedalRoom {
+                    id: medalRoom
+                    z: LayerScale.stateMedals
+                    p0: root.p0
+                    p1: root.p1
+                    p2: root.p2
+                    p3: root.p3
+                    menuColor: root.menuColor
+                    pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
+                    gameLogic: root.gameLogic
+                    gameFont: root.gameFont
+                    visible: gameLogic.state === AppState.MedalRoom
+                }
 
-            StaticDebugLayer {
-                anchors.fill: parent
-                visible: root.staticDebugScene !== ""
-                staticScene: root.staticDebugScene
-                gameLogic: root.gameLogic
-                gameFont: root.gameFont
-                menuColor: root.menuColor
-                playBg: root.playBg
-                gameGrid: root.gameGrid
-                gameInk: root.gameInk
-                gameSubInk: root.gameSubInk
-                gameBorder: root.gameBorder
-                drawFoodSymbol: root.drawFoodSymbol
-                buffName: root.buffName
-                rarityTier: root.rarityTier
-                rarityName: root.rarityName
-                rarityColor: root.rarityColor
-                readableText: root.readableText
-            }
+                StaticDebugLayer {
+                    anchors.fill: parent
+                    z: LayerScale.stateStaticDebug
+                    visible: root.staticDebugScene !== ""
+                    staticScene: root.staticDebugScene
+                    gameLogic: root.gameLogic
+                    gameFont: root.gameFont
+                    menuColor: root.menuColor
+                    playBg: root.playBg
+                    gameGrid: root.gameGrid
+                    gameInk: root.gameInk
+                    gameSubInk: root.gameSubInk
+                    gameBorder: root.gameBorder
+                    drawFoodSymbol: root.drawFoodSymbol
+                    buffName: root.buffName
+                    rarityTier: root.rarityTier
+                    rarityName: root.rarityName
+                    rarityColor: root.rarityColor
+                    readableText: root.readableText
+                }
 
-            IconLabLayer {
-                anchors.fill: parent
-                active: root.iconDebugMode
-                gameFont: root.gameFont
-                menuColor: root.menuColor
-                elapsed: root.elapsed
-                iconLabSelection: root.iconLabSelection
-                drawFoodSymbol: root.drawFoodSymbol
-                drawPowerSymbol: root.drawPowerSymbol
-                powerColor: root.powerColor
-                buffName: root.buffName
-                rarityName: root.rarityName
-                powerGlyph: root.powerGlyph
-                onResetSelectionRequested: root.iconLabSelection = 0
-            }
+                IconLabLayer {
+                    anchors.fill: parent
+                    z: LayerScale.stateIconLab
+                    active: root.iconDebugMode
+                    gameFont: root.gameFont
+                    menuColor: root.menuColor
+                    elapsed: root.elapsed
+                    iconLabSelection: root.iconLabSelection
+                    drawFoodSymbol: root.drawFoodSymbol
+                    drawPowerSymbol: root.drawPowerSymbol
+                    powerColor: root.powerColor
+                    buffName: root.buffName
+                    rarityName: root.rarityName
+                    powerGlyph: root.powerGlyph
+                    onResetSelectionRequested: root.iconLabSelection = 0
+                }
 
-            HudLayer {
-                anchors.top: parent.top
-                anchors.right: parent.right
-                anchors.topMargin: 6
-                anchors.rightMargin: 6
-                z: 2400
-                active: !root.iconDebugMode &&
-                        root.staticDebugScene === "" &&
-                        (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying)
-                gameLogic: root.gameLogic
-                gameFont: root.gameFont
-                ink: root.gameInk
+                HudLayer {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.topMargin: 6
+                    anchors.rightMargin: 6
+                    z: LayerScale.screenHud
+                    active: !root.iconDebugMode &&
+                            root.staticDebugScene === "" &&
+                            (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying)
+                    gameLogic: root.gameLogic
+                    gameFont: root.gameFont
+                    ink: root.gameInk
+                }
             }
 
             OverlayLayer {
                 anchors.fill: parent
-                z: 2600
-                showPausedAndGameOver: false
+                z: LayerScale.screenOverlay
+                showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
                 showReplayAndChoice: !root.iconDebugMode && root.staticDebugScene === ""
+                blurSourceItem: preOverlayContent
                 gameLogic: root.gameLogic
                 menuColor: root.menuColor
                 gameFont: root.gameFont
@@ -413,13 +427,37 @@ Item {
                 readableText: root.readableText
                 readableSecondaryText: root.readableSecondaryText
             }
+
+            Item {
+                id: crtLayer
+                anchors.fill: parent
+                z: LayerScale.screenCrt
+                opacity: 0.06
+
+                Canvas {
+                    anchors.fill: parent
+                    onPaint: {
+                        const ctx = getContext("2d")
+                        ctx.strokeStyle = Qt.rgba(root.gameBorder.r, root.gameBorder.g, root.gameBorder.b, 0.35)
+                        ctx.lineWidth = 1
+                        let i = 0
+                        while (i < height) {
+                            ctx.beginPath()
+                            ctx.moveTo(0, i)
+                            ctx.lineTo(width, i)
+                            ctx.stroke()
+                            i = i + 3
+                        }
+                    }
+                }
+            }
         }
 
         // --- 2. FX layer ---
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent
-            z: 20
+            z: LayerScale.screenFx
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
             property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
             property real time: root.elapsed
@@ -430,60 +468,23 @@ Item {
             property bool isChoiceScene: gameLogic.state === AppState.ChoiceSelection
             property real lumaBoost: isPlayScene ? 0.95
                                    : (isReplayScene ? 0.985
-                                      : (isChoiceScene ? 1.0 : 1.0))
+                                      : (isChoiceScene ? 0.99 : 1.0))
             property real ghostMix: isPlayScene ? 0.12
                                    : (isReplayScene ? 0.07
-                                      : (isChoiceScene ? 0.02 : 0.25))
+                                      : (isChoiceScene ? 0.05 : 0.25))
             property real scanlineStrength: isPlayScene ? 0.045
                                            : (isReplayScene ? 0.028
-                                              : (isChoiceScene ? 0.008 : 0.03))
+                                              : (isChoiceScene ? 0.018 : 0.03))
             property real gridStrength: isPlayScene ? 0.07
                                        : (isReplayScene ? 0.045
-                                          : (isChoiceScene ? 0.015 : 0.08))
+                                          : (isChoiceScene ? 0.04 : 0.08))
             property real vignetteStrength: isPlayScene ? 0.14
                                            : (isReplayScene ? 0.10
-                                              : (isChoiceScene ? 0.08 : 0.15))
+                                              : (isChoiceScene ? 0.11 : 0.15))
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 
-        OverlayLayer {
-            anchors.fill: parent
-            z: 30
-            showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
-            showReplayAndChoice: false
-            gameLogic: root.gameLogic
-            menuColor: root.menuColor
-            gameFont: root.gameFont
-            elapsed: root.elapsed
-            drawPowerSymbol: root.drawPowerSymbol
-            rarityTier: root.rarityTier
-            rarityName: root.rarityName
-            rarityColor: root.rarityColor
-            readableText: root.readableText
-            readableSecondaryText: root.readableSecondaryText
-        }
-
-        Item {
-            id: crtLayer
-            anchors.fill: parent
-            z: 10000
-            opacity: 0.06
-            Canvas {
-                anchors.fill: parent
-                onPaint: { 
-                    const ctx = getContext("2d")
-                    ctx.strokeStyle = Qt.rgba(root.gameBorder.r, root.gameBorder.g, root.gameBorder.b, 0.35)
-                    ctx.lineWidth = 1
-                    let i = 0
-                    while (i < height) {
-                        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(width, i); ctx.stroke()
-                        i = i + 3
-                    }
-                }
-            }
-        }
-
-        OSDLayer { id: osd; bg: root.gameAccent; ink: root.gameAccentInk; gameFont: root.gameFont; z: 11000 }
+        OSDLayer { id: osd; bg: root.gameAccent; ink: root.gameAccentInk; gameFont: root.gameFont; z: LayerScale.screenOsd }
     }
 
     function showOSD(t) { osd.show(t) }

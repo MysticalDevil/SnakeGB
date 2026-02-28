@@ -4,13 +4,13 @@ import QtQuick.Controls
 Item {
     id: root
     property string text: ""
-    property bool isPressed: false
+    property bool pressedExternally: false
     signal clicked
 
     width: 62
     height: 62
 
-    readonly property bool pressedVisual: mouseArea.pressed || root.isPressed
+    readonly property bool pressedVisual: mouseArea.pressed || root.pressedExternally
     readonly property color baseShadow: "#12080b"
     readonly property color rimShadow: "#210a10"
     readonly property color highlightTone: Qt.rgba(1, 1, 1, 0.10)
@@ -95,12 +95,6 @@ Item {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
-        onPressed: {
-            root.isPressed = true
-        }
-        onReleased: {
-            root.isPressed = false
-        }
         onClicked: {
             gameLogic.dispatchUiAction("feedback_ui")
             root.clicked()

@@ -48,7 +48,8 @@ fi
 if [[ -z "${JAVA_HOME:-}" ]]; then
   if command -v javac >/dev/null 2>&1; then
     JAVAC_REAL="$(readlink -f "$(command -v javac)")"
-    export JAVA_HOME="$(cd "$(dirname "${JAVAC_REAL}")/.." && pwd)"
+    JAVA_HOME="$(cd "$(dirname "${JAVAC_REAL}")/.." && pwd)"
+    export JAVA_HOME
   fi
 fi
 

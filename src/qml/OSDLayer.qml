@@ -9,7 +9,6 @@ Rectangle {
     radius: 5
     color: Qt.rgba(bg.r, bg.g, bg.b, 0.8)
     visible: false
-    z: 200
 
     property color bg
     property color ink

@@ -128,8 +128,8 @@ expect_alive() {
 
 expect_exit() {
   local case_name="$1"
-  local i
-  for i in $(seq 1 80); do
+  local _
+  for _ in $(seq 1 80); do
     if ! app_is_alive; then
       wait "${APP_PID}" >/dev/null 2>&1 || true
       APP_PID=""

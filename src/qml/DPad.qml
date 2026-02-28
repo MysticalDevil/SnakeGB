@@ -6,10 +6,18 @@ Item {
     width: 102
     height: 102
 
-    property bool upPressed: false
-    property bool downPressed: false
-    property bool leftPressed: false
-    property bool rightPressed: false
+    property bool externalUpPressed: false
+    property bool externalDownPressed: false
+    property bool externalLeftPressed: false
+    property bool externalRightPressed: false
+    property bool pointerUpPressed: false
+    property bool pointerDownPressed: false
+    property bool pointerLeftPressed: false
+    property bool pointerRightPressed: false
+    readonly property bool upPressed: externalUpPressed || pointerUpPressed
+    readonly property bool downPressed: externalDownPressed || pointerDownPressed
+    readonly property bool leftPressed: externalLeftPressed || pointerLeftPressed
+    readonly property bool rightPressed: externalRightPressed || pointerRightPressed
 
     signal upClicked
     signal downClicked
@@ -148,9 +156,9 @@ Item {
             y: 0
             width: dpad.arm
             height: (parent.height - dpad.arm) / 2 + 8
-            onPressed: { dpad.upPressed = true; dpad.upClicked() }
-            onReleased: dpad.upPressed = false
-            onCanceled: dpad.upPressed = false
+            onPressed: { dpad.pointerUpPressed = true; dpad.upClicked() }
+            onReleased: dpad.pointerUpPressed = false
+            onCanceled: dpad.pointerUpPressed = false
         }
 
         MouseArea {
@@ -158,9 +166,9 @@ Item {
             y: (parent.height + dpad.arm) / 2 - 8
             width: dpad.arm
             height: (parent.height - dpad.arm) / 2 + 8
-            onPressed: { dpad.downPressed = true; dpad.downClicked() }
-            onReleased: dpad.downPressed = false
-            onCanceled: dpad.downPressed = false
+            onPressed: { dpad.pointerDownPressed = true; dpad.downClicked() }
+            onReleased: dpad.pointerDownPressed = false
+            onCanceled: dpad.pointerDownPressed = false
         }
 
         MouseArea {
@@ -168,9 +176,9 @@ Item {
             y: (parent.height - dpad.arm) / 2
             width: (parent.width - dpad.arm) / 2 + 8
             height: dpad.arm
-            onPressed: { dpad.leftPressed = true; dpad.leftClicked() }
-            onReleased: dpad.leftPressed = false
-            onCanceled: dpad.leftPressed = false
+            onPressed: { dpad.pointerLeftPressed = true; dpad.leftClicked() }
+            onReleased: dpad.pointerLeftPressed = false
+            onCanceled: dpad.pointerLeftPressed = false
         }
 
         MouseArea {
@@ -178,9 +186,9 @@ Item {
             y: (parent.height - dpad.arm) / 2
             width: (parent.width - dpad.arm) / 2 + 8
             height: dpad.arm
-            onPressed: { dpad.rightPressed = true; dpad.rightClicked() }
-            onReleased: dpad.rightPressed = false
-            onCanceled: dpad.rightPressed = false
+            onPressed: { dpad.pointerRightPressed = true; dpad.rightClicked() }
+            onReleased: dpad.pointerRightPressed = false
+            onCanceled: dpad.pointerRightPressed = false
         }
     }
 

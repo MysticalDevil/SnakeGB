@@ -13,39 +13,88 @@ Item {
     property var rarityColor
     property var readableText
     property var readableSecondaryText
-    property int overlayZBase: 800
-    property int overlayZModal: 900
     property bool showPausedAndGameOver: true
     property bool showReplayAndChoice: true
+    property var blurSourceItem: null
+
+    readonly property color modalTintColor: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.08)
+    readonly property color modalPanelFill: Qt.lighter(menuColor("cardSecondary"), 1.08)
+    readonly property color modalPanelBorder: menuColor("borderSecondary")
+    readonly property color modalInnerBorder: Qt.rgba(1, 1, 1, 0.08)
+    readonly property color modalTitleInk: readableText ? readableText(modalPanelFill) : menuColor("titleInk")
+    readonly property color modalSecondaryInk: readableSecondaryText ? readableSecondaryText(modalPanelFill) : menuColor("secondaryInk")
+    readonly property color modalMetaInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.90)
+    readonly property color modalHintInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.72)
+    readonly property color modalCardFill: Qt.lighter(modalPanelFill, 1.04)
+    readonly property color modalCardFillSelected: Qt.lighter(modalPanelFill, 1.10)
+    readonly property color modalCardTitleInk: readableText ? readableText(modalCardFill) : menuColor("titleInk")
+    readonly property color modalCardDescInk: Qt.rgba(
+                                                   (readableSecondaryText ? readableSecondaryText(modalCardFill) : menuColor("secondaryInk")).r,
+                                                   (readableSecondaryText ? readableSecondaryText(modalCardFill) : menuColor("secondaryInk")).g,
+                                                   (readableSecondaryText ? readableSecondaryText(modalCardFill) : menuColor("secondaryInk")).b,
+                                                   0.88)
+    readonly property int layerPause: 100
+    readonly property int layerReplayBanner: 110
+    readonly property int layerGameOver: 120
+    readonly property int layerChoiceModal: 200
 
     anchors.fill: parent
 
-    Rectangle {
-        id: pausedLayer
-        anchors.fill: parent
-        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.9)
-        visible: showPausedAndGameOver && gameLogic.state === AppState.Paused
-        z: overlayZBase
-        Column {
-            anchors.centerIn: parent
-            spacing: 6
-            Text { text: "PAUSED"; font.family: gameFont; font.pixelSize: 20; color: menuColor("titleInk"); font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-            Text { text: "START RESUME   SELECT MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 9; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+    ModalSurface {
+        active: showPausedAndGameOver && gameLogic.state === AppState.Paused
+        z: overlays.layerPause
+        blurSourceItem: overlays.blurSourceItem
+        blurScale: 1.8
+        tintColor: overlays.modalTintColor
+        panelWidth: 176
+        panelHeight: 62
+        panelColor: overlays.modalPanelFill
+        panelBorderColor: overlays.modalPanelBorder
+        panelInnerBorderColor: overlays.modalInnerBorder
+        contentMargin: 8
+
+        ModalTextPanel {
+            anchors.fill: parent
+            titleText: "PAUSED"
+            hintText: "START RESUME   SELECT MENU"
+            gameFont: overlays.gameFont
+            titleColor: overlays.modalTitleInk
+            hintColor: overlays.modalHintInk
+            titleSize: 20
+            hintSize: 8
+            hintBold: false
+            lineSpacing: 4
         }
     }
 
-    Rectangle {
-        id: gameOverLayer
-        anchors.fill: parent
-        color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.94)
-        visible: showPausedAndGameOver && gameLogic.state === AppState.GameOver
-        z: overlayZBase + 20
-        Column {
-            anchors.centerIn: parent
-            spacing: 10
-            Text { text: "GAME OVER"; color: menuColor("titleInk"); font.family: gameFont; font.pixelSize: 24; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-            Text { text: `SCORE: ${gameLogic.score}`; color: menuColor("secondaryInk"); font.family: gameFont; font.pixelSize: 14; anchors.horizontalCenter: parent.horizontalCenter }
-            Text { text: "START RESTART   SELECT MENU"; color: menuColor("hintInk"); font.family: gameFont; font.pixelSize: 9; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
+    ModalSurface {
+        active: showPausedAndGameOver && gameLogic.state === AppState.GameOver
+        z: overlays.layerGameOver
+        blurSourceItem: overlays.blurSourceItem
+        blurScale: 1.8
+        tintColor: overlays.modalTintColor
+        panelWidth: 184
+        panelHeight: 78
+        panelColor: overlays.modalPanelFill
+        panelBorderColor: overlays.modalPanelBorder
+        panelInnerBorderColor: overlays.modalInnerBorder
+        contentMargin: 8
+
+        ModalTextPanel {
+            anchors.fill: parent
+            titleText: "GAME OVER"
+            bodyText: `SCORE ${gameLogic.score}`
+            hintText: "START RESTART   SELECT MENU"
+            gameFont: overlays.gameFont
+            titleColor: overlays.modalTitleInk
+            bodyColor: overlays.modalMetaInk
+            hintColor: overlays.modalHintInk
+            titleSize: 20
+            bodySize: 9
+            bodyBold: false
+            hintSize: 8
+            hintBold: false
+            lineSpacing: 4
         }
     }
 
@@ -57,189 +106,124 @@ Item {
         menuColor: overlays.menuColor
         gameFont: overlays.gameFont
         hintText: "START MENU   SELECT MENU"
-        z: overlayZBase + 10
+        z: overlays.layerReplayBanner
     }
 
-    Rectangle {
-        anchors.fill: parent
-        color: menuColor("cardPrimary")
-        opacity: 1.0
-        visible: showReplayAndChoice && gameLogic.state === AppState.ChoiceSelection
-        z: overlayZModal
+    ModalSurface {
+        id: levelUpModal
+        active: showReplayAndChoice && gameLogic.state === AppState.ChoiceSelection
+        z: overlays.layerChoiceModal
+        blurSourceItem: overlays.blurSourceItem
+        blurScale: 1.4
+        tintColor: overlays.modalTintColor
+        panelWidth: Math.max(184, width - 36)
+        panelHeight: Math.max(158, height - 36)
+        panelColor: overlays.modalPanelFill
+        panelBorderColor: overlays.modalPanelBorder
+        panelInnerBorderColor: overlays.modalInnerBorder
+        contentMargin: 8
+
         Column {
-            anchors.centerIn: parent
-            spacing: 6
-            width: parent.width - 34
+            id: choiceColumn
+            anchors.fill: parent
+            spacing: 3
+            readonly property int cardHeight: Math.max(
+                                                  36,
+                                                  Math.min(44, Math.floor((height - headerPanel.height - footerPanel.height - (spacing * 4)) / 3)))
 
             Rectangle {
+                id: headerPanel
                 width: parent.width
-                height: 24
+                height: 26
                 radius: 3
-                color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.96)
-                border.color: menuColor("borderPrimary")
+                color: overlays.modalPanelFill
+                border.color: overlays.modalPanelBorder
                 border.width: 1
 
                 Column {
-                    anchors.centerIn: parent
-                    spacing: 0
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.verticalCenterOffset: 1
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: parent.width - 10
+                    spacing: -1
 
                     Text {
+                        width: parent.width
+                        height: 14
                         text: "LEVEL UP!"
-                        color: readableText ? readableText(parent.parent.color) : menuColor("titleInk")
-                        font.pixelSize: 16
+                        color: overlays.modalTitleInk
+                        font.family: overlays.gameFont
+                        font.pixelSize: 12
                         font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
 
                     Text {
+                        width: parent.width
+                        height: 8
                         text: "CHOOSE 1 POWER"
-                        color: readableSecondaryText ? readableSecondaryText(parent.parent.color) : menuColor("secondaryInk")
-                        font.pixelSize: 7
-                        font.bold: true
-                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: overlays.modalHintInk
+                        font.family: overlays.gameFont
+                        font.pixelSize: 6
+                        font.bold: false
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
                     }
                 }
             }
+
             Repeater {
                 model: gameLogic.choices
-                delegate: Rectangle {
-                    id: choiceCard
+
+                delegate: ModalChoiceCard {
                     width: parent.width
-                    height: 52
-                    radius: 4
-                    property int powerType: Number(modelData.type)
-                    property color accent: rarityColor(powerType)
-                    readonly property bool selected: gameLogic.choiceIndex === index
-                    color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, selected ? 0.98 : 0.92)
-                    border.color: selected ? menuColor("borderPrimary") : menuColor("borderSecondary")
-                    border.width: 1
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: parent.radius
-                        color: accent
-                        opacity: selected ? 0.14 : 0.04
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        anchors.margins: 1
-                        radius: 3
-                        color: "transparent"
-                        border.color: selected ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.08)
-                        border.width: 1
-                    }
-
-                    Rectangle {
-                        anchors.left: parent.left
-                        anchors.top: parent.top
-                        anchors.bottom: parent.bottom
-                        width: 4
-                        radius: 3
-                        color: accent
-                        opacity: selected ? 1.0 : 0.72
-                    }
-
-                    Row {
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        spacing: 8
-                        Rectangle {
-                            width: 28
-                            height: 28
-                            radius: 6
-                            color: menuColor("cardPrimary")
-                            border.color: selected ? accent : menuColor("borderSecondary")
-                            border.width: 1
-                            anchors.verticalCenter: parent.verticalCenter
-
-                            Item {
-                                anchors.centerIn: parent
-                                width: 22
-                                height: 22
-                                property color accent: choiceCard.accent
-                                Canvas {
-                                    anchors.fill: parent
-                                    onPaint: {
-                                        const ctx = getContext("2d")
-                                        ctx.reset()
-                                        drawPowerSymbol(ctx, width, height, powerType, choiceCard.accent)
-                                    }
-                                    Component.onCompleted: requestPaint()
-                                    onWidthChanged: requestPaint()
-                                    onHeightChanged: requestPaint()
-                                }
-                            }
-                        }
-                        Column {
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - 54
-                            spacing: 1
-                            Text {
-                                text: modelData.name
-                                color: readableText ? readableText(choiceCard.color) : menuColor("titleInk")
-                                font.bold: true
-                                font.pixelSize: 11
-                            }
-                            Text {
-                                text: modelData.desc
-                                color: readableSecondaryText ? readableSecondaryText(choiceCard.color) : menuColor("secondaryInk")
-                                font.pixelSize: 8
-                                font.bold: true
-                                opacity: 0.94
-                                width: parent.width
-                                wrapMode: Text.WordWrap
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.top: parent.top
-                        anchors.rightMargin: 5
-                        anchors.topMargin: 3
-                        height: 11
-                        width: 48
-                        radius: 3
-                        color: Qt.rgba(parent.accent.r, parent.accent.g, parent.accent.b, selected ? 0.92 : 0.18)
-                        border.color: selected ? menuColor("borderPrimary") : parent.accent
-                        border.width: 1
-                        Text {
-                            anchors.centerIn: parent
-                            text: rarityName(choiceCard.powerType)
-                            color: selected ? menuColor("actionInk") : parent.accent
-                            font.family: gameFont
-                            font.pixelSize: 7
-                            font.bold: true
-                        }
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "transparent"
-                        border.color: parent.accent
-                        border.width: 1
-                        opacity: rarityTier(parent.powerType) >= 3
-                                 ? ((Math.floor(overlays.elapsed * 6) % 2 === 0) ? 0.35 : 0.08)
-                                 : 0.0
-                    }
+                    height: choiceColumn.cardHeight
+                    gameFont: overlays.gameFont
+                    titleText: modelData.name
+                    descriptionText: modelData.desc
+                    badgeText: overlays.rarityName(Number(modelData.type))
+                    powerType: Number(modelData.type)
+                    selected: overlays.gameLogic.choiceIndex === index
+                    elapsed: overlays.elapsed
+                    accent: overlays.rarityColor(powerType)
+                    fillColor: overlays.modalCardFill
+                    fillSelectedColor: overlays.modalCardFillSelected
+                    borderColor: overlays.menuColor("borderSecondary")
+                    borderSelectedColor: overlays.modalPanelBorder
+                    titleColor: overlays.modalCardTitleInk
+                    descriptionColor: overlays.modalCardDescInk
+                    iconSocketColor: Qt.lighter(overlays.modalCardFill, 1.02)
+                    iconBorderColor: overlays.menuColor("borderSecondary")
+                    iconGlyphColor: selected ? Qt.darker(accent, 1.45) : Qt.darker(accent, 1.22)
+                    badgeColor: Qt.rgba(accent.r, accent.g, accent.b, selected ? 0.16 : 0.10)
+                    badgeBorderColor: selected ? Qt.darker(accent, 1.30) : overlays.menuColor("borderSecondary")
+                    badgeTextColor: overlays.modalCardTitleInk
+                    drawPowerSymbol: overlays.drawPowerSymbol
+                    rarityTier: overlays.rarityTier
                 }
             }
+
             Rectangle {
+                id: footerPanel
                 width: parent.width
                 height: 16
                 radius: 3
-                color: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.94)
-                border.color: menuColor("borderPrimary")
+                color: overlays.modalPanelFill
+                border.color: overlays.modalPanelBorder
                 border.width: 1
 
                 Text {
+                    anchors.fill: parent
+                    anchors.leftMargin: 4
+                    anchors.rightMargin: 4
                     text: "START PICK   SELECT MENU"
-                    color: readableText ? readableText(parent.color) : menuColor("secondaryInk")
-                    font.family: gameFont
-                    font.pixelSize: 8
-                    font.bold: true
-                    anchors.centerIn: parent
+                    color: overlays.modalHintInk
+                    font.family: overlays.gameFont
+                    font.pixelSize: 7
+                    font.bold: false
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
