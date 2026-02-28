@@ -166,3 +166,28 @@ ui_nav_apply_palette_steps() {
     ((i += 1))
   done
 }
+
+ui_nav_execute_target_plan() {
+  local input_file="$1"
+  local nav_step_delay="$2"
+  shift 2
+  local step=""
+
+  for step in "$@"; do
+    case "${step}" in
+      TOKEN:*)
+        ui_nav_send_token "${input_file}" "${nav_step_delay}" "${step#TOKEN:}"
+        ;;
+      SLEEP:*)
+        sleep "${step#SLEEP:}"
+        ;;
+      KONAMI)
+        ui_nav_send_konami "${input_file}" "${nav_step_delay}"
+        ;;
+      *)
+        echo "[error] Unknown ui-nav step '${step}'"
+        return 2
+        ;;
+    esac
+  done
+}

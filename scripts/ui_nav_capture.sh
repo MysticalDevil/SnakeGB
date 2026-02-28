@@ -68,11 +68,12 @@ send_token_list "${PRE_TOKENS}"
 
 ui_nav_apply_palette_steps "${INPUT_FILE}" "${NAV_STEP_DELAY}" "${PALETTE_TOKEN}" "${PALETTE_STEPS}"
 
-ui_nav_apply_target "${TARGET}"
+ui_nav_build_target_plan "${TARGET}" "${NAV_RETRIES}"
+ui_nav_execute_target_plan "${INPUT_FILE}" "${NAV_STEP_DELAY}" "${UI_NAV_TARGET_STEPS[@]}"
 
 send_token_list "${POST_TOKENS}"
 
-sleep "${POST_NAV_WAIT}"
+sleep "${UI_NAV_TARGET_POST_WAIT_OVERRIDE:-${POST_NAV_WAIT}}"
 if ! kill -0 "${UI_NAV_APP_PID}" >/dev/null 2>&1; then
   echo "[error] App exited before screenshot. Recent log:"
   tail -n 80 /tmp/snakegb_ui_nav_runtime.log || true

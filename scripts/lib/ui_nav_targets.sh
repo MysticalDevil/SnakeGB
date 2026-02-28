@@ -5,172 +5,137 @@ ui_nav_supported_targets() {
     "splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-choice|dbg-static-off"
 }
 
-ui_nav_apply_target() {
+ui_nav_append_repeated_tokens() {
+  local count="$1"
+  local token="$2"
+  local i=0
+
+  while (( i < count )); do
+    UI_NAV_TARGET_STEPS+=("TOKEN:${token}")
+    ((i += 1))
+  done
+}
+
+ui_nav_debug_token() {
+  local base_token="$1"
+  local injected_params="${2:-}"
+
+  if [[ -n "${injected_params}" ]]; then
+    printf '%s:%s' "${base_token}" "${injected_params}"
+  else
+    printf '%s' "${base_token}"
+  fi
+}
+
+ui_nav_build_target_plan() {
   local target="$1"
+  local nav_retries="${2:-2}"
+
+  # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
+  UI_NAV_TARGET_STEPS=()
+  # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
+  UI_NAV_TARGET_POST_WAIT_OVERRIDE=""
 
   case "${target}" in
     splash)
-      # Capture/debug splash shortly after launch before transition to start menu.
-      sleep "${SPLASH_CAPTURE_DELAY:-0.02}"
-      # shellcheck disable=SC2034  # Consumed by the caller after this sourced helper returns.
-      POST_NAV_WAIT="${SPLASH_POST_WAIT:-0.02}"
+      UI_NAV_TARGET_STEPS+=("SLEEP:${SPLASH_CAPTURE_DELAY:-0.02}")
+      # shellcheck disable=SC2034 # Consumed by callers after this helper returns.
+      UI_NAV_TARGET_POST_WAIT_OVERRIDE="${SPLASH_POST_WAIT:-0.02}"
       ;;
     menu)
       ;;
     game)
-      send_token "START"
+      UI_NAV_TARGET_STEPS+=("TOKEN:START")
       ;;
     pause)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START")
       ;;
     pause-back)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
-      sleep 0.25
-      send_token "SELECT"
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START" "SLEEP:0.25" "TOKEN:SELECT")
       ;;
     pause-back-b)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
-      sleep 0.25
-      send_token "B"
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START" "SLEEP:0.25" "TOKEN:B")
       ;;
     pause-resume)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
-      sleep 0.25
-      send_token "START"
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START" "SLEEP:0.25" "TOKEN:START")
       ;;
     achievements|medals)
-      local i=0
-      while (( i < NAV_RETRIES )); do
-        send_token "UP"
-        ((i += 1))
-      done
+      ui_nav_append_repeated_tokens "${nav_retries}" "UP"
       ;;
     replay)
-      local i=0
-      while (( i < NAV_RETRIES )); do
-        send_token "DOWN"
-        ((i += 1))
-      done
+      ui_nav_append_repeated_tokens "${nav_retries}" "DOWN"
       ;;
     catalog|library)
-      local i=0
-      while (( i < NAV_RETRIES )); do
-        send_token "LEFT"
-        ((i += 1))
-      done
+      ui_nav_append_repeated_tokens "${nav_retries}" "LEFT"
       ;;
     icons)
-      send_token "DBG_ICONS"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ICONS")
       ;;
     icons-f6)
-      send_token "F6"
+      UI_NAV_TARGET_STEPS+=("TOKEN:F6")
       ;;
     icons-right)
-      send_token "DBG_ICONS"
-      sleep 0.3
-      send_token "RIGHT"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ICONS" "SLEEP:0.3" "TOKEN:RIGHT")
       ;;
     konami-on)
-      send_konami
+      UI_NAV_TARGET_STEPS+=("KONAMI")
       ;;
     konami-off)
-      send_konami
-      sleep 0.4
-      send_konami
+      UI_NAV_TARGET_STEPS+=("KONAMI" "SLEEP:0.4" "KONAMI")
       ;;
     konami-on-paused)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
-      sleep 0.25
-      send_konami
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START" "SLEEP:0.25" "KONAMI")
       ;;
     konami-off-paused)
-      send_token "START"
-      sleep 0.25
-      send_token "START"
-      sleep 0.25
-      send_konami
-      sleep 0.4
-      send_konami
+      UI_NAV_TARGET_STEPS+=("TOKEN:START" "SLEEP:0.25" "TOKEN:START" "SLEEP:0.25" "KONAMI" "SLEEP:0.4" "KONAMI")
       ;;
     icons-exit-b)
-      send_token "DBG_ICONS"
-      sleep 0.3
-      send_token "B"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ICONS" "SLEEP:0.3" "TOKEN:B")
       ;;
     dbg-menu)
-      send_token "DBG_MENU"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_MENU")
       ;;
     dbg-play)
-      send_token "DBG_PLAY"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_PLAY")
       ;;
     dbg-pause)
-      send_token "DBG_PAUSE"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_PAUSE")
       ;;
     dbg-gameover)
-      send_token "DBG_GAMEOVER"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_GAMEOVER")
       ;;
     dbg-replay)
-      send_token "DBG_REPLAY"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_REPLAY")
       ;;
     dbg-replay-buff)
-      send_token "DBG_REPLAY_BUFF"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_REPLAY_BUFF")
       ;;
     dbg-choice)
-      if [[ -n "${DBG_CHOICE_TYPES:-}" ]]; then
-        send_token "DBG_CHOICE:${DBG_CHOICE_TYPES}"
-      else
-        send_token "DBG_CHOICE"
-      fi
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_CHOICE "${DBG_CHOICE_TYPES:-}")")
       ;;
     dbg-catalog)
-      send_token "DBG_CATALOG"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_CATALOG")
       ;;
     dbg-achievements)
-      send_token "DBG_ACHIEVEMENTS"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ACHIEVEMENTS")
       ;;
     dbg-icons)
-      send_token "DBG_ICONS"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ICONS")
       ;;
     dbg-static-boot)
-      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
-        send_token "DBG_STATIC_BOOT:${DBG_STATIC_PARAMS}"
-      else
-        send_token "DBG_STATIC_BOOT"
-      fi
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_STATIC_BOOT "${DBG_STATIC_PARAMS:-}")")
       ;;
     dbg-static-game)
-      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
-        send_token "DBG_STATIC_GAME:${DBG_STATIC_PARAMS}"
-      else
-        send_token "DBG_STATIC_GAME"
-      fi
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_STATIC_GAME "${DBG_STATIC_PARAMS:-}")")
       ;;
     dbg-static-replay)
-      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
-        send_token "DBG_STATIC_REPLAY:${DBG_STATIC_PARAMS}"
-      else
-        send_token "DBG_STATIC_REPLAY"
-      fi
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_STATIC_REPLAY "${DBG_STATIC_PARAMS:-}")")
       ;;
     dbg-static-choice)
-      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
-        send_token "DBG_STATIC_CHOICE:${DBG_STATIC_PARAMS}"
-      else
-        send_token "DBG_STATIC_CHOICE"
-      fi
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_STATIC_CHOICE "${DBG_STATIC_PARAMS:-}")")
       ;;
     dbg-static-off)
-      send_token "DBG_STATIC_OFF"
+      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_STATIC_OFF")
       ;;
     *)
       echo "[error] Unknown target '${target}'. Supported: $(ui_nav_supported_targets)"

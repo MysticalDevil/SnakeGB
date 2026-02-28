@@ -97,6 +97,7 @@ This layer is used by:
 - `scripts/ui_nav_debug.sh <target>`
 
 Both share target routing via `scripts/lib/ui_nav_targets.sh`.
+That file now builds explicit target plans (`UI_NAV_TARGET_STEPS`, `UI_NAV_TARGET_POST_WAIT_OVERRIDE`) instead of calling token helpers directly.
 
 ### Palette review
 
@@ -126,6 +127,7 @@ Large inline HTML should not be reintroduced there.
 3. If a script needs another language, place it in its own file and invoke it directly.
 4. Keep window/process lifecycle separate from input transport.
 5. UI capture scripts must remain serial; `ui_nav_capture.sh` continues to own the global capture lock.
+6. Keep target definition separate from execution. `ui_nav_targets.sh` should declare steps, not directly call send helpers.
 
 ## Validation
 

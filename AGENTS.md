@@ -80,6 +80,7 @@ make clean
   - `ui_window_common.sh` for process/window lifecycle
   - `ui_nav_runtime.sh` for runtime-input-file capture/debug flows
   - `capture_batch.sh` for palette wrapper loops and screenshot validation
+  - `ui_nav_targets.sh` now declares target plans as explicit step arrays plus optional post-wait overrides; it should not call transport helpers directly.
   - Detailed script structure and maintenance rules live in `docs/SCRIPT_AUTOMATION.md`.
 - Current injectable UI debug entry points:
   - `scripts/ui_nav_capture.sh dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
