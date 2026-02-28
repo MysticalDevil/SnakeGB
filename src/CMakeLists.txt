@@ -1,6 +1,7 @@
 add_library(snakegb_core
     core/game_rules.cpp
     core/buff_runtime.cpp
+    core/session_core.cpp
     core/session_runtime.cpp
     core/level_runtime.cpp
     core/achievement_rules.cpp

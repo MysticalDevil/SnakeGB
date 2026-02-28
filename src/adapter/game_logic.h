@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QVariantList>
 #include "core/replay_types.h"
+#include "core/session_core.h"
 #include "core/session_state.h"
 #include "game_engine_interface.h"
 #ifdef SNAKEGB_HAS_SENSORS
@@ -163,24 +164,19 @@ public:
     }
     [[nodiscard]] auto currentDirection() const -> QPoint override
     {
-        return m_session.direction;
+        return m_sessionCore.direction();
     }
     void setDirection(const QPoint &direction) override
     {
-        m_session.direction = direction;
+        m_sessionCore.setDirection(direction);
     }
     [[nodiscard]] auto currentTick() const -> int override
     {
-        return m_session.tickCounter;
+        return m_sessionCore.tickCounter();
     }
     auto consumeQueuedInput(QPoint &nextInput) -> bool override
     {
-        if (m_inputQueue.empty()) {
-            return false;
-        }
-        nextInput = m_inputQueue.front();
-        m_inputQueue.pop_front();
-        return true;
+        return m_sessionCore.consumeQueuedInput(nextInput);
     }
     // Replay history is captured at tick granularity to keep playback deterministic.
     void recordInputAtCurrentTick(const QPoint &input) override
@@ -475,7 +471,8 @@ private:
 
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;
-    snakegb::core::SessionState m_session;
+    snakegb::core::SessionCore m_sessionCore;
+    snakegb::core::SessionState &m_session;
     State m_state = Splash;
     bool m_choicePending = false;
     int m_choiceIndex = 0;
@@ -506,7 +503,7 @@ private:
     std::unique_ptr<QAccelerometer> m_accelerometer;
 #endif
     std::unique_ptr<ProfileManager> m_profileManager;
-    std::deque<QPoint> m_inputQueue;
+    std::deque<QPoint> &m_inputQueue;
     std::unique_ptr<GameState> m_fsmState;
     bool m_musicEnabled = true;
     bool m_stateCallbackInProgress = false;

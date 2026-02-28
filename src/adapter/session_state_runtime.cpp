@@ -20,22 +20,15 @@ auto GameLogic::hasReplay() const noexcept -> bool
 
 void GameLogic::resetTransientRuntimeState()
 {
-    m_session.direction = {0, -1};
-    m_inputQueue.clear();
-    m_session.activeBuff = None;
-    m_session.buffTicksRemaining = 0;
-    m_session.buffTicksTotal = 0;
-    m_session.shieldActive = false;
-    m_session.powerUpPos = QPoint(-1, -1);
+    m_sessionCore.resetTransientRuntimeState();
     m_choicePending = false;
     m_choiceIndex = 0;
 }
 
 void GameLogic::resetReplayRuntimeTracking()
 {
-    m_session.tickCounter = 0;
+    m_sessionCore.resetReplayRuntimeState();
     m_ghostFrameIndex = 0;
-    m_session.lastRoguelikeChoiceScore = -1000;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();

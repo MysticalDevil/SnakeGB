@@ -167,6 +167,14 @@ target_link_libraries(core-rules-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui snak
 add_test(NAME CoreRulesTest COMMAND core-rules-tests)
 set_tests_properties(CoreRulesTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(session-core-tests
+    tests/test_session_core.cpp
+)
+target_include_directories(session-core-tests PRIVATE src)
+target_link_libraries(session-core-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui snakegb_core)
+add_test(NAME SessionCoreTest COMMAND session-core-tests)
+set_tests_properties(SessionCoreTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-tests
     tests/test_ui_action_parser.cpp
 )

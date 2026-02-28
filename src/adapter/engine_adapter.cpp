@@ -46,11 +46,13 @@ auto stateName(const int state) -> const char *
 
 GameLogic::GameLogic(QObject *parent)
     : QObject(parent), m_rng(QRandomGenerator::securelySeeded()),
+      m_session(m_sessionCore.state()),
       m_timer(std::make_unique<QTimer>()),
 #ifdef SNAKEGB_HAS_SENSORS
       m_accelerometer(std::make_unique<QAccelerometer>()),
 #endif
-      m_profileManager(std::make_unique<ProfileManager>()), m_fsmState(nullptr)
+      m_profileManager(std::make_unique<ProfileManager>()), m_inputQueue(m_sessionCore.inputQueue()),
+      m_fsmState(nullptr)
 {
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     setupAudioSignals();

@@ -14,12 +14,16 @@ void GameLogic::loadLastSession()
         return;
     }
 
-    m_session.score = snapshot->score;
-    m_session.food = snapshot->food;
-    m_session.direction = snapshot->direction;
-    m_session.obstacles = snapshot->obstacles;
+    m_sessionCore.restoreSnapshot({
+        .state = {
+            .food = snapshot->food,
+            .direction = snapshot->direction,
+            .score = snapshot->score,
+            .obstacles = snapshot->obstacles,
+        },
+        .body = snapshot->body,
+    });
     m_snakeModel.reset(snapshot->body);
-    m_inputQueue.clear();
     resetTransientRuntimeState();
     resetReplayRuntimeTracking();
     m_session.direction = snapshot->direction;

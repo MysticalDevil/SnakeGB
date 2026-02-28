@@ -1,0 +1,42 @@
+#pragma once
+
+#include "state_snapshot.h"
+
+#include <QPoint>
+
+#include <cstddef>
+#include <deque>
+
+namespace snakegb::core {
+
+class SessionCore
+{
+public:
+    [[nodiscard]] auto state() -> SessionState & { return m_state; }
+    [[nodiscard]] auto state() const -> const SessionState & { return m_state; }
+
+    [[nodiscard]] auto inputQueue() -> std::deque<QPoint> & { return m_inputQueue; }
+    [[nodiscard]] auto inputQueue() const -> const std::deque<QPoint> & { return m_inputQueue; }
+
+    void setDirection(const QPoint &direction);
+    [[nodiscard]] auto direction() const -> QPoint;
+
+    [[nodiscard]] auto tickCounter() const -> int;
+    void incrementTick();
+
+    auto enqueueDirection(const QPoint &direction, std::size_t maxQueueSize = 2) -> bool;
+    auto consumeQueuedInput(QPoint &nextInput) -> bool;
+    void clearQueuedInput();
+
+    void resetTransientRuntimeState();
+    void resetReplayRuntimeState();
+
+    [[nodiscard]] auto snapshot(const std::deque<QPoint> &body) const -> StateSnapshot;
+    void restoreSnapshot(const StateSnapshot &snapshot);
+
+private:
+    SessionState m_state;
+    std::deque<QPoint> m_inputQueue;
+};
+
+} // namespace snakegb::core

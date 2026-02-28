@@ -115,7 +115,8 @@ Acceptance:
 
 Current status:
 - rule/helper extraction into `src/core/` is real and already useful;
-- but the planned `GameSessionCore` object and immutable snapshot boundary are still missing.
+- `SessionCore` now exists and owns session state + queued input with a dedicated snapshot type;
+- but the full gameplay body/tick pipeline is still split between adapter and core, so the extraction is still partial.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -217,9 +218,10 @@ state, not the desired end state.
 ### 8.2 Partially Completed
 
 - Phase A core extraction has started, but only as rule/helper extraction.
-  - deterministic rule code now lives in `src/core/`.
-  - session/runtime helpers are extracted.
-  - however, the planned `GameSessionCore` object and immutable snapshot API are still not present.
+- deterministic rule code now lives in `src/core/`.
+- session/runtime helpers are extracted.
+- `SessionCore` and `state_snapshot.h` now exist as the first real session boundary.
+- however, snake body ownership and the main tick/rule pipeline still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
   - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.
@@ -232,8 +234,6 @@ state, not the desired end state.
 
 ### 8.3 Not Completed
 
-- `GameSessionCore` has not been introduced.
-- `state_snapshot.h` has not been introduced as the planned immutable render/query boundary.
 - The minimal core command interface from Phase A is not implemented as one coherent core API
   (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice` on a dedicated core object).
 - The proposed `services` split in Section 3.3 is not implemented as dedicated `src/services/` modules.
