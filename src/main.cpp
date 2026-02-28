@@ -12,6 +12,7 @@
 #include <cstdlib>
 
 #include "app_state.h"
+#include "adapter/audio_settings_view_model.h"
 #include "adapter/engine_adapter.h"
 #include "adapter/selection_view_model.h"
 #include "adapter/session_status_view_model.h"
@@ -64,6 +65,7 @@ auto main(int argc, char *argv[]) -> int {
 #endif
 
     EngineAdapter engineAdapter;
+    AudioSettingsViewModel audioSettingsViewModel(&engineAdapter);
     SelectionViewModel selectionViewModel(&engineAdapter);
     SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
     ThemeViewModel themeViewModel(&engineAdapter);
@@ -86,6 +88,7 @@ auto main(int argc, char *argv[]) -> int {
     qmlRegisterUncreatableType<PowerUpId>("SnakeGB", 1, 0, "PowerUpId",
                                           "PowerUpId is an enum container and cannot be instantiated");
     engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
+    engine.rootContext()->setContextProperty("audioSettingsViewModel", &audioSettingsViewModel);
     engine.rootContext()->setContextProperty("selectionViewModel", &selectionViewModel);
     engine.rootContext()->setContextProperty("sessionStatusViewModel", &sessionStatusViewModel);
     engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);

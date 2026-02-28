@@ -23,6 +23,8 @@ add_library(snakegb_adapter
     app_state.h
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
+    adapter/audio_settings_view_model.h
+    adapter/audio_settings_view_model.cpp
     adapter/theme_view_model.h
     adapter/theme_view_model.cpp
     adapter/session_status_view_model.h

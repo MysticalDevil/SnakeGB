@@ -111,12 +111,9 @@ class EngineAdapter final : public QObject, public IGameEngine
     Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
     Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
     Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
-    Q_PROPERTY(bool musicEnabled READ musicEnabled NOTIFY musicEnabledChanged)
     Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
     Q_PROPERTY(int buffTicksRemaining READ buffTicksRemaining NOTIFY buffChanged)
     Q_PROPERTY(int buffTicksTotal READ buffTicksTotal NOTIFY buffChanged)
-    Q_PROPERTY(float coverage READ coverage NOTIFY scoreChanged)
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
     Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
 

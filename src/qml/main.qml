@@ -384,7 +384,7 @@ Window {
                 bridge: shellBridge
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
-                volume: engineAdapter.volume
+                volume: audioSettingsViewModel.volume
                 
                 ScreenView {
                     id: screen
@@ -425,7 +425,7 @@ Window {
             engineAdapter.dispatchUiAction("toggle_shell_color")
         }
         function onVolumeRequested(value, withHaptic) {
-            engineAdapter.volume = value
+            audioSettingsViewModel.volume = value
             if (withHaptic) {
                 engineAdapter.dispatchUiAction("feedback_light")
             }
