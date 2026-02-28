@@ -9,19 +9,19 @@ QtObject {
     property bool rightPressed: false
     property bool primaryPressed: false
     property bool secondaryPressed: false
-    property bool selectPressed: false
-    property bool startPressed: false
+    property bool selectHeld: false
+    property bool startHeld: false
 
-    signal directionRequested(int dx, int dy)
-    signal primaryRequested()
-    signal secondaryRequested()
-    signal selectPressBegan()
-    signal selectPressEnded()
-    signal selectRequested()
-    signal startPressBegan()
-    signal startPressEnded()
-    signal startRequested()
-    signal shellColorToggleRequested()
+    signal directionTriggered(int dx, int dy)
+    signal primaryTriggered()
+    signal secondaryTriggered()
+    signal selectPressed()
+    signal selectReleased()
+    signal selectTriggered()
+    signal startPressed()
+    signal startReleased()
+    signal startTriggered()
+    signal shellColorToggleTriggered()
     signal volumeRequested(real value, bool withHaptic)
 
     function setDirectionPressed(dx, dy) {

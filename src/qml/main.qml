@@ -398,21 +398,21 @@ Window {
 
     Connections {
         target: shellBridge
-        function onDirectionRequested(dx, dy) {
+        function onDirectionTriggered(dx, dy) {
             if (dy < 0) dispatchAction(inputAction.NavUp)
             else if (dy > 0) dispatchAction(inputAction.NavDown)
             else if (dx < 0) dispatchAction(inputAction.NavLeft)
             else if (dx > 0) dispatchAction(inputAction.NavRight)
         }
-        function onPrimaryRequested() { dispatchAction(inputAction.Primary) }
-        function onSecondaryRequested() { dispatchAction(inputAction.Secondary) }
-        function onSelectPressBegan() { inputPressController.onSelectPressed() }
-        function onSelectPressEnded() { inputPressController.onSelectReleased() }
-        function onSelectRequested() { dispatchAction(inputAction.SelectShort) }
-        function onStartPressBegan() { inputPressController.onStartPressed() }
-        function onStartPressEnded() { inputPressController.onStartReleased() }
-        function onStartRequested() { dispatchAction(inputAction.Start) }
-        function onShellColorToggleRequested() {
+        function onPrimaryTriggered() { dispatchAction(inputAction.Primary) }
+        function onSecondaryTriggered() { dispatchAction(inputAction.Secondary) }
+        function onSelectPressed() { inputPressController.onSelectPressed() }
+        function onSelectReleased() { inputPressController.onSelectReleased() }
+        function onSelectTriggered() { dispatchAction(inputAction.SelectShort) }
+        function onStartPressed() { inputPressController.onStartPressed() }
+        function onStartReleased() { inputPressController.onStartReleased() }
+        function onStartTriggered() { dispatchAction(inputAction.Start) }
+        function onShellColorToggleTriggered() {
             gameLogic.dispatchUiAction("feedback_ui")
             gameLogic.dispatchUiAction("toggle_shell_color")
         }
@@ -433,7 +433,7 @@ Window {
             else if (event.key === Qt.Key_Left) dispatchAction(inputAction.NavLeft)
             else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
             else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                shellBridge.startPressed = true
+                shellBridge.startHeld = true
                 inputPressController.onStartPressed()
                 dispatchAction(inputAction.Start)
             }
@@ -457,7 +457,7 @@ Window {
             else if (event.key === Qt.Key_Shift) {
                 if (inputPressController.selectKeyDown) return
                 inputPressController.selectKeyDown = true
-                shellBridge.selectPressed = true
+                shellBridge.selectHeld = true
                 inputPressController.onSelectPressed()
             }
             else if (event.key === Qt.Key_M) dispatchAction(inputAction.ToggleMusic)
@@ -472,13 +472,13 @@ Window {
         Keys.onReleased: (event) => {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startPressed = false
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startHeld = false
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) inputPressController.onStartReleased()
             else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shellBridge.primaryPressed = false
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shellBridge.secondaryPressed = false
             else if (event.key === Qt.Key_Shift) {
                 inputPressController.selectKeyDown = false
-                shellBridge.selectPressed = false
+                shellBridge.selectHeld = false
                 inputPressController.onSelectReleased()
                 dispatchAction(inputAction.SelectShort)
             }

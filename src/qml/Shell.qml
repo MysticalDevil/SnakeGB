@@ -47,7 +47,7 @@ Rectangle {
         theme: shell.shellTheme
         onLogoClicked: {
             if (shell.bridge) {
-                shell.bridge.shellColorToggleRequested()
+                shell.bridge.shellColorToggleTriggered()
             }
         }
     }
@@ -65,22 +65,22 @@ Rectangle {
         externalRightPressed: shell.bridge ? shell.bridge.rightPressed : false
         onUpClicked: {
             if (shell.bridge) {
-                shell.bridge.directionRequested(0, -1)
+                shell.bridge.directionTriggered(0, -1)
             }
         }
         onDownClicked: {
             if (shell.bridge) {
-                shell.bridge.directionRequested(0, 1)
+                shell.bridge.directionTriggered(0, 1)
             }
         }
         onLeftClicked: {
             if (shell.bridge) {
-                shell.bridge.directionRequested(-1, 0)
+                shell.bridge.directionTriggered(-1, 0)
             }
         }
         onRightClicked: {
             if (shell.bridge) {
-                shell.bridge.directionRequested(1, 0)
+                shell.bridge.directionTriggered(1, 0)
             }
         }
     }
@@ -98,7 +98,7 @@ Rectangle {
             pressedExternally: shell.bridge ? shell.bridge.secondaryPressed : false
             onClicked: {
                 if (shell.bridge) {
-                    shell.bridge.secondaryRequested()
+                    shell.bridge.secondaryTriggered()
                 }
             }
         }
@@ -108,7 +108,7 @@ Rectangle {
             pressedExternally: shell.bridge ? shell.bridge.primaryPressed : false
             onClicked: {
                 if (shell.bridge) {
-                    shell.bridge.primaryRequested()
+                    shell.bridge.primaryTriggered()
                 }
             }
         }
@@ -123,20 +123,20 @@ Rectangle {
             id: selectBtnUI
             text: "SELECT"
             theme: shell.shellTheme
-            pressedExternally: shell.bridge ? shell.bridge.selectPressed : false
+            pressedExternally: shell.bridge ? shell.bridge.selectHeld : false
             onPressed: {
                 if (shell.bridge) {
-                    shell.bridge.selectPressBegan()
+                    shell.bridge.selectPressed()
                 }
             }
             onReleased: {
                 if (shell.bridge) {
-                    shell.bridge.selectPressEnded()
+                    shell.bridge.selectReleased()
                 }
             }
             onClicked: {
                 if (shell.bridge) {
-                    shell.bridge.selectRequested()
+                    shell.bridge.selectTriggered()
                 }
             }
         }
@@ -144,20 +144,20 @@ Rectangle {
             id: startBtnUI
             text: "START"
             theme: shell.shellTheme
-            pressedExternally: shell.bridge ? shell.bridge.startPressed : false
+            pressedExternally: shell.bridge ? shell.bridge.startHeld : false
             onPressed: {
                 if (shell.bridge) {
-                    shell.bridge.startPressBegan()
+                    shell.bridge.startPressed()
                 }
             }
             onReleased: {
                 if (shell.bridge) {
-                    shell.bridge.startPressEnded()
+                    shell.bridge.startReleased()
                 }
             }
             onClicked: {
                 if (shell.bridge) {
-                    shell.bridge.startRequested()
+                    shell.bridge.startTriggered()
                 }
             }
         }
