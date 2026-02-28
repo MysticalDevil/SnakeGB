@@ -2,26 +2,10 @@
 
 #include "adapter/profile_bridge.h"
 #include "core/game_rules.h"
+#include "core/replay_timeline.h"
 #include "core/session_runtime.h"
 
 using namespace Qt::StringLiterals;
-
-auto GameLogic::checkCollision(const QPoint &head) -> bool
-{
-    const auto outcome = m_sessionCore.checkCollision(head, BOARD_WIDTH, BOARD_HEIGHT);
-
-    if (outcome.consumeLaser && outcome.obstacleIndex >= 0 &&
-        outcome.obstacleIndex < m_session.obstacles.size()) {
-        emit obstaclesChanged();
-        triggerHaptic(8);
-        emit buffChanged();
-    }
-    if (outcome.consumeShield) {
-        triggerHaptic(5);
-        emit buffChanged();
-    }
-    return outcome.collision;
-}
 
 auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
     -> snakegb::core::SessionAdvanceResult
@@ -44,6 +28,17 @@ auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &co
     }
 
     return result;
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
+{
+    snakegb::core::applyReplayChoiceForTick(
+        m_bestChoiceHistory, m_sessionCore.tickCounter(), choiceHistoryIndex,
+        [this](const int index) { selectChoice(index); });
+    snakegb::core::applyReplayInputsForTick(
+        m_bestInputHistory, m_sessionCore.tickCounter(), inputHistoryIndex,
+        [this](const QPoint &direction) { m_sessionCore.setDirection(direction); });
 }
 
 void GameLogic::applyCollisionMitigationEffects(
@@ -144,7 +139,7 @@ void GameLogic::applyPostTickTasks()
     if (!m_currentScript.isEmpty()) {
         runLevelScript();
     }
-    m_session.tickCounter++;
+    m_sessionCore.incrementTick();
 }
 
 void GameLogic::applyMagnetAttraction()

@@ -117,7 +117,7 @@ void GameLogic::selectChoice(const int index)
     }
 
     if (m_state != Replaying) {
-        m_currentChoiceHistory.append({.frame = m_session.tickCounter, .index = index});
+        m_currentChoiceHistory.append({.frame = m_sessionCore.tickCounter(), .index = index});
     }
 
     const auto type = snakegb::adapter::choiceTypeAt(m_choices, index);

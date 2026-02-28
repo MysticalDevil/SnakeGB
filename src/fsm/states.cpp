@@ -1,5 +1,4 @@
 #include "states.h"
-#include "replay_timeline.h"
 #include "session_step.h"
 
 // --- Splash State ---
@@ -135,8 +134,7 @@ void ReplayingState::enter() {
 }
 
 void ReplayingState::update() {
-    snakegb::fsm::applyReplayChoicesForCurrentTick(m_context, m_choiceHistoryIndex);
-    snakegb::fsm::applyReplayInputsForCurrentTick(m_context, m_historyIndex);
+    m_context.applyReplayTimelineForCurrentTick(m_historyIndex, m_choiceHistoryIndex);
 
     // Run normal step simulation using replay-driven direction.
     snakegb::fsm::runSessionStep(m_context, {

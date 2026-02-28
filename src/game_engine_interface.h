@@ -1,14 +1,12 @@
 #pragma once
 
+#include "core/replay_types.h"
 #include "core/session_step_types.h"
 
 #include <QPoint>
 #include <QVariantList>
-#include <deque>
 
 class SnakeModel;
-struct ReplayFrame;
-struct ChoiceRecord;
 
 /**
  * @brief Unified Interface for Game Logic operations.
@@ -39,30 +37,19 @@ public:
     // engine-owned containers directly.
     [[nodiscard]] virtual auto snakeModel() const -> const SnakeModel* = 0;
     [[nodiscard]] virtual auto headPosition() const -> QPoint = 0;
-    [[nodiscard]] virtual auto currentDirection() const -> QPoint = 0;
     virtual void setDirection(const QPoint &direction) = 0;
     [[nodiscard]] virtual auto currentTick() const -> int = 0;
-    // Consume one queued input command if available.
-    virtual auto consumeQueuedInput(QPoint &nextInput) -> bool = 0;
     // Persist an input sample for ghost replay determinism.
     virtual void recordInputAtCurrentTick(const QPoint &input) = 0;
-    [[nodiscard]] virtual auto bestInputHistorySize() const -> int = 0;
-    // Read replay frame data without exposing the underlying container.
-    virtual auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool = 0;
-    [[nodiscard]] virtual auto bestChoiceHistorySize() const -> int = 0;
-    // Read replay choice data without exposing the underlying container.
-    virtual auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool = 0;
     [[nodiscard]] virtual auto foodPos() const -> QPoint = 0;
     [[nodiscard]] virtual auto currentState() const -> int = 0;
     [[nodiscard]] virtual auto hasPendingStateChange() const -> bool = 0;
     [[nodiscard]] virtual auto hasSave() const -> bool = 0;
     [[nodiscard]] virtual auto hasReplay() const -> bool = 0;
+    virtual void applyReplayTimelineForCurrentTick(int &inputHistoryIndex,
+                                                   int &choiceHistoryIndex) = 0;
 
     // --- Logic & Physics ---
-    virtual auto checkCollision(const QPoint &head) -> bool = 0;
-    virtual void handleFoodConsumption(const QPoint &head) = 0;
-    virtual void handlePowerUpConsumption(const QPoint &head) = 0;
-    virtual void applyMovement(const QPoint &newHead, bool grew) = 0;
     virtual auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
         -> snakegb::core::SessionAdvanceResult = 0;
 

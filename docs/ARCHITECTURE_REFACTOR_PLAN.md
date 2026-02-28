@@ -118,7 +118,8 @@ Current status:
 - `SessionCore` now exists and owns session state, queued input, snake body, and a dedicated snapshot type;
 - the main session-step mechanics and step advancement now execute through `SessionCore`;
 - random spawning and magnet-driven food mutation for the main tick path now also execute through `SessionCore`;
-- but replay integration and Qt-facing side effects are still split between adapter and core.
+- replay frame application now enters replay/update flow through a narrower adapter hook instead of broad history-reader APIs;
+- but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -226,7 +227,8 @@ state, not the desired end state.
 - session state, input queue, and snake body ownership now live behind that core object.
 - the main session-step mechanics and tick-step advancement now route through that core object.
 - random spawning and magnet-driven food mutation for that path also route through that core object.
-- however, replay integration and Qt-facing side effects still are not fully moved behind that core object.
+- replay frame application is now routed through a narrower adapter seam instead of low-level history readers.
+- however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
   - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.

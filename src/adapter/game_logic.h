@@ -176,10 +176,6 @@ public:
     {
         return m_sessionCore.headPosition();
     }
-    [[nodiscard]] auto currentDirection() const -> QPoint override
-    {
-        return m_sessionCore.direction();
-    }
     void setDirection(const QPoint &direction) override
     {
         m_sessionCore.setDirection(direction);
@@ -188,44 +184,11 @@ public:
     {
         return m_sessionCore.tickCounter();
     }
-    auto consumeQueuedInput(QPoint &nextInput) -> bool override
-    {
-        return m_sessionCore.consumeQueuedInput(nextInput);
-    }
     // Replay history is captured at tick granularity to keep playback deterministic.
     void recordInputAtCurrentTick(const QPoint &input) override
     {
         m_currentInputHistory.append(
-            {.frame = m_session.tickCounter, .dx = input.x(), .dy = input.y()});
-    }
-    [[nodiscard]] auto bestInputHistorySize() const -> int override
-    {
-        return m_bestInputHistory.size();
-    }
-    auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool override
-    {
-        if (index < 0 || index >= m_bestInputHistory.size()) {
-            return false;
-        }
-        const auto &item = m_bestInputHistory[index];
-        frame = item.frame;
-        dx = item.dx;
-        dy = item.dy;
-        return true;
-    }
-    [[nodiscard]] auto bestChoiceHistorySize() const -> int override
-    {
-        return m_bestChoiceHistory.size();
-    }
-    auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool override
-    {
-        if (index < 0 || index >= m_bestChoiceHistory.size()) {
-            return false;
-        }
-        const auto &item = m_bestChoiceHistory[index];
-        frame = item.frame;
-        choiceIndex = item.index;
-        return true;
+            {.frame = m_sessionCore.tickCounter(), .dx = input.x(), .dy = input.y()});
     }
     [[nodiscard]] auto foodPos() const -> QPoint override
     {
@@ -241,11 +204,12 @@ public:
     }
     [[nodiscard]] auto hasSave() const -> bool override;
     [[nodiscard]] auto hasReplay() const noexcept -> bool override;
+    void applyReplayTimelineForCurrentTick(int &inputHistoryIndex,
+                                           int &choiceHistoryIndex) override;
 
-    auto checkCollision(const QPoint &head) -> bool override;
-    void handleFoodConsumption(const QPoint &head) override;
-    void handlePowerUpConsumption(const QPoint &head) override;
-    void applyMovement(const QPoint &newHead, bool grew) override;
+    void handleFoodConsumption(const QPoint &head);
+    void handlePowerUpConsumption(const QPoint &head);
+    void applyMovement(const QPoint &newHead, bool grew);
     auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
         -> snakegb::core::SessionAdvanceResult override;
 

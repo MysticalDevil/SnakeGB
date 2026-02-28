@@ -1,5 +1,5 @@
 #include "core/game_rules.h"
-#include "fsm/replay_timeline.h"
+#include "core/replay_timeline.h"
 #include "core/buff_runtime.h"
 #include "core/choice_runtime.h"
 #include "core/level_runtime.h"
@@ -11,6 +11,9 @@
 #include <QJsonObject>
 #include <deque>
 
+// QtTest slot-based tests intentionally stay as member functions and use assertion-heavy bodies.
+// The fake engine also keeps compact no-op overrides to focus these tests on replay/core behavior.
+// NOLINTBEGIN(readability-convert-member-functions-to-static,readability-function-cognitive-complexity,readability-named-parameter,modernize-use-designated-initializers,bugprone-unchecked-optional-access)
 class TestCoreRules : public QObject {
     Q_OBJECT
 
@@ -35,65 +38,29 @@ private slots:
 
 class FakeReplayEngine final : public IGameEngine {
 public:
-    struct InputFrame {
-        int frame;
-        int dx;
-        int dy;
-    };
-    struct ChoiceFrame {
-        int frame;
-        int index;
-    };
-
     int tick = 0;
     QPoint lastDirection{0, 0};
     int setDirectionCalls = 0;
     QList<int> selectedChoices;
-    QList<InputFrame> inputFrames;
-    QList<ChoiceFrame> choiceFrames;
+    QList<ReplayFrame> inputFrames;
+    QList<ChoiceRecord> choiceFrames;
 
     void setInternalState(int) override {}
     void requestStateChange(int) override {}
     [[nodiscard]] auto snakeModel() const -> const SnakeModel * override { return nullptr; }
     [[nodiscard]] auto headPosition() const -> QPoint override { return {}; }
-    [[nodiscard]] auto currentDirection() const -> QPoint override { return lastDirection; }
     void setDirection(const QPoint &direction) override {
         lastDirection = direction;
         ++setDirectionCalls;
     }
     [[nodiscard]] auto currentTick() const -> int override { return tick; }
-    auto consumeQueuedInput(QPoint &) -> bool override { return false; }
     void recordInputAtCurrentTick(const QPoint &) override {}
-    [[nodiscard]] auto bestInputHistorySize() const -> int override { return inputFrames.size(); }
-    auto bestInputFrameAt(int index, int &frame, int &dx, int &dy) const -> bool override {
-        if (index < 0 || index >= inputFrames.size()) {
-            return false;
-        }
-        const auto &sample = inputFrames[index];
-        frame = sample.frame;
-        dx = sample.dx;
-        dy = sample.dy;
-        return true;
-    }
-    [[nodiscard]] auto bestChoiceHistorySize() const -> int override { return choiceFrames.size(); }
-    auto bestChoiceAt(int index, int &frame, int &choiceIndex) const -> bool override {
-        if (index < 0 || index >= choiceFrames.size()) {
-            return false;
-        }
-        const auto &sample = choiceFrames[index];
-        frame = sample.frame;
-        choiceIndex = sample.index;
-        return true;
-    }
     [[nodiscard]] auto foodPos() const -> QPoint override { return {}; }
     [[nodiscard]] auto currentState() const -> int override { return 0; }
     [[nodiscard]] auto hasPendingStateChange() const -> bool override { return false; }
     [[nodiscard]] auto hasSave() const -> bool override { return false; }
     [[nodiscard]] auto hasReplay() const -> bool override { return !inputFrames.isEmpty(); }
-    auto checkCollision(const QPoint &) -> bool override { return false; }
-    void handleFoodConsumption(const QPoint &) override {}
-    void handlePowerUpConsumption(const QPoint &) override {}
-    void applyMovement(const QPoint &, bool) override {}
+    void applyReplayTimelineForCurrentTick(int &, int &) override {}
     auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &) -> snakegb::core::SessionAdvanceResult override { return {}; }
     void restart() override {}
     void startReplay() override {}
@@ -349,44 +316,59 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
     int choiceIndex = 0;
 
     engine.tick = 0;
-    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::core::applyReplayInputsForTick(
+        engine.inputFrames, engine.tick, inputIndex,
+        [&engine](const QPoint &direction) { engine.setDirection(direction); });
     QCOMPARE(engine.setDirectionCalls, 0);
     QCOMPARE(inputIndex, 0);
 
     engine.tick = 1;
-    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::core::applyReplayInputsForTick(
+        engine.inputFrames, engine.tick, inputIndex,
+        [&engine](const QPoint &direction) { engine.setDirection(direction); });
     QCOMPARE(engine.setDirectionCalls, 1);
     QCOMPARE(engine.lastDirection, QPoint(1, 0));
     QCOMPARE(inputIndex, 1);
 
     engine.tick = 3;
-    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::core::applyReplayInputsForTick(
+        engine.inputFrames, engine.tick, inputIndex,
+        [&engine](const QPoint &direction) { engine.setDirection(direction); });
     QCOMPARE(engine.setDirectionCalls, 3);
     QCOMPARE(engine.lastDirection, QPoint(-1, 0));
     QCOMPARE(inputIndex, 3);
 
     engine.tick = 7;
-    snakegb::fsm::applyReplayInputsForCurrentTick(engine, inputIndex);
+    snakegb::core::applyReplayInputsForTick(
+        engine.inputFrames, engine.tick, inputIndex,
+        [&engine](const QPoint &direction) { engine.setDirection(direction); });
     QCOMPARE(engine.setDirectionCalls, 3);
     QCOMPARE(inputIndex, 4);
 
     engine.tick = 2;
-    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::core::applyReplayChoiceForTick(
+        engine.choiceFrames, engine.tick, choiceIndex,
+        [&engine](const int index) { engine.selectChoice(index); });
     QCOMPARE(engine.selectedChoices.size(), 1);
     QCOMPARE(engine.selectedChoices.first(), 4);
     QCOMPARE(choiceIndex, 1);
 
-    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::core::applyReplayChoiceForTick(
+        engine.choiceFrames, engine.tick, choiceIndex,
+        [&engine](const int index) { engine.selectChoice(index); });
     QCOMPARE(engine.selectedChoices.size(), 2);
     QCOMPARE(engine.selectedChoices.last(), 5);
     QCOMPARE(choiceIndex, 2);
 
     engine.tick = 4;
-    snakegb::fsm::applyReplayChoicesForCurrentTick(engine, choiceIndex);
+    snakegb::core::applyReplayChoiceForTick(
+        engine.choiceFrames, engine.tick, choiceIndex,
+        [&engine](const int index) { engine.selectChoice(index); });
     QCOMPARE(engine.selectedChoices.size(), 3);
     QCOMPARE(engine.selectedChoices.last(), 1);
     QCOMPARE(choiceIndex, 3);
 }
 
 QTEST_MAIN(TestCoreRules)
+// NOLINTEND(readability-convert-member-functions-to-static,readability-function-cognitive-complexity,readability-named-parameter,modernize-use-designated-initializers,bugprone-unchecked-optional-access)
 #include "test_core_rules.moc"

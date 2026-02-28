@@ -2,6 +2,7 @@ add_library(snakegb_core
     core/game_rules.cpp
     core/buff_runtime.cpp
     core/session_core.cpp
+    core/replay_timeline.cpp
     core/session_runtime.cpp
     core/level_runtime.cpp
     core/achievement_rules.cpp
@@ -12,7 +13,6 @@ target_link_libraries(snakegb_core PRIVATE Qt6::Core)
 
 add_library(snakegb_fsm
     fsm/session_step.cpp
-    fsm/replay_timeline.cpp
     fsm/state_factory.cpp
     fsm/states.cpp
 )
