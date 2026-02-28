@@ -61,7 +61,7 @@ void PlayingState::update() {
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {
-    // Movement handled via queue in GameLogic
+    // Movement handled via queue in EngineAdapter
 }
 
 void PlayingState::handleStart() {

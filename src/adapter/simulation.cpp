@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include "adapter/profile_bridge.h"
 
@@ -43,7 +43,7 @@ auto runSessionStepDriver(IGameEngine &engine, const SessionStepDriverConfig &co
 
 } // namespace
 
-auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
+auto EngineAdapter::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
     -> snakegb::core::SessionAdvanceResult
 {
     const auto result = m_sessionCore.advanceSessionStep(
@@ -66,7 +66,7 @@ auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &co
     return result;
 }
 
-void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
+void EngineAdapter::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
 {
     const auto result = m_sessionCore.applyReplayTimeline(m_bestInputHistory, inputHistoryIndex,
                                                           m_bestChoiceHistory,
@@ -76,7 +76,7 @@ void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &c
     }
 }
 
-void GameLogic::advancePlayingState()
+void EngineAdapter::advancePlayingState()
 {
     runSessionStepDriver(*this, {
                                     .activeState = IGameEngine::Playing,
@@ -87,7 +87,7 @@ void GameLogic::advancePlayingState()
                                 });
 }
 
-void GameLogic::advanceReplayState()
+void EngineAdapter::advanceReplayState()
 {
     applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
 
@@ -100,7 +100,7 @@ void GameLogic::advanceReplayState()
                                 });
 }
 
-void GameLogic::applyCollisionMitigationEffects(
+void EngineAdapter::applyCollisionMitigationEffects(
     const snakegb::core::SessionAdvanceResult &result)
 {
     if (result.consumeLaser && result.obstacleIndex >= 0 &&
@@ -115,7 +115,7 @@ void GameLogic::applyCollisionMitigationEffects(
     }
 }
 
-void GameLogic::applyChoiceTransition()
+void EngineAdapter::applyChoiceTransition()
 {
     if (m_state == Replaying) {
         generateChoices();
@@ -124,7 +124,7 @@ void GameLogic::applyChoiceTransition()
     }
 }
 
-void GameLogic::applyFoodConsumptionEffects(const float pan, const bool triggerChoice,
+void EngineAdapter::applyFoodConsumptionEffects(const float pan, const bool triggerChoice,
                                             const bool spawnPowerUpAfterFood)
 {
     emit foodEaten(pan);
@@ -141,7 +141,7 @@ void GameLogic::applyFoodConsumptionEffects(const float pan, const bool triggerC
     triggerHaptic(std::min(5, 2 + (m_session.score / 10)));
 }
 
-void GameLogic::applyPowerUpConsumptionEffects(
+void EngineAdapter::applyPowerUpConsumptionEffects(
     const snakegb::core::SessionAdvanceResult &result)
 {
     snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
@@ -158,7 +158,7 @@ void GameLogic::applyPowerUpConsumptionEffects(
     emit powerUpChanged();
 }
 
-void GameLogic::applyMovementEffects(const snakegb::core::SessionAdvanceResult &result)
+void EngineAdapter::applyMovementEffects(const snakegb::core::SessionAdvanceResult &result)
 {
     syncSnakeModelFromCore();
     m_currentRecording.append(m_sessionCore.headPosition());
@@ -177,7 +177,7 @@ void GameLogic::applyMovementEffects(const snakegb::core::SessionAdvanceResult &
     checkAchievements();
 }
 
-void GameLogic::applyPostTickTasks()
+void EngineAdapter::applyPostTickTasks()
 {
     if (!m_currentScript.isEmpty()) {
         runLevelScript();
@@ -185,7 +185,7 @@ void GameLogic::applyPostTickTasks()
     m_sessionCore.finishRuntimeUpdate();
 }
 
-void GameLogic::deactivateBuff()
+void EngineAdapter::deactivateBuff()
 {
     m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
     emit buffChanged();

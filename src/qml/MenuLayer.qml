@@ -6,7 +6,7 @@ Rectangle {
     property string gameFont: ""
     property real elapsed: 0
     property var menuColor
-    property var gameLogic
+    property var engineAdapter
 
     readonly property color cardPrimary: menuColor("cardPrimary")
     readonly property color cardSecondary: menuColor("cardSecondary")
@@ -48,7 +48,7 @@ Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Text {
-                    text: gameLogic.hasSave ? "CONTINUE READY" : "NEW RUN READY"
+                    text: engineAdapter.hasSave ? "CONTINUE READY" : "NEW RUN READY"
                     font.family: gameFont
                     font.pixelSize: 8
                     color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
@@ -70,14 +70,14 @@ Rectangle {
                 anchors.centerIn: parent
                 spacing: 16
                 Text {
-                    text: `HI ${gameLogic.highScore}`
+                    text: `HI ${engineAdapter.highScore}`
                     font.family: gameFont
                     font.pixelSize: 11
                     font.bold: true
                     color: menuLayer.secondaryInk
                 }
                 Text {
-                    text: `LEVEL ${gameLogic.currentLevelName}`
+                    text: `LEVEL ${engineAdapter.currentLevelName}`
                     font.family: gameFont
                     font.pixelSize: 11
                     font.bold: true
@@ -98,7 +98,7 @@ Rectangle {
                 border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.74)
                 border.width: 1
                 Text {
-                    text: gameLogic.hasSave ? "START  CONTINUE" : "START  NEW GAME"
+                    text: engineAdapter.hasSave ? "START  CONTINUE" : "START  NEW GAME"
                     color: menuLayer.actionInk
                     font.family: gameFont
                     font.pixelSize: 11

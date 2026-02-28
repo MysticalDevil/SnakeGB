@@ -1,16 +1,16 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include "adapter/profile_bridge.h"
 #include "fsm/game_state.h"
 
 using namespace Qt::StringLiterals;
 
-auto GameLogic::saveRepository() const -> snakegb::services::SaveRepository
+auto EngineAdapter::saveRepository() const -> snakegb::services::SaveRepository
 {
     return snakegb::services::SaveRepository(m_profileManager.get());
 }
 
-void GameLogic::loadLastSession()
+void EngineAdapter::loadLastSession()
 {
     const auto snapshot = saveRepository().loadSessionSnapshot();
     if (!snapshot.has_value()) {
@@ -36,20 +36,20 @@ void GameLogic::loadLastSession()
     requestStateChange(Paused);
 }
 
-void GameLogic::updatePersistence()
+void EngineAdapter::updatePersistence()
 {
     updateHighScore();
     snakegb::adapter::incrementCrashes(m_profileManager.get());
     clearSavedState();
 }
 
-void GameLogic::enterGameOverState()
+void EngineAdapter::enterGameOverState()
 {
     setInternalState(GameOver);
     updatePersistence();
 }
 
-void GameLogic::lazyInit()
+void EngineAdapter::lazyInit()
 {
     m_levelIndex = snakegb::adapter::levelIndex(m_profileManager.get());
     m_audioBus.applyVolume(snakegb::adapter::volume(m_profileManager.get()));
@@ -69,7 +69,7 @@ void GameLogic::lazyInit()
     emit shellColorChanged();
 }
 
-void GameLogic::updateHighScore()
+void EngineAdapter::updateHighScore()
 {
     if (m_session.score > snakegb::adapter::highScore(m_profileManager.get())) {
         snakegb::adapter::updateHighScore(m_profileManager.get(), m_session.score);
@@ -88,13 +88,13 @@ void GameLogic::updateHighScore()
         };
         const bool savedGhost = saveRepository().saveGhostSnapshot(ghostSnapshot);
         if (!savedGhost) {
-            qWarning().noquote() << "[ReplayFlow][GameLogic] failed to persist ghost snapshot";
+            qWarning().noquote() << "[ReplayFlow][EngineAdapter] failed to persist ghost snapshot";
         }
         emit highScoreChanged();
     }
 }
 
-void GameLogic::saveCurrentState()
+void EngineAdapter::saveCurrentState()
 {
     if (m_profileManager) {
         saveRepository().saveSession(m_sessionCore.snapshot({}));
@@ -102,7 +102,7 @@ void GameLogic::saveCurrentState()
     }
 }
 
-void GameLogic::clearSavedState()
+void EngineAdapter::clearSavedState()
 {
     if (m_profileManager) {
         saveRepository().clearSession();

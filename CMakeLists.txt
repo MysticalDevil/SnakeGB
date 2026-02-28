@@ -144,7 +144,7 @@ endif()
 
 enable_testing()
 add_executable(game-tests
-    tests/test_game_logic.cpp
+    tests/test_engine_adapter.cpp
 )
 target_include_directories(game-tests PRIVATE src)
 target_link_libraries(game-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
@@ -156,8 +156,8 @@ if(TARGET Qt6::Sensors)
     target_link_libraries(game-tests PRIVATE Qt6::Sensors)
     target_compile_definitions(game-tests PRIVATE SNAKEGB_HAS_SENSORS)
 endif()
-add_test(NAME GameLogicTest COMMAND game-tests)
-set_tests_properties(GameLogicTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+add_test(NAME EngineAdapterTest COMMAND game-tests)
+set_tests_properties(EngineAdapterTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(core-rules-tests
     tests/test_core_rules.cpp

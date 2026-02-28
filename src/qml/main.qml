@@ -10,12 +10,12 @@ Window {
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
 
-    readonly property color p0: gameLogic.palette[0]
-    readonly property color p1: gameLogic.palette[1]
-    readonly property color p2: gameLogic.palette[2]
-    readonly property color p3: gameLogic.palette[3]
+    readonly property color p0: engineAdapter.palette[0]
+    readonly property color p1: engineAdapter.palette[1]
+    readonly property color p2: engineAdapter.palette[2]
+    readonly property color p3: engineAdapter.palette[3]
     readonly property string gameFont: "Monospace"
-    property var gameLogicRef: gameLogic
+    property var engineAdapterRef: engineAdapter
 
     property real elapsed: 0.0
     property bool iconDebugMode: false
@@ -51,13 +51,13 @@ Window {
 
     function handleDirection(dx, dy) {
         if (dy < 0) {
-            gameLogic.dispatchUiAction(inputAction.NavUp)
+            engineAdapter.dispatchUiAction(inputAction.NavUp)
         } else if (dy > 0) {
-            gameLogic.dispatchUiAction(inputAction.NavDown)
+            engineAdapter.dispatchUiAction(inputAction.NavDown)
         } else if (dx < 0) {
-            gameLogic.dispatchUiAction(inputAction.NavLeft)
+            engineAdapter.dispatchUiAction(inputAction.NavLeft)
         } else if (dx > 0) {
-            gameLogic.dispatchUiAction(inputAction.NavRight)
+            engineAdapter.dispatchUiAction(inputAction.NavRight)
         }
         setDpadPressed(dx, dy)
     }
@@ -79,12 +79,12 @@ Window {
     }
 
     function dispatchRuntimeAction(action) {
-        gameLogic.dispatchUiAction(action)
+        engineAdapter.dispatchUiAction(action)
     }
 
     UiActionRouter {
         id: uiActionRouter
-        gameLogic: gameLogicRef
+        engineAdapter: engineAdapterRef
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
@@ -107,7 +107,7 @@ Window {
 
     DebugTokenRouter {
         id: debugTokenRouter
-        gameLogic: gameLogicRef
+        engineAdapter: engineAdapterRef
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
@@ -123,8 +123,8 @@ Window {
 
     InputPressController {
         id: inputPressController
-        currentState: gameLogic.state
-        hasSave: gameLogic.hasSave
+        currentState: engineAdapter.state
+        hasSave: engineAdapter.hasSave
         iconDebugMode: window.iconDebugMode
         actionMap: window.inputAction
         showOsd: screen.showOSD
@@ -190,7 +190,7 @@ Window {
             return
         }
         if (token === "PALETTE" || token === "NEXT_PALETTE") {
-            gameLogic.dispatchUiAction("next_palette")
+            engineAdapter.dispatchUiAction("next_palette")
             return
         }
         if (token === "MUSIC") {
@@ -224,7 +224,7 @@ Window {
         if (handleEasterInput("B")) {
             return
         }
-        gameLogic.dispatchUiAction(inputAction.Secondary)
+        engineAdapter.dispatchUiAction(inputAction.Secondary)
     }
 
     function handleAButton() {
@@ -234,14 +234,14 @@ Window {
         if (handleEasterInput("A")) {
             return
         }
-        gameLogic.dispatchUiAction(inputAction.Primary)
+        engineAdapter.dispatchUiAction(inputAction.Primary)
     }
 
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
         clearDpadVisuals()
-        gameLogic.dispatchUiAction("state_start_menu")
+        engineAdapter.dispatchUiAction("state_start_menu")
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -255,7 +255,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    gameLogic.dispatchUiAction("state_start_menu")
+                    engineAdapter.dispatchUiAction("state_start_menu")
                 }
                 return "toggle"
             }
@@ -273,7 +273,7 @@ Window {
     function handleEasterInput(token) {
         // Keep Konami isolated from normal navigation:
         // only allow entering sequence from paused overlay (or while already in icon lab).
-        const trackEaster = iconDebugMode || gameLogic.state === AppState.Paused
+        const trackEaster = iconDebugMode || engineAdapter.state === AppState.Paused
         if (!trackEaster) {
             return false
         }
@@ -288,7 +288,7 @@ Window {
         const status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                gameLogic.dispatchUiAction("state_start_menu")
+                engineAdapter.dispatchUiAction("state_start_menu")
             }
             return true
         }
@@ -308,7 +308,7 @@ Window {
         if (iconDebugMode) {
             return
         }
-        gameLogic.dispatchUiAction(inputAction.Start)
+        engineAdapter.dispatchUiAction(inputAction.Start)
     }
 
     function cancelSaveClearConfirm(showToast) {
@@ -320,22 +320,22 @@ Window {
             exitIconLabToMenu()
             return
         }
-        gameLogic.dispatchUiAction(inputAction.Back)
+        engineAdapter.dispatchUiAction(inputAction.Back)
     }
 
     Connections {
-        target: gameLogic
+        target: engineAdapter
         function onPaletteChanged() { 
-            if (gameLogic.state === AppState.Splash) return
-            screen.showOSD(gameLogic.paletteName) 
+            if (engineAdapter.state === AppState.Splash) return
+            screen.showOSD(engineAdapter.paletteName) 
         }
         function onShellColorChanged() { 
-            if (gameLogic.state !== AppState.Splash) {
+            if (engineAdapter.state !== AppState.Splash) {
                 screen.triggerPowerCycle()
             }
         }
         function onStateChanged() {
-            if (gameLogic.state !== AppState.StartMenu) {
+            if (engineAdapter.state !== AppState.StartMenu) {
                 cancelSaveClearConfirm(false)
             }
         }
@@ -382,14 +382,14 @@ Window {
                 id: shell
                 anchors.fill: parent
                 bridge: shellBridge
-                shellColor: gameLogic.shellColor
-                shellThemeName: gameLogic.shellName
-                volume: gameLogic.volume
+                shellColor: engineAdapter.shellColor
+                shellThemeName: engineAdapter.shellName
+                volume: engineAdapter.volume
                 
                 ScreenView {
                     id: screen
                     anchors.fill: parent
-                    gameLogic: gameLogicRef
+                    engineAdapter: engineAdapterRef
                     p0: window.p0
                     p1: window.p1
                     p2: window.p2
@@ -421,13 +421,13 @@ Window {
         function onStartReleased() { inputPressController.onStartReleased() }
         function onStartTriggered() { dispatchAction(inputAction.Start) }
         function onShellColorToggleTriggered() {
-            gameLogic.dispatchUiAction("feedback_ui")
-            gameLogic.dispatchUiAction("toggle_shell_color")
+            engineAdapter.dispatchUiAction("feedback_ui")
+            engineAdapter.dispatchUiAction("toggle_shell_color")
         }
         function onVolumeRequested(value, withHaptic) {
-            gameLogic.volume = value
+            engineAdapter.volume = value
             if (withHaptic) {
-                gameLogic.dispatchUiAction("feedback_light")
+                engineAdapter.dispatchUiAction("feedback_light")
             }
         }
     }

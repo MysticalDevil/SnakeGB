@@ -96,7 +96,7 @@ private:
     std::function<void(const std::deque<QPoint> &)> m_bodyChangedCallback;
 };
 
-class GameLogic final : public QObject, public IGameEngine
+class EngineAdapter final : public QObject, public IGameEngine
 {
     Q_OBJECT
     Q_PROPERTY(SnakeModel *snakeModel READ snakeModelPtr CONSTANT)
@@ -163,14 +163,14 @@ public:
     };
     Q_ENUM(State)
 
-    explicit GameLogic(QObject *parent = nullptr);
-    ~GameLogic() override;
+    explicit EngineAdapter(QObject *parent = nullptr);
+    ~EngineAdapter() override;
 
     // --- IGameEngine Interface ---
     void setInternalState(int s) override;
     Q_INVOKABLE void requestStateChange(int newState) override;
 
-    // FSM receives read-only model access; structural mutations stay in GameLogic.
+    // FSM receives read-only model access; structural mutations stay in EngineAdapter.
     [[nodiscard]] auto snakeModel() const -> const SnakeModel * override
     {
         return &m_snakeModel;

@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QDebug>
 
@@ -20,23 +20,23 @@ namespace
 auto stateName(const int state) -> const char *
 {
     switch (state) {
-    case GameLogic::Splash:
+    case EngineAdapter::Splash:
         return "Splash";
-    case GameLogic::StartMenu:
+    case EngineAdapter::StartMenu:
         return "StartMenu";
-    case GameLogic::Playing:
+    case EngineAdapter::Playing:
         return "Playing";
-    case GameLogic::Paused:
+    case EngineAdapter::Paused:
         return "Paused";
-    case GameLogic::GameOver:
+    case EngineAdapter::GameOver:
         return "GameOver";
-    case GameLogic::Replaying:
+    case EngineAdapter::Replaying:
         return "Replaying";
-    case GameLogic::ChoiceSelection:
+    case EngineAdapter::ChoiceSelection:
         return "ChoiceSelection";
-    case GameLogic::Library:
+    case EngineAdapter::Library:
         return "Library";
-    case GameLogic::MedalRoom:
+    case EngineAdapter::MedalRoom:
         return "MedalRoom";
     default:
         return "Unknown";
@@ -44,7 +44,7 @@ auto stateName(const int state) -> const char *
 }
 } // namespace
 
-GameLogic::GameLogic(QObject *parent)
+EngineAdapter::EngineAdapter(QObject *parent)
     : QObject(parent), m_rng(QRandomGenerator::securelySeeded()), m_session(m_sessionCore.state()),
       m_timer(std::make_unique<QTimer>()),
 #ifdef SNAKEGB_HAS_SENSORS
@@ -68,7 +68,7 @@ GameLogic::GameLogic(QObject *parent)
         .playCrash = [this](const int durationMs) -> void { emit audioPlayCrash(durationMs); },
     });
 
-    connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
+    connect(m_timer.get(), &QTimer::timeout, this, &EngineAdapter::update);
     setupAudioSignals();
     setupSensorRuntime();
     m_snakeModel.setBodyChangedCallback(
@@ -78,7 +78,7 @@ GameLogic::GameLogic(QObject *parent)
     syncSnakeModelFromCore();
 }
 
-GameLogic::~GameLogic()
+EngineAdapter::~EngineAdapter()
 {
 #ifdef SNAKEGB_HAS_SENSORS
     if (m_accelerometer) {
@@ -91,35 +91,35 @@ GameLogic::~GameLogic()
     m_fsmState.reset();
 }
 
-void GameLogic::syncSnakeModelFromCore()
+void EngineAdapter::syncSnakeModelFromCore()
 {
     m_snakeModel.reset(m_sessionCore.body());
 }
 
-void GameLogic::setupAudioSignals()
+void EngineAdapter::setupAudioSignals()
 {
-    connect(this, &GameLogic::foodEaten, this, [this](const float pan) -> void {
+    connect(this, &EngineAdapter::foodEaten, this, [this](const float pan) -> void {
         m_audioBus.playFood({.score = m_session.score, .pan = pan});
         triggerHaptic(3);
     });
 
-    connect(this, &GameLogic::powerUpEaten, this, [this]() -> void {
+    connect(this, &EngineAdapter::powerUpEaten, this, [this]() -> void {
         m_audioBus.playPowerUp();
         triggerHaptic(6);
     });
 
-    connect(this, &GameLogic::playerCrashed, this, [this]() -> void {
+    connect(this, &EngineAdapter::playerCrashed, this, [this]() -> void {
         m_audioBus.playCrash();
         triggerHaptic(12);
     });
 
-    connect(this, &GameLogic::uiInteractTriggered, this, [this]() -> void {
+    connect(this, &EngineAdapter::uiInteractTriggered, this, [this]() -> void {
         m_audioBus.playUiInteract();
         triggerHaptic(2);
     });
 
-    connect(this, &GameLogic::stateChanged, this, [this]() -> void {
-        qInfo().noquote() << "[AudioFlow][GameLogic] stateChanged ->" << stateName(m_state)
+    connect(this, &EngineAdapter::stateChanged, this, [this]() -> void {
+        qInfo().noquote() << "[AudioFlow][EngineAdapter] stateChanged ->" << stateName(m_state)
                           << "(musicEnabled=" << m_musicEnabled << ")";
         const int token = m_audioStateToken;
         m_audioBus.handleStateChanged(
@@ -128,7 +128,7 @@ void GameLogic::setupAudioSignals()
                 QTimer::singleShot(delayMs, this, [this, token, callback]() -> void {
                     if (token != m_audioStateToken) {
                         qInfo().noquote()
-                            << "[AudioFlow][GameLogic] menu BGM deferred start canceled by token";
+                            << "[AudioFlow][EngineAdapter] menu BGM deferred start canceled by token";
                         return;
                     }
                     if (callback) {
@@ -139,7 +139,7 @@ void GameLogic::setupAudioSignals()
     });
 }
 
-void GameLogic::setupSensorRuntime()
+void EngineAdapter::setupSensorRuntime()
 {
 #ifdef SNAKEGB_HAS_SENSORS
     if (!m_accelerometer) {
@@ -163,7 +163,7 @@ void GameLogic::setupSensorRuntime()
         if (!m_accelerometer) {
             return;
         }
-        qInfo().noquote() << "[SensorFlow][GameLogic] accelerometer connected="
+        qInfo().noquote() << "[SensorFlow][EngineAdapter] accelerometer connected="
                           << m_accelerometer->isConnectedToBackend()
                           << "active=" << m_accelerometer->isActive();
     });
@@ -172,11 +172,11 @@ void GameLogic::setupSensorRuntime()
 #endif
 }
 
-void GameLogic::setInternalState(const int s)
+void EngineAdapter::setInternalState(const int s)
 {
     const auto next = static_cast<State>(s);
     if (m_state != next) {
-        qInfo().noquote() << "[StateFlow][GameLogic] setInternalState:" << stateName(m_state)
+        qInfo().noquote() << "[StateFlow][EngineAdapter] setInternalState:" << stateName(m_state)
                           << "->" << stateName(next);
         m_state = next;
         m_audioStateToken++;
@@ -185,22 +185,22 @@ void GameLogic::setInternalState(const int s)
     }
 }
 
-void GameLogic::requestStateChange(const int newState)
+void EngineAdapter::requestStateChange(const int newState)
 {
     if (m_stateCallbackInProgress) {
-        qInfo().noquote() << "[StateFlow][GameLogic] defer requestStateChange to"
+        qInfo().noquote() << "[StateFlow][EngineAdapter] defer requestStateChange to"
                           << stateName(newState) << "(inside callback)";
         m_pendingStateChange = newState;
         return;
     }
-    qInfo().noquote() << "[StateFlow][GameLogic] requestStateChange ->" << stateName(newState);
+    qInfo().noquote() << "[StateFlow][EngineAdapter] requestStateChange ->" << stateName(newState);
 
     if (auto nextState = snakegb::fsm::createStateFor(*this, newState); nextState) {
         changeState(std::move(nextState));
     }
 }
 
-void GameLogic::startEngineTimer(const int intervalMs)
+void EngineAdapter::startEngineTimer(const int intervalMs)
 {
     if (intervalMs > 0) {
         m_timer->setInterval(intervalMs);
@@ -208,12 +208,12 @@ void GameLogic::startEngineTimer(const int intervalMs)
     m_timer->start();
 }
 
-void GameLogic::stopEngineTimer()
+void EngineAdapter::stopEngineTimer()
 {
     m_timer->stop();
 }
 
-void GameLogic::triggerHaptic(const int magnitude)
+void EngineAdapter::triggerHaptic(const int magnitude)
 {
     emit requestFeedback(magnitude);
 #ifdef Q_OS_ANDROID
@@ -230,9 +230,9 @@ void GameLogic::triggerHaptic(const int magnitude)
 #endif
 }
 
-void GameLogic::playEventSound(const int type, const float pan)
+void EngineAdapter::playEventSound(const int type, const float pan)
 {
-    qInfo().noquote() << "[AudioFlow][GameLogic] playEventSound type=" << type << " pan=" << pan;
+    qInfo().noquote() << "[AudioFlow][EngineAdapter] playEventSound type=" << type << " pan=" << pan;
     if (type == 0) {
         emit foodEaten(pan);
     } else if (type == 1) {
@@ -244,7 +244,7 @@ void GameLogic::playEventSound(const int type, const float pan)
     }
 }
 
-void GameLogic::applyPendingStateChangeIfNeeded()
+void EngineAdapter::applyPendingStateChangeIfNeeded()
 {
     if (!m_pendingStateChange.has_value()) {
         return;
@@ -254,7 +254,7 @@ void GameLogic::applyPendingStateChangeIfNeeded()
     requestStateChange(pendingState);
 }
 
-void GameLogic::dispatchStateCallback(const std::function<void(GameState &)> &callback)
+void EngineAdapter::dispatchStateCallback(const std::function<void(GameState &)> &callback)
 {
     if (!m_fsmState) {
         return;
@@ -267,7 +267,7 @@ void GameLogic::dispatchStateCallback(const std::function<void(GameState &)> &ca
     applyPendingStateChangeIfNeeded();
 }
 
-void GameLogic::changeState(std::unique_ptr<GameState> newState)
+void EngineAdapter::changeState(std::unique_ptr<GameState> newState)
 {
     if (m_fsmState) {
         m_fsmState->exit();

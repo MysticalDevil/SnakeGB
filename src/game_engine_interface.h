@@ -10,7 +10,7 @@ class SnakeModel;
 
 /**
  * @brief Unified Interface for Game Logic operations.
- * Decouples FSM States from the concrete GameLogic implementation.
+ * Decouples FSM States from the concrete EngineAdapter implementation.
  */
 class IGameEngine {
 public:

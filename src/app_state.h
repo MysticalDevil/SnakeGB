@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 class AppState final : public QObject {
     Q_OBJECT
@@ -11,15 +11,15 @@ public:
     explicit AppState(QObject *parent = nullptr) : QObject(parent) {}
 
     enum Value {
-        Splash = GameLogic::Splash,
-        StartMenu = GameLogic::StartMenu,
-        Playing = GameLogic::Playing,
-        Paused = GameLogic::Paused,
-        GameOver = GameLogic::GameOver,
-        Replaying = GameLogic::Replaying,
-        ChoiceSelection = GameLogic::ChoiceSelection,
-        Library = GameLogic::Library,
-        MedalRoom = GameLogic::MedalRoom
+        Splash = EngineAdapter::Splash,
+        StartMenu = EngineAdapter::StartMenu,
+        Playing = EngineAdapter::Playing,
+        Paused = EngineAdapter::Paused,
+        GameOver = EngineAdapter::GameOver,
+        Replaying = EngineAdapter::Replaying,
+        ChoiceSelection = EngineAdapter::ChoiceSelection,
+        Library = EngineAdapter::Library,
+        MedalRoom = EngineAdapter::MedalRoom
     };
     Q_ENUM(Value)
 };

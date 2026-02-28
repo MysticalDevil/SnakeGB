@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QDateTime>
 
@@ -10,7 +10,7 @@ namespace
 constexpr int InitialInterval = 200;
 } // namespace
 
-void GameLogic::restart()
+void EngineAdapter::restart()
 {
     resetTransientRuntimeState();
     m_sessionCore.applyMetaAction(snakegb::core::MetaAction::resetReplayRuntime());
@@ -36,7 +36,7 @@ void GameLogic::restart()
     requestStateChange(Playing);
 }
 
-void GameLogic::startReplay()
+void EngineAdapter::startReplay()
 {
     if (m_bestInputHistory.isEmpty()) {
         return;
@@ -63,14 +63,14 @@ void GameLogic::startReplay()
     }
 }
 
-void GameLogic::enterReplayState()
+void EngineAdapter::enterReplayState()
 {
     setInternalState(Replaying);
     m_replayInputHistoryIndex = 0;
     m_replayChoiceHistoryIndex = 0;
 }
 
-void GameLogic::debugSeedReplayBuffPreview()
+void EngineAdapter::debugSeedReplayBuffPreview()
 {
     stopEngineTimer();
     resetTransientRuntimeState();
@@ -100,7 +100,7 @@ void GameLogic::debugSeedReplayBuffPreview()
     setInternalState(Replaying);
 }
 
-void GameLogic::togglePause()
+void EngineAdapter::togglePause()
 {
     if (m_state == Playing) {
         requestStateChange(Paused);
@@ -109,7 +109,7 @@ void GameLogic::togglePause()
     }
 }
 
-void GameLogic::lazyInitState()
+void EngineAdapter::lazyInitState()
 {
     if (!m_fsmState) {
         if (auto nextState = snakegb::fsm::createStateFor(*this, Splash); nextState) {

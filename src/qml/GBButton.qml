@@ -96,7 +96,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            gameLogic.dispatchUiAction("feedback_ui")
+            engineAdapter.dispatchUiAction("feedback_ui")
             root.clicked()
         }
     }

@@ -9,7 +9,7 @@ import "LayerScale.js" as LayerScale
 
 Item {
     id: root
-    property var gameLogic
+    property var engineAdapter
     property color p0
     property color p1
     property color p2
@@ -22,10 +22,10 @@ Item {
     property int iconLabSelection: 0
 
     readonly property var menuColor: function(role) {
-        return ScreenThemeTokens.menuColor(root.gameLogic.paletteName, role)
+        return ScreenThemeTokens.menuColor(root.engineAdapter.paletteName, role)
     }
     readonly property var powerColor: function(type) {
-        return ScreenThemeTokens.powerAccent(root.gameLogic.paletteName, type, root.gameInk)
+        return ScreenThemeTokens.powerAccent(root.engineAdapter.paletteName, type, root.gameInk)
     }
     readonly property var buffName: PowerMeta.buffName
     readonly property var powerGlyph: PowerMeta.powerGlyph
@@ -34,7 +34,7 @@ Item {
     readonly property var rarityName: PowerMeta.rarityName
     readonly property var rarityColor: function(type) {
         return ScreenThemeTokens.rarityAccent(
-            root.gameLogic.paletteName,
+            root.engineAdapter.paletteName,
             PowerMeta.rarityTier(type),
             root.menuColor("actionInk"))
     }
@@ -205,8 +205,8 @@ Item {
                     anchors.fill: parent
                     z: LayerScale.screenSceneBase
                     visible: root.staticDebugScene === "" &&
-                             gameLogic.state >= AppState.Playing &&
-                             gameLogic.state <= AppState.ChoiceSelection
+                             engineAdapter.state >= AppState.Playing &&
+                             engineAdapter.state <= AppState.ChoiceSelection
 
                     Rectangle {
                         anchors.fill: parent
@@ -218,8 +218,8 @@ Item {
                         onPaint: {
                             const ctx = getContext("2d")
                             ctx.reset()
-                            const cw = width / Math.max(1, gameLogic.boardWidth)
-                            const ch = height / Math.max(1, gameLogic.boardHeight)
+                            const cw = width / Math.max(1, engineAdapter.boardWidth)
+                            const ch = height / Math.max(1, engineAdapter.boardHeight)
                             ctx.strokeStyle = root.gameGrid
                             ctx.lineWidth = 1
                             for (let x = 0; x <= width; x += cw) {
@@ -244,7 +244,7 @@ Item {
                 SplashLayer {
                     anchors.fill: parent
                     z: LayerScale.stateSplash
-                    active: gameLogic.state === AppState.Splash
+                    active: engineAdapter.state === AppState.Splash
                     gameFont: root.gameFont
                     menuColor: root.menuColor
                 }
@@ -253,32 +253,32 @@ Item {
                 MenuLayer {
                     anchors.fill: parent
                     z: LayerScale.stateMenu
-                    active: gameLogic.state === AppState.StartMenu
+                    active: engineAdapter.state === AppState.StartMenu
                     gameFont: root.gameFont
                     elapsed: root.elapsed
                     menuColor: root.menuColor
-                    gameLogic: root.gameLogic
+                    engineAdapter: root.engineAdapter
                 }
 
                 // --- STATE 2, 3, 4, 5, 6: WORLD ---
                 WorldLayer {
                     id: worldLayer
                     z: LayerScale.stateWorld
-                    active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
-                    currentState: gameLogic.state
-                    boardWidth: gameLogic.boardWidth
-                    boardHeight: gameLogic.boardHeight
-                    ghostModel: gameLogic.ghost
-                    snakeModel: gameLogic.snakeModel
-                    shieldActive: gameLogic.shieldActive
-                    obstacleModel: gameLogic.obstacles
-                    currentLevelName: gameLogic.currentLevelName
-                    foodPos: gameLogic.food
-                    powerUpPos: gameLogic.powerUpPos
-                    powerUpType: gameLogic.powerUpType
-                    activeBuff: gameLogic.activeBuff
-                    buffTicksRemaining: gameLogic.buffTicksRemaining
-                    buffTicksTotal: gameLogic.buffTicksTotal
+                    active: engineAdapter.state >= AppState.Playing && engineAdapter.state <= AppState.ChoiceSelection
+                    currentState: engineAdapter.state
+                    boardWidth: engineAdapter.boardWidth
+                    boardHeight: engineAdapter.boardHeight
+                    ghostModel: engineAdapter.ghost
+                    snakeModel: engineAdapter.snakeModel
+                    shieldActive: engineAdapter.shieldActive
+                    obstacleModel: engineAdapter.obstacles
+                    currentLevelName: engineAdapter.currentLevelName
+                    foodPos: engineAdapter.food
+                    powerUpPos: engineAdapter.powerUpPos
+                    powerUpType: engineAdapter.powerUpType
+                    activeBuff: engineAdapter.activeBuff
+                    buffTicksRemaining: engineAdapter.buffTicksRemaining
+                    buffTicksTotal: engineAdapter.buffTicksTotal
                     elapsed: root.elapsed
                     gameFont: root.gameFont
                     menuColor: root.menuColor
@@ -300,16 +300,16 @@ Item {
                 LibraryLayer {
                     anchors.fill: parent
                     z: LayerScale.stateLibrary
-                    active: gameLogic.state === AppState.Library
-                    fruitLibraryModel: gameLogic.fruitLibrary
-                    libraryIndex: gameLogic.libraryIndex
+                    active: engineAdapter.state === AppState.Library
+                    fruitLibraryModel: engineAdapter.fruitLibrary
+                    libraryIndex: engineAdapter.libraryIndex
                     setLibraryIndex: function(index) {
-                        root.gameLogic.dispatchUiAction(`set_library_index:${index}`)
+                        root.engineAdapter.dispatchUiAction(`set_library_index:${index}`)
                     }
                     gameFont: root.gameFont
                     powerColor: root.powerColor
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
+                    pageTheme: ThemeCatalog.pageTheme(engineAdapter.paletteName, "catalog")
                 }
 
                 // --- STATE 8: MEDAL ROOM ---
@@ -321,16 +321,16 @@ Item {
                     p2: root.p2
                     p3: root.p3
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
-                    medalLibraryModel: gameLogic.medalLibrary
-                    medalIndex: gameLogic.medalIndex
-                    unlockedCount: gameLogic.achievements.length
-                    unlockedAchievementIds: gameLogic.achievements
+                    pageTheme: ThemeCatalog.pageTheme(engineAdapter.paletteName, "achievements")
+                    medalLibraryModel: engineAdapter.medalLibrary
+                    medalIndex: engineAdapter.medalIndex
+                    unlockedCount: engineAdapter.achievements.length
+                    unlockedAchievementIds: engineAdapter.achievements
                     setMedalIndex: function(index) {
-                        root.gameLogic.dispatchUiAction(`set_medal_index:${index}`)
+                        root.engineAdapter.dispatchUiAction(`set_medal_index:${index}`)
                     }
                     gameFont: root.gameFont
-                    visible: gameLogic.state === AppState.MedalRoom
+                    visible: engineAdapter.state === AppState.MedalRoom
                 }
 
                 StaticDebugLayer {
@@ -339,8 +339,8 @@ Item {
                     visible: root.staticDebugScene !== ""
                     staticScene: root.staticDebugScene
                     staticDebugOptions: root.staticDebugOptions
-                    boardWidth: gameLogic.boardWidth
-                    boardHeight: gameLogic.boardHeight
+                    boardWidth: engineAdapter.boardWidth
+                    boardHeight: engineAdapter.boardHeight
                     gameFont: root.gameFont
                     menuColor: root.menuColor
                     playBg: root.playBg
@@ -377,13 +377,13 @@ Item {
                 HudLayer {
                     anchors.top: parent.top
                     anchors.right: parent.right
-                    anchors.topMargin: gameLogic.state === AppState.Replaying ? 32 : 6
+                    anchors.topMargin: engineAdapter.state === AppState.Replaying ? 32 : 6
                     anchors.rightMargin: 6
                     z: LayerScale.screenHud
                     active: !root.iconDebugMode &&
                             root.staticDebugScene === "" &&
-                            (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying)
-                    gameLogic: root.gameLogic
+                            (engineAdapter.state === AppState.Playing || engineAdapter.state === AppState.Replaying)
+                    engineAdapter: root.engineAdapter
                     gameFont: root.gameFont
                     ink: root.gameInk
                 }
@@ -395,10 +395,10 @@ Item {
                 showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
                 showReplayAndChoice: !root.iconDebugMode && root.staticDebugScene === ""
                 blurSourceItem: preOverlayContent
-                currentState: gameLogic.state
-                currentScore: gameLogic.score
-                choices: gameLogic.choices
-                choiceIndex: gameLogic.choiceIndex
+                currentState: engineAdapter.state
+                currentScore: engineAdapter.score
+                choices: engineAdapter.choices
+                choiceIndex: engineAdapter.choiceIndex
                 menuColor: root.menuColor
                 gameFont: root.gameFont
                 elapsed: root.elapsed
@@ -443,11 +443,11 @@ Item {
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
             property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
             property real time: root.elapsed
-            property real reflectionX: gameLogic.reflectionOffset.x
-            property real reflectionY: gameLogic.reflectionOffset.y
-            property bool isPlayScene: gameLogic.state === AppState.Playing || root.staticDebugScene === "game"
-            property bool isReplayScene: gameLogic.state === AppState.Replaying || root.staticDebugScene === "replay"
-            property bool isChoiceScene: gameLogic.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
+            property real reflectionX: engineAdapter.reflectionOffset.x
+            property real reflectionY: engineAdapter.reflectionOffset.y
+            property bool isPlayScene: engineAdapter.state === AppState.Playing || root.staticDebugScene === "game"
+            property bool isReplayScene: engineAdapter.state === AppState.Replaying || root.staticDebugScene === "replay"
+            property bool isChoiceScene: engineAdapter.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
             property real lumaBoost: isPlayScene ? 0.95
                                    : (isReplayScene ? 0.985
                                       : (isChoiceScene ? 0.99 : 1.0))
@@ -470,5 +470,5 @@ Item {
     }
 
     function showOSD(t) { osd.show(t) }
-    function triggerPowerCycle() { gameLogic.dispatchUiAction("state_splash") }
+    function triggerPowerCycle() { engineAdapter.dispatchUiAction("state_splash") }
 }

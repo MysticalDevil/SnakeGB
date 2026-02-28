@@ -1,14 +1,14 @@
 # SnakeGB Architecture Refactor Plan
 
 Last updated: 2026-02-28
-Scope: architecture baseline review + GameLogic core/adapter decoupling roadmap.
+Scope: architecture baseline review + EngineAdapter core/adapter decoupling roadmap.
 
 ## 1. Executive Summary
 
 Current state:
 - The project has passed the "basically maintainable" line.
 - Input semantics unification has progressed well.
-- `GameLogic` is still a high-load class and remains the main coupling hotspot.
+- `EngineAdapter` is still a high-load class and remains the main coupling hotspot.
 
 Key conclusion:
 - The decoupling is **not enough yet** for a reusable pseudo-emulator shell.
@@ -31,7 +31,7 @@ Primary hotspot:
 
 Symptoms:
 - One class owns too many behaviors and changes for unrelated reasons.
-- QML still talks to many `GameLogic` methods directly.
+- QML still talks to many `EngineAdapter` methods directly.
 - Partial magic-number state checks still exist in QML pages.
 
 Risk:
@@ -94,7 +94,8 @@ Overall: **5.8/10** (needs refactor before scaling).
   - `save_repository.h/.cpp`
 
 Note:
-- Existing `GameLogic` should be gradually reduced into adapter responsibilities, then renamed or retired.
+- `EngineAdapter` is now the explicit Qt/QML adapter surface; future work should keep shrinking it rather than
+  reintroducing core-rule ownership.
 
 ## 4. Migration Plan (Atomic Steps)
 
@@ -176,10 +177,10 @@ Current status:
 
 Refactor considered complete only if all are met:
 
-1. `GameLogic` (or replacement adapter) no longer contains core rule branches.
+1. `EngineAdapter` (or replacement adapter) no longer contains core rule branches.
 2. Core can run full session and replay in headless mode.
 3. QML-facing API remains compatible for menu/game/pause/catalog/achievements/easter paths.
-4. `GameLogic` file size shrinks significantly (target: implementation under 600 lines).
+4. `EngineAdapter` file size shrinks significantly (target: implementation under 600 lines).
 5. QML state checks use symbolic `AppState` only (no magic numbers).
 6. Existing input semantics scripts and regression checks pass.
 
@@ -197,7 +198,7 @@ Risk 3: large-bang refactor instability.
 ## 7. Execution Strategy
 
 Branch model:
-- Work on dedicated branch: `refactor/gamelogic-core-adapter`.
+- Work on dedicated branch: `refactor/engine-adapter-core-adapter`.
 - Keep one concern per commit:
   - commit 1: core interfaces + snapshot
   - commit 2: movement/collision pipeline move
@@ -222,7 +223,7 @@ state, not the desired end state.
 - Module boundaries and target layering are documented.
 - Phase plan and acceptance KPIs are documented.
 - Adapter contraction work is substantially implemented:
-  - `GameLogic` has been split into focused adapter translation units.
+  - `EngineAdapter` has been split into focused adapter translation units.
   - action-oriented QML input routing is in place via `dispatchUiAction(...)`.
   - hotspot file size reduction target is met (`src/adapter/engine_adapter.cpp` is already well under 600 lines).
 - Headless/supporting tests exist for:
@@ -258,7 +259,7 @@ state, not the desired end state.
   - adapter/input smoke coverage and UI self-check coverage remain in place for boundary validation.
 - QML coupling reduction is improved, but not finished.
   - most interactive paths are action-routed.
-  - remaining direct `GameLogic` exposure is now adapter-surface exposure rather than core-rule leakage.
+  - remaining direct `EngineAdapter` exposure is now adapter-surface exposure rather than core-rule leakage.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.
 
 ## 9. Deferred Low-Priority Items
@@ -279,7 +280,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
 - Extracted to `src/core`: `game_rules`, `buff_runtime`, `session_step`, `replay_timeline`, `level_runtime`,
   `achievement_rules`.
 - `fsm/states.cpp` now delegates playing/replay frame progression to core helpers.
-- `GameLogic` adapter now delegates:
+- `EngineAdapter` adapter now delegates:
   - roguelike chance evaluation
   - safe initial snake body generation
   - random free-spot selection for food/powerup spawn
@@ -310,9 +311,9 @@ These are explicitly deferred to keep the core/adapter refactor moving:
 
 ### Phase B progress snapshot (2026-02-21)
 
-- Added `GameLogic::dispatchUiAction(const QString &action)` as an action-oriented adapter entry for QML input routing.
+- Added `EngineAdapter::dispatchUiAction(const QString &action)` as an action-oriented adapter entry for QML input routing.
 - Main shell input routing in `src/qml/main.qml` now calls adapter actions instead of directly calling multiple
-  `GameLogic` methods (`nextShellColor`, `toggleMusic`, `quit`, `quitToMenu`, `handleStart`, `handleSelect`,
+  `EngineAdapter` methods (`nextShellColor`, `toggleMusic`, `quit`, `quitToMenu`, `handleStart`, `handleSelect`,
   `handleBAction`, `deleteSave`, directional `move`).
 - Back-path semantics are now unified through one adapter action path.
 - `src/qml/ScreenView.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
@@ -320,7 +321,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   method calls.
 - QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on
   `dispatchUiAction(...)`.
-- Action string parsing is extracted into `src/adapter/ui_action.*`; `GameLogic::dispatchUiAction` now delegates
+- Action string parsing is extracted into `src/adapter/ui_action.*`; `EngineAdapter::dispatchUiAction` now delegates
   parsing and keeps only semantic dispatch.
 - Back-button state semantics are extracted into `src/adapter/input_semantics.*`; adapter behavior is covered by
   `AdapterSemanticsTest`.
@@ -336,7 +337,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   `AdapterSessionStateTest`.
 - Fruit/medal library view-model mapping is extracted into `src/adapter/library_models.*`; behavior is covered by
   `AdapterLibraryModelsTest`.
-- `GameLogic` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
+- `EngineAdapter` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
 - Runtime simulation flow is split into dedicated translation units to contract `src/adapter/tick_driver.cpp`:
   - `src/adapter/board_state.cpp`: spawn and occupancy helpers
@@ -344,11 +345,11 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   - `src/adapter/simulation.cpp`: collision/movement/post-tick simulation path
 - QML-facing view/property mapping methods are now extracted into `src/adapter/view_model.cpp` so the main runtime
   adapter file can continue shrinking around orchestration logic.
-- FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `GameLogic` no longer constructs concrete
+- FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `EngineAdapter` no longer constructs concrete
   `*State` classes directly, reducing adapter-to-state implementation coupling.
-- UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `GameLogic` now binds
+- UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `EngineAdapter` now binds
   orchestration lambdas instead of owning the large action switch.
-- `GameLogic` implementation is now split into focused translation units:
+- `EngineAdapter` implementation is now split into focused translation units:
   - `src/adapter/engine_adapter.cpp` (bootstrap + state bridge + device wiring)
   - `src/adapter/input_router.cpp` (QML/action input orchestration)
   - `src/adapter/tick_driver.cpp` (tick/runtime orchestration)
@@ -358,7 +359,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   - `src/adapter/choices.cpp` (roguelike choice generation/selection runtime)
   - `src/adapter/lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
 - Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
-  operations, reducing direct `GameLogic -> ProfileManager` coupling across input/runtime/session/view units.
+  operations, reducing direct `EngineAdapter -> ProfileManager` coupling across input/runtime/session/view units.
 - Main hotspot file `src/adapter/engine_adapter.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
@@ -381,7 +382,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
 - Expanded `core-rules-tests` linkage in `CMakeLists.txt` to include `src/core/buff_runtime.cpp` and
   `src/core/replay_timeline.cpp`.
 - Verification passed:
-  - `ctest --output-on-failure` (GameLogicTest + CoreRulesTest)
+  - `ctest --output-on-failure` (EngineAdapterTest + CoreRulesTest)
   - `./scripts/input_semantics_matrix_wayland.sh` (input semantics compatibility matrix)
 - Added `AdapterTest` (`tests/test_ui_action_parser.cpp`) to validate parser behavior for known/unknown/indexed
   actions in headless CI.

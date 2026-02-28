@@ -12,7 +12,7 @@
 #include <cstdlib>
 
 #include "app_state.h"
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 #include "input_injection_pipe.h"
 #include "sound_manager.h"
 
@@ -58,24 +58,24 @@ auto main(int argc, char *argv[]) -> int {
     qInfo().noquote() << "[BuildMode] Debug logging enabled";
 #endif
 
-    GameLogic gameLogic;
+    EngineAdapter engineAdapter;
     SoundManager soundManager;
     InputInjectionPipe inputInjectionPipe;
-    soundManager.setVolume(gameLogic.volume());
+    soundManager.setVolume(engineAdapter.volume());
 
-    QObject::connect(&gameLogic, &GameLogic::audioPlayBeep, &soundManager, &SoundManager::playBeep);
-    QObject::connect(&gameLogic, &GameLogic::audioPlayCrash, &soundManager, &SoundManager::playCrash);
-    QObject::connect(&gameLogic, &GameLogic::audioStartMusic, &soundManager, &SoundManager::startMusic);
-    QObject::connect(&gameLogic, &GameLogic::audioStopMusic, &soundManager, &SoundManager::stopMusic);
-    QObject::connect(&gameLogic, &GameLogic::audioSetPaused, &soundManager, &SoundManager::setPaused);
-    QObject::connect(&gameLogic, &GameLogic::audioSetMusicEnabled, &soundManager, &SoundManager::setMusicEnabled);
-    QObject::connect(&gameLogic, &GameLogic::audioSetVolume, &soundManager, &SoundManager::setVolume);
-    QObject::connect(&gameLogic, &GameLogic::audioSetScore, &soundManager, &SoundManager::setScore);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioPlayBeep, &soundManager, &SoundManager::playBeep);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioPlayCrash, &soundManager, &SoundManager::playCrash);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioStartMusic, &soundManager, &SoundManager::startMusic);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioStopMusic, &soundManager, &SoundManager::stopMusic);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioSetPaused, &soundManager, &SoundManager::setPaused);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioSetMusicEnabled, &soundManager, &SoundManager::setMusicEnabled);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioSetVolume, &soundManager, &SoundManager::setVolume);
+    QObject::connect(&engineAdapter, &EngineAdapter::audioSetScore, &soundManager, &SoundManager::setScore);
 
     QQmlApplicationEngine engine;
     qmlRegisterUncreatableType<AppState>("SnakeGB", 1, 0, "AppState",
                                          "AppState is an enum container and cannot be instantiated");
-    engine.rootContext()->setContextProperty("gameLogic", &gameLogic);
+    engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
     engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
 
     using namespace Qt::StringLiterals;
@@ -93,7 +93,7 @@ auto main(int argc, char *argv[]) -> int {
     engine.load(url);
     
     // Safety delay for FSM to ensure QML engine is steady
-    QTimer::singleShot(200, &gameLogic, &GameLogic::lazyInitState);
+    QTimer::singleShot(200, &engineAdapter, &EngineAdapter::lazyInitState);
 
     return QGuiApplication::exec();
 }

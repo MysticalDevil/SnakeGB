@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QCoreApplication>
 
@@ -9,7 +9,7 @@
 
 using namespace Qt::StringLiterals;
 
-void GameLogic::dispatchUiAction(const QString &action)
+void EngineAdapter::dispatchUiAction(const QString &action)
 {
     const snakegb::adapter::UiAction uiAction = snakegb::adapter::parseUiAction(action);
     snakegb::adapter::dispatchUiAction(
@@ -47,7 +47,7 @@ void GameLogic::dispatchUiAction(const QString &action)
         });
 }
 
-void GameLogic::move(const int dx, const int dy)
+void EngineAdapter::move(const int dx, const int dy)
 {
     dispatchStateCallback([dx, dy](GameState &state) -> void { state.handleInput(dx, dy); });
 
@@ -56,7 +56,7 @@ void GameLogic::move(const int dx, const int dy)
     }
 }
 
-void GameLogic::nextPalette()
+void EngineAdapter::nextPalette()
 {
     if (!m_profileManager) {
         return;
@@ -67,7 +67,7 @@ void GameLogic::nextPalette()
     emit uiInteractTriggered();
 }
 
-void GameLogic::nextShellColor()
+void EngineAdapter::nextShellColor()
 {
     if (!m_profileManager) {
         return;
@@ -78,7 +78,7 @@ void GameLogic::nextShellColor()
     emit uiInteractTriggered();
 }
 
-void GameLogic::handleBAction()
+void EngineAdapter::handleBAction()
 {
     // Unified semantics:
     // - B is always the secondary visual action (palette cycle).
@@ -90,7 +90,7 @@ void GameLogic::handleBAction()
     }
 }
 
-void GameLogic::quitToMenu()
+void EngineAdapter::quitToMenu()
 {
     if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
         saveCurrentState();
@@ -98,15 +98,15 @@ void GameLogic::quitToMenu()
     requestStateChange(StartMenu);
 }
 
-void GameLogic::toggleMusic()
+void EngineAdapter::toggleMusic()
 {
     m_musicEnabled = !m_musicEnabled;
-    qInfo().noquote() << "[AudioFlow][GameLogic] toggleMusic ->" << m_musicEnabled;
+    qInfo().noquote() << "[AudioFlow][EngineAdapter] toggleMusic ->" << m_musicEnabled;
     m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state));
     emit musicEnabledChanged();
 }
 
-void GameLogic::quit()
+void EngineAdapter::quit()
 {
     if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
         saveCurrentState();
@@ -114,7 +114,7 @@ void GameLogic::quit()
     QCoreApplication::quit();
 }
 
-void GameLogic::handleSelect()
+void EngineAdapter::handleSelect()
 {
     if (m_state == StartMenu) {
         nextLevel();
@@ -123,12 +123,12 @@ void GameLogic::handleSelect()
     dispatchStateCallback([](GameState &state) -> void { state.handleSelect(); });
 }
 
-void GameLogic::handleStart()
+void EngineAdapter::handleStart()
 {
     dispatchStateCallback([](GameState &state) -> void { state.handleStart(); });
 }
 
-void GameLogic::deleteSave()
+void EngineAdapter::deleteSave()
 {
     clearSavedState();
     // Clearing save should also reset level selection to default.

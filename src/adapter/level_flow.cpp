@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QJSValue>
 
@@ -10,7 +10,7 @@
 
 using namespace Qt::StringLiterals;
 
-void GameLogic::applyFallbackLevelData(const int levelIndex)
+void EngineAdapter::applyFallbackLevelData(const int levelIndex)
 {
     const snakegb::core::FallbackLevelData fallback = snakegb::core::fallbackLevelData(levelIndex);
     m_session.obstacles.clear();
@@ -27,7 +27,7 @@ void GameLogic::applyFallbackLevelData(const int levelIndex)
     emit obstaclesChanged();
 }
 
-void GameLogic::loadLevelData(const int i)
+void EngineAdapter::loadLevelData(const int i)
 {
     const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
     m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
@@ -55,7 +55,7 @@ void GameLogic::loadLevelData(const int i)
     emit obstaclesChanged();
 }
 
-void GameLogic::checkAchievements()
+void EngineAdapter::checkAchievements()
 {
     const QStringList newlyUnlocked = snakegb::adapter::unlockAchievements(
         m_profileManager.get(), m_session.score, m_timer->interval(), m_timer->isActive());
@@ -65,7 +65,7 @@ void GameLogic::checkAchievements()
     }
 }
 
-void GameLogic::runLevelScript()
+void EngineAdapter::runLevelScript()
 {
     if (snakegb::adapter::applyLevelScriptStep(m_jsEngine, m_currentLevelName,
                                                m_session.tickCounter, m_session.obstacles)) {

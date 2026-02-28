@@ -20,7 +20,7 @@ target_include_directories(snakegb_fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(snakegb_fsm PRIVATE snakegb_core Qt6::Core)
 
 add_library(snakegb_adapter
-    adapter/game_logic.h
+    adapter/engine_adapter.h
     adapter/engine_adapter.cpp
     adapter/input_router.cpp
     adapter/tick_driver.cpp

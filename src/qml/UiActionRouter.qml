@@ -4,7 +4,7 @@ import SnakeGB 1.0
 QtObject {
     id: router
 
-    property var gameLogic
+    property var engineAdapter
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
@@ -29,7 +29,7 @@ QtObject {
         if (router.staticDebugScene !== "") return routeStaticLayer(action)
         if (router.iconDebugMode) return routeIconLayer(action)
 
-        const state = router.gameLogic.state
+        const state = router.engineAdapter.state
         if (isOverlayState(state)) return routeOverlayLayer(action)
         if (isPageState(state)) return routePageLayer(action)
         if (isGameplayState(state)) return routeGameLayer(action)
@@ -89,11 +89,11 @@ QtObject {
             return true
         }
         if (action === router.actionMap.ToggleShellColor) {
-            router.gameLogic.dispatchUiAction("toggle_shell_color")
+            router.engineAdapter.dispatchUiAction("toggle_shell_color")
             return true
         }
         if (action === router.actionMap.ToggleMusic) {
-            router.gameLogic.dispatchUiAction("toggle_music")
+            router.engineAdapter.dispatchUiAction("toggle_music")
             return true
         }
         if (action === router.actionMap.Escape) {
@@ -106,7 +106,7 @@ QtObject {
                     router.setStaticScene("")
                 }
             } else {
-                router.gameLogic.dispatchUiAction("quit")
+                router.engineAdapter.dispatchUiAction("quit")
             }
             return true
         }
@@ -195,23 +195,23 @@ QtObject {
             return true
         }
         if (action === router.actionMap.Primary) {
-            if (router.gameLogic.state === AppState.Paused && router.trackEasterToken) {
+            if (router.engineAdapter.state === AppState.Paused && router.trackEasterToken) {
                 router.trackEasterToken("A")
             }
             return true
         }
         if (action === router.actionMap.Secondary) {
-            if (router.gameLogic.state === AppState.Paused && router.trackEasterToken) {
+            if (router.engineAdapter.state === AppState.Paused && router.trackEasterToken) {
                 router.trackEasterToken("B")
             }
             return true
         }
         if (action === router.actionMap.SelectShort) {
-            router.gameLogic.dispatchUiAction(router.actionMap.Back)
+            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
             return true
         }
         if (action === router.actionMap.Back) {
-            router.gameLogic.dispatchUiAction(router.actionMap.Back)
+            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
             return true
         }
         return false
@@ -220,7 +220,7 @@ QtObject {
     function routePageLayer(action) {
         if (routeDirection(action)) return true
         if (action === router.actionMap.Secondary || action === router.actionMap.Back) {
-            router.gameLogic.dispatchUiAction(router.actionMap.Back)
+            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
             return true
         }
         if (action === router.actionMap.Primary) return true

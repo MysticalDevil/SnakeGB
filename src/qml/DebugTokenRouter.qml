@@ -4,7 +4,7 @@ import SnakeGB 1.0
 QtObject {
     id: router
 
-    property var gameLogic
+    property var engineAdapter
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
@@ -31,7 +31,7 @@ QtObject {
             router.showOsd(router.iconDebugMode ? "ICON LAB OFF" : "ICON LAB ON")
         }
         if (router.iconDebugMode) {
-            router.gameLogic.dispatchUiAction("state_start_menu")
+            router.engineAdapter.dispatchUiAction("state_start_menu")
         }
     }
 
@@ -235,7 +235,7 @@ QtObject {
         if (router.clearDirectionVisuals) {
             router.clearDirectionVisuals()
         }
-        router.gameLogic.dispatchUiAction("state_start_menu")
+        router.engineAdapter.dispatchUiAction("state_start_menu")
         if (router.showOsd) {
             router.showOsd("ICON LAB OFF")
         }
@@ -252,7 +252,7 @@ QtObject {
                     .map((part) => Number(part.trim()))
                     .filter((value) => Number.isInteger(value) && value >= 1 && value <= 9)
             }
-            router.gameLogic.debugSeedChoicePreview(choiceTypes)
+            router.engineAdapter.debugSeedChoicePreview(choiceTypes)
             if (router.showOsd) {
                 router.showOsd(choiceTypes.length > 0
                     ? `DBG: CHOICE ${choiceTypes.join("/")}`
@@ -264,7 +264,7 @@ QtObject {
             if (router.iconDebugMode) {
                 exitIconLab()
             } else {
-                router.gameLogic.dispatchUiAction("state_start_menu")
+                router.engineAdapter.dispatchUiAction("state_start_menu")
                 if (router.showOsd) {
                     router.showOsd("DBG: MENU")
                 }
@@ -272,7 +272,7 @@ QtObject {
             return true
         }
         if (token === "DBG_PLAY") {
-            router.gameLogic.dispatchUiAction("state_start_menu")
+            router.engineAdapter.dispatchUiAction("state_start_menu")
             if (router.dispatchAction) {
                 router.dispatchAction(router.actionMap.Start)
             }
@@ -282,7 +282,7 @@ QtObject {
             return true
         }
         if (token === "DBG_PAUSE") {
-            router.gameLogic.dispatchUiAction("state_start_menu")
+            router.engineAdapter.dispatchUiAction("state_start_menu")
             if (router.dispatchAction) {
                 router.dispatchAction(router.actionMap.Start)
                 router.dispatchAction(router.actionMap.Start)
@@ -293,32 +293,32 @@ QtObject {
             return true
         }
         if (token === "DBG_GAMEOVER") {
-            router.gameLogic.requestStateChange(AppState.GameOver)
+            router.engineAdapter.requestStateChange(AppState.GameOver)
             if (router.showOsd) {
                 router.showOsd("DBG: GAMEOVER")
             }
             return true
         }
         if (token === "DBG_REPLAY") {
-            router.gameLogic.requestStateChange(AppState.Replaying)
+            router.engineAdapter.requestStateChange(AppState.Replaying)
             if (router.showOsd) {
                 router.showOsd("DBG: REPLAY")
             }
             return true
         }
         if (token === "DBG_REPLAY_BUFF") {
-            router.gameLogic.debugSeedReplayBuffPreview()
+            router.engineAdapter.debugSeedReplayBuffPreview()
             return true
         }
         if (token === "DBG_CATALOG") {
-            router.gameLogic.requestStateChange(AppState.Library)
+            router.engineAdapter.requestStateChange(AppState.Library)
             if (router.showOsd) {
                 router.showOsd("DBG: CATALOG")
             }
             return true
         }
         if (token === "DBG_ACHIEVEMENTS") {
-            router.gameLogic.requestStateChange(AppState.MedalRoom)
+            router.engineAdapter.requestStateChange(AppState.MedalRoom)
             if (router.showOsd) {
                 router.showOsd("DBG: ACHIEVEMENTS")
             }

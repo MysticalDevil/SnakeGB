@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QList>
 
@@ -7,24 +7,24 @@
 
 using namespace Qt::StringLiterals;
 
-auto GameLogic::hasSave() const -> bool
+auto EngineAdapter::hasSave() const -> bool
 {
     return saveRepository().hasSession();
 }
 
-auto GameLogic::hasReplay() const noexcept -> bool
+auto EngineAdapter::hasReplay() const noexcept -> bool
 {
     return !m_bestInputHistory.isEmpty();
 }
 
-void GameLogic::resetTransientRuntimeState()
+void EngineAdapter::resetTransientRuntimeState()
 {
     m_sessionCore.resetTransientRuntimeState();
     m_choicePending = false;
     m_choiceIndex = 0;
 }
 
-void GameLogic::resetReplayRuntimeTracking()
+void EngineAdapter::resetReplayRuntimeTracking()
 {
     m_ghostFrameIndex = 0;
     m_replayInputHistoryIndex = 0;
@@ -34,7 +34,7 @@ void GameLogic::resetReplayRuntimeTracking()
     m_currentChoiceHistory.clear();
 }
 
-void GameLogic::nextLevel()
+void EngineAdapter::nextLevel()
 {
     const int levelCount = m_levelRepository.levelCount();
     m_levelIndex = (m_levelIndex + 1) % levelCount;

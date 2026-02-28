@@ -1,11 +1,11 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include "core/buff_runtime.h"
 #include "core/game_rules.h"
 
 #include <algorithm>
 
-void GameLogic::spawnFood()
+void EngineAdapter::spawnFood()
 {
     if (m_sessionCore.spawnFood(BOARD_WIDTH, BOARD_HEIGHT,
                                 [this](const int size) { return m_rng.bounded(size); })) {
@@ -13,7 +13,7 @@ void GameLogic::spawnFood()
     }
 }
 
-void GameLogic::spawnPowerUp()
+void EngineAdapter::spawnPowerUp()
 {
     if (m_sessionCore.spawnPowerUp(BOARD_WIDTH, BOARD_HEIGHT,
                                    [this](const int size) { return m_rng.bounded(size); })) {
@@ -21,7 +21,7 @@ void GameLogic::spawnPowerUp()
     }
 }
 
-auto GameLogic::isOutOfBounds(const QPoint &p) noexcept -> bool
+auto EngineAdapter::isOutOfBounds(const QPoint &p) noexcept -> bool
 {
     return !m_boardRect.contains(p);
 }

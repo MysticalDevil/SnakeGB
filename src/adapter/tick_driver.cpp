@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include <QDateTime>
 
@@ -9,7 +9,7 @@
 
 using namespace Qt::StringLiterals;
 
-void GameLogic::updateReflectionFallback()
+void EngineAdapter::updateReflectionFallback()
 {
     if (m_hasAccelerometerReading) {
         return;
@@ -19,7 +19,7 @@ void GameLogic::updateReflectionFallback()
     emit reflectionOffsetChanged();
 }
 
-void GameLogic::update()
+void EngineAdapter::update()
 {
     if (m_fsmState) {
         const auto runtimeUpdate = m_sessionCore.beginRuntimeUpdate();

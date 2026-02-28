@@ -1,4 +1,4 @@
-#include "adapter/game_logic.h"
+#include "adapter/engine_adapter.h"
 
 #include "adapter/choice_models.h"
 #include "adapter/profile_bridge.h"
@@ -15,34 +15,34 @@ auto choiceSpecForType(const int type) -> std::optional<snakegb::core::ChoiceSpe
 {
     using snakegb::core::ChoiceSpec;
     switch (type) {
-    case GameLogic::Ghost:
+    case EngineAdapter::Ghost:
         return ChoiceSpec{
-            .type = GameLogic::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
-    case GameLogic::Slow:
+            .type = EngineAdapter::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
+    case EngineAdapter::Slow:
         return ChoiceSpec{
-            .type = GameLogic::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
-    case GameLogic::Magnet:
+            .type = EngineAdapter::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
+    case EngineAdapter::Magnet:
         return ChoiceSpec{
-            .type = GameLogic::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
-    case GameLogic::Shield:
+            .type = EngineAdapter::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
+    case EngineAdapter::Shield:
         return ChoiceSpec{
-            .type = GameLogic::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
-    case GameLogic::Portal:
-        return ChoiceSpec{.type = GameLogic::Portal,
+            .type = EngineAdapter::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
+    case EngineAdapter::Portal:
+        return ChoiceSpec{.type = EngineAdapter::Portal,
                           .name = u"Portal"_s,
                           .description = u"Phase through walls"_s};
-    case GameLogic::Double:
+    case EngineAdapter::Double:
         return ChoiceSpec{
-            .type = GameLogic::Double, .name = u"Double"_s, .description = u"Double points"_s};
-    case GameLogic::Rich:
+            .type = EngineAdapter::Double, .name = u"Double"_s, .description = u"Double points"_s};
+    case EngineAdapter::Rich:
         return ChoiceSpec{
-            .type = GameLogic::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
-    case GameLogic::Laser:
+            .type = EngineAdapter::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
+    case EngineAdapter::Laser:
         return ChoiceSpec{
-            .type = GameLogic::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
-    case GameLogic::Mini:
+            .type = EngineAdapter::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
+    case EngineAdapter::Mini:
         return ChoiceSpec{
-            .type = GameLogic::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
+            .type = EngineAdapter::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
     default:
         return std::nullopt;
     }
@@ -70,7 +70,7 @@ auto buildDebugChoiceSpecs(const QVariantList &types) -> QList<snakegb::core::Ch
         }
     }
 
-    for (int type = GameLogic::Ghost; type <= GameLogic::Mini && result.size() < 3; ++type) {
+    for (int type = EngineAdapter::Ghost; type <= EngineAdapter::Mini && result.size() < 3; ++type) {
         if (seenTypes.contains(type)) {
             continue;
         }
@@ -85,7 +85,7 @@ auto buildDebugChoiceSpecs(const QVariantList &types) -> QList<snakegb::core::Ch
 }
 } // namespace
 
-void GameLogic::generateChoices()
+void EngineAdapter::generateChoices()
 {
     const QList<snakegb::core::ChoiceSpec> allChoices =
         snakegb::core::pickRoguelikeChoices(m_rng.generate(), 3);
@@ -93,7 +93,7 @@ void GameLogic::generateChoices()
     emit choicesChanged();
 }
 
-void GameLogic::debugSeedChoicePreview(const QVariantList &types)
+void EngineAdapter::debugSeedChoicePreview(const QVariantList &types)
 {
     stopEngineTimer();
     resetTransientRuntimeState();
@@ -123,7 +123,7 @@ void GameLogic::debugSeedChoicePreview(const QVariantList &types)
     setInternalState(ChoiceSelection);
 }
 
-void GameLogic::selectChoice(const int index)
+void EngineAdapter::selectChoice(const int index)
 {
     if (index < 0 || index >= m_choices.size()) {
         return;
