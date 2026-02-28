@@ -60,6 +60,7 @@ target_link_libraries(snakegb_adapter PRIVATE snakegb_fsm snakegb_core
 add_executable(SnakeGB
     main.cpp
     app_state.h
+    power_up_id.h
     input_injection_pipe.cpp
     input_injection_pipe.h
     sound_manager.cpp

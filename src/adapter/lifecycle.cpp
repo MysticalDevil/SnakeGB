@@ -4,6 +4,7 @@
 
 #include "fsm/game_state.h"
 #include "fsm/state_factory.h"
+#include "power_up_id.h"
 
 namespace
 {
@@ -84,7 +85,7 @@ void EngineAdapter::debugSeedReplayBuffPreview()
         .powerUpType = 0,
         .score = 42,
         .tickCounter = 64,
-        .activeBuff = Shield,
+        .activeBuff = PowerUpId::Shield,
         .buffTicksRemaining = 92,
         .buffTicksTotal = 120,
         .shieldActive = true,

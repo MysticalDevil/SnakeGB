@@ -148,19 +148,6 @@ public:
         Library = 7,
         MedalRoom = 8
     };
-    enum PowerUp
-    {
-        None = 0,
-        Ghost = 1,
-        Slow = 2,
-        Magnet = 3,
-        Shield = 4,
-        Portal = 5,
-        Double = 6,
-        Rich = 7,
-        Laser = 8,
-        Mini = 9
-    };
     Q_ENUM(State)
 
     explicit EngineAdapter(QObject *parent = nullptr);

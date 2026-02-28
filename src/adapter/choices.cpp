@@ -4,6 +4,7 @@
 #include "adapter/profile_bridge.h"
 #include "core/choice_runtime.h"
 #include "fsm/game_state.h"
+#include "power_up_id.h"
 
 using namespace Qt::StringLiterals;
 
@@ -15,34 +16,34 @@ auto choiceSpecForType(const int type) -> std::optional<snakegb::core::ChoiceSpe
 {
     using snakegb::core::ChoiceSpec;
     switch (type) {
-    case EngineAdapter::Ghost:
+    case PowerUpId::Ghost:
         return ChoiceSpec{
-            .type = EngineAdapter::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
-    case EngineAdapter::Slow:
+            .type = PowerUpId::Ghost, .name = u"Ghost"_s, .description = u"Pass through self"_s};
+    case PowerUpId::Slow:
         return ChoiceSpec{
-            .type = EngineAdapter::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
-    case EngineAdapter::Magnet:
+            .type = PowerUpId::Slow, .name = u"Slow"_s, .description = u"Decrease speed"_s};
+    case PowerUpId::Magnet:
         return ChoiceSpec{
-            .type = EngineAdapter::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
-    case EngineAdapter::Shield:
+            .type = PowerUpId::Magnet, .name = u"Magnet"_s, .description = u"Attract food"_s};
+    case PowerUpId::Shield:
         return ChoiceSpec{
-            .type = EngineAdapter::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
-    case EngineAdapter::Portal:
-        return ChoiceSpec{.type = EngineAdapter::Portal,
+            .type = PowerUpId::Shield, .name = u"Shield"_s, .description = u"One extra life"_s};
+    case PowerUpId::Portal:
+        return ChoiceSpec{.type = PowerUpId::Portal,
                           .name = u"Portal"_s,
                           .description = u"Phase through walls"_s};
-    case EngineAdapter::Double:
+    case PowerUpId::Double:
         return ChoiceSpec{
-            .type = EngineAdapter::Double, .name = u"Double"_s, .description = u"Double points"_s};
-    case EngineAdapter::Rich:
+            .type = PowerUpId::Double, .name = u"Double"_s, .description = u"Double points"_s};
+    case PowerUpId::Rich:
         return ChoiceSpec{
-            .type = EngineAdapter::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
-    case EngineAdapter::Laser:
+            .type = PowerUpId::Rich, .name = u"Diamond"_s, .description = u"Triple points"_s};
+    case PowerUpId::Laser:
         return ChoiceSpec{
-            .type = EngineAdapter::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
-    case EngineAdapter::Mini:
+            .type = PowerUpId::Laser, .name = u"Laser"_s, .description = u"Break obstacle"_s};
+    case PowerUpId::Mini:
         return ChoiceSpec{
-            .type = EngineAdapter::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
+            .type = PowerUpId::Mini, .name = u"Mini"_s, .description = u"Shrink body"_s};
     default:
         return std::nullopt;
     }
@@ -70,7 +71,7 @@ auto buildDebugChoiceSpecs(const QVariantList &types) -> QList<snakegb::core::Ch
         }
     }
 
-    for (int type = EngineAdapter::Ghost; type <= EngineAdapter::Mini && result.size() < 3; ++type) {
+    for (int type = PowerUpId::Ghost; type <= PowerUpId::Mini && result.size() < 3; ++type) {
         if (seenTypes.contains(type)) {
             continue;
         }

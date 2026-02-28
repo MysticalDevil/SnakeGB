@@ -14,6 +14,7 @@
 #include "app_state.h"
 #include "adapter/engine_adapter.h"
 #include "input_injection_pipe.h"
+#include "power_up_id.h"
 #include "sound_manager.h"
 
 namespace {
@@ -76,6 +77,8 @@ auto main(int argc, char *argv[]) -> int {
     QQmlApplicationEngine engine;
     qmlRegisterUncreatableType<AppState>("SnakeGB", 1, 0, "AppState",
                                          "AppState is an enum container and cannot be instantiated");
+    qmlRegisterUncreatableType<PowerUpId>("SnakeGB", 1, 0, "PowerUpId",
+                                          "PowerUpId is an enum container and cannot be instantiated");
     engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
     engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
 

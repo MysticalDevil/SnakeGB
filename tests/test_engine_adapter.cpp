@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QSet>
 #include "adapter/engine_adapter.h"
+#include "power_up_id.h"
 
 class TestEngineAdapter : public QObject {
     Q_OBJECT
@@ -269,8 +270,8 @@ private slots:
         }
         QVERIFY2(game.score() >= 9, "Expected score to reach the pre-threshold range before picking Double");
 
-        QVERIFY2(pickBuff(game, EngineAdapter::Double), "Failed to pick Double buff from generated choices");
-        QCOMPARE(game.activeBuff(), static_cast<int>(EngineAdapter::Double));
+        QVERIFY2(pickBuff(game, PowerUpId::Double), "Failed to pick Double buff from generated choices");
+        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Double));
 
         consumeCurrentFood(game);
         QCOMPARE(game.score(), 11);
@@ -302,11 +303,11 @@ private slots:
         EngineAdapter game;
         game.startGame();
 
-        QVERIFY2(pickBuff(game, EngineAdapter::Ghost), "Failed to pick Ghost buff");
-        QCOMPARE(game.activeBuff(), static_cast<int>(EngineAdapter::Ghost));
+        QVERIFY2(pickBuff(game, PowerUpId::Ghost), "Failed to pick Ghost buff");
+        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Ghost));
 
-        QVERIFY2(pickBuff(game, EngineAdapter::Slow), "Failed to pick Slow buff");
-        QCOMPARE(game.activeBuff(), static_cast<int>(EngineAdapter::Slow));
+        QVERIFY2(pickBuff(game, PowerUpId::Slow), "Failed to pick Slow buff");
+        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Slow));
     }
 
     void testReplayAppliesRecordedInputOnMatchingFrame() {
