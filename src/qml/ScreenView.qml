@@ -18,6 +18,7 @@ Item {
     property real elapsed
     property bool iconDebugMode: false
     property string staticDebugScene: ""
+    property var staticDebugOptions: ({})
     property int iconLabSelection: 0
 
     readonly property var menuColor: function(role) {
@@ -337,6 +338,7 @@ Item {
                     z: LayerScale.stateStaticDebug
                     visible: root.staticDebugScene !== ""
                     staticScene: root.staticDebugScene
+                    staticDebugOptions: root.staticDebugOptions
                     boardWidth: gameLogic.boardWidth
                     boardHeight: gameLogic.boardHeight
                     gameFont: root.gameFont
@@ -347,6 +349,7 @@ Item {
                     gameSubInk: root.gameSubInk
                     gameBorder: root.gameBorder
                     drawFoodSymbol: root.drawFoodSymbol
+                    drawPowerSymbol: root.drawPowerSymbol
                     buffName: root.buffName
                     rarityTier: root.rarityTier
                     rarityName: root.rarityName
@@ -444,7 +447,7 @@ Item {
             property real reflectionY: gameLogic.reflectionOffset.y
             property bool isPlayScene: gameLogic.state === AppState.Playing || root.staticDebugScene === "game"
             property bool isReplayScene: gameLogic.state === AppState.Replaying || root.staticDebugScene === "replay"
-            property bool isChoiceScene: gameLogic.state === AppState.ChoiceSelection
+            property bool isChoiceScene: gameLogic.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
             property real lumaBoost: isPlayScene ? 0.95
                                    : (isReplayScene ? 0.985
                                       : (isChoiceScene ? 0.99 : 1.0))

@@ -20,6 +20,7 @@ Window {
     property real elapsed: 0.0
     property bool iconDebugMode: false
     property string staticDebugScene: ""
+    property var staticDebugOptions: ({})
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -69,6 +70,10 @@ Window {
         staticDebugScene = sceneName
     }
 
+    function setStaticDebugOptionsValue(options) {
+        staticDebugOptions = options ? options : ({})
+    }
+
     function resetKonamiProgress() {
         konamiIndex = 0
     }
@@ -106,11 +111,13 @@ Window {
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
+        staticDebugOptions: window.staticDebugOptions
         showOsd: screen.showOSD
         dispatchAction: window.dispatchAction
         clearDirectionVisuals: window.clearDpadVisuals
         setIconDebugMode: window.setIconDebugMode
         setStaticDebugSceneValue: window.setStaticDebugSceneValue
+        setStaticDebugOptionsValue: window.setStaticDebugOptionsValue
         resetKonamiProgress: window.resetKonamiProgress
     }
 
@@ -391,6 +398,7 @@ Window {
                     elapsed: window.elapsed
                     iconDebugMode: window.iconDebugMode
                     staticDebugScene: window.staticDebugScene
+                    staticDebugOptions: window.staticDebugOptions
                 }
             }
         }

@@ -9,7 +9,7 @@ Rectangle {
     property string hintText: "START MENU   SELECT MENU"
 
     width: 174
-    height: 42
+    height: hintText.length > 0 ? 42 : 24
     radius: 4
     color: menuColor("actionCard")
     opacity: 0.98
@@ -19,7 +19,7 @@ Rectangle {
 
     Column {
         anchors.centerIn: parent
-        spacing: 2
+        spacing: hintText.length > 0 ? 2 : 0
 
         Text {
             text: replayBanner.titleText
@@ -30,6 +30,7 @@ Rectangle {
         }
 
         Text {
+            visible: replayBanner.hintText.length > 0
             text: replayBanner.hintText
             color: menuColor("actionInk")
             anchors.horizontalCenter: parent.horizontalCenter

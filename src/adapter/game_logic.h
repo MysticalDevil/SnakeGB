@@ -316,6 +316,7 @@ public:
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
     Q_INVOKABLE void debugSeedReplayBuffPreview();
+    Q_INVOKABLE void debugSeedChoicePreview(const QVariantList &types = QVariantList());
 
     // Property Getters
     auto snakeModelPtr() noexcept -> SnakeModel *

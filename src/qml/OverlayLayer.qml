@@ -27,7 +27,7 @@ Item {
     readonly property color modalTitleInk: readableText ? readableText(modalPanelFill) : menuColor("titleInk")
     readonly property color modalSecondaryInk: readableSecondaryText ? readableSecondaryText(modalPanelFill) : menuColor("secondaryInk")
     readonly property color modalMetaInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.90)
-    readonly property color modalHintInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.72)
+    readonly property color modalHintInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.84)
     readonly property color modalCardFill: Qt.lighter(modalPanelFill, 1.04)
     readonly property color modalCardFillSelected: Qt.lighter(modalPanelFill, 1.10)
     readonly property color modalCardTitleInk: readableText ? readableText(modalCardFill) : menuColor("titleInk")

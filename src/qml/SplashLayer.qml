@@ -12,6 +12,8 @@ Rectangle {
     readonly property color panelBorder: menuColor("borderPrimary")
     readonly property color titleInk: menuColor("titleInk")
     readonly property color accentInk: menuColor("actionInk")
+    readonly property color metaPanelFill: Qt.rgba(panelBg.r, panelBg.g, panelBg.b, 0.88)
+    readonly property color metaTextInk: titleInk
 
     color: pageBg
     visible: active
@@ -64,9 +66,21 @@ Rectangle {
         y: splashLayer.logoY
     }
 
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: bootText.y + 35
+        text: "PORTABLE ARCADE SURVIVAL"
+        font.family: gameFont
+        font.pixelSize: 10
+        font.bold: true
+        color: splashLayer.titleInk
+        style: Text.Outline
+        styleColor: Qt.rgba(splashLayer.panelBg.r, splashLayer.panelBg.g, splashLayer.panelBg.b, 0.92)
+    }
+
     Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
-        y: 156
+        y: 164
         width: 120
         height: 8
         color: splashLayer.panelBg
@@ -81,13 +95,25 @@ Rectangle {
         }
     }
 
-    Text {
+    Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
-        y: 170
-        text: `LOADING ${splashLayer.fakeLoad}%`
-        font.family: gameFont
-        font.pixelSize: 8
-        color: splashLayer.accentInk
-        opacity: 0.92
+        y: 176
+        width: 92
+        height: 14
+        radius: 3
+        color: splashLayer.metaPanelFill
+        border.color: splashLayer.panelBorder
+        border.width: 1
+
+        Text {
+            anchors.fill: parent
+            text: `LOADING ${splashLayer.fakeLoad}%`
+            font.family: gameFont
+            font.pixelSize: 9
+            font.bold: true
+            color: splashLayer.metaTextInk
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+        }
     }
 }

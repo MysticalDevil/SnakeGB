@@ -14,25 +14,45 @@ Rectangle {
     property int ticksRemaining: 0
     property int ticksTotal: 1
     readonly property real progressRatio: Math.max(0, Math.min(1, ticksRemaining / Math.max(1, ticksTotal)))
+    readonly property color panelFill: menuColor("cardPrimary")
+    readonly property color panelBorder: accent
+    readonly property color titleStripFill: Qt.lighter(menuColor("cardSecondary"), 1.02)
+    readonly property color titleInk: readableText ? readableText(titleStripFill) : menuColor("titleInk")
+    readonly property color badgeInk: readableText ? readableText(accent) : menuColor("actionInk")
 
     width: 126
-    height: 30
+    height: 32
     radius: 4
-    color: menuColor("cardPrimary")
-    border.color: accent
+    color: panelFill
+    border.color: panelBorder
     border.width: 1
     visible: active
 
-    Text {
+    Rectangle {
         anchors.left: parent.left
-        anchors.leftMargin: 5
+        anchors.right: parent.right
+        anchors.leftMargin: 4
+        anchors.rightMargin: 46
         anchors.top: parent.top
-        anchors.topMargin: 3
-        text: buffPanel.buffLabel
-        color: readableText ? readableText(menuColor("cardPrimary")) : menuColor("titleInk")
-        font.family: gameFont
-        font.pixelSize: 9
-        font.bold: true
+        anchors.topMargin: 4
+        height: 12
+        radius: 3
+        color: buffPanel.titleStripFill
+        border.color: Qt.rgba(buffPanel.panelBorder.r, buffPanel.panelBorder.g, buffPanel.panelBorder.b, 0.55)
+        border.width: 1
+
+        Text {
+            anchors.fill: parent
+            anchors.leftMargin: 5
+            anchors.rightMargin: 4
+            text: buffPanel.buffLabel
+            color: buffPanel.titleInk
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
     }
 
     Rectangle {
@@ -44,13 +64,13 @@ Rectangle {
         height: 12
         radius: 3
         color: buffPanel.accent
-        border.color: menuColor("borderPrimary")
+        border.color: Qt.rgba(buffPanel.badgeInk.r, buffPanel.badgeInk.g, buffPanel.badgeInk.b, 0.55)
         border.width: 1
 
         Text {
             anchors.centerIn: parent
             text: buffPanel.rarityLabel
-            color: menuColor("actionInk")
+            color: buffPanel.badgeInk
             font.family: gameFont
             font.pixelSize: 7
             font.bold: true

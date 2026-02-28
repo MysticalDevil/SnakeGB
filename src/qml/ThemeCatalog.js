@@ -164,7 +164,7 @@ const shellTheme = (shellName, shellColor) => {
 
 const powerAccent = (paletteName, type, fallback) => {
     if (type === 6) return menuColor(paletteName, "actionInk", fallback);        // Double
-    if (type === 7) return menuColor(paletteName, "hintInk", fallback);          // Diamond
+    if (type === 7) return menuColor(paletteName, "hintCard", fallback);         // Diamond
     if (type === 8) return menuColor(paletteName, "borderSecondary", fallback);  // Laser
     if (type === 4) return menuColor(paletteName, "secondaryInk", fallback);     // Shield
     if (type === 5) return menuColor(paletteName, "borderPrimary", fallback);    // Portal
@@ -172,7 +172,7 @@ const powerAccent = (paletteName, type, fallback) => {
 };
 
 const rarityAccent = (paletteName, tier, fallback) => {
-    if (tier === 4) return menuColor(paletteName, "actionInk", fallback);
+    if (tier === 4) return menuColor(paletteName, "hintCard", fallback);
     if (tier === 3) return menuColor(paletteName, "borderPrimary", fallback);
     if (tier === 2) return menuColor(paletteName, "secondaryInk", fallback);
     return menuColor(paletteName, "titleInk", fallback);

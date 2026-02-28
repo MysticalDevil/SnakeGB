@@ -2,7 +2,7 @@
 
 ui_nav_supported_targets() {
   printf '%s\n' \
-    "splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-off"
+    "splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-choice|dbg-static-off"
 }
 
 ui_nav_apply_target() {
@@ -126,7 +126,11 @@ ui_nav_apply_target() {
       send_token "DBG_REPLAY_BUFF"
       ;;
     dbg-choice)
-      send_token "DBG_CHOICE"
+      if [[ -n "${DBG_CHOICE_TYPES:-}" ]]; then
+        send_token "DBG_CHOICE:${DBG_CHOICE_TYPES}"
+      else
+        send_token "DBG_CHOICE"
+      fi
       ;;
     dbg-catalog)
       send_token "DBG_CATALOG"
@@ -141,10 +145,25 @@ ui_nav_apply_target() {
       send_token "DBG_STATIC_BOOT"
       ;;
     dbg-static-game)
-      send_token "DBG_STATIC_GAME"
+      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
+        send_token "DBG_STATIC_GAME:${DBG_STATIC_PARAMS}"
+      else
+        send_token "DBG_STATIC_GAME"
+      fi
       ;;
     dbg-static-replay)
-      send_token "DBG_STATIC_REPLAY"
+      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
+        send_token "DBG_STATIC_REPLAY:${DBG_STATIC_PARAMS}"
+      else
+        send_token "DBG_STATIC_REPLAY"
+      fi
+      ;;
+    dbg-static-choice)
+      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
+        send_token "DBG_STATIC_CHOICE:${DBG_STATIC_PARAMS}"
+      else
+        send_token "DBG_STATIC_CHOICE"
+      fi
       ;;
     dbg-static-off)
       send_token "DBG_STATIC_OFF"

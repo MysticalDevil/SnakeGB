@@ -29,9 +29,9 @@ ModalSurface {
     panelInnerBorderColor: modalInnerBorder
     contentMargin: 8
 
-    readonly property int verticalGap: 6
-    readonly property int headerHeight: 28
-    readonly property int footerHeight: 20
+    readonly property int verticalGap: 5
+    readonly property int headerHeight: 22
+    readonly property int footerHeight: 14
     readonly property int choiceCount: Math.max(
                                            1,
                                            levelUpModal.choices ? levelUpModal.choices.length : 3)
@@ -55,28 +55,22 @@ ModalSurface {
                                                            - (spacing * (levelUpModal.choiceCount + 1)))
                                                           / levelUpModal.choiceCount)))
 
-            Rectangle {
+            Item {
                 id: headerPanel
                 width: parent.width
                 height: levelUpModal.headerHeight
-                radius: 3
-                color: levelUpModal.modalPanelFill
-                border.color: levelUpModal.modalPanelBorder
-                border.width: 1
 
                 Column {
-                    anchors.fill: parent
-                    anchors.topMargin: 2
-                    anchors.bottomMargin: 2
+                    anchors.centerIn: parent
                     spacing: 0
 
                     Text {
                         width: parent.width
-                        height: 15
+                        height: 14
                         text: "LEVEL UP!"
                         color: levelUpModal.modalTitleInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -84,11 +78,11 @@ ModalSurface {
 
                     Text {
                         width: parent.width
-                        height: 9
+                        height: 8
                         text: "CHOOSE 1 POWER"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 6
+                        font.pixelSize: 7
                         font.bold: false
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -127,19 +121,14 @@ ModalSurface {
                 }
             }
 
-            Rectangle {
+            Item {
                 id: footerPanel
                 width: parent.width
                 height: levelUpModal.footerHeight
-                radius: 3
-                color: levelUpModal.modalPanelFill
-                border.color: levelUpModal.modalPanelBorder
-                border.width: 1
 
                 Row {
-                    anchors.fill: parent
-                    anchors.leftMargin: 6
-                    anchors.rightMargin: 6
+                    anchors.centerIn: parent
+                    width: parent.width
                     spacing: 8
 
                     Text {
@@ -148,7 +137,7 @@ ModalSurface {
                         text: "START PICK"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.bold: false
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
@@ -160,7 +149,7 @@ ModalSurface {
                         text: "SELECT MENU"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 7
+                        font.pixelSize: 8
                         font.bold: false
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter

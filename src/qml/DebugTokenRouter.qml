@@ -8,11 +8,13 @@ QtObject {
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
+    property var staticDebugOptions: ({})
     property var showOsd
     property var dispatchAction
     property var clearDirectionVisuals
     property var setIconDebugMode
     property var setStaticDebugSceneValue
+    property var setStaticDebugOptionsValue
     property var resetKonamiProgress
 
     function toggleIconLabMode() {
@@ -33,12 +35,92 @@ QtObject {
         }
     }
 
-    function setStaticScene(sceneName) {
+    function parseStaticSceneOptions(sceneName, rawOptions) {
+        const options = {}
+        const raw = String(rawOptions || "").trim()
+        if (raw.length === 0) {
+            return options
+        }
+
+        const parts = raw.split(",").map((part) => part.trim()).filter((part) => part.length > 0)
+        const bareValues = []
+
+        for (const part of parts) {
+            const separatorIndex = part.indexOf("=")
+            if (separatorIndex < 0) {
+                const bareInt = Number(part)
+                if (Number.isInteger(bareInt)) {
+                    bareValues.push(bareInt)
+                }
+                continue
+            }
+
+            const key = part.slice(0, separatorIndex).trim().toUpperCase()
+            const value = part.slice(separatorIndex + 1).trim()
+            if (key === "BUFF") {
+                const buffType = Number(value)
+                if (Number.isInteger(buffType) && buffType >= 1 && buffType <= 9) {
+                    options.buffType = buffType
+                }
+            } else if (key === "SCORE") {
+                const score = Number(value)
+                if (Number.isInteger(score) && score >= 0) {
+                    options.score = score
+                }
+            } else if (key === "HI") {
+                const highScore = Number(value)
+                if (Number.isInteger(highScore) && highScore >= 0) {
+                    options.highScore = highScore
+                }
+            } else if (key === "REMAIN") {
+                const remaining = Number(value)
+                if (Number.isInteger(remaining) && remaining >= 0) {
+                    options.buffRemaining = remaining
+                }
+            } else if (key === "TOTAL") {
+                const total = Number(value)
+                if (Number.isInteger(total) && total >= 1) {
+                    options.buffTotal = total
+                }
+            } else if (key === "INDEX") {
+                const choiceIndex = Number(value)
+                if (Number.isInteger(choiceIndex) && choiceIndex >= 0) {
+                    options.choiceIndex = choiceIndex
+                }
+            } else if (key === "TYPES") {
+                options.choiceTypes = value
+                    .split(/[|/]/)
+                    .map((entry) => Number(entry.trim()))
+                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
+                    .slice(0, 3)
+            }
+        }
+
+        if (sceneName === "choice") {
+            if (!options.choiceTypes || options.choiceTypes.length === 0) {
+                options.choiceTypes = bareValues
+                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
+                    .slice(0, 3)
+            }
+        } else if (bareValues.length > 0) {
+            const buffType = bareValues[0]
+            if (buffType >= 1 && buffType <= 9) {
+                options.buffType = buffType
+            }
+        }
+
+        return options
+    }
+
+    function setStaticScene(sceneName, options) {
         if (router.setIconDebugMode) {
             router.setIconDebugMode(false)
         }
         if (router.setStaticDebugSceneValue) {
             router.setStaticDebugSceneValue(sceneName)
+        }
+        if (router.setStaticDebugOptionsValue) {
+            router.setStaticDebugOptionsValue(options ? options : {})
         }
         if (router.showOsd) {
             if (sceneName === "") {
@@ -50,9 +132,9 @@ QtObject {
     }
 
     function cycleStaticScene(direction) {
-        const scenes = ["boot", "game", "replay"]
+        const scenes = ["boot", "game", "replay", "choice"]
         if (router.staticDebugScene === "") {
-            setStaticScene("boot")
+            setStaticScene("boot", {})
             return
         }
         let idx = scenes.indexOf(router.staticDebugScene)
@@ -60,7 +142,7 @@ QtObject {
             idx = 0
         }
         idx = (idx + direction + scenes.length) % scenes.length
-        setStaticScene(scenes[idx])
+        setStaticScene(scenes[idx], {})
     }
 
     function exitIconLab() {
@@ -80,6 +162,24 @@ QtObject {
     }
 
     function routeDebugToken(token) {
+        if (token.startsWith("DBG_CHOICE")) {
+            let choiceTypes = []
+            const separatorIndex = token.indexOf(":")
+            if (separatorIndex >= 0 && separatorIndex + 1 < token.length) {
+                choiceTypes = token
+                    .slice(separatorIndex + 1)
+                    .split(",")
+                    .map((part) => Number(part.trim()))
+                    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 9)
+            }
+            router.gameLogic.debugSeedChoicePreview(choiceTypes)
+            if (router.showOsd) {
+                router.showOsd(choiceTypes.length > 0
+                    ? `DBG: CHOICE ${choiceTypes.join("/")}`
+                    : "DBG: CHOICE")
+            }
+            return true
+        }
         if (token === "DBG_MENU") {
             if (router.iconDebugMode) {
                 exitIconLab()
@@ -130,13 +230,6 @@ QtObject {
             router.gameLogic.debugSeedReplayBuffPreview()
             return true
         }
-        if (token === "DBG_CHOICE") {
-            router.gameLogic.requestStateChange(AppState.ChoiceSelection)
-            if (router.showOsd) {
-                router.showOsd("DBG: CHOICE")
-            }
-            return true
-        }
         if (token === "DBG_CATALOG") {
             router.gameLogic.requestStateChange(AppState.Library)
             if (router.showOsd) {
@@ -160,20 +253,30 @@ QtObject {
             }
             return true
         }
-        if (token === "DBG_STATIC_BOOT") {
-            setStaticScene("boot")
-            return true
-        }
-        if (token === "DBG_STATIC_GAME") {
-            setStaticScene("game")
-            return true
-        }
-        if (token === "DBG_STATIC_REPLAY") {
-            setStaticScene("replay")
-            return true
-        }
-        if (token === "DBG_STATIC_OFF") {
-            setStaticScene("")
+        if (token.startsWith("DBG_STATIC_")) {
+            const separatorIndex = token.indexOf(":")
+            const baseToken = separatorIndex >= 0 ? token.slice(0, separatorIndex) : token
+            const rawOptions = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
+            if (baseToken === "DBG_STATIC_BOOT") {
+                setStaticScene("boot", parseStaticSceneOptions("boot", rawOptions))
+                return true
+            }
+            if (baseToken === "DBG_STATIC_GAME") {
+                setStaticScene("game", parseStaticSceneOptions("game", rawOptions))
+                return true
+            }
+            if (baseToken === "DBG_STATIC_REPLAY") {
+                setStaticScene("replay", parseStaticSceneOptions("replay", rawOptions))
+                return true
+            }
+            if (baseToken === "DBG_STATIC_CHOICE") {
+                setStaticScene("choice", parseStaticSceneOptions("choice", rawOptions))
+                return true
+            }
+            if (baseToken === "DBG_STATIC_OFF") {
+                setStaticScene("", {})
+                return true
+            }
             return true
         }
         return false
