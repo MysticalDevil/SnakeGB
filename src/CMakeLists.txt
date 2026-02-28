@@ -12,7 +12,6 @@ target_include_directories(snakegb_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(snakegb_core PRIVATE Qt6::Core)
 
 add_library(snakegb_fsm
-    fsm/session_step.cpp
     fsm/state_factory.cpp
     fsm/states.cpp
 )

@@ -221,6 +221,7 @@ public:
     void triggerHaptic(int magnitude) override;
     void playEventSound(int type, float pan = 0.0f) override;
     void updatePersistence() override;
+    void advancePlayingState() override;
     void enterGameOverState() override;
     void enterReplayState() override;
     void advanceReplayState() override;

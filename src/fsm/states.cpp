@@ -1,5 +1,4 @@
 #include "states.h"
-#include "session_step.h"
 
 // --- Splash State ---
 void SplashState::enter() {
@@ -58,13 +57,7 @@ void PlayingState::enter() {
 }
 
 void PlayingState::update() {
-    snakegb::fsm::runSessionStep(m_context, {
-                                            .activeState = IGameEngine::Playing,
-                                            .collisionTargetState = IGameEngine::GameOver,
-                                            .consumeInputQueue = true,
-                                            .recordConsumedInput = true,
-                                            .emitCrashFeedbackOnCollision = true,
-                                        });
+    m_context.advancePlayingState();
 }
 
 void PlayingState::handleInput(int /*dx*/, int /*dy*/) {

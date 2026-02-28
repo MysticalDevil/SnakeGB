@@ -1,9 +1,47 @@
 #include "adapter/game_logic.h"
 
 #include "adapter/profile_bridge.h"
-#include "fsm/session_step.h"
 
 using namespace Qt::StringLiterals;
+
+namespace
+{
+
+struct SessionStepDriverConfig {
+    int activeState = IGameEngine::Playing;
+    int collisionTargetState = IGameEngine::GameOver;
+    bool consumeInputQueue = true;
+    bool recordConsumedInput = true;
+    bool emitCrashFeedbackOnCollision = true;
+};
+
+auto runSessionStepDriver(IGameEngine &engine, const SessionStepDriverConfig &config) -> bool
+{
+    const auto result = engine.advanceSessionStep({
+        .boardWidth = 20,
+        .boardHeight = 18,
+        .consumeInputQueue = config.consumeInputQueue,
+        .pauseOnChoiceTrigger = (config.activeState != IGameEngine::Replaying),
+    });
+
+    if (result.consumedInput && config.recordConsumedInput) {
+        engine.recordInputAtCurrentTick(result.consumedDirection);
+    }
+
+    if (result.collision) {
+        if (config.emitCrashFeedbackOnCollision) {
+            engine.triggerHaptic(8);
+            engine.playEventSound(1);
+        }
+        engine.requestStateChange(config.collisionTargetState);
+        return false;
+    }
+
+    return result.appliedMovement && engine.currentState() == config.activeState &&
+           !engine.hasPendingStateChange();
+}
+
+} // namespace
 
 auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
     -> snakegb::core::SessionAdvanceResult
@@ -38,17 +76,28 @@ void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &c
     }
 }
 
+void GameLogic::advancePlayingState()
+{
+    runSessionStepDriver(*this, {
+                                    .activeState = IGameEngine::Playing,
+                                    .collisionTargetState = IGameEngine::GameOver,
+                                    .consumeInputQueue = true,
+                                    .recordConsumedInput = true,
+                                    .emitCrashFeedbackOnCollision = true,
+                                });
+}
+
 void GameLogic::advanceReplayState()
 {
     applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
 
-    snakegb::fsm::runSessionStep(*this, {
-                                            .activeState = IGameEngine::Replaying,
-                                            .collisionTargetState = IGameEngine::StartMenu,
-                                            .consumeInputQueue = false,
-                                            .recordConsumedInput = false,
-                                            .emitCrashFeedbackOnCollision = false,
-                                        });
+    runSessionStepDriver(*this, {
+                                    .activeState = IGameEngine::Replaying,
+                                    .collisionTargetState = IGameEngine::StartMenu,
+                                    .consumeInputQueue = false,
+                                    .recordConsumedInput = false,
+                                    .emitCrashFeedbackOnCollision = false,
+                                });
 }
 
 void GameLogic::applyCollisionMitigationEffects(

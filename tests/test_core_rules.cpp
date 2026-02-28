@@ -72,6 +72,7 @@ public:
     void triggerHaptic(int) override {}
     void playEventSound(int, float) override {}
     void updatePersistence() override {}
+    void advancePlayingState() override {}
     void enterGameOverState() override {}
     void enterReplayState() override {}
     void advanceReplayState() override {}
