@@ -14,6 +14,8 @@ class SessionCore
 public:
     [[nodiscard]] auto state() -> SessionState & { return m_state; }
     [[nodiscard]] auto state() const -> const SessionState & { return m_state; }
+    [[nodiscard]] auto body() -> std::deque<QPoint> & { return m_body; }
+    [[nodiscard]] auto body() const -> const std::deque<QPoint> & { return m_body; }
 
     [[nodiscard]] auto inputQueue() -> std::deque<QPoint> & { return m_inputQueue; }
     [[nodiscard]] auto inputQueue() const -> const std::deque<QPoint> & { return m_inputQueue; }
@@ -23,10 +25,13 @@ public:
 
     [[nodiscard]] auto tickCounter() const -> int;
     void incrementTick();
+    [[nodiscard]] auto headPosition() const -> QPoint;
 
     auto enqueueDirection(const QPoint &direction, std::size_t maxQueueSize = 2) -> bool;
     auto consumeQueuedInput(QPoint &nextInput) -> bool;
     void clearQueuedInput();
+    void setBody(const std::deque<QPoint> &body);
+    void applyMovement(const QPoint &newHead, bool grew);
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();
@@ -36,6 +41,7 @@ public:
 
 private:
     SessionState m_state;
+    std::deque<QPoint> m_body;
     std::deque<QPoint> m_inputQueue;
 };
 

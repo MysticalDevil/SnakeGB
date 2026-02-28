@@ -77,6 +77,23 @@ private slots:
         QCOMPARE(restored.state().obstacles, QList<QPoint>({QPoint(2, 2), QPoint(3, 2)}));
         QVERIFY(restored.inputQueue().empty());
     }
+
+    void testBodyOwnershipAndMovement()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
+
+        QCOMPARE(core.headPosition(), QPoint(10, 10));
+
+        core.applyMovement(QPoint(11, 10), false);
+        QCOMPARE(core.body().front(), QPoint(11, 10));
+        QCOMPARE(core.body().back(), QPoint(10, 11));
+        QCOMPARE(core.body().size(), std::size_t(3));
+
+        core.applyMovement(QPoint(12, 10), true);
+        QCOMPARE(core.body().front(), QPoint(12, 10));
+        QCOMPARE(core.body().size(), std::size_t(4));
+    }
 };
 
 QTEST_MAIN(TestSessionCore)

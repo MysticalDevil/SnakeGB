@@ -20,7 +20,8 @@ void GameLogic::restart()
     m_rng.seed(m_randomSeed);
 
     loadLevelData(m_levelIndex);
-    m_snakeModel.reset(buildSafeInitialSnakeBody());
+    m_sessionCore.setBody(buildSafeInitialSnakeBody());
+    syncSnakeModelFromCore();
     clearSavedState();
 
     m_timer->setInterval(InitialInterval);
@@ -46,7 +47,8 @@ void GameLogic::startReplay()
     m_session.score = 0;
 
     loadLevelData(m_bestLevelIndex);
-    m_snakeModel.reset(buildSafeInitialSnakeBody());
+    m_sessionCore.setBody(buildSafeInitialSnakeBody());
+    syncSnakeModelFromCore();
     m_rng.seed(m_bestRandomSeed);
     m_timer->setInterval(InitialInterval);
     m_timer->start();
@@ -67,7 +69,8 @@ void GameLogic::debugSeedReplayBuffPreview()
     m_session.score = 42;
     m_session.tickCounter = 64;
     loadLevelData(m_levelIndex);
-    m_snakeModel.reset({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    m_sessionCore.setBody({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    syncSnakeModelFromCore();
     m_session.food = QPoint(12, 7);
     m_session.powerUpPos = QPoint(-1, -1);
     m_session.powerUpType = 0;

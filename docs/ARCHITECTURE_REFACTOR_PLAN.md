@@ -115,8 +115,8 @@ Acceptance:
 
 Current status:
 - rule/helper extraction into `src/core/` is real and already useful;
-- `SessionCore` now exists and owns session state + queued input with a dedicated snapshot type;
-- but the full gameplay body/tick pipeline is still split between adapter and core, so the extraction is still partial.
+- `SessionCore` now exists and owns session state, queued input, snake body, and a dedicated snapshot type;
+- but the full gameplay tick/rule pipeline is still split between adapter and core, so the extraction is still partial.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -221,7 +221,8 @@ state, not the desired end state.
 - deterministic rule code now lives in `src/core/`.
 - session/runtime helpers are extracted.
 - `SessionCore` and `state_snapshot.h` now exist as the first real session boundary.
-- however, snake body ownership and the main tick/rule pipeline still are not fully moved behind that core object.
+- session state, input queue, and snake body ownership now live behind that core object.
+- however, the main tick/rule pipeline still is not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
   - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.

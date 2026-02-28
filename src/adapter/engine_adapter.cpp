@@ -57,8 +57,12 @@ GameLogic::GameLogic(QObject *parent)
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     setupAudioSignals();
     setupSensorRuntime();
+    m_snakeModel.setBodyChangedCallback([this](const std::deque<QPoint> &body) {
+        m_sessionCore.setBody(body);
+    });
 
-    m_snakeModel.reset({{10, 10}, {10, 11}, {10, 12}});
+    m_sessionCore.setBody({{10, 10}, {10, 11}, {10, 12}});
+    syncSnakeModelFromCore();
 }
 
 GameLogic::~GameLogic()
@@ -72,6 +76,11 @@ GameLogic::~GameLogic()
         m_timer->stop();
     }
     m_fsmState.reset();
+}
+
+void GameLogic::syncSnakeModelFromCore()
+{
+    m_snakeModel.reset(m_sessionCore.body());
 }
 
 void GameLogic::setupAudioSignals()

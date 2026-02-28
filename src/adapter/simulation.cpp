@@ -6,7 +6,7 @@
 auto GameLogic::checkCollision(const QPoint &head) -> bool
 {
     const snakegb::core::CollisionOutcome outcome = snakegb::core::collisionOutcomeForHead(
-        head, BOARD_WIDTH, BOARD_HEIGHT, m_session.obstacles, m_snakeModel.body(),
+        head, BOARD_WIDTH, BOARD_HEIGHT, m_session.obstacles, m_sessionCore.body(),
         m_session.activeBuff == Ghost, m_session.activeBuff == Portal, m_session.activeBuff == Laser,
         m_session.shieldActive);
 
@@ -30,7 +30,8 @@ void GameLogic::applyMovement(const QPoint &newHead, const bool grew)
 {
     const QPoint p = snakegb::core::wrapPoint(newHead, BOARD_WIDTH, BOARD_HEIGHT);
 
-    m_snakeModel.moveHead(p, grew);
+    m_sessionCore.applyMovement(p, grew);
+    syncSnakeModelFromCore();
     m_currentRecording.append(p);
 
     if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
@@ -52,11 +53,11 @@ void GameLogic::applyPostTickTasks()
 void GameLogic::applyMagnetAttraction()
 {
     if (m_session.activeBuff != Magnet || m_session.food == QPoint(-1, -1) ||
-        m_snakeModel.body().empty()) {
+        m_sessionCore.body().empty()) {
         return;
     }
 
-    const QPoint head = m_snakeModel.body().front();
+    const QPoint head = m_sessionCore.headPosition();
     const auto result = snakegb::core::applyMagnetAttraction(
         head, BOARD_WIDTH, BOARD_HEIGHT, m_session,
         [this](const QPoint &pos) { return isOccupied(pos); });

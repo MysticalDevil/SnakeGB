@@ -54,11 +54,16 @@ public:
     {
         return m_body;
     }
+    void setBodyChangedCallback(std::function<void(const std::deque<QPoint> &)> callback)
+    {
+        m_bodyChangedCallback = std::move(callback);
+    }
     void reset(const std::deque<QPoint> &newBody)
     {
         beginResetModel();
         m_body = newBody;
         endResetModel();
+        notifyBodyChanged();
     }
     void moveHead(const QPoint &newHead, bool grew)
     {
@@ -73,10 +78,19 @@ public:
                 endRemoveRows();
             }
         }
+        notifyBodyChanged();
     }
 
 private:
+    void notifyBodyChanged() const
+    {
+        if (m_bodyChangedCallback) {
+            m_bodyChangedCallback(m_body);
+        }
+    }
+
     std::deque<QPoint> m_body;
+    std::function<void(const std::deque<QPoint> &)> m_bodyChangedCallback;
 };
 
 class GameLogic final : public QObject, public IGameEngine
@@ -160,7 +174,7 @@ public:
     }
     [[nodiscard]] auto headPosition() const -> QPoint override
     {
-        return m_snakeModel.body().empty() ? QPoint() : m_snakeModel.body().front();
+        return m_sessionCore.headPosition();
     }
     [[nodiscard]] auto currentDirection() const -> QPoint override
     {
@@ -456,6 +470,7 @@ private:
     void changeState(std::unique_ptr<GameState> newState);
     void spawnFood();
     void spawnPowerUp();
+    void syncSnakeModelFromCore();
     void updateHighScore();
     void saveCurrentState();
     void clearSavedState();

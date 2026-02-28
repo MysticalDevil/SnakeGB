@@ -91,7 +91,8 @@ void GameLogic::debugSeedChoicePreview(const QVariantList &types)
     m_session.score = 42;
     m_session.tickCounter = 64;
     loadLevelData(m_levelIndex);
-    m_snakeModel.reset({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    m_sessionCore.setBody({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    syncSnakeModelFromCore();
     m_session.food = QPoint(12, 7);
     m_session.powerUpPos = QPoint(-1, -1);
     m_session.powerUpType = 0;
@@ -131,8 +132,8 @@ void GameLogic::selectChoice(const int index)
         m_session.shieldActive = true;
     }
     if (result.miniApplied) {
-        const auto nextBody = snakegb::core::applyMiniShrink(m_snakeModel.body(), 3);
-        m_snakeModel.reset(nextBody);
+        m_sessionCore.setBody(snakegb::core::applyMiniShrink(m_sessionCore.body(), 3));
+        syncSnakeModelFromCore();
         emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
     }
     m_session.activeBuff = static_cast<PowerUp>(result.activeBuffAfter);

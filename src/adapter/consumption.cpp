@@ -61,8 +61,8 @@ void GameLogic::handlePowerUpConsumption(const QPoint &head)
         m_session.shieldActive = true;
     }
     if (result.miniApplied) {
-        const auto nextBody = snakegb::core::applyMiniShrink(m_snakeModel.body(), 3);
-        m_snakeModel.reset(nextBody);
+        m_sessionCore.setBody(snakegb::core::applyMiniShrink(m_sessionCore.body(), 3));
+        syncSnakeModelFromCore();
         emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
     }
     m_session.activeBuff = static_cast<PowerUp>(result.activeBuffAfter);

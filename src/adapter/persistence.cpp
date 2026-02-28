@@ -23,7 +23,7 @@ void GameLogic::loadLastSession()
         },
         .body = snapshot->body,
     });
-    m_snakeModel.reset(snapshot->body);
+    syncSnakeModelFromCore();
     resetTransientRuntimeState();
     resetReplayRuntimeTracking();
     m_session.direction = snapshot->direction;
@@ -96,7 +96,7 @@ void GameLogic::updateHighScore()
 void GameLogic::saveCurrentState()
 {
     if (m_profileManager) {
-        snakegb::adapter::saveSession(m_profileManager.get(), m_session.score, m_snakeModel.body(),
+        snakegb::adapter::saveSession(m_profileManager.get(), m_session.score, m_sessionCore.body(),
                                       m_session.obstacles, m_session.food, m_session.direction);
         emit hasSaveChanged();
     }

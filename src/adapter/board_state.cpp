@@ -40,7 +40,7 @@ void GameLogic::spawnPowerUp()
 auto GameLogic::isOccupied(const QPoint &p) const -> bool
 {
     const bool inSnake = std::ranges::any_of(
-        m_snakeModel.body(), [&p](const QPoint &bodyPoint) { return bodyPoint == p; });
+        m_sessionCore.body(), [&p](const QPoint &bodyPoint) { return bodyPoint == p; });
     if (inSnake) {
         return true;
     }

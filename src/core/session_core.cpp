@@ -17,6 +17,11 @@ auto SessionCore::tickCounter() const -> int
     return m_state.tickCounter;
 }
 
+auto SessionCore::headPosition() const -> QPoint
+{
+    return m_body.empty() ? QPoint() : m_body.front();
+}
+
 void SessionCore::incrementTick()
 {
     m_state.tickCounter++;
@@ -54,6 +59,19 @@ void SessionCore::clearQueuedInput()
     m_inputQueue.clear();
 }
 
+void SessionCore::setBody(const std::deque<QPoint> &body)
+{
+    m_body = body;
+}
+
+void SessionCore::applyMovement(const QPoint &newHead, const bool grew)
+{
+    m_body.push_front(newHead);
+    if (!grew && !m_body.empty()) {
+        m_body.pop_back();
+    }
+}
+
 void SessionCore::resetTransientRuntimeState()
 {
     m_state.direction = {0, -1};
@@ -75,13 +93,14 @@ auto SessionCore::snapshot(const std::deque<QPoint> &body) const -> StateSnapsho
 {
     return {
         .state = m_state,
-        .body = body,
+        .body = body.empty() ? m_body : body,
     };
 }
 
 void SessionCore::restoreSnapshot(const StateSnapshot &snapshot)
 {
     m_state = snapshot.state;
+    m_body = snapshot.body;
     m_inputQueue.clear();
 }
 
