@@ -9,11 +9,15 @@ layout(std140, binding = 0) uniform buf {
     float time;
     float reflectionX;
     float reflectionY;
+    float lumaBoost;
+    float ghostMix;
+    float scanlineStrength;
+    float gridStrength;
+    float vignetteStrength;
 };
 
 layout(binding = 1) uniform sampler2D source;
 layout(binding = 2) uniform sampler2D history;
-uniform float lumaBoost;
 
 void main() {
     // 1. Subtle Curvature
@@ -36,12 +40,12 @@ void main() {
 
     // 3. Balanced LCD Ghosting
     vec4 historyTex = texture(history, uv);
-    vec4 tex = mix(currentTex, historyTex, 0.25);
+    vec4 tex = mix(currentTex, historyTex, ghostMix);
     
     // 4. Scanline & Grid
-    float scanline = 0.97 + 0.03 * sin(uv.y * 216.0 * 3.14159 * 2.0);
+    float scanline = 1.0 - scanlineStrength + scanlineStrength * sin(uv.y * 216.0 * 3.14159 * 2.0);
     vec2 gridUV = fract(uv * vec2(240.0, 216.0));
-    float grid = step(0.05, gridUV.x) * step(0.05, gridUV.y) * 0.08 + 0.92;
+    float grid = step(0.05, gridUV.x) * step(0.05, gridUV.y) * gridStrength + (1.0 - gridStrength);
 
     // 5. Handheld Breathing Simulation (Dynamic Glare)
     // We simulate the micro-shakes of a human holding a device.
@@ -60,7 +64,7 @@ void main() {
 
     // 6. Vignetting (Physical Light Loss)
     float vignette = smoothstep(1.2, 0.5, dist);
-    vignette = mix(0.85, 1.0, vignette);
+    vignette = mix(1.0 - vignetteStrength, 1.0, vignette);
 
     // 7. Final Composition
     vec3 finalRGB = tex.rgb * scanline * grid * vignette;

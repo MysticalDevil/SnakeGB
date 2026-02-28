@@ -613,7 +613,7 @@ Item {
     }
 }
 """
-    with open("src/qml/GameScreen.qml", "w") as f:
+    with open("src/qml/ScreenView.qml", "w") as f:
         f.write(content)
 
 if __name__ == "__main__":

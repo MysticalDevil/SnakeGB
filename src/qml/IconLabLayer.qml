@@ -74,10 +74,10 @@ Rectangle {
                     font.bold: true
                 }
                 Text {
-                    text: "F6 / KONAMI TO EXIT"
+                    text: "F6/KONAMI EXIT"
                     color: Qt.rgba(iconLabLayer.textMuted.r, iconLabLayer.textMuted.g, iconLabLayer.textMuted.b, 0.9)
                     font.family: gameFont
-                    font.pixelSize: 6
+                    font.pixelSize: 7
                     font.bold: true
                 }
             }
@@ -118,8 +118,8 @@ Rectangle {
                     }
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
-                        Text { text: "FOOD"; color: iconLabLayer.textStrong; font.family: gameFont; font.pixelSize: 7; font.bold: true }
-                        Text { text: "BASE"; color: iconLabLayer.textMuted; font.family: gameFont; font.pixelSize: 6; font.bold: true }
+                        Text { text: "FOOD"; color: iconLabLayer.textStrong; font.family: gameFont; font.pixelSize: 8; font.bold: true }
+                        Text { text: "BASE"; color: iconLabLayer.textMuted; font.family: gameFont; font.pixelSize: 7; font.bold: true }
                     }
                 }
             }
@@ -158,15 +158,17 @@ Rectangle {
                 delegate: Rectangle {
                     width: Math.floor((iconLabGrid.width - (iconLabGrid.columnSpacing * 2)) / 3)
                     height: Math.floor((iconLabGrid.height - (iconLabGrid.rowSpacing * 2)) / 3)
-                    radius: 3
+                    radius: 4
                     property int iconIdx: index
                     clip: true
                     color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.8)
                     border.color: powerColor(modelData)
-                    border.width: iconLabLayer.iconLabSelection === iconIdx ? 2 : 1
+                    border.width: 1
 
                     Rectangle {
                         anchors.fill: parent
+                        anchors.margins: 1
+                        radius: 3
                         color: "transparent"
                         border.color: iconLabLayer.borderStrong
                         border.width: 1
@@ -179,8 +181,8 @@ Rectangle {
                         anchors.top: parent.top
                         anchors.rightMargin: 3
                         anchors.topMargin: 3
-                        width: 20
-                        height: 9
+                        width: 22
+                        height: 10
                         radius: 2
                         visible: iconLabLayer.iconLabSelection === iconIdx
                         color: iconLabLayer.panelAccent
@@ -191,7 +193,7 @@ Rectangle {
                             text: "SEL"
                             color: iconLabLayer.textOnAccent
                             font.family: gameFont
-                            font.pixelSize: 6
+                            font.pixelSize: 7
                             font.bold: true
                         }
                     }
@@ -231,21 +233,21 @@ Rectangle {
                                 text: buffName(modelData)
                                 color: iconLabLayer.textStrong
                                 font.family: gameFont
-                                font.pixelSize: 7
+                                font.pixelSize: 8
                                 font.bold: true
                             }
                             Text {
                                 text: rarityName(modelData)
                                 color: powerColor(modelData)
                                 font.family: gameFont
-                                font.pixelSize: 6
+                                font.pixelSize: 7
                                 font.bold: true
                             }
                             Text {
                                 text: `GLYPH ${powerGlyph(modelData)}`
                                 color: iconLabLayer.textMuted
                                 font.family: gameFont
-                                font.pixelSize: 6
+                                font.pixelSize: 7
                                 font.bold: true
                                 visible: parent.parent.height >= 42
                             }
@@ -267,7 +269,7 @@ Rectangle {
                 text: `SELECTED: ${buffName(iconLabLayer.iconLabSelection + 1)}`
                 color: iconLabLayer.textStrong
                 font.family: gameFont
-                font.pixelSize: 7
+                font.pixelSize: 8
                 font.bold: true
             }
         }

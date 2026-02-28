@@ -11,15 +11,19 @@ Item {
     height: 62
 
     readonly property bool pressedVisual: mouseArea.pressed || root.isPressed
+    readonly property color baseShadow: "#12080b"
+    readonly property color rimShadow: "#210a10"
+    readonly property color highlightTone: Qt.rgba(1, 1, 1, 0.10)
+    readonly property color shadeTone: Qt.rgba(0, 0, 0, 0.08)
 
     Rectangle {
         anchors.fill: parent
         radius: width / 2
-        color: "#13070a"
-        opacity: 0.16
+        color: root.baseShadow
+        opacity: 0.18
         visible: !pressedVisual
         z: -2
-        transform: Translate { y: 3 }
+        transform: Translate { y: 4 }
     }
 
     Rectangle {
@@ -39,11 +43,11 @@ Item {
             anchors.margins: 2
             radius: width / 2
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.lighter(buttonBody.color, 1.10) }
-                GradientStop { position: 0.5; color: buttonBody.color }
-                GradientStop { position: 1.0; color: Qt.darker(buttonBody.color, 1.08) }
+                GradientStop { position: 0.0; color: Qt.lighter(buttonBody.color, 1.12) }
+                GradientStop { position: 0.44; color: buttonBody.color }
+                GradientStop { position: 1.0; color: Qt.darker(buttonBody.color, 1.10) }
             }
-            opacity: 0.90
+            opacity: 0.92
         }
 
         Rectangle {
@@ -51,7 +55,7 @@ Item {
             anchors.margins: 1
             radius: width / 2
             color: "transparent"
-            border.color: Qt.rgba(1, 1, 1, 0.06)
+            border.color: Qt.rgba(1, 1, 1, 0.07)
             border.width: 1
         }
 
@@ -60,11 +64,11 @@ Item {
             anchors.margins: 7
             radius: width / 2
             gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.08) }
+                GradientStop { position: 0.0; color: root.highlightTone }
                 GradientStop { position: 0.45; color: "transparent" }
-                GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.06) }
+                GradientStop { position: 1.0; color: root.shadeTone }
             }
-            opacity: 0.32
+            opacity: 0.38
         }
 
         Text {
@@ -81,11 +85,11 @@ Item {
     Rectangle {
         anchors.fill: buttonBody
         radius: buttonBody.radius
-        color: "black"
-        opacity: 0.08
+        color: root.rimShadow
+        opacity: 0.10
         z: -1
         visible: !pressedVisual
-        transform: Translate { y: 1 }
+        transform: Translate { y: 2 }
     }
 
     MouseArea {

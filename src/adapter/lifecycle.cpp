@@ -60,6 +60,31 @@ void GameLogic::startReplay()
     }
 }
 
+void GameLogic::debugSeedReplayBuffPreview()
+{
+    stopEngineTimer();
+    resetTransientRuntimeState();
+    m_session.score = 42;
+    m_session.tickCounter = 64;
+    loadLevelData(m_levelIndex);
+    m_snakeModel.reset({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    m_session.food = QPoint(12, 7);
+    m_session.powerUpPos = QPoint(-1, -1);
+    m_session.powerUpType = 0;
+    m_session.activeBuff = Shield;
+    m_session.buffTicksRemaining = 92;
+    m_session.buffTicksTotal = 120;
+    m_session.shieldActive = true;
+
+    emit scoreChanged();
+    emit foodChanged();
+    emit powerUpChanged();
+    emit buffChanged();
+    emit ghostChanged();
+
+    setInternalState(Replaying);
+}
+
 void GameLogic::togglePause()
 {
     if (m_state == Playing) {

@@ -234,6 +234,9 @@ case "${TARGET}" in
   dbg-replay)
     send_token "DBG_REPLAY"
     ;;
+  dbg-replay-buff)
+    send_token "DBG_REPLAY_BUFF"
+    ;;
   dbg-choice)
     send_token "DBG_CHOICE"
     ;;
@@ -259,7 +262,7 @@ case "${TARGET}" in
     send_token "DBG_STATIC_OFF"
     ;;
   *)
-    echo "[error] Unknown target '${TARGET}'. Supported: splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-off"
+    echo "[error] Unknown target '${TARGET}'. Supported: splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-off"
     exit 3
     ;;
 esac

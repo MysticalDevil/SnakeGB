@@ -209,8 +209,8 @@ Item {
     }
 
     readonly property color gameBg: menuColor("cardPrimary")
-    // Slightly lift the play/replay/choice background so it matches menu brightness after LCD shader.
-    readonly property color playBg: Qt.lighter(gameBg, 1.06)
+    // Lift play/replay/choice background so it matches menu brightness after LCD shader.
+    readonly property color playBg: gameBg
     readonly property color gamePanel: menuColor("cardSecondary")
     readonly property color gameInk: menuColor("titleInk")
     readonly property color gameSubInk: menuColor("secondaryInk")
@@ -283,7 +283,7 @@ Item {
             }
 
             // --- STATE 0: SPLASH ---
-            GameScreenSplash {
+            SplashLayer {
                 anchors.fill: parent
                 active: gameLogic.state === AppState.Splash
                 gameFont: root.gameFont
@@ -291,7 +291,7 @@ Item {
             }
 
             // --- STATE 1: MENU ---
-            GameScreenMenu {
+            MenuLayer {
                 anchors.fill: parent
                 active: gameLogic.state === AppState.StartMenu
                 gameFont: root.gameFont
@@ -301,7 +301,7 @@ Item {
             }
 
             // --- STATE 2, 3, 4, 5, 6: WORLD ---
-            GameScreenWorld {
+            WorldLayer {
                 active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
                 gameLogic: root.gameLogic
                 elapsed: root.elapsed
@@ -319,29 +319,17 @@ Item {
                 rarityTier: root.rarityTier
                 rarityName: root.rarityName
                 rarityColor: root.rarityColor
-            }
-
-            GameScreenOverlays {
-                anchors.fill: parent
-                gameLogic: root.gameLogic
-                menuColor: root.menuColor
-                gameFont: root.gameFont
-                elapsed: root.elapsed
-                drawPowerSymbol: root.drawPowerSymbol
-                rarityTier: root.rarityTier
-                rarityName: root.rarityName
-                rarityColor: root.rarityColor
                 readableText: root.readableText
-                readableSecondaryText: root.readableSecondaryText
             }
 
-            GameScreenLibrary {
+            LibraryLayer {
                 anchors.fill: parent
                 active: gameLogic.state === AppState.Library
                 gameLogic: root.gameLogic
                 gameFont: root.gameFont
                 powerColor: root.powerColor
-                catalogTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
+                menuColor: root.menuColor
+                pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "catalog")
             }
 
             // --- STATE 8: MEDAL ROOM ---
@@ -351,14 +339,15 @@ Item {
                 p1: root.p1
                 p2: root.p2
                 p3: root.p3
-                visualTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
+                menuColor: root.menuColor
+                pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
                 gameLogic: root.gameLogic
                 gameFont: root.gameFont
                 visible: gameLogic.state === AppState.MedalRoom
                 z: 900
             }
 
-            GameScreenStaticDebug {
+            StaticDebugLayer {
                 anchors.fill: parent
                 visible: root.staticDebugScene !== ""
                 staticScene: root.staticDebugScene
@@ -371,9 +360,14 @@ Item {
                 gameSubInk: root.gameSubInk
                 gameBorder: root.gameBorder
                 drawFoodSymbol: root.drawFoodSymbol
+                buffName: root.buffName
+                rarityTier: root.rarityTier
+                rarityName: root.rarityName
+                rarityColor: root.rarityColor
+                readableText: root.readableText
             }
 
-            GameScreenIconLab {
+            IconLabLayer {
                 anchors.fill: parent
                 active: root.iconDebugMode
                 gameFont: root.gameFont
@@ -388,6 +382,37 @@ Item {
                 powerGlyph: root.powerGlyph
                 onResetSelectionRequested: root.iconLabSelection = 0
             }
+
+            HudLayer {
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.topMargin: 6
+                anchors.rightMargin: 6
+                z: 2400
+                active: !root.iconDebugMode &&
+                        root.staticDebugScene === "" &&
+                        (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying)
+                gameLogic: root.gameLogic
+                gameFont: root.gameFont
+                ink: root.gameInk
+            }
+
+            OverlayLayer {
+                anchors.fill: parent
+                z: 2600
+                showPausedAndGameOver: false
+                showReplayAndChoice: !root.iconDebugMode && root.staticDebugScene === ""
+                gameLogic: root.gameLogic
+                menuColor: root.menuColor
+                gameFont: root.gameFont
+                elapsed: root.elapsed
+                drawPowerSymbol: root.drawPowerSymbol
+                rarityTier: root.rarityTier
+                rarityName: root.rarityName
+                rarityColor: root.rarityColor
+                readableText: root.readableText
+                readableSecondaryText: root.readableSecondaryText
+            }
         }
 
         // --- 2. FX layer ---
@@ -400,12 +425,42 @@ Item {
             property real time: root.elapsed
             property real reflectionX: gameLogic.reflectionOffset.x
             property real reflectionY: gameLogic.reflectionOffset.y
-            property real lumaBoost: (gameLogic.state === AppState.Playing ||
-                                      gameLogic.state === AppState.Replaying ||
-                                      gameLogic.state === AppState.ChoiceSelection ||
-                                      root.staticDebugScene === "game" ||
-                                      root.staticDebugScene === "replay") ? 1.12 : 1.0
+            property bool isPlayScene: gameLogic.state === AppState.Playing || root.staticDebugScene === "game"
+            property bool isReplayScene: gameLogic.state === AppState.Replaying || root.staticDebugScene === "replay"
+            property bool isChoiceScene: gameLogic.state === AppState.ChoiceSelection
+            property real lumaBoost: isPlayScene ? 0.95
+                                   : (isReplayScene ? 0.985
+                                      : (isChoiceScene ? 1.0 : 1.0))
+            property real ghostMix: isPlayScene ? 0.12
+                                   : (isReplayScene ? 0.07
+                                      : (isChoiceScene ? 0.02 : 0.25))
+            property real scanlineStrength: isPlayScene ? 0.045
+                                           : (isReplayScene ? 0.028
+                                              : (isChoiceScene ? 0.008 : 0.03))
+            property real gridStrength: isPlayScene ? 0.07
+                                       : (isReplayScene ? 0.045
+                                          : (isChoiceScene ? 0.015 : 0.08))
+            property real vignetteStrength: isPlayScene ? 0.14
+                                           : (isReplayScene ? 0.10
+                                              : (isChoiceScene ? 0.08 : 0.15))
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
+        }
+
+        OverlayLayer {
+            anchors.fill: parent
+            z: 30
+            showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
+            showReplayAndChoice: false
+            gameLogic: root.gameLogic
+            menuColor: root.menuColor
+            gameFont: root.gameFont
+            elapsed: root.elapsed
+            drawPowerSymbol: root.drawPowerSymbol
+            rarityTier: root.rarityTier
+            rarityName: root.rarityName
+            rarityColor: root.rarityColor
+            readableText: root.readableText
+            readableSecondaryText: root.readableSecondaryText
         }
 
         Item {
@@ -428,20 +483,7 @@ Item {
             }
         }
 
-        // --- 3. HUD ---
-        GameScreenHud {
-            anchors.top: parent.top
-            anchors.right: parent.right
-            anchors.topMargin: 6
-            anchors.rightMargin: 6
-            z: 500
-            active: gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying
-            gameLogic: root.gameLogic
-            gameFont: root.gameFont
-            ink: root.gameInk
-        }
-        
-        OSDLayer { id: osd; bg: root.gameAccent; ink: root.gameAccentInk; gameFont: root.gameFont; z: 3000 }
+        OSDLayer { id: osd; bg: root.gameAccent; ink: root.gameAccentInk; gameFont: root.gameFont; z: 11000 }
     }
 
     function showOSD(t) { osd.show(t) }

@@ -9,6 +9,9 @@ Rectangle {
     signal released
 
     readonly property bool pressedVisual: mouseArea.pressed || isPressed
+    readonly property color bodyShadow: "#17191d"
+    readonly property color highlightTone: Qt.rgba(1, 1, 1, 0.10)
+    readonly property color shadeTone: Qt.rgba(0, 0, 0, 0.08)
 
     width: 54
     height: 17
@@ -42,11 +45,11 @@ Rectangle {
         anchors.margins: 4
         radius: parent.radius - 4
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.08) }
+            GradientStop { position: 0.0; color: root.highlightTone }
             GradientStop { position: 0.5; color: "transparent" }
-            GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.06) }
+            GradientStop { position: 1.0; color: root.shadeTone }
         }
-        opacity: 0.30
+        opacity: 0.36
     }
 
     Text {
@@ -63,11 +66,11 @@ Rectangle {
     Rectangle {
         anchors.fill: parent
         radius: parent.radius
-        color: "#17191d"
-        opacity: 0.10
+        color: root.bodyShadow
+        opacity: 0.12
         z: -1
         visible: !pressedVisual
-        transform: Translate { y: 1 }
+        transform: Translate { y: 2 }
     }
 
     MouseArea {

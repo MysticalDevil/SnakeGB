@@ -51,8 +51,9 @@ Rectangle {
                 Text {
                     text: gameLogic.hasSave ? "CONTINUE READY" : "NEW RUN READY"
                     font.family: gameFont
-                    font.pixelSize: 7
-                    color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.68)
+                    font.pixelSize: 8
+                    color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
+                    font.bold: true
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
@@ -124,16 +125,16 @@ Rectangle {
                 anchors.margins: 7
                 spacing: 1
                 Text {
-                    text: "UP: MEDALS   DOWN: REPLAY"
+                    text: "UP MEDALS   DOWN REPLAY"
                     color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                    font.pixelSize: 8
-                    font.bold: false
+                    font.pixelSize: 9
+                    font.bold: true
                 }
                 Text {
-                    text: "LEFT: CATALOG   SELECT: LEVEL"
+                    text: "LEFT CATALOG   SELECT LEVEL"
                     color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                    font.pixelSize: 8
-                    font.bold: false
+                    font.pixelSize: 9
+                    font.bold: true
                 }
             }
         }

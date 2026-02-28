@@ -20,6 +20,10 @@ Item {
     readonly property int cross: 94
     readonly property int pressX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
     readonly property int pressY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
+    readonly property color bodyHi: "#465365"
+    readonly property color bodyMid: "#384354"
+    readonly property color bodyLo: "#2f3948"
+    readonly property color edgeInk: "#151d27"
 
     Item {
         id: crossRoot
@@ -33,8 +37,8 @@ Item {
             id: crossShadow
             anchors.fill: parent
             x: 1
-            y: 1
-            opacity: 0.10
+            y: 2
+            opacity: 0.14
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.reset()
@@ -53,14 +57,14 @@ Item {
                 drawCrossPath(ctx, width, height, dpad.arm)
 
                 const g = ctx.createLinearGradient(0, 0, width, height)
-                g.addColorStop(0.0, "#3f4a5a")
-                g.addColorStop(0.48, "#384354")
-                g.addColorStop(1.0, "#313c4c")
+                g.addColorStop(0.0, dpad.bodyHi)
+                g.addColorStop(0.44, dpad.bodyMid)
+                g.addColorStop(1.0, dpad.bodyLo)
                 ctx.fillStyle = g
                 ctx.fill()
 
                 ctx.lineWidth = 1.5
-                ctx.strokeStyle = "#141b24"
+                ctx.strokeStyle = dpad.edgeInk
                 ctx.lineJoin = "round"
                 ctx.stroke()
 
@@ -69,9 +73,9 @@ Item {
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.clip()
                 const hg = ctx.createLinearGradient(0, 0, width, height)
-                hg.addColorStop(0.0, "rgba(255,255,255,0.06)")
+                hg.addColorStop(0.0, "rgba(255,255,255,0.08)")
                 hg.addColorStop(0.45, "rgba(255,255,255,0.00)")
-                hg.addColorStop(1.0, "rgba(0,0,0,0.04)")
+                hg.addColorStop(1.0, "rgba(0,0,0,0.06)")
                 ctx.fillStyle = hg
                 ctx.fillRect(0, 0, width, height)
                 ctx.restore()
@@ -86,7 +90,7 @@ Item {
                 ctx.reset()
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.clip()
-                ctx.fillStyle = "rgba(0,0,0,0.14)"
+                ctx.fillStyle = "rgba(0,0,0,0.16)"
                 if (dpad.upPressed) {
                     ctx.fillRect((width - dpad.arm) / 2, 0, dpad.arm, (height - dpad.arm) / 2 + 1)
                 }
@@ -122,7 +126,7 @@ Item {
             height: 18
             radius: 9
             color: "#232c39"
-            border.color: "#151d27"
+            border.color: dpad.edgeInk
             border.width: 1
         }
 

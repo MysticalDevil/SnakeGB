@@ -20,6 +20,7 @@ Item {
     property var rarityTier
     property var rarityName
     property var rarityColor
+    property var readableText
 
     anchors.fill: parent
     z: 10
@@ -154,76 +155,23 @@ Item {
         }
     }
 
-    Rectangle {
+    BuffStatusPanel {
         anchors.top: parent.top
         anchors.left: parent.left
-        anchors.topMargin: 4
+        anchors.topMargin: gameLogic.state === AppState.Replaying ? 44 : 4
         anchors.leftMargin: 4
-        width: 110
-        height: 24
-        property int buffTier: rarityTier(gameLogic.activeBuff)
-        property color accent: rarityColor(gameLogic.activeBuff)
-        color: menuColor("cardPrimary")
-        border.color: accent
-        border.width: 1
+        active: (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying) &&
+                gameLogic.activeBuff !== 0 && gameLogic.buffTicksTotal > 0
+        gameFont: gameFont
+        menuColor: gameWorld.menuColor
+        readableText: gameWorld.readableText
+        elapsed: gameWorld.elapsed
+        buffLabel: buffName(gameLogic.activeBuff)
+        rarityLabel: rarityName(gameLogic.activeBuff)
+        accent: rarityColor(gameLogic.activeBuff)
+        buffTier: rarityTier(gameLogic.activeBuff)
+        ticksRemaining: gameLogic.buffTicksRemaining
+        ticksTotal: gameLogic.buffTicksTotal
         z: 40
-        visible: (gameLogic.state === AppState.Playing || gameLogic.state === AppState.Replaying) &&
-                 gameLogic.activeBuff !== 0 && gameLogic.buffTicksTotal > 0
-
-        Text {
-            anchors.left: parent.left
-            anchors.leftMargin: 4
-            anchors.top: parent.top
-            anchors.topMargin: 1
-            text: buffName(gameLogic.activeBuff)
-            color: menuColor("titleInk")
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
-        }
-
-        Text {
-            anchors.right: parent.right
-            anchors.rightMargin: 4
-            anchors.top: parent.top
-            anchors.topMargin: 1
-            text: rarityName(gameLogic.activeBuff)
-            color: menuColor("titleInk")
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
-            opacity: 0.96
-        }
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: 3
-            anchors.rightMargin: 3
-            anchors.bottomMargin: 3
-            height: 5
-            color: menuColor("cardSecondary")
-            border.color: parent.accent
-            border.width: 1
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                width: parent.width * (gameLogic.buffTicksRemaining / Math.max(1, gameLogic.buffTicksTotal))
-                color: parent.parent.accent
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: "transparent"
-                border.color: parent.parent.accent
-                border.width: 1
-                opacity: parent.parent.buffTier >= 3
-                         ? ((Math.floor(gameWorld.elapsed * 8) % 2 === 0) ? 0.35 : 0.1)
-                         : 0.0
-            }
-        }
     }
 }

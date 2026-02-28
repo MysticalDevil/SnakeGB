@@ -10,72 +10,80 @@ Rectangle {
     property color p1
     property color p2
     property color p3
-    property var visualTheme: ({})
+    property var menuColor
+    property var pageTheme: ({})
     property var gameLogic
     property string gameFont
 
-    function luminance(colorValue) {
-        if (colorValue === undefined || colorValue === null) {
-            return 0.0
-        }
-        return 0.299 * colorValue.r + 0.587 * colorValue.g + 0.114 * colorValue.b
-    }
-
-    function readableText(bgColor) {
-        if (p0 === undefined || p3 === undefined) {
-            return "white"
-        }
-        const d0 = Math.abs(luminance(p0) - luminance(bgColor))
-        const d3 = Math.abs(luminance(p3) - luminance(bgColor))
-        return d3 >= d0 ? p3 : p0
-    }
-
-    function readableMutedText(bgColor) {
-        const c = readableText(bgColor)
-        return Qt.rgba(c.r, c.g, c.b, 0.9)
-    }
-
-    function readableSecondaryText(bgColor) {
-        const c = readableText(bgColor)
-        return Qt.rgba(c.r, c.g, c.b, 0.78)
-    }
-
-    readonly property color pageBg: visualTheme.pageBg || p0
-    readonly property color titleColor: visualTheme.title || p3
-    readonly property color dividerColor: visualTheme.divider || p3
-    readonly property color cardNormal: visualTheme.cardNormal || p1
-    readonly property color cardSelected: visualTheme.cardSelected || p2
-    readonly property color cardBorder: visualTheme.cardBorder || p3
-    readonly property color badgeFill: visualTheme.badgeFill || p3
-    readonly property color badgeText: visualTheme.badgeText || p0
-    readonly property color secondaryText: visualTheme.secondaryText || titleColor
-    readonly property color iconFill: visualTheme.iconFill || p0
-    readonly property color unknownText: visualTheme.unknownText || p0
-    readonly property color scrollbarHandle: visualTheme.scrollbarHandle || p2
-    readonly property color scrollbarTrack: visualTheme.scrollbarTrack || p1
+    readonly property color pageBg: menuColor("cardPrimary")
+    readonly property color panelBgStrong: menuColor("cardPrimary")
+    readonly property color panelBg: menuColor("cardSecondary")
+    readonly property color panelBgSoft: menuColor("hintCard")
+    readonly property color panelAccent: pageTheme && pageTheme.cardSelected ? pageTheme.cardSelected : menuColor("actionCard")
+    readonly property color titleColor: menuColor("titleInk")
+    readonly property color dividerColor: menuColor("borderPrimary")
+    readonly property color cardNormal: Qt.rgba(panelBg.r, panelBg.g, panelBg.b, 0.84)
+    readonly property color cardSelected: Qt.rgba(panelAccent.r, panelAccent.g, panelAccent.b, 0.92)
+    readonly property color cardBorder: menuColor("borderSecondary")
+    readonly property color badgeFill: pageTheme && pageTheme.badgeFill ? pageTheme.badgeFill : menuColor("actionCard")
+    readonly property color badgeText: pageTheme && pageTheme.badgeText ? pageTheme.badgeText : menuColor("actionInk")
+    readonly property color secondaryText: menuColor("secondaryInk")
+    readonly property color iconFill: pageTheme && pageTheme.iconFill ? pageTheme.iconFill : panelBgStrong
+    readonly property color unknownText: pageTheme && pageTheme.unknownText ? pageTheme.unknownText : secondaryText
+    readonly property color scrollbarHandle: pageTheme && pageTheme.scrollbarHandle ? pageTheme.scrollbarHandle : dividerColor
+    readonly property color scrollbarTrack: pageTheme && pageTheme.scrollbarTrack ? pageTheme.scrollbarTrack : panelBgSoft
+    readonly property int unlockedCount: gameLogic ? gameLogic.achievements.length : 0
 
     color: pageBg
+    clip: true
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 6
+        color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.42)
+        border.color: medalRoot.dividerColor
+        border.width: 1
+    }
 
     Column {
         anchors.fill: parent
-        anchors.margins: 15
-        spacing: 10
+        anchors.margins: 8
+        spacing: 6
 
-        Text {
-            text: "ACHIEVEMENTS"
-            color: titleColor
-            font.family: gameFont
-            font.pixelSize: 20
-            font.bold: true
-            anchors.horizontalCenter: parent.horizontalCenter
+        Rectangle {
+            width: parent.width
+            height: 28
+            radius: 3
+            color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.86)
+            border.color: medalRoot.dividerColor
+            border.width: 1
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 0
+
+                Text {
+                    text: "ACHIEVEMENTS"
+                    color: medalRoot.titleColor
+                    font.family: gameFont
+                    font.pixelSize: 14
+                    font.bold: true
+                }
+
+                Text {
+                    text: `${medalRoot.unlockedCount} UNLOCKED`
+                    color: Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.92)
+                    font.family: gameFont
+                    font.pixelSize: 7
+                    font.bold: true
+                }
+            }
         }
-
-        Rectangle { width: parent.width; height: 2; color: dividerColor; opacity: 0.5 }
 
         ListView {
             id: medalList
             width: parent.width
-            height: parent.height - 60
+            height: parent.height - 72
             model: gameLogic.medalLibrary
             property bool syncingFromLogic: false
             currentIndex: -1
@@ -83,11 +91,13 @@ Rectangle {
             spacing: 6
             interactive: true
             boundsBehavior: Flickable.StopAtBounds
+
             Component.onCompleted: {
                 syncingFromLogic = true
                 currentIndex = gameLogic.medalIndex
                 syncingFromLogic = false
             }
+
             onCurrentIndexChanged: {
                 if (syncingFromLogic) {
                     return
@@ -97,8 +107,10 @@ Rectangle {
                     gameLogic.dispatchUiAction(`set_medal_index:${currentIndex}`)
                 }
             }
+
             Connections {
                 target: gameLogic
+
                 function onMedalIndexChanged() {
                     if (medalList.currentIndex !== gameLogic.medalIndex) {
                         medalList.syncingFromLogic = true
@@ -108,6 +120,7 @@ Rectangle {
                     }
                 }
             }
+
             WheelHandler {
                 acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
                 onWheel: (event) => {
@@ -117,14 +130,17 @@ Rectangle {
                     ))
                 }
             }
+
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
                 width: 6
+
                 contentItem: Rectangle {
                     implicitWidth: 6
                     radius: 3
                     color: medalRoot.scrollbarHandle
                 }
+
                 background: Rectangle {
                     radius: 3
                     color: medalRoot.scrollbarTrack
@@ -146,6 +162,24 @@ Rectangle {
                 iconFill: medalRoot.iconFill
                 unknownText: medalRoot.unknownText
                 gameFont: medalRoot.gameFont
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: 18
+            radius: 3
+            color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.82)
+            border.color: medalRoot.dividerColor
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: "UP/DOWN BROWSE   B MENU"
+                color: medalRoot.secondaryText
+                font.family: gameFont
+                font.pixelSize: 8
+                font.bold: true
             }
         }
     }

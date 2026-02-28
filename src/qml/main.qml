@@ -398,6 +398,10 @@ Window {
             screen.showOSD("DBG: REPLAY")
             return true
         }
+        if (token === "DBG_REPLAY_BUFF") {
+            gameLogic.debugSeedReplayBuffPreview()
+            return true
+        }
         if (token === "DBG_CHOICE") {
             gameLogic.requestStateChange(AppState.ChoiceSelection)
             screen.showOSD("DBG: CHOICE")
@@ -741,7 +745,7 @@ Window {
             anchors.centerIn: parent
             scale: Math.min(window.width / 350, window.height / 550)
             
-            GameBoyShell {
+            Shell {
                 id: shell
                 anchors.fill: parent
                 shellColor: gameLogic.shellColor
@@ -760,7 +764,7 @@ Window {
                     }
                 }
                 
-                GameScreen {
+                ScreenView {
                     id: screen
                     parent: shell.screenContainer
                     anchors.fill: parent

@@ -315,6 +315,7 @@ public:
     Q_INVOKABLE void handleSelect();
     Q_INVOKABLE void handleStart();
     Q_INVOKABLE void deleteSave();
+    Q_INVOKABLE void debugSeedReplayBuffPreview();
 
     // Property Getters
     auto snakeModelPtr() noexcept -> SnakeModel *

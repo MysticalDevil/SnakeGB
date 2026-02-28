@@ -243,7 +243,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   `GameLogic` methods (`nextShellColor`, `toggleMusic`, `quit`, `quitToMenu`, `handleStart`, `handleSelect`,
   `handleBAction`, `deleteSave`, directional `move`).
 - Back-path semantics are now unified through one adapter action path.
-- `src/qml/GameScreen.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
+- `src/qml/ScreenView.qml` state checks no longer use numeric literals; all state predicates are now `AppState.*`.
 - `Library`/`MedalRoom` list index writes are now routed via `dispatchUiAction(...)` instead of direct adapter
   method calls.
 - QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on

@@ -33,6 +33,10 @@ CMAKE_BUILD_TYPE=Debug ./scripts/android_deploy.sh
 ```bash
 ./scripts/palette_capture_matrix.sh /tmp/snakegb_palette_matrix
 ```
+- Focused palette capture for menu/game/replay/choice:
+```bash
+PALETTE_STEPS=0 ./scripts/palette_capture_focus.sh /tmp/snakegb_palette_focus
+```
 - Release notes live in `CHANGELOG.md`.
 - Optional Makefile shortcuts (recommended for consistent build dirs under `build/`):
 ```bash
@@ -54,6 +58,11 @@ make clean
 - Keep game-state transitions explicit; prefer named enums/states over numeric literals.
 - Avoid relative `#include` paths; prefer module-prefixed includes (for example, `core/...`, `adapter/...`, `fsm/...`).
 - QML/JS: prefer ES6+ features (`const`/`let`, template strings, arrow functions, destructuring) where supported; avoid legacy `var` unless required by Qt/QML constraints.
+- QML layering: keep a single documented stack and preserve it when editing.
+  - World/HUD that should receive the LCD shader must live inside the shader source tree.
+  - Modal overlays that must stay crisp (for example pause/game over) must live above the shader.
+  - Debug takeover layers (`IconLab`, `StaticDebug`) must suppress lower-priority overlays/HUD so only one top-level mode owns the screen at a time.
+  - `OSDLayer` should remain topmost above CRT/screen treatment layers.
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
 
 ## Testing Guidelines
