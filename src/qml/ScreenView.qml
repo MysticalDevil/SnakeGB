@@ -377,7 +377,7 @@ Item {
                 HudLayer {
                     anchors.top: parent.top
                     anchors.right: parent.right
-                    anchors.topMargin: 6
+                    anchors.topMargin: gameLogic.state === AppState.Replaying ? 32 : 6
                     anchors.rightMargin: 6
                     z: LayerScale.screenHud
                     active: !root.iconDebugMode &&

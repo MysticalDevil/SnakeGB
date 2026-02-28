@@ -49,9 +49,9 @@ Item {
             anchors.topMargin: 11
             text: "DOT MATRIX WITH STEREO SOUND"
             color: theme.labelInk
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.bold: false
-            opacity: 0.78
+            opacity: 0.9
         }
     }
 }

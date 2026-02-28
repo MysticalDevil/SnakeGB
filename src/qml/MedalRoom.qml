@@ -55,7 +55,7 @@ Rectangle {
         Rectangle {
             id: headerPanel
             width: parent.width
-            height: 28
+            height: 30
             radius: 3
             color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.86)
             border.color: medalRoot.dividerColor
@@ -77,7 +77,7 @@ Rectangle {
                     text: `${medalRoot.unlockedCount} UNLOCKED`
                     color: Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.92)
                     font.family: gameFont
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.bold: true
                 }
             }

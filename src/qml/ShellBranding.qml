@@ -34,10 +34,10 @@ Item {
             text: "Portable Entertainment System"
             width: parent.width
             color: theme.subtitleInk
-            font.pixelSize: 8
+            font.pixelSize: 9
             font.italic: true
             horizontalAlignment: Text.AlignHCenter
-            opacity: 0.76
+            opacity: 0.88
         }
     }
 }

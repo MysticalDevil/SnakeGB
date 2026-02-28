@@ -81,7 +81,7 @@ Rectangle {
         anchors.topMargin: 4
         anchors.rightMargin: 4
         width: 58
-        height: 12
+        height: 13
         radius: 3
         color: Qt.rgba(staticSceneLayer.panelBg.r, staticSceneLayer.panelBg.g, staticSceneLayer.panelBg.b, 0.80)
         border.color: staticSceneLayer.panelBorderSoft
@@ -92,7 +92,7 @@ Rectangle {
             text: staticSceneLayer.sceneBadgeText
             color: staticSceneLayer.titleInk
             font.family: gameFont
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.bold: true
         }
     }
@@ -280,7 +280,7 @@ Rectangle {
             HudLayer {
                 anchors.top: parent.top
                 anchors.right: parent.right
-                anchors.topMargin: 4
+                anchors.topMargin: staticSceneLayer.showReplay ? 28 : 4
                 anchors.rightMargin: 4
                 z: staticSceneLayer.layerHud
                 active: staticSceneLayer.showGame || staticSceneLayer.showReplay

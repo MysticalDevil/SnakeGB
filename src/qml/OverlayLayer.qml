@@ -64,8 +64,8 @@ Item {
             titleColor: overlays.modalTitleInk
             hintColor: overlays.modalHintInk
             titleSize: 20
-            hintSize: 8
-            hintBold: false
+            hintSize: 9
+            hintBold: true
             lineSpacing: 4
         }
     }
@@ -93,10 +93,10 @@ Item {
             bodyColor: overlays.modalMetaInk
             hintColor: overlays.modalHintInk
             titleSize: 20
-            bodySize: 9
+            bodySize: 10
             bodyBold: false
-            hintSize: 8
-            hintBold: false
+            hintSize: 9
+            hintBold: true
             lineSpacing: 4
         }
     }

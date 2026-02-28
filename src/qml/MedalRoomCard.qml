@@ -17,7 +17,7 @@ Rectangle {
     property string gameFont: ""
 
     width: parent ? parent.width : 0
-    height: 52
+    height: 56
     radius: 4
     color: selected ? cardSelected : cardNormal
     border.color: cardBorder
@@ -39,7 +39,7 @@ Rectangle {
 
     Row {
         anchors.fill: parent
-        anchors.margins: 5
+        anchors.margins: 6
         spacing: 12
 
         Rectangle {
@@ -81,10 +81,13 @@ Rectangle {
                     : (medalCard.modelData ? medalCard.modelData.hint : "")
                 color: medalCard.hintInk
                 font.family: medalCard.gameFont
-                font.pixelSize: 9
+                font.pixelSize: 8
+                font.bold: true
                 opacity: 1.0
                 width: parent.width
                 wrapMode: Text.WordWrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
             }
         }
     }
@@ -95,7 +98,7 @@ Rectangle {
         anchors.rightMargin: 4
         anchors.topMargin: 4
         width: medalCard.unlocked ? 38 : 36
-        height: 11
+        height: 12
         radius: 3
         color: Qt.rgba(medalCard.selected ? medalCard.badgeText.r : medalCard.badgeFill.r,
                         medalCard.selected ? medalCard.badgeText.g : medalCard.badgeFill.g,
@@ -109,7 +112,7 @@ Rectangle {
             text: medalCard.unlocked ? "DONE" : "LOCK"
             color: medalCard.selected ? medalCard.badgeText : medalCard.titleColor
             font.family: medalCard.gameFont
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.bold: true
         }
     }

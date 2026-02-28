@@ -30,8 +30,8 @@ ModalSurface {
     contentMargin: 8
 
     readonly property int verticalGap: 5
-    readonly property int headerHeight: 22
-    readonly property int footerHeight: 14
+    readonly property int headerHeight: 24
+    readonly property int footerHeight: 16
     readonly property int choiceCount: Math.max(
                                            1,
                                            levelUpModal.choices ? levelUpModal.choices.length : 3)
@@ -61,12 +61,12 @@ ModalSurface {
                 height: levelUpModal.headerHeight
 
                 Column {
-                    anchors.centerIn: parent
+                    anchors.fill: parent
                     spacing: 0
 
                     Text {
-                        width: parent.width
-                        height: 14
+                        width: headerPanel.width
+                        height: 15
                         text: "LEVEL UP!"
                         color: levelUpModal.modalTitleInk
                         font.family: levelUpModal.gameFont
@@ -77,13 +77,13 @@ ModalSurface {
                     }
 
                     Text {
-                        width: parent.width
-                        height: 8
+                        width: headerPanel.width
+                        height: 9
                         text: "CHOOSE 1 POWER"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 7
-                        font.bold: false
+                        font.pixelSize: 8
+                        font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -127,30 +127,29 @@ ModalSurface {
                 height: levelUpModal.footerHeight
 
                 Row {
-                    anchors.centerIn: parent
-                    width: parent.width
+                    anchors.fill: parent
                     spacing: 8
 
                     Text {
                         width: (parent.width - parent.spacing) / 2
-                        height: parent.height
+                        height: footerPanel.height
                         text: "START PICK"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 8
-                        font.bold: false
+                        font.pixelSize: 9
+                        font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
 
                     Text {
                         width: (parent.width - parent.spacing) / 2
-                        height: parent.height
+                        height: footerPanel.height
                         text: "SELECT MENU"
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
-                        font.pixelSize: 8
-                        font.bold: false
+                        font.pixelSize: 9
+                        font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }

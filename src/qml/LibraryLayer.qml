@@ -62,7 +62,7 @@ Rectangle {
         Rectangle {
             id: headerPanel
             width: parent.width
-            height: 28
+            height: 30
             radius: 3
             color: Qt.rgba(libraryLayer.panelBgStrong.r, libraryLayer.panelBgStrong.g, libraryLayer.panelBgStrong.b, 0.86)
             border.color: libraryLayer.borderStrong
@@ -84,7 +84,7 @@ Rectangle {
                     text: `${libraryLayer.discoveredCount}/${fruitLibraryModel.length} DISCOVERED`
                     color: Qt.rgba(libraryLayer.textMuted.r, libraryLayer.textMuted.g, libraryLayer.textMuted.b, 0.92)
                     font.family: gameFont
-                    font.pixelSize: 7
+                    font.pixelSize: 8
                     font.bold: true
                 }
             }
@@ -171,7 +171,7 @@ Rectangle {
             delegate: Rectangle {
                 id: libraryCard
                 width: parent.width
-                height: 52
+                height: 58
                 radius: libraryLayer.cardRadius
                 color: libraryList.currentIndex === index
                        ? Qt.rgba(libraryLayer.panelAccent.r, libraryLayer.panelAccent.g, libraryLayer.panelAccent.b, 0.92)
@@ -195,7 +195,7 @@ Rectangle {
 
                 Row {
                     anchors.fill: parent
-                    anchors.margins: 5
+                    anchors.margins: 6
                     spacing: 12
 
                     Item {
@@ -293,10 +293,13 @@ Rectangle {
                             text: modelData.desc
                             color: libraryCard.descColor
                             font.family: gameFont
-                            font.pixelSize: 9
+                            font.pixelSize: 8
+                            font.bold: true
                             opacity: 1.0
                             width: parent.width
                             wrapMode: Text.WordWrap
+                            maximumLineCount: 2
+                            elide: Text.ElideRight
                         }
                     }
                 }

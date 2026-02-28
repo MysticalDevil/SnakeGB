@@ -32,7 +32,7 @@ Rectangle {
     border.color: selected ? borderSelectedColor : borderColor
     border.width: 1
 
-    readonly property int badgeWidth: 52
+    readonly property int badgeWidth: 56
     readonly property int sidePadding: 8
     readonly property int iconSize: Math.min(26, Math.max(20, height - 18))
     readonly property bool pulseAccent: rarityTier ? rarityTier(powerType) >= 3 : false
@@ -117,7 +117,7 @@ Rectangle {
                 text: choiceCard.titleText
                 color: choiceCard.titleColor
                 font.family: choiceCard.gameFont
-                font.pixelSize: 9
+                font.pixelSize: 10
                 font.bold: true
                 width: parent.width
                 elide: Text.ElideRight
@@ -127,10 +127,10 @@ Rectangle {
                 text: choiceCard.descriptionText
                 color: choiceCard.descriptionColor
                 font.family: choiceCard.gameFont
-                font.pixelSize: 7
-                font.bold: false
+                font.pixelSize: 8
+                font.bold: true
                 width: parent.width
-                opacity: 0.84
+                opacity: 0.88
                 wrapMode: Text.NoWrap
                 elide: Text.ElideRight
             }
@@ -143,7 +143,7 @@ Rectangle {
         anchors.rightMargin: choiceCard.sidePadding
         anchors.topMargin: 3
         width: choiceCard.badgeWidth
-        height: 12
+        height: 13
         radius: 3
         color: choiceCard.badgeColor
         border.color: choiceCard.badgeBorderColor
@@ -154,7 +154,7 @@ Rectangle {
             text: choiceCard.badgeText
             color: choiceCard.badgeTextColor
             font.family: choiceCard.gameFont
-            font.pixelSize: 7
+            font.pixelSize: 8
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
