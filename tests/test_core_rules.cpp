@@ -94,6 +94,7 @@ public:
     void handleFoodConsumption(const QPoint &) override {}
     void handlePowerUpConsumption(const QPoint &) override {}
     void applyMovement(const QPoint &, bool) override {}
+    auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &) -> snakegb::core::SessionAdvanceResult override { return {}; }
     void restart() override {}
     void startReplay() override {}
     void loadLastSession() override {}

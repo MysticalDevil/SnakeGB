@@ -2,6 +2,8 @@
 
 #include "core/session_core.h"
 
+// QtTest slot-based tests intentionally stay as member functions and use assertion-heavy bodies.
+// NOLINTBEGIN(readability-convert-member-functions-to-static,readability-function-cognitive-complexity)
 class TestSessionCore : public QObject
 {
     Q_OBJECT
@@ -170,7 +172,35 @@ private slots:
         QCOMPARE(core.state().buffTicksTotal, 0);
         QVERIFY(!core.state().shieldActive);
     }
+
+    void testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
+        core.setDirection(QPoint(1, 0));
+        core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Magnet);
+        core.state().food = QPoint(12, 10);
+
+        const auto result = core.advanceSessionStep(
+            {
+                .boardWidth = 20,
+                .boardHeight = 18,
+                .consumeInputQueue = false,
+                .pauseOnChoiceTrigger = true,
+            },
+            [](int upperBound) {
+                Q_UNUSED(upperBound);
+                return 99;
+            });
+
+        QVERIFY(result.appliedMovement);
+        QVERIFY(!result.ateFood);
+        QVERIFY(result.magnetAteFood);
+        QCOMPARE(core.state().score, 1);
+        QCOMPARE(core.headPosition(), QPoint(11, 10));
+    }
 };
+// NOLINTEND(readability-convert-member-functions-to-static,readability-function-cognitive-complexity)
 
 QTEST_MAIN(TestSessionCore)
 #include "test_session_core.moc"

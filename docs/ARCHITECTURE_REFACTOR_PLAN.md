@@ -79,7 +79,7 @@ Overall: **5.8/10** (needs refactor before scaling).
 ## 3.3 Proposed module split
 
 - `src/core/`
-  - `game_session_core.h/.cpp`
+  - `session_core.h/.cpp`
   - `state_snapshot.h`
   - `rules/` (`collision`, `buff_runtime`, `scoring`, `replay`)
 
@@ -101,7 +101,7 @@ Note:
 ## Phase A: Core extraction without behavior change [Partial]
 
 Goal:
-- Introduce `GameSessionCore` and move tick/rule progression first.
+- Introduce `SessionCore` and move tick/rule progression first.
 
 Tasks:
 - Define minimal core command interface (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice`).
@@ -116,8 +116,9 @@ Acceptance:
 Current status:
 - rule/helper extraction into `src/core/` is real and already useful;
 - `SessionCore` now exists and owns session state, queued input, snake body, and a dedicated snapshot type;
-- the main session-step mechanics (`collision`, `food`, `power-up`, `movement`) now execute through `SessionCore`;
-- but tick orchestration, random spawning, replay integration, and Qt-facing side effects are still split between adapter and core.
+- the main session-step mechanics and step advancement now execute through `SessionCore`;
+- random spawning and magnet-driven food mutation for the main tick path now also execute through `SessionCore`;
+- but replay integration and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
 
@@ -223,8 +224,9 @@ state, not the desired end state.
 - session/runtime helpers are extracted.
 - `SessionCore` and `state_snapshot.h` now exist as the first real session boundary.
 - session state, input queue, and snake body ownership now live behind that core object.
-- the main session-step mechanics now route through that core object.
-- however, tick orchestration, random spawning, replay integration, and Qt-facing side effects still are not fully moved behind that core object.
+- the main session-step mechanics and tick-step advancement now route through that core object.
+- random spawning and magnet-driven food mutation for that path also route through that core object.
+- however, replay integration and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
   - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.
@@ -289,7 +291,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   - magnet movement candidate selection
   - collision probing and collision outcome policy (while keeping haptic/signal side effects in adapter)
 - Remaining Phase A focus:
-  - continue shrinking adapter-owned rule branches into `GameSessionCore`-style interfaces.
+  - continue shrinking adapter-owned rule branches into `SessionCore`-style interfaces.
   - keep signal/timer/QML contract unchanged during extraction.
 
 ### Phase B progress snapshot (2026-02-21)
@@ -355,7 +357,7 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   coupling around profile/session/ghost I/O.
 - Roguelike choice flow and lifecycle transitions are isolated in `src/adapter/choices.cpp` and
   `src/adapter/lifecycle.cpp`, shrinking `src/adapter/session_state.cpp` further and making future
-  `GameSessionCore` extraction more mechanical.
+  `SessionCore` extraction more mechanical.
 
 ### Phase C progress snapshot (2026-02-21)
 

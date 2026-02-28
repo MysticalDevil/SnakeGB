@@ -246,6 +246,8 @@ public:
     void handleFoodConsumption(const QPoint &head) override;
     void handlePowerUpConsumption(const QPoint &head) override;
     void applyMovement(const QPoint &newHead, bool grew) override;
+    auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
+        -> snakegb::core::SessionAdvanceResult override;
 
     void restart() override;
     void startReplay() override;
@@ -466,6 +468,11 @@ private:
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);
     void applyPendingStateChangeIfNeeded();
     void applyMagnetAttraction();
+    void applyCollisionMitigationEffects(const snakegb::core::SessionAdvanceResult &result);
+    void applyChoiceTransition();
+    void applyFoodConsumptionEffects(float pan, bool triggerChoice, bool spawnPowerUp);
+    void applyPowerUpConsumptionEffects(const snakegb::core::SessionAdvanceResult &result);
+    void applyMovementEffects(const snakegb::core::SessionAdvanceResult &result);
     void deactivateBuff();
     void changeState(std::unique_ptr<GameState> newState);
     void spawnFood();

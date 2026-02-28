@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/session_step_types.h"
+
 #include <QPoint>
 #include <QVariantList>
 #include <deque>
@@ -61,6 +63,8 @@ public:
     virtual void handleFoodConsumption(const QPoint &head) = 0;
     virtual void handlePowerUpConsumption(const QPoint &head) = 0;
     virtual void applyMovement(const QPoint &newHead, bool grew) = 0;
+    virtual auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
+        -> snakegb::core::SessionAdvanceResult = 0;
 
     // --- Game Actions ---
     virtual void restart() = 0;

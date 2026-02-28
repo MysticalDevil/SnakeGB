@@ -201,6 +201,66 @@ auto SessionCore::applyMagnetAttraction(const int boardWidth, const int boardHei
     return result;
 }
 
+auto SessionCore::advanceSessionStep(const SessionAdvanceConfig &config,
+                                     const std::function<int(int)> &randomBounded)
+    -> SessionAdvanceResult
+{
+    SessionAdvanceResult result;
+
+    if (config.consumeInputQueue) {
+        QPoint nextInput;
+        if (consumeQueuedInput(nextInput)) {
+            setDirection(nextInput);
+            result.consumedInput = true;
+            result.consumedDirection = nextInput;
+        }
+    }
+
+    result.nextHead = headPosition() + direction();
+    const auto collisionOutcome =
+        checkCollision(result.nextHead, config.boardWidth, config.boardHeight);
+    result.consumeShield = collisionOutcome.consumeShield;
+    result.consumeLaser = collisionOutcome.consumeLaser;
+    result.obstacleIndex = collisionOutcome.obstacleIndex;
+    if (collisionOutcome.collision) {
+        result.collision = true;
+        return result;
+    }
+
+    result.grew = (result.nextHead == m_state.food);
+
+    const auto foodResult =
+        consumeFood(result.nextHead, config.boardWidth, config.boardHeight, randomBounded);
+    result.ateFood = foodResult.ate;
+    result.triggerChoice = foodResult.triggerChoice;
+    result.spawnPowerUp = foodResult.spawnPowerUp;
+    result.foodPan = foodResult.pan;
+    if (result.triggerChoice && config.pauseOnChoiceTrigger) {
+        return result;
+    }
+
+    const auto powerResult = consumePowerUp(result.nextHead, 40, true);
+    result.atePowerUp = powerResult.ate;
+    result.miniApplied = powerResult.miniApplied;
+    result.slowMode = powerResult.slowMode;
+
+    applyMovement(wrapPoint(result.nextHead, config.boardWidth, config.boardHeight), result.grew);
+    result.appliedMovement = true;
+
+    const auto magnetResult = applyMagnetAttraction(config.boardWidth, config.boardHeight);
+    result.movedFood = magnetResult.moved;
+    result.magnetAteFood = magnetResult.ate;
+    if (magnetResult.ate) {
+        const auto magnetFoodResult =
+            consumeFood(headPosition(), config.boardWidth, config.boardHeight, randomBounded);
+        result.triggerChoiceAfterMagnet = magnetFoodResult.triggerChoice;
+        result.spawnPowerUpAfterMagnet = magnetFoodResult.spawnPowerUp;
+        result.magnetFoodPan = magnetFoodResult.pan;
+    }
+
+    return result;
+}
+
 void SessionCore::resetTransientRuntimeState()
 {
     m_state.direction = {0, -1};

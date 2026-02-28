@@ -3,18 +3,18 @@
 namespace snakegb::fsm {
 
 auto runSessionStep(IGameEngine &engine, const SessionStepConfig &config) -> bool {
-    if (config.consumeInputQueue) {
-        QPoint nextInput;
-        if (engine.consumeQueuedInput(nextInput)) {
-            engine.setDirection(nextInput);
-            if (config.recordConsumedInput) {
-                engine.recordInputAtCurrentTick(nextInput);
-            }
-        }
+    const auto result = engine.advanceSessionStep({
+        .boardWidth = 20,
+        .boardHeight = 18,
+        .consumeInputQueue = config.consumeInputQueue,
+        .pauseOnChoiceTrigger = (config.activeState != IGameEngine::Replaying),
+    });
+
+    if (result.consumedInput && config.recordConsumedInput) {
+        engine.recordInputAtCurrentTick(result.consumedDirection);
     }
 
-    const QPoint nextHead = engine.headPosition() + engine.currentDirection();
-    if (engine.checkCollision(nextHead)) {
+    if (result.collision) {
         if (config.emitCrashFeedbackOnCollision) {
             engine.triggerHaptic(8);
             engine.playEventSound(1);
@@ -23,19 +23,8 @@ auto runSessionStep(IGameEngine &engine, const SessionStepConfig &config) -> boo
         return false;
     }
 
-    const bool grew = (nextHead == engine.foodPos());
-    engine.handleFoodConsumption(nextHead);
-    if (engine.currentState() != config.activeState || engine.hasPendingStateChange()) {
-        return false;
-    }
-
-    engine.handlePowerUpConsumption(nextHead);
-    if (engine.currentState() != config.activeState || engine.hasPendingStateChange()) {
-        return false;
-    }
-
-    engine.applyMovement(nextHead, grew);
-    return true;
+    return result.appliedMovement && engine.currentState() == config.activeState &&
+           !engine.hasPendingStateChange();
 }
 
 } // namespace snakegb::fsm

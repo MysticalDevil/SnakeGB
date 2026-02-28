@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game_rules.h"
+#include "session_step_types.h"
 #include "session_runtime.h"
 #include "state_snapshot.h"
 
@@ -45,6 +46,8 @@ public:
     auto spawnPowerUp(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
         -> bool;
     auto applyMagnetAttraction(int boardWidth, int boardHeight) -> MagnetAttractionResult;
+    auto advanceSessionStep(const SessionAdvanceConfig &config,
+                            const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();
