@@ -121,6 +121,7 @@ Current status:
 - choice selection state mutation now also routes through `SessionCore` instead of adapter-owned buff state writes;
 - fresh-run bootstrap and persisted-session restore now route through `SessionCore` instead of adapter-owned session assembly;
 - replay frame application and debug replay preview seeding now also route through `SessionCore`;
+- save/load session persistence now reuses shared snapshot conversion helpers instead of adapter-local field assembly;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -232,6 +233,7 @@ state, not the desired end state.
 - choice-selection state mutation now routes through that core object as well.
 - fresh-run bootstrap and persisted-session restore now route through that core object as well.
 - replay frame application and debug replay preview seeding now also route through that core object.
+- save/load session persistence now also uses shared snapshot conversions around that core object.
 - however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.

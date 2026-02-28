@@ -15,15 +15,7 @@ void GameLogic::loadLastSession()
     }
 
     resetReplayRuntimeTracking();
-    m_sessionCore.restorePersistedSession({
-        .state = {
-            .food = snapshot->food,
-            .direction = snapshot->direction,
-            .score = snapshot->score,
-            .obstacles = snapshot->obstacles,
-        },
-        .body = snapshot->body,
-    });
+    m_sessionCore.restorePersistedSession(snakegb::adapter::toCoreStateSnapshot(*snapshot));
     syncSnakeModelFromCore();
 
     for (const auto &p : snapshot->body) {
@@ -94,8 +86,7 @@ void GameLogic::updateHighScore()
 void GameLogic::saveCurrentState()
 {
     if (m_profileManager) {
-        snakegb::adapter::saveSession(m_profileManager.get(), m_session.score, m_sessionCore.body(),
-                                      m_session.obstacles, m_session.food, m_session.direction);
+        snakegb::adapter::saveSession(m_profileManager.get(), m_sessionCore.snapshot({}));
         emit hasSaveChanged();
     }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/state_snapshot.h"
+
 #include <QList>
 #include <QPoint>
 #include <QVariantMap>
@@ -18,5 +20,9 @@ struct SessionSnapshot {
 };
 
 [[nodiscard]] auto decodeSessionSnapshot(const QVariantMap &data) -> std::optional<SessionSnapshot>;
+[[nodiscard]] auto toCoreStateSnapshot(const SessionSnapshot &snapshot)
+    -> snakegb::core::StateSnapshot;
+[[nodiscard]] auto fromCoreStateSnapshot(const snakegb::core::StateSnapshot &snapshot)
+    -> SessionSnapshot;
 
 } // namespace snakegb::adapter

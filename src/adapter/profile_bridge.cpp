@@ -117,6 +117,13 @@ void saveSession(ProfileManager *profile, const int score, const std::deque<QPoi
     }
 }
 
+void saveSession(ProfileManager *profile, const snakegb::core::StateSnapshot &snapshot)
+{
+    const auto persisted = fromCoreStateSnapshot(snapshot);
+    saveSession(profile, persisted.score, persisted.body, persisted.obstacles, persisted.food,
+                persisted.direction);
+}
+
 void clearSession(ProfileManager *profile)
 {
     if (profile != nullptr) {

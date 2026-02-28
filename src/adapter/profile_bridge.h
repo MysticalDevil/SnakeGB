@@ -40,6 +40,7 @@ void discoverFruit(ProfileManager *profile, int type);
 [[nodiscard]] auto hasSession(const ProfileManager *profile) -> bool;
 void saveSession(ProfileManager *profile, int score, const std::deque<QPoint> &body,
                  const QList<QPoint> &obstacles, QPoint food, QPoint direction);
+void saveSession(ProfileManager *profile, const snakegb::core::StateSnapshot &snapshot);
 void clearSession(ProfileManager *profile);
 [[nodiscard]] auto loadSession(ProfileManager *profile) -> QVariantMap;
 [[nodiscard]] auto loadSessionSnapshot(ProfileManager *profile) -> std::optional<SessionSnapshot>;

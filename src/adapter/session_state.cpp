@@ -26,4 +26,29 @@ auto decodeSessionSnapshot(const QVariantMap &data) -> std::optional<SessionSnap
     return snapshot;
 }
 
+auto toCoreStateSnapshot(const SessionSnapshot &snapshot) -> snakegb::core::StateSnapshot
+{
+    return {
+        .state =
+            {
+                .food = snapshot.food,
+                .direction = snapshot.direction,
+                .score = snapshot.score,
+                .obstacles = snapshot.obstacles,
+            },
+        .body = snapshot.body,
+    };
+}
+
+auto fromCoreStateSnapshot(const snakegb::core::StateSnapshot &snapshot) -> SessionSnapshot
+{
+    return {
+        .score = snapshot.state.score,
+        .food = snapshot.state.food,
+        .direction = snapshot.state.direction,
+        .obstacles = snapshot.state.obstacles,
+        .body = snapshot.body,
+    };
+}
+
 } // namespace snakegb::adapter
