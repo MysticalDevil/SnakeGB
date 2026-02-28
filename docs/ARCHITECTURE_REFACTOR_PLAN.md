@@ -127,6 +127,7 @@ Current status:
 - obsolete adapter-local movement and direct consumption entry points have been removed, leaving `advanceSessionStep()` as the gameplay mutation path;
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM states owning replay cursors or persistence calls;
 - the playing/replaying step driver no longer lives in `src/fsm/`; FSM states now delegate step advancement entirely through engine hooks;
+- `SessionRunner` now provides a headless core surface that can run full session and replay timelines without the adapter/QML layer;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -164,7 +165,7 @@ Acceptance:
 
 Current status:
 - headless tests for rule/helpers and adapter seams exist and are valuable;
-- but there is still no standalone full-session gameplay core running an entire session/replay without the adapter layer.
+- a standalone headless core runner now exists for full session and replay execution; input/script smoke coverage still remains adapter-level.
 
 ## 5. Hard Acceptance KPIs
 
@@ -244,10 +245,12 @@ state, not the desired end state.
 - the obsolete adapter-local direct movement/consumption path has been removed in favor of the core-driven step path.
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM-local replay cursor state.
 - the playing/replaying step driver has also been removed from the FSM layer in favor of engine-owned hooks.
-- however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
+- a `SessionRunner` now drives full session and replay execution headlessly without the adapter layer.
+- however, Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
-  - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.
+  - a standalone full-session gameplay core now can run an entire game/replay headlessly.
+  - adapter/input smoke coverage still remains the main remaining validation layer outside pure core tests.
 - QML coupling reduction is improved, but not finished.
   - most interactive paths are action-routed.
   - however, QML still directly touches several `GameLogic` methods/properties and debug-only entry points.
@@ -261,7 +264,6 @@ state, not the desired end state.
   (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice` on a dedicated core object).
 - The proposed `services` split in Section 3.3 is not implemented as dedicated `src/services/` modules.
 - The refactor cannot yet be considered complete under the hard KPIs in Section 5, because:
-  - the core still cannot run a full session and replay independently of the adapter/QML stack;
   - `GameLogic` still owns some gameplay-facing orchestration and debug/runtime entry points that would belong behind
     a true core/adapter boundary.
 

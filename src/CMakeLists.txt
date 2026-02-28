@@ -2,6 +2,7 @@ add_library(snakegb_core
     core/game_rules.cpp
     core/buff_runtime.cpp
     core/session_core.cpp
+    core/session_runner.cpp
     core/replay_timeline.cpp
     core/session_runtime.cpp
     core/level_runtime.cpp

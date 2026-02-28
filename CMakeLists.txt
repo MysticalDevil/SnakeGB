@@ -175,6 +175,14 @@ target_link_libraries(session-core-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui sn
 add_test(NAME SessionCoreTest COMMAND session-core-tests)
 set_tests_properties(SessionCoreTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(session-runner-tests
+    tests/test_session_runner.cpp
+)
+target_include_directories(session-runner-tests PRIVATE src)
+target_link_libraries(session-runner-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui snakegb_core)
+add_test(NAME SessionRunnerTest COMMAND session-runner-tests)
+set_tests_properties(SessionRunnerTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-tests
     tests/test_ui_action_parser.cpp
 )
