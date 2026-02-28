@@ -20,6 +20,8 @@ private slots:
     void testApplyChoiceSelectionMutatesCoreBuffState();
     void testBootstrapForLevelResetsSessionAndBuildsBody();
     void testBootstrapForLevelPreservesAliasedObstacleInput();
+    void testSeedReplayPreviewOverwritesSessionWithPreviewState();
+    void testApplyReplayTimelineConsumesMatchingFrames();
     void testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields();
 };
 
@@ -267,6 +269,74 @@ void TestSessionCore::testBootstrapForLevelPreservesAliasedObstacleInput()
     core.bootstrapForLevel(aliasedObstacles, 20, 18);
 
     QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(2, 2), QPoint(3, 2)}));
+}
+
+void TestSessionCore::testSeedReplayPreviewOverwritesSessionWithPreviewState()
+{
+    snakegb::core::SessionCore core;
+    core.state().lastRoguelikeChoiceScore = 88;
+    QVERIFY(core.enqueueDirection(QPoint(1, 0)));
+
+    core.seedReplayPreview({
+        .obstacles = {QPoint(1, 1), QPoint(2, 1)},
+        .body = {QPoint(10, 4), QPoint(10, 5), QPoint(10, 6), QPoint(10, 7)},
+        .food = QPoint(12, 7),
+        .direction = QPoint(0, -1),
+        .powerUpPos = QPoint(-1, -1),
+        .powerUpType = 0,
+        .score = 42,
+        .tickCounter = 64,
+        .activeBuff = static_cast<int>(snakegb::core::BuffId::Shield),
+        .buffTicksRemaining = 92,
+        .buffTicksTotal = 120,
+        .shieldActive = true,
+    });
+
+    QCOMPARE(core.state().score, 42);
+    QCOMPARE(core.state().tickCounter, 64);
+    QCOMPARE(core.state().food, QPoint(12, 7));
+    QCOMPARE(core.state().direction, QPoint(0, -1));
+    QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(1, 1), QPoint(2, 1)}));
+    QCOMPARE(core.state().activeBuff, static_cast<int>(snakegb::core::BuffId::Shield));
+    QCOMPARE(core.state().buffTicksRemaining, 92);
+    QCOMPARE(core.state().buffTicksTotal, 120);
+    QVERIFY(core.state().shieldActive);
+    QCOMPARE(core.state().lastRoguelikeChoiceScore, -1000);
+    QCOMPARE(core.body().size(), std::size_t(4));
+    QVERIFY(core.inputQueue().empty());
+}
+
+void TestSessionCore::testApplyReplayTimelineConsumesMatchingFrames()
+{
+    snakegb::core::SessionCore core;
+    core.state().tickCounter = 12;
+    core.setDirection(QPoint(0, -1));
+
+    int inputHistoryIndex = 0;
+    int choiceHistoryIndex = 0;
+    const QList<ReplayFrame> inputFrames{
+        {.frame = 11, .dx = -1, .dy = 0},
+        {.frame = 12, .dx = 1, .dy = 0},
+        {.frame = 12, .dx = 0, .dy = 1},
+        {.frame = 14, .dx = 0, .dy = -1},
+    };
+    const QList<ChoiceRecord> choiceFrames{
+        {.frame = 10, .index = 0},
+        {.frame = 12, .index = 2},
+        {.frame = 15, .index = 1},
+    };
+
+    const auto result =
+        core.applyReplayTimeline(inputFrames, inputHistoryIndex, choiceFrames, choiceHistoryIndex);
+
+    QVERIFY(result.appliedInput);
+    QCOMPARE(result.appliedDirection, QPoint(0, 1));
+    QCOMPARE(core.direction(), QPoint(0, 1));
+    QVERIFY(result.choiceIndex.has_value());
+    const int choiceIndex = result.choiceIndex.value_or(-1);
+    QCOMPARE(choiceIndex, 2);
+    QCOMPARE(inputHistoryIndex, 3);
+    QCOMPARE(choiceHistoryIndex, 2);
 }
 
 void TestSessionCore::testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields()

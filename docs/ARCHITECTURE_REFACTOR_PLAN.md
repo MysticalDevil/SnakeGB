@@ -120,7 +120,7 @@ Current status:
 - random spawning and magnet-driven food mutation for the main tick path now also execute through `SessionCore`;
 - choice selection state mutation now also routes through `SessionCore` instead of adapter-owned buff state writes;
 - fresh-run bootstrap and persisted-session restore now route through `SessionCore` instead of adapter-owned session assembly;
-- replay frame application now enters replay/update flow through a narrower adapter hook instead of broad history-reader APIs;
+- replay frame application and debug replay preview seeding now also route through `SessionCore`;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -231,7 +231,7 @@ state, not the desired end state.
 - random spawning and magnet-driven food mutation for that path also route through that core object.
 - choice-selection state mutation now routes through that core object as well.
 - fresh-run bootstrap and persisted-session restore now route through that core object as well.
-- replay frame application is now routed through a narrower adapter seam instead of low-level history readers.
+- replay frame application and debug replay preview seeding now also route through that core object.
 - however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.

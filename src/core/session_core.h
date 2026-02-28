@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game_rules.h"
+#include "replay_types.h"
 #include "session_step_types.h"
 #include "session_runtime.h"
 #include "state_snapshot.h"
@@ -9,8 +10,30 @@
 
 #include <cstddef>
 #include <deque>
+#include <optional>
 
 namespace snakegb::core {
+
+struct ReplayPreviewSeed {
+    QList<QPoint> obstacles;
+    std::deque<QPoint> body;
+    QPoint food = {0, 0};
+    QPoint direction = {0, -1};
+    QPoint powerUpPos = {-1, -1};
+    int powerUpType = 0;
+    int score = 0;
+    int tickCounter = 0;
+    int activeBuff = 0;
+    int buffTicksRemaining = 0;
+    int buffTicksTotal = 0;
+    bool shieldActive = false;
+};
+
+struct ReplayTimelineApplication {
+    bool appliedInput = false;
+    QPoint appliedDirection = {0, 0};
+    std::optional<int> choiceIndex;
+};
 
 class SessionCore
 {
@@ -48,10 +71,14 @@ public:
     auto spawnPowerUp(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
         -> bool;
     auto applyMagnetAttraction(int boardWidth, int boardHeight) -> MagnetAttractionResult;
+    auto applyReplayTimeline(const QList<ReplayFrame> &inputFrames, int &inputHistoryIndex,
+                             const QList<ChoiceRecord> &choiceFrames, int &choiceHistoryIndex)
+        -> ReplayTimelineApplication;
     auto advanceSessionStep(const SessionAdvanceConfig &config,
                             const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
     void bootstrapForLevel(QList<QPoint> obstacles, int boardWidth, int boardHeight);
     void restorePersistedSession(const StateSnapshot &snapshot);
+    void seedReplayPreview(const ReplayPreviewSeed &seed);
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();

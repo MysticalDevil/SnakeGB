@@ -205,6 +205,43 @@ auto SessionCore::applyMagnetAttraction(const int boardWidth, const int boardHei
     return result;
 }
 
+auto SessionCore::applyReplayTimeline(const QList<ReplayFrame> &inputFrames,
+                                      int &inputHistoryIndex,
+                                      const QList<ChoiceRecord> &choiceFrames,
+                                      int &choiceHistoryIndex) -> ReplayTimelineApplication
+{
+    ReplayTimelineApplication result;
+
+    while (inputHistoryIndex < inputFrames.size()) {
+        const auto &frame = inputFrames[inputHistoryIndex];
+        if (frame.frame == m_state.tickCounter) {
+            result.appliedInput = true;
+            result.appliedDirection = QPoint(frame.dx, frame.dy);
+            setDirection(result.appliedDirection);
+            inputHistoryIndex++;
+        } else if (frame.frame > m_state.tickCounter) {
+            break;
+        } else {
+            inputHistoryIndex++;
+        }
+    }
+
+    while (choiceHistoryIndex < choiceFrames.size()) {
+        const auto &frame = choiceFrames[choiceHistoryIndex];
+        if (frame.frame == m_state.tickCounter) {
+            result.choiceIndex = frame.index;
+            choiceHistoryIndex++;
+            break;
+        }
+        if (frame.frame > m_state.tickCounter) {
+            break;
+        }
+        choiceHistoryIndex++;
+    }
+
+    return result;
+}
+
 auto SessionCore::advanceSessionStep(const SessionAdvanceConfig &config,
                                      const std::function<int(int)> &randomBounded)
     -> SessionAdvanceResult
@@ -295,6 +332,25 @@ void SessionCore::restorePersistedSession(const StateSnapshot &snapshot)
     m_state.food = persistedFood;
     m_state.score = persistedScore;
     m_state.obstacles = persistedObstacles;
+}
+
+void SessionCore::seedReplayPreview(const ReplayPreviewSeed &seed)
+{
+    m_state = {};
+    m_state.food = seed.food;
+    m_state.direction = seed.direction;
+    m_state.powerUpPos = seed.powerUpPos;
+    m_state.powerUpType = seed.powerUpType;
+    m_state.score = seed.score;
+    m_state.obstacles = seed.obstacles;
+    m_state.tickCounter = seed.tickCounter;
+    m_state.activeBuff = seed.activeBuff;
+    m_state.buffTicksRemaining = seed.buffTicksRemaining;
+    m_state.buffTicksTotal = seed.buffTicksTotal;
+    m_state.shieldActive = seed.shieldActive;
+    m_state.lastRoguelikeChoiceScore = -1000;
+    m_body = seed.body;
+    m_inputQueue.clear();
 }
 
 void SessionCore::resetTransientRuntimeState()

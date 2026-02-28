@@ -33,12 +33,12 @@ auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &co
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
 {
-    snakegb::core::applyReplayChoiceForTick(
-        m_bestChoiceHistory, m_sessionCore.tickCounter(), choiceHistoryIndex,
-        [this](const int index) { selectChoice(index); });
-    snakegb::core::applyReplayInputsForTick(
-        m_bestInputHistory, m_sessionCore.tickCounter(), inputHistoryIndex,
-        [this](const QPoint &direction) { m_sessionCore.setDirection(direction); });
+    const auto result = m_sessionCore.applyReplayTimeline(m_bestInputHistory, inputHistoryIndex,
+                                                          m_bestChoiceHistory,
+                                                          choiceHistoryIndex);
+    if (result.choiceIndex.has_value()) {
+        selectChoice(*result.choiceIndex);
+    }
 }
 
 void GameLogic::applyCollisionMitigationEffects(

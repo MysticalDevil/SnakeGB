@@ -66,18 +66,22 @@ void GameLogic::debugSeedReplayBuffPreview()
 {
     stopEngineTimer();
     resetTransientRuntimeState();
-    m_session.score = 42;
-    m_session.tickCounter = 64;
     loadLevelData(m_levelIndex);
-    m_sessionCore.setBody({{10, 4}, {10, 5}, {10, 6}, {10, 7}});
+    m_sessionCore.seedReplayPreview({
+        .obstacles = m_session.obstacles,
+        .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
+        .food = QPoint(12, 7),
+        .direction = QPoint(0, -1),
+        .powerUpPos = QPoint(-1, -1),
+        .powerUpType = 0,
+        .score = 42,
+        .tickCounter = 64,
+        .activeBuff = Shield,
+        .buffTicksRemaining = 92,
+        .buffTicksTotal = 120,
+        .shieldActive = true,
+    });
     syncSnakeModelFromCore();
-    m_session.food = QPoint(12, 7);
-    m_session.powerUpPos = QPoint(-1, -1);
-    m_session.powerUpType = 0;
-    m_session.activeBuff = Shield;
-    m_session.buffTicksRemaining = 92;
-    m_session.buffTicksTotal = 120;
-    m_session.shieldActive = true;
 
     emit scoreChanged();
     emit foodChanged();
