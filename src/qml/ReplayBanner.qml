@@ -8,8 +8,8 @@ Rectangle {
     property string titleText: "REPLAY"
     property string hintText: "START MENU   SELECT MENU"
 
-    width: 174
-    height: hintText.length > 0 ? 42 : 24
+    width: 152
+    height: hintText.length > 0 ? 38 : 24
     radius: 4
     color: menuColor("actionCard")
     opacity: 0.98
@@ -26,7 +26,7 @@ Rectangle {
             color: menuColor("actionInk")
             anchors.horizontalCenter: parent.horizontalCenter
             font.bold: true
-            font.pixelSize: 12
+            font.pixelSize: 11
         }
 
         Text {
@@ -34,7 +34,7 @@ Rectangle {
             text: replayBanner.hintText
             color: menuColor("actionInk")
             anchors.horizontalCenter: parent.horizontalCenter
-            font.pixelSize: 9
+            font.pixelSize: 8
             font.bold: true
             opacity: 0.94
         }

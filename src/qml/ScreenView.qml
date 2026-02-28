@@ -176,6 +176,10 @@ Item {
     readonly property color gameFoodHighlight: menuColor("cardPrimary")
     readonly property color gameFoodStem: menuColor("borderPrimary")
     readonly property color gameFoodSpark: menuColor("secondaryInk")
+    readonly property int safeInsetLeft: 10
+    readonly property int safeInsetRight: 12
+    readonly property int safeInsetTop: 8
+    readonly property int safeInsetBottom: 10
 
     width: 240
     height: 216
@@ -189,6 +193,15 @@ Item {
         Item {
             id: gameContent
             anchors.fill: parent
+
+            Item {
+                id: screenSafeArea
+                anchors.fill: parent
+                anchors.leftMargin: root.safeInsetLeft
+                anchors.rightMargin: root.safeInsetRight
+                anchors.topMargin: root.safeInsetTop
+                anchors.bottomMargin: root.safeInsetBottom
+            }
 
             Item {
                 id: preOverlayContent
@@ -378,8 +391,6 @@ Item {
                 HudLayer {
                     anchors.top: parent.top
                     anchors.right: parent.right
-                    anchors.topMargin: engineAdapter.state === AppState.Replaying ? 32 : 6
-                    anchors.rightMargin: 6
                     z: LayerScale.screenHud
                     active: !root.iconDebugMode &&
                             root.staticDebugScene === "" &&
@@ -387,6 +398,8 @@ Item {
                     engineAdapter: root.engineAdapter
                     gameFont: root.gameFont
                     ink: root.gameInk
+                    topInset: screenSafeArea.y + (engineAdapter.state === AppState.Replaying ? 30 : 2)
+                    rightInset: root.width - screenSafeArea.x - screenSafeArea.width + 2
                 }
             }
 
@@ -409,6 +422,10 @@ Item {
                 rarityColor: root.rarityColor
                 readableText: root.readableText
                 readableSecondaryText: root.readableSecondaryText
+                safeInsetTop: root.safeInsetTop
+                safeInsetRight: root.safeInsetRight
+                safeInsetBottom: root.safeInsetBottom
+                safeInsetLeft: root.safeInsetLeft
             }
 
             Item {
@@ -467,9 +484,18 @@ Item {
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 
-        OSDLayer { id: osd; bg: root.gameAccent; ink: root.gameAccentInk; gameFont: root.gameFont; z: LayerScale.screenOsd }
+        OSDLayer {
+            id: osd
+            anchors.fill: screenSafeArea
+            z: LayerScale.screenOsd
+            bg: root.gameAccent
+            ink: root.gameAccentInk
+            gameFont: root.gameFont
+        }
+
     }
 
     function showOSD(t) { osd.show(t) }
+    function showVolumeOSD(value) { osd.showVolume(value) }
     function triggerPowerCycle() { engineAdapter.dispatchUiAction("state_splash") }
 }

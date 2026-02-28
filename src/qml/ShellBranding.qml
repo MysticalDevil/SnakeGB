@@ -5,39 +5,48 @@ Item {
     property var theme
     signal logoClicked()
 
-    implicitWidth: 200
-    implicitHeight: 44
+    implicitWidth: 188
+    implicitHeight: 24
 
-    Column {
-        anchors.centerIn: parent
-        width: parent.width
-        spacing: 6
+    MouseArea {
+        anchors.fill: parent
+        onClicked: root.logoClicked()
+    }
+
+    Row {
+        anchors.top: parent.top
+        anchors.left: parent.left
+        spacing: 2
 
         Text {
-            text: "SnakeGB"
-            width: parent.width
+            anchors.baseline: snakeText.baseline
+            text: "Nintendo"
             color: theme.brandInk
-            font.family: "Monospace"
-            font.pixelSize: 14
+            font.family: "Trebuchet MS"
+            font.pixelSize: 11
             font.bold: true
-            font.letterSpacing: 2
-            horizontalAlignment: Text.AlignHCenter
-            opacity: 0.82
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: root.logoClicked()
-            }
+            opacity: 0.92
         }
 
         Text {
-            text: "Portable Entertainment System"
-            width: parent.width
-            color: theme.subtitleInk
-            font.pixelSize: 9
+            id: snakeText
+            text: "GAME"
+            color: theme.brandInk
+            font.family: "Trebuchet MS"
+            font.pixelSize: 17
+            font.bold: true
+            opacity: 0.95
+        }
+
+        Text {
+            anchors.baseline: snakeText.baseline
+            text: "BOY"
+            color: theme.logoAccent
+            font.family: "Trebuchet MS"
+            font.pixelSize: 22
+            font.bold: true
             font.italic: true
-            horizontalAlignment: Text.AlignHCenter
-            opacity: 0.88
+            opacity: 0.98
         }
     }
 }

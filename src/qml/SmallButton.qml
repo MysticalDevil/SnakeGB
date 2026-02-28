@@ -23,7 +23,6 @@ Rectangle {
     height: 17
     radius: 8
     color: pressedVisual ? Qt.darker(buttonBase, 1.08) : buttonBase
-    rotation: -20
     border.color: Qt.rgba(buttonBorder.r, buttonBorder.g, buttonBorder.b, 0.52)
     border.width: 1
 
@@ -61,9 +60,9 @@ Rectangle {
     Text {
         text: root.text
         anchors.top: parent.bottom
-        anchors.topMargin: 5
+        anchors.topMargin: 4
         anchors.horizontalCenter: parent.horizontalCenter
-        font.pixelSize: 10
+        font.pixelSize: 9
         font.bold: true
         color: labelColor
         font.family: "Trebuchet MS"

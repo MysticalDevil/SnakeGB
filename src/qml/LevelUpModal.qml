@@ -24,17 +24,21 @@ ModalSurface {
     property string headerTitleText: "LEVEL UP!"
     property string headerSubtitleText: "CHOOSE 1 POWER"
     property string footerHintText: "START PICK   SELECT MENU"
+    property real horizontalInset: 0
+    property real verticalInsetTop: 0
+    property real verticalInsetBottom: 0
 
-    panelWidth: Math.max(188, width - 32)
-    panelHeight: Math.max(164, height - 28)
+    panelWidth: Math.max(188, width - 28 - horizontalInset)
+    panelHeight: Math.max(154, height - 42 - verticalInsetTop - verticalInsetBottom)
     panelColor: modalPanelFill
     panelBorderColor: modalPanelBorder
     panelInnerBorderColor: modalInnerBorder
+    panelOffsetY: 6
     contentMargin: 8
 
-    readonly property int verticalGap: 5
-    readonly property int headerHeight: 24
-    readonly property int footerHeight: 16
+    readonly property int verticalGap: 6
+    readonly property int headerHeight: 26
+    readonly property int footerHeight: 18
     readonly property int choiceCount: Math.max(
                                            1,
                                            levelUpModal.choices ? levelUpModal.choices.length : 3)

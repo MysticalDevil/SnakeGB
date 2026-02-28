@@ -4,8 +4,11 @@ import SnakeGB 1.0
 
 Window {
     id: window
-    width: 350
-    height: 550
+    readonly property int shellBaseWidth: 350
+    readonly property int shellBaseHeight: 570
+
+    width: shellBaseWidth
+    height: shellBaseHeight
     visible: true
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
@@ -373,10 +376,11 @@ Window {
 
         Item {
             id: scaledWrapper
-            width: 350
-            height: 550
+            width: window.shellBaseWidth
+            height: window.shellBaseHeight
             anchors.centerIn: parent
-            scale: Math.min(window.width / 350, window.height / 550)
+            scale: Math.min(window.width / window.shellBaseWidth,
+                            window.height / window.shellBaseHeight)
             
             Shell {
                 id: shell
@@ -426,6 +430,7 @@ Window {
         }
         function onVolumeRequested(value, withHaptic) {
             audioSettingsViewModel.volume = value
+            screen.showVolumeOSD(value)
             if (withHaptic) {
                 engineAdapter.dispatchUiAction("feedback_light")
             }

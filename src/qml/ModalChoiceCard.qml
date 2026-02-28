@@ -32,7 +32,7 @@ Rectangle {
     border.color: selected ? borderSelectedColor : borderColor
     border.width: 1
 
-    readonly property int badgeWidth: 56
+    readonly property int badgeWidth: 50
     readonly property int sidePadding: 8
     readonly property int iconSize: Math.min(26, Math.max(20, height - 18))
     readonly property bool pulseAccent: rarityTier ? rarityTier(powerType) >= 3 : false
@@ -110,7 +110,7 @@ Rectangle {
 
         Column {
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - choiceCard.iconSize - choiceCard.badgeWidth - 28
+            width: parent.width - choiceCard.iconSize - choiceCard.badgeWidth - 24
             spacing: 1
 
             Text {

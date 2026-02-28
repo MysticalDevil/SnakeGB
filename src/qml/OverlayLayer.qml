@@ -19,6 +19,10 @@ Item {
     property bool showPausedAndGameOver: true
     property bool showReplayAndChoice: true
     property var blurSourceItem: null
+    property int safeInsetTop: 0
+    property int safeInsetRight: 0
+    property int safeInsetBottom: 0
+    property int safeInsetLeft: 0
 
     readonly property color modalTintColor: Qt.rgba(menuColor("cardPrimary").r, menuColor("cardPrimary").g, menuColor("cardPrimary").b, 0.08)
     readonly property color modalPanelFill: Qt.lighter(menuColor("cardSecondary"), 1.08)
@@ -104,7 +108,7 @@ Item {
     ReplayBanner {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 2
+        anchors.topMargin: overlays.safeInsetTop + 4
         active: showReplayAndChoice && overlays.currentState === AppState.Replaying
         menuColor: overlays.menuColor
         gameFont: overlays.gameFont
@@ -138,5 +142,8 @@ Item {
         modalCardTitleInk: overlays.modalCardTitleInk
         modalCardDescInk: overlays.modalCardDescInk
         cardBorderColor: overlays.menuColor("borderSecondary")
+        horizontalInset: Math.max(4, Math.max(overlays.safeInsetLeft, overlays.safeInsetRight) - 6)
+        verticalInsetTop: overlays.safeInsetTop
+        verticalInsetBottom: overlays.safeInsetBottom
     }
 }

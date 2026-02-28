@@ -3,8 +3,8 @@ import QtQuick.Controls
 
 Item {
     id: dpad
-    width: 102
-    height: 102
+    width: 92
+    height: 92
 
     property bool externalUpPressed: false
     property bool externalDownPressed: false
@@ -24,14 +24,14 @@ Item {
     signal leftClicked
     signal rightClicked
 
-    readonly property int arm: 34
-    readonly property int cross: 94
+    readonly property int arm: 30
+    readonly property int cross: 84
     readonly property int pressX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
     readonly property int pressY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
-    readonly property color bodyHi: "#465365"
-    readonly property color bodyMid: "#384354"
-    readonly property color bodyLo: "#2f3948"
-    readonly property color edgeInk: "#151d27"
+    readonly property color bodyHi: "#2c3138"
+    readonly property color bodyMid: "#1d2127"
+    readonly property color bodyLo: "#11151b"
+    readonly property color edgeInk: "#06080b"
 
     Item {
         id: crossRoot
@@ -81,9 +81,9 @@ Item {
                 drawCrossPath(ctx, width, height, dpad.arm)
                 ctx.clip()
                 const hg = ctx.createLinearGradient(0, 0, width, height)
-                hg.addColorStop(0.0, "rgba(255,255,255,0.08)")
+                hg.addColorStop(0.0, "rgba(255,255,255,0.04)")
                 hg.addColorStop(0.45, "rgba(255,255,255,0.00)")
-                hg.addColorStop(1.0, "rgba(0,0,0,0.06)")
+                hg.addColorStop(1.0, "rgba(0,0,0,0.12)")
                 ctx.fillStyle = hg
                 ctx.fillRect(0, 0, width, height)
                 ctx.restore()
@@ -130,10 +130,10 @@ Item {
 
         Rectangle {
             anchors.centerIn: parent
-            width: 18
-            height: 18
-            radius: 9
-            color: "#232c39"
+            width: 16
+            height: 16
+            radius: 8
+            color: "#0e1217"
             border.color: dpad.edgeInk
             border.width: 1
         }

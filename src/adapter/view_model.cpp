@@ -49,7 +49,7 @@ auto EngineAdapter::obstacles() const -> QVariantList
 auto EngineAdapter::shellColor() const -> QColor
 {
     static const QList<QColor> colors = {
-        QColor(u"#0b8f92"_s), QColor(u"#c9cacc"_s), QColor(u"#9f8bc1"_s), QColor(u"#b84864"_s),
+        QColor(u"#c0c0c0"_s), QColor(u"#f0f0f0"_s), QColor(u"#9f8bc1"_s), QColor(u"#b84864"_s),
         QColor(u"#00837b"_s), QColor(u"#f59e0b"_s), QColor(u"#4b5563"_s)};
     const qsizetype idx =
         static_cast<qsizetype>(snakegb::adapter::shellIndex(m_profileManager.get())) %

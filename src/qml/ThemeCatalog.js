@@ -154,11 +154,15 @@ const shellTheme = (shellName, shellColor) => {
     const shellSecondaryInk = _softenInk(shellPrimaryInk, theme.shellBase, 0.24, 3.4, shellPrimaryInk, "#ece8f5");
     const buttonLabelInk = _ensureContrast(shellPrimaryInk, theme.shellBase, 5.0, "#16131d", "#faf7ff");
     const bezelLabelInk = _ensureContrast(theme.labelInk, theme.bezelBase, 4.3, "#121820", "#dce4ee");
+    const logoAccent = _ensureContrast("#4f477b", theme.shellBase, 3.2, shellPrimaryInk, "#6f63a6");
+    const logoSecondary = _softenInk(logoAccent, theme.shellBase, 0.42, 2.7, shellPrimaryInk, "#8377ba");
 
     theme.brandInk = shellPrimaryInk;
     theme.subtitleInk = shellSecondaryInk;
     theme.buttonLabelInk = buttonLabelInk;
     theme.labelInk = bezelLabelInk;
+    theme.logoAccent = logoAccent;
+    theme.logoSecondary = logoSecondary;
     return theme;
 };
 

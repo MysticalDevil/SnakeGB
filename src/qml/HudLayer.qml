@@ -8,6 +8,8 @@ Column {
     property string gameFont: ""
     property int highScoreOverride: -1
     property int scoreOverride: -1
+    property real topInset: 10
+    property real rightInset: 10
     readonly property int displayHighScore: highScoreOverride >= 0
                                              ? highScoreOverride
                                              : (engineAdapter ? engineAdapter.highScore : 0)
@@ -17,7 +19,8 @@ Column {
 
     anchors.top: parent.top
     anchors.right: parent.right
-    anchors.margins: 10
+    anchors.topMargin: topInset
+    anchors.rightMargin: rightInset
     visible: active
     spacing: 1
 
