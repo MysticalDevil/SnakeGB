@@ -66,47 +66,6 @@ Window {
         setDpadPressed(dx, dy)
     }
 
-    function routeDirection(action) {
-        let dx = 0
-        let dy = 0
-        let token = ""
-        if (action === inputAction.NavUp) {
-            dy = -1
-            token = "U"
-        } else if (action === inputAction.NavDown) {
-            dy = 1
-            token = "D"
-        } else if (action === inputAction.NavLeft) {
-            dx = -1
-            token = "L"
-        } else if (action === inputAction.NavRight) {
-            dx = 1
-            token = "R"
-        } else {
-            return false
-        }
-
-        if (handleEasterInput(token)) {
-            clearDpadVisuals()
-            return true
-        }
-        handleDirection(dx, dy)
-        return true
-    }
-
-    function isOverlayState(state) {
-        return state === AppState.Paused || state === AppState.GameOver ||
-               state === AppState.Replaying || state === AppState.ChoiceSelection
-    }
-
-    function isPageState(state) {
-        return state === AppState.Library || state === AppState.MedalRoom
-    }
-
-    function isGameplayState(state) {
-        return state === AppState.Playing
-    }
-
     function toggleIconLab() {
         iconDebugMode = !iconDebugMode
         konamiIndex = 0
@@ -141,220 +100,34 @@ Window {
         setStaticDebugScene(scenes[idx])
     }
 
-    QtObject {
-        id: inputRouter
-
-        // Layer priority: icon overlay -> state overlay -> page -> game -> shell fallback.
-        function route(action) {
-            if (routeGlobal(action)) return true
-            if (window.staticDebugScene !== "") return routeStaticLayer(action)
-            if (window.iconDebugMode) return routeIconLayer(action)
-
-            const state = gameLogic.state
-            if (isOverlayState(state)) return routeOverlayLayer(action)
-            if (isPageState(state)) return routePageLayer(action)
-            if (isGameplayState(state)) return routeGameLayer(action)
-            return routeShellLayer(action)
-        }
-
-        function routeGlobal(action) {
-            if (action === inputAction.ToggleIconLab) {
-                toggleIconLab()
-                return true
-            }
-            if (action === inputAction.ToggleShellColor) {
-                gameLogic.dispatchUiAction("toggle_shell_color")
-                return true
-            }
-            if (action === inputAction.ToggleMusic) {
-                gameLogic.dispatchUiAction("toggle_music")
-                return true
-            }
-            if (action === inputAction.Escape) {
-                if (window.iconDebugMode) {
-                    exitIconLabToMenu()
-                } else if (window.staticDebugScene !== "") {
-                    setStaticDebugScene("")
-                } else {
-                    gameLogic.dispatchUiAction("quit")
-                }
-                return true
-            }
-            return false
-        }
-
-        function routeIconLayer(action) {
-            let dx = 0
-            let dy = 0
-            let token = ""
-            if (action === inputAction.NavUp) {
-                dy = -1
-                token = "U"
-            } else if (action === inputAction.NavDown) {
-                dy = 1
-                token = "D"
-            } else if (action === inputAction.NavLeft) {
-                dx = -1
-                token = "L"
-            } else if (action === inputAction.NavRight) {
-                dx = 1
-                token = "R"
-            }
-            if (token !== "") {
-                handleEasterInput(token)
-                if (window.iconDebugMode) {
-                    screen.iconLabMove(dx, dy)
-                    setDpadPressed(dx, dy)
-                }
-                return true
-            }
-            if (action === inputAction.Secondary || action === inputAction.Back) {
-                exitIconLabToMenu()
-                return true
-            }
-            if (action === inputAction.Primary) {
-                handleAButton()
-                return true
-            }
-            if (action === inputAction.Start || action === inputAction.SelectShort) {
-                return true
-            }
-            return false
-        }
-
-        function routeStaticLayer(action) {
-            if (action === inputAction.NavUp || action === inputAction.NavLeft) {
-                cycleStaticDebug(-1)
-                return true
-            }
-            if (action === inputAction.NavDown || action === inputAction.NavRight) {
-                cycleStaticDebug(1)
-                return true
-            }
-            if (action === inputAction.SelectShort || action === inputAction.Back ||
-                    action === inputAction.Secondary || action === inputAction.Start ||
-                    action === inputAction.Primary) {
-                setStaticDebugScene("")
-                return true
-            }
-            return true
-        }
-
-        function routeOverlayLayer(action) {
-            if (routeDirection(action)) return true
-            if (action === inputAction.Start) {
-                handleStartButton()
-                return true
-            }
-            if (action === inputAction.Primary) {
-                // Overlay screens do not bind A to gameplay/menu actions.
-                // Only keep A for paused Konami sequence entry.
-                if (gameLogic.state === AppState.Paused) {
-                    handleEasterInput("A")
-                }
-                return true
-            }
-            if (action === inputAction.Secondary) {
-                // In overlay states, B is reserved for debug sequence entry and
-                // should not force return-to-menu.
-                if (gameLogic.state === AppState.Paused) {
-                    handleEasterInput("B")
-                }
-                return true
-            }
-            if (action === inputAction.SelectShort) {
-                // Unified overlay semantics: SELECT returns to menu.
-                gameLogic.dispatchUiAction(inputAction.Back)
-                return true
-            }
-            if (action === inputAction.Back) {
-                gameLogic.dispatchUiAction(inputAction.Back)
-                return true
-            }
-            return false
-        }
-
-        function routePageLayer(action) {
-            if (routeDirection(action)) return true
-            if (action === inputAction.Secondary || action === inputAction.Back) {
-                gameLogic.dispatchUiAction(inputAction.Back)
-                return true
-            }
-            if (action === inputAction.Primary) {
-                // Catalog/Achievements do not bind A.
-                return true
-            }
-            if (action === inputAction.Start) {
-                // Catalog/Achievements do not bind START.
-                return true
-            }
-            if (action === inputAction.SelectShort) {
-                // Catalog/Achievements do not bind SELECT.
-                return true
-            }
-            return false
-        }
-
-        function routeGameLayer(action) {
-            if (routeDirection(action)) return true
-            if (action === inputAction.Primary) {
-                // Gameplay does not bind A.
-                return true
-            }
-            if (action === inputAction.Secondary) {
-                handleBButton()
-                return true
-            }
-            if (action === inputAction.Start) {
-                handleStartButton()
-                return true
-            }
-            if (action === inputAction.SelectShort) {
-                handleSelectShortPress()
-                return true
-            }
-            if (action === inputAction.Back) {
-                handleBackAction()
-                return true
-            }
-            return false
-        }
-
-        function routeShellLayer(action) {
-            if (routeDirection(action)) return true
-            if (action === inputAction.Primary) {
-                // StartMenu and non-game shell states do not use A as a start shortcut.
-                // Keep A only for explicit confirmation flows (for example save clear confirm).
-                if (saveClearConfirmPending) {
-                    handleAButton()
-                }
-                return true
-            }
-            if (action === inputAction.Secondary) {
-                handleBButton()
-                return true
-            }
-            if (action === inputAction.Back) {
-                handleBackAction()
-                return true
-            }
-            if (action === inputAction.Start) {
-                handleStartButton()
-                return true
-            }
-            if (action === inputAction.SelectShort) {
-                handleSelectShortPress()
-                return true
-            }
-            return false
-        }
+    UiActionRouter {
+        id: uiActionRouter
+        gameLogic: gameLogicRef
+        actionMap: window.inputAction
+        iconDebugMode: window.iconDebugMode
+        staticDebugScene: window.staticDebugScene
+        saveClearConfirmPending: window.saveClearConfirmPending
+        handleDirection: window.handleDirection
+        toggleIconLabMode: window.toggleIconLab
+        setStaticScene: window.setStaticDebugScene
+        cycleStaticScene: window.cycleStaticDebug
+        exitIconLab: window.exitIconLabToMenu
+        performPrimary: window.handleAButton
+        performSecondary: window.handleBButton
+        performStart: window.handleStartButton
+        performSelectShort: window.handleSelectShortPress
+        performBack: window.handleBackAction
+        trackEasterToken: window.handleEasterInput
+        moveIconLabSelection: screen.iconLabMove
+        setDirectionPressed: window.setDpadPressed
+        clearDirectionVisuals: window.clearDpadVisuals
     }
 
     function dispatchAction(action) {
         if (saveClearConfirmPending && action !== inputAction.Primary) {
             cancelSaveClearConfirm(false)
         }
-        inputRouter.route(action)
+        uiActionRouter.route(action)
     }
 
     function dispatchDebugToken(token) {
