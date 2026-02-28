@@ -25,6 +25,8 @@ add_library(snakegb_adapter
     adapter/engine_adapter.cpp
     adapter/theme_view_model.h
     adapter/theme_view_model.cpp
+    adapter/session_status_view_model.h
+    adapter/session_status_view_model.cpp
     adapter/input_router.cpp
     adapter/tick_driver.cpp
     adapter/simulation.cpp

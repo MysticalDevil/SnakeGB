@@ -124,7 +124,7 @@ Window {
     InputPressController {
         id: inputPressController
         currentState: engineAdapter.state
-        hasSave: engineAdapter.hasSave
+        hasSave: sessionStatusViewModel.hasSave
         iconDebugMode: window.iconDebugMode
         actionMap: window.inputAction
         showOsd: screen.showOSD

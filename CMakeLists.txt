@@ -223,6 +223,22 @@ endif()
 add_test(NAME AdapterThemeTest COMMAND adapter-theme-tests)
 set_tests_properties(AdapterThemeTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(adapter-session-status-tests
+    tests/test_session_status_view_model.cpp
+)
+target_include_directories(adapter-session-status-tests PRIVATE src)
+target_link_libraries(adapter-session-status-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(adapter-session-status-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(adapter-session-status-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+endif()
+if(TARGET Qt6::Sensors)
+    target_link_libraries(adapter-session-status-tests PRIVATE Qt6::Sensors)
+    target_compile_definitions(adapter-session-status-tests PRIVATE SNAKEGB_HAS_SENSORS)
+endif()
+add_test(NAME AdapterSessionStatusTest COMMAND adapter-session-status-tests)
+set_tests_properties(AdapterSessionStatusTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-level-loader-tests
     tests/test_level_loader_adapter.cpp
 )

@@ -257,7 +257,8 @@ Item {
                     gameFont: root.gameFont
                     elapsed: root.elapsed
                     menuColor: root.menuColor
-                    engineAdapter: root.engineAdapter
+                    sessionStatus: sessionStatusViewModel
+                    highScore: sessionStatusViewModel.highScore
                 }
 
                 // --- STATE 2, 3, 4, 5, 6: WORLD ---
@@ -272,7 +273,7 @@ Item {
                     snakeModel: engineAdapter.snakeModel
                     shieldActive: engineAdapter.shieldActive
                     obstacleModel: engineAdapter.obstacles
-                    currentLevelName: engineAdapter.currentLevelName
+                    currentLevelName: sessionStatusViewModel.currentLevelName
                     foodPos: engineAdapter.food
                     powerUpPos: engineAdapter.powerUpPos
                     powerUpType: engineAdapter.powerUpType

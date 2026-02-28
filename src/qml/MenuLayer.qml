@@ -6,7 +6,8 @@ Rectangle {
     property string gameFont: ""
     property real elapsed: 0
     property var menuColor
-    property var engineAdapter
+    property var sessionStatus
+    property int highScore: 0
 
     readonly property color cardPrimary: menuColor("cardPrimary")
     readonly property color cardSecondary: menuColor("cardSecondary")
@@ -48,7 +49,7 @@ Rectangle {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Text {
-                    text: engineAdapter.hasSave ? "CONTINUE READY" : "NEW RUN READY"
+                    text: sessionStatus.hasSave ? "CONTINUE READY" : "NEW RUN READY"
                     font.family: gameFont
                     font.pixelSize: 8
                     color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
@@ -70,14 +71,14 @@ Rectangle {
                 anchors.centerIn: parent
                 spacing: 16
                 Text {
-                    text: `HI ${engineAdapter.highScore}`
+                    text: `HI ${highScore}`
                     font.family: gameFont
                     font.pixelSize: 11
                     font.bold: true
                     color: menuLayer.secondaryInk
                 }
                 Text {
-                    text: `LEVEL ${engineAdapter.currentLevelName}`
+                    text: `LEVEL ${sessionStatus.currentLevelName}`
                     font.family: gameFont
                     font.pixelSize: 11
                     font.bold: true
@@ -98,7 +99,7 @@ Rectangle {
                 border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.74)
                 border.width: 1
                 Text {
-                    text: engineAdapter.hasSave ? "START  CONTINUE" : "START  NEW GAME"
+                    text: sessionStatus.hasSave ? "START  CONTINUE" : "START  NEW GAME"
                     color: menuLayer.actionInk
                     font.family: gameFont
                     font.pixelSize: 11

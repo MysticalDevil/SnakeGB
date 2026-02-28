@@ -13,6 +13,7 @@
 
 #include "app_state.h"
 #include "adapter/engine_adapter.h"
+#include "adapter/session_status_view_model.h"
 #include "adapter/theme_view_model.h"
 #include "input_injection_pipe.h"
 #include "power_up_id.h"
@@ -62,6 +63,7 @@ auto main(int argc, char *argv[]) -> int {
 #endif
 
     EngineAdapter engineAdapter;
+    SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
     ThemeViewModel themeViewModel(&engineAdapter);
     SoundManager soundManager;
     InputInjectionPipe inputInjectionPipe;
@@ -82,6 +84,7 @@ auto main(int argc, char *argv[]) -> int {
     qmlRegisterUncreatableType<PowerUpId>("SnakeGB", 1, 0, "PowerUpId",
                                           "PowerUpId is an enum container and cannot be instantiated");
     engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
+    engine.rootContext()->setContextProperty("sessionStatusViewModel", &sessionStatusViewModel);
     engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);
     engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
 
