@@ -1,6 +1,7 @@
 #include <QtTest>
 #include <QCoreApplication>
 #include <QSet>
+#include "app_state.h"
 #include "adapter/engine_adapter.h"
 #include "power_up_id.h"
 
@@ -68,7 +69,7 @@ private:
             game.setDirection(direction);
             game.forceUpdate();
 
-            if (game.score() > previousScore || game.state() == EngineAdapter::ChoiceSelection) {
+            if (game.score() > previousScore || game.state() == AppState::ChoiceSelection) {
                 return;
             }
         }
@@ -79,7 +80,7 @@ private:
 private slots:
     void testInitialState() {
         EngineAdapter game;
-        QVERIFY(game.state() == EngineAdapter::Splash || game.state() == EngineAdapter::StartMenu);
+        QVERIFY(game.state() == AppState::Splash || game.state() == AppState::StartMenu);
     }
 
     void testGameCycle() {
@@ -90,8 +91,8 @@ private slots:
         for(int i=0; i<100; ++i) game.forceUpdate();
 
         // After 100 forced steps, it MUST have transitioned out of Playing or hit boundary
-        QVERIFY(game.state() != EngineAdapter::Splash);
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::GameOver);
+        QVERIFY(game.state() != AppState::Splash);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::GameOver);
     }
 
     void testSnakeMovesAfterStart() {
@@ -105,10 +106,10 @@ private slots:
 
     void testSplashTransitionRequest() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
-        QVERIFY(game.state() == EngineAdapter::StartMenu);
-        game.requestStateChange(EngineAdapter::Splash);
-        QVERIFY(game.state() == EngineAdapter::Splash);
+        game.requestStateChange(AppState::StartMenu);
+        QVERIFY(game.state() == AppState::StartMenu);
+        game.requestStateChange(AppState::Splash);
+        QVERIFY(game.state() == AppState::Splash);
     }
 
     void testNextLevelChangesName() {
@@ -121,7 +122,7 @@ private slots:
 
     void testHandleSelectInMenuChangesLevel() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         const QString before = game.currentLevelName();
         game.handleSelect();
         const QString after = game.currentLevelName();
@@ -130,7 +131,7 @@ private slots:
 
     void testTheCageAppliesObstaclesOnNewRun() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
         QVERIFY2(!game.hasSave(), "Save session should be cleared before starting The Cage");
 
@@ -139,13 +140,13 @@ private slots:
         QCOMPARE(game.currentLevelName(), QString("The Cage"));
 
         game.handleStart();
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
         QVERIFY2(game.obstacles().size() > 0, "The Cage should spawn wall obstacles in-game");
     }
 
     void testDynamicPulseHasObstaclesOnStart() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
 
         // Classic -> The Cage -> Dynamic Pulse
@@ -154,13 +155,13 @@ private slots:
         QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
 
         game.handleStart();
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
         QVERIFY2(game.obstacles().size() > 0, "Dynamic Pulse should produce dynamic obstacles");
     }
 
     void testDynamicPulseObstaclesMoveOverTime() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
 
         game.handleSelect();
@@ -178,7 +179,7 @@ private slots:
 
     void testDeleteSaveResetsLevelToClassicAndNewRunUsesClassic() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
 
         // Move away from Classic and create a save by returning to menu.
@@ -186,7 +187,7 @@ private slots:
         game.handleSelect();
         QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
         game.handleStart();
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
         game.quitToMenu();
         QVERIFY2(game.hasSave(), "Session save should exist after quitting from an active run");
 
@@ -196,14 +197,14 @@ private slots:
         QCOMPARE(game.currentLevelName(), QString("Classic"));
 
         game.handleStart();
-        QVERIFY2(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused,
+        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
                  "Start should begin a new run, not reload old session");
         QCOMPARE(game.obstacles().size(), 0);
     }
 
     void testDeleteSaveThenSelectStartsChosenLevel() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
         QCOMPARE(game.currentLevelName(), QString("Classic"));
 
@@ -212,7 +213,7 @@ private slots:
         QCOMPARE(game.currentLevelName(), QString("The Cage"));
 
         game.handleStart();
-        QVERIFY2(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused,
+        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
                  "Start should begin a new run");
         QVERIFY2(game.obstacles().size() > 0,
                  "The Cage run should use The Cage obstacles");
@@ -220,7 +221,7 @@ private slots:
 
     void testTunnelRunInitialSpawnAvoidsObstacles() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
 
         // Classic -> The Cage -> Dynamic Pulse -> Tunnel Run
@@ -230,7 +231,7 @@ private slots:
         QCOMPARE(game.currentLevelName(), QString("Tunnel Run"));
 
         game.handleStart();
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
 
         QSet<QPoint> obstacleSet;
         for (const QVariant &item : game.obstacles()) {
@@ -245,7 +246,7 @@ private slots:
 
     void testHeadWrapsAtBoundary() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
         game.handleStart();
 
@@ -262,7 +263,7 @@ private slots:
         game.startGame();
 
         for (int attempt = 0; attempt < 20 && game.score() < 9; ++attempt) {
-            if (game.state() == EngineAdapter::ChoiceSelection) {
+            if (game.state() == AppState::ChoiceSelection) {
                 game.selectChoice(0);
                 continue;
             }
@@ -275,27 +276,27 @@ private slots:
 
         consumeCurrentFood(game);
         QCOMPARE(game.score(), 11);
-        QVERIFY2(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::ChoiceSelection,
+        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::ChoiceSelection,
                  "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
     }
 
     void testQuitToMenuFromGameOverDoesNotCreateSave() {
         EngineAdapter game;
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.deleteSave();
         QVERIFY(!game.hasSave());
 
         game.handleStart();
-        QVERIFY(game.state() == EngineAdapter::Playing || game.state() == EngineAdapter::Paused);
+        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
 
         game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
         game.setDirection(QPoint(1, 0));
         game.forceUpdate();
-        QCOMPARE(game.state(), EngineAdapter::GameOver);
+        QCOMPARE(game.state(), AppState::GameOver);
         QVERIFY(!game.hasSave());
 
         game.quitToMenu();
-        QCOMPARE(game.state(), EngineAdapter::StartMenu);
+        QCOMPARE(game.state(), AppState::StartMenu);
         QVERIFY2(!game.hasSave(), "GameOver back-to-menu should not generate a continue save");
     }
 
@@ -323,12 +324,12 @@ private slots:
         game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
         game.setDirection(QPoint(1, 0));
         game.forceUpdate();
-        QCOMPARE(game.state(), EngineAdapter::GameOver);
+        QCOMPARE(game.state(), AppState::GameOver);
         QVERIFY2(game.hasReplay(), "Replay should be available after a new high score run");
 
-        game.requestStateChange(EngineAdapter::StartMenu);
+        game.requestStateChange(AppState::StartMenu);
         game.startReplay();
-        QCOMPARE(game.state(), EngineAdapter::Replaying);
+        QCOMPARE(game.state(), AppState::Replaying);
 
         game.forceUpdate();
         QCOMPARE(game.snakeModelPtr()->body().front(), QPoint(11, 10));

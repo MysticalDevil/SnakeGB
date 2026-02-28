@@ -20,23 +20,23 @@ namespace
 auto stateName(const int state) -> const char *
 {
     switch (state) {
-    case EngineAdapter::Splash:
+    case AppState::Splash:
         return "Splash";
-    case EngineAdapter::StartMenu:
+    case AppState::StartMenu:
         return "StartMenu";
-    case EngineAdapter::Playing:
+    case AppState::Playing:
         return "Playing";
-    case EngineAdapter::Paused:
+    case AppState::Paused:
         return "Paused";
-    case EngineAdapter::GameOver:
+    case AppState::GameOver:
         return "GameOver";
-    case EngineAdapter::Replaying:
+    case AppState::Replaying:
         return "Replaying";
-    case EngineAdapter::ChoiceSelection:
+    case AppState::ChoiceSelection:
         return "ChoiceSelection";
-    case EngineAdapter::Library:
+    case AppState::Library:
         return "Library";
-    case EngineAdapter::MedalRoom:
+    case AppState::MedalRoom:
         return "MedalRoom";
     default:
         return "Unknown";
@@ -174,7 +174,7 @@ void EngineAdapter::setupSensorRuntime()
 
 void EngineAdapter::setInternalState(const int s)
 {
-    const auto next = static_cast<State>(s);
+    const auto next = static_cast<AppState::Value>(s);
     if (m_state != next) {
         qInfo().noquote() << "[StateFlow][EngineAdapter] setInternalState:" << stateName(m_state)
                           << "->" << stateName(next);

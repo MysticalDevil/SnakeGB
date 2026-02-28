@@ -8,6 +8,7 @@
 #include <QRect>
 #include <QTimer>
 #include <QVariantList>
+#include "app_state.h"
 #include "core/replay_types.h"
 #include "core/session_core.h"
 #include "core/session_state.h"
@@ -105,7 +106,7 @@ class EngineAdapter final : public QObject, public IGameEngine
     Q_PROPERTY(int powerUpType READ powerUpType NOTIFY powerUpChanged)
     Q_PROPERTY(int score READ score NOTIFY scoreChanged)
     Q_PROPERTY(int highScore READ highScore NOTIFY highScoreChanged)
-    Q_PROPERTY(State state READ state NOTIFY stateChanged)
+    Q_PROPERTY(AppState::Value state READ state NOTIFY stateChanged)
     Q_PROPERTY(int boardWidth READ boardWidth CONSTANT)
     Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
     Q_PROPERTY(QVariantList palette READ palette NOTIFY paletteChanged)
@@ -136,20 +137,6 @@ class EngineAdapter final : public QObject, public IGameEngine
     Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
 
 public:
-    enum State
-    {
-        Splash = 0,
-        StartMenu = 1,
-        Playing = 2,
-        Paused = 3,
-        GameOver = 4,
-        Replaying = 5,
-        ChoiceSelection = 6,
-        Library = 7,
-        MedalRoom = 8
-    };
-    Q_ENUM(State)
-
     explicit EngineAdapter(QObject *parent = nullptr);
     ~EngineAdapter() override;
 
@@ -305,7 +292,7 @@ public:
         return m_session.score;
     }
     [[nodiscard]] auto highScore() const -> int;
-    [[nodiscard]] auto state() const noexcept -> State
+    [[nodiscard]] auto state() const noexcept -> AppState::Value
     {
         return m_state;
     }
@@ -446,7 +433,7 @@ private:
     QRandomGenerator m_rng;
     snakegb::core::SessionCore m_sessionCore;
     snakegb::core::SessionState &m_session;
-    State m_state = Splash;
+    AppState::Value m_state = AppState::Splash;
     bool m_choicePending = false;
     int m_choiceIndex = 0;
     int m_libraryIndex = 0;

@@ -144,6 +144,7 @@ endif()
 
 enable_testing()
 add_executable(engine-adapter-tests
+    src/app_state.h
     tests/test_engine_adapter.cpp
 )
 target_include_directories(engine-adapter-tests PRIVATE src)

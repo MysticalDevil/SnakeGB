@@ -2,8 +2,6 @@
 
 #include <QObject>
 
-#include "adapter/engine_adapter.h"
-
 class AppState final : public QObject {
     Q_OBJECT
 
@@ -11,16 +9,15 @@ public:
     explicit AppState(QObject *parent = nullptr) : QObject(parent) {}
 
     enum Value {
-        Splash = EngineAdapter::Splash,
-        StartMenu = EngineAdapter::StartMenu,
-        Playing = EngineAdapter::Playing,
-        Paused = EngineAdapter::Paused,
-        GameOver = EngineAdapter::GameOver,
-        Replaying = EngineAdapter::Replaying,
-        ChoiceSelection = EngineAdapter::ChoiceSelection,
-        Library = EngineAdapter::Library,
-        MedalRoom = EngineAdapter::MedalRoom
+        Splash = 0,
+        StartMenu = 1,
+        Playing = 2,
+        Paused = 3,
+        GameOver = 4,
+        Replaying = 5,
+        ChoiceSelection = 6,
+        Library = 7,
+        MedalRoom = 8
     };
     Q_ENUM(Value)
 };
-
