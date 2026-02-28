@@ -47,15 +47,24 @@ Rectangle {
     readonly property color secondaryInk: menuColor("secondaryInk")
     readonly property color hintInk: menuColor("hintInk")
     readonly property color bootMetaFill: Qt.rgba(panelBg.r, panelBg.g, panelBg.b, 0.88)
-    readonly property string sceneBadgeText: showBoot ? "DBG BOOT"
-                                                      : (showGame ? "DBG GAME"
-                                                                  : (showReplay ? "DBG REPLAY" : "DBG CHOICE"))
+    readonly property string sceneBadgeText: showBoot ? "DEBUG BOOT"
+                                                      : (showGame ? "DEBUG GAME"
+                                                                  : (showReplay ? "DEBUG REPLAY" : "DEBUG CHOICE"))
+    readonly property color sceneBadgeFill: Qt.rgba(panelAccent.r, panelAccent.g, panelAccent.b, 0.88)
+    readonly property color sceneBadgeInk: readableText ? readableText(sceneBadgeFill) : accentInk
     readonly property int layerHud: 60
+    readonly property string bootTitleText: String(staticOption("bootTitle", "S N A K E"))
+    readonly property string bootSubtitleText: String(staticOption("bootSubtitle", "PORTABLE ARCADE SURVIVAL"))
+    readonly property string bootLoadLabel: String(staticOption("bootLoadLabel", "LOADING 72%"))
+    readonly property real bootLoadProgress: Math.max(0.0, Math.min(1.0, Number(staticOption("bootLoadProgress", 0.72))))
     readonly property int previewHighScore: staticOption("highScore", 0)
     readonly property int previewScore: staticOption("score", showReplay ? 42 : 18)
     readonly property int previewBuffType: staticOption("buffType", showReplay ? 4 : 3)
     readonly property int previewBuffRemaining: staticOption("buffRemaining", showReplay ? 104 : 136)
     readonly property int previewBuffTotal: staticOption("buffTotal", 180)
+    readonly property string previewChoiceTitle: String(staticOption("choiceTitle", "LEVEL UP!"))
+    readonly property string previewChoiceSubtitle: String(staticOption("choiceSubtitle", "CHOOSE 1 POWER"))
+    readonly property string previewChoiceFooterHint: String(staticOption("choiceFooterHint", "START PICK   SELECT MENU"))
     readonly property var previewChoiceTypes: {
         const raw = staticOption("choiceTypes", [7, 4, 1])
         if (!raw || raw.length === 0) {
@@ -74,25 +83,69 @@ Rectangle {
             desc: spec.description
         }
     })
+    readonly property var previewSnakeSegments: {
+        const raw = staticOption("snakeSegments", [
+                                     { x: 8, y: 7 },
+                                     { x: 9, y: 7 },
+                                     { x: 10, y: 7, head: true }
+                                 ])
+        if (!raw || raw.length === 0) {
+            return []
+        }
+        return raw.map((segment, index) => ({
+                           x: Number(segment.x),
+                           y: Number(segment.y),
+                           head: segment.head === true || segment.head === 1 || segment.head === "1" ||
+                                 segment.head === "H" || segment.head === "h" || index === raw.length - 1
+                       }))
+    }
+    readonly property var previewObstacleCells: {
+        const raw = staticOption("obstacleCells", [{ x: 16, y: 8 }])
+        if (!raw || raw.length === 0) {
+            return []
+        }
+        return raw.map((cell) => ({ x: Number(cell.x), y: Number(cell.y) }))
+    }
+    readonly property var previewFoodCells: {
+        const raw = staticOption("foodCells", [{ x: 13, y: 10 }])
+        if (!raw || raw.length === 0) {
+            return []
+        }
+        return raw.map((cell) => ({ x: Number(cell.x), y: Number(cell.y) }))
+    }
+    readonly property var previewPowerupCells: {
+        const raw = staticOption("powerupCells", [])
+        if (!raw || raw.length === 0) {
+            return []
+        }
+        return raw.map((cell) => ({
+                           x: Number(cell.x),
+                           y: Number(cell.y),
+                           type: Number(cell.type || 1)
+                       }))
+    }
 
     Rectangle {
-        anchors.top: parent.top
+        z: staticSceneLayer.layerHud + 20
         anchors.right: parent.right
-        anchors.topMargin: 4
         anchors.rightMargin: 4
-        width: 58
-        height: 13
+        anchors.top: staticSceneLayer.showGame || staticSceneLayer.showReplay ? undefined : parent.top
+        anchors.topMargin: staticSceneLayer.showGame || staticSceneLayer.showReplay ? 0 : 4
+        anchors.bottom: staticSceneLayer.showGame || staticSceneLayer.showReplay ? parent.bottom : undefined
+        anchors.bottomMargin: staticSceneLayer.showGame || staticSceneLayer.showReplay ? 4 : 0
+        width: staticSceneLayer.showReplay ? 76 : 72
+        height: 15
         radius: 3
-        color: Qt.rgba(staticSceneLayer.panelBg.r, staticSceneLayer.panelBg.g, staticSceneLayer.panelBg.b, 0.80)
-        border.color: staticSceneLayer.panelBorderSoft
+        color: staticSceneLayer.sceneBadgeFill
+        border.color: staticSceneLayer.panelBorder
         border.width: 1
 
         Text {
             anchors.centerIn: parent
             text: staticSceneLayer.sceneBadgeText
-            color: staticSceneLayer.titleInk
+            color: staticSceneLayer.sceneBadgeInk
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 9
             font.bold: true
         }
     }
@@ -103,7 +156,7 @@ Rectangle {
 
         Text {
             id: bootTitle
-            text: "S N A K E"
+            text: staticSceneLayer.bootTitleText
             anchors.horizontalCenter: parent.horizontalCenter
             y: 46
             font.family: gameFont
@@ -115,7 +168,7 @@ Rectangle {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             y: bootTitle.y + 35
-            text: "PORTABLE ARCADE SURVIVAL"
+            text: staticSceneLayer.bootSubtitleText
             font.family: gameFont
             font.pixelSize: 10
             font.bold: true
@@ -156,7 +209,7 @@ Rectangle {
             Rectangle {
                 x: 1
                 y: 1
-                width: (parent.width - 2) * 0.72
+                width: (parent.width - 2) * staticSceneLayer.bootLoadProgress
                 height: parent.height - 2
                 color: staticSceneLayer.panelAccent
             }
@@ -174,7 +227,7 @@ Rectangle {
 
             Text {
                 anchors.fill: parent
-                text: "LOADING 72%"
+                text: staticSceneLayer.bootLoadLabel
                 font.family: gameFont
                 font.pixelSize: 9
                 font.bold: true
@@ -193,6 +246,8 @@ Rectangle {
         Item {
             id: previewBackdrop
             anchors.fill: parent
+            readonly property real cellWidth: width / Math.max(1, staticSceneLayer.boardWidth)
+            readonly property real cellHeight: height / Math.max(1, staticSceneLayer.boardHeight)
 
             Canvas {
                 anchors.fill: parent
@@ -219,33 +274,76 @@ Rectangle {
                 Component.onCompleted: requestPaint()
             }
 
-            Rectangle { x: 88; y: 88; width: 10; height: 10; color: staticSceneLayer.gameSubInk }
-            Rectangle { x: 98; y: 88; width: 10; height: 10; color: staticSceneLayer.gameSubInk }
-            Rectangle { x: 108; y: 88; width: 10; height: 10; radius: 2; color: staticSceneLayer.gameInk }
-            Rectangle {
-                x: 168
-                y: 98
-                width: 10
-                height: 10
-                color: staticSceneLayer.gameSubInk
-                border.color: staticSceneLayer.gameBorder
-                border.width: 1
+            Repeater {
+                model: staticSceneLayer.previewSnakeSegments
+
+                delegate: Rectangle {
+                    x: modelData.x * previewBackdrop.cellWidth
+                    y: modelData.y * previewBackdrop.cellHeight
+                    width: previewBackdrop.cellWidth
+                    height: previewBackdrop.cellHeight
+                    radius: modelData.head ? 2 : 0
+                    color: modelData.head ? staticSceneLayer.gameInk : staticSceneLayer.gameSubInk
+                }
             }
 
-            Item {
-                x: 138
-                y: 118
-                width: 10
-                height: 10
+            Repeater {
+                model: staticSceneLayer.previewObstacleCells
 
-                Canvas {
-                    anchors.fill: parent
-                    onPaint: {
-                        const ctx = getContext("2d")
-                        ctx.reset()
-                        drawFoodSymbol(ctx, width, height)
+                delegate: Rectangle {
+                    x: modelData.x * previewBackdrop.cellWidth
+                    y: modelData.y * previewBackdrop.cellHeight
+                    width: previewBackdrop.cellWidth
+                    height: previewBackdrop.cellHeight
+                    color: staticSceneLayer.gameSubInk
+                    border.color: staticSceneLayer.gameBorder
+                    border.width: 1
+                }
+            }
+
+            Repeater {
+                model: staticSceneLayer.previewFoodCells
+
+                delegate: Item {
+                    x: modelData.x * previewBackdrop.cellWidth
+                    y: modelData.y * previewBackdrop.cellHeight
+                    width: previewBackdrop.cellWidth
+                    height: previewBackdrop.cellHeight
+
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            const ctx = getContext("2d")
+                            ctx.reset()
+                            drawFoodSymbol(ctx, width, height)
+                        }
+                        Component.onCompleted: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
                     }
-                    Component.onCompleted: requestPaint()
+                }
+            }
+
+            Repeater {
+                model: staticSceneLayer.previewPowerupCells
+
+                delegate: Item {
+                    x: modelData.x * previewBackdrop.cellWidth
+                    y: modelData.y * previewBackdrop.cellHeight
+                    width: previewBackdrop.cellWidth
+                    height: previewBackdrop.cellHeight
+
+                    Canvas {
+                        anchors.fill: parent
+                        onPaint: {
+                            const ctx = getContext("2d")
+                            ctx.reset()
+                            drawPowerSymbol(ctx, width, height, modelData.type, staticSceneLayer.gameInk)
+                        }
+                        Component.onCompleted: requestPaint()
+                        onWidthChanged: requestPaint()
+                        onHeightChanged: requestPaint()
+                    }
                 }
             }
 
@@ -315,6 +413,9 @@ Rectangle {
             modalCardTitleInk: staticSceneLayer.titleInk
             modalCardDescInk: Qt.rgba(staticSceneLayer.secondaryInk.r, staticSceneLayer.secondaryInk.g, staticSceneLayer.secondaryInk.b, 0.88)
             cardBorderColor: staticSceneLayer.panelBorderSoft
+            headerTitleText: staticSceneLayer.previewChoiceTitle
+            headerSubtitleText: staticSceneLayer.previewChoiceSubtitle
+            footerHintText: staticSceneLayer.previewChoiceFooterHint
         }
     }
 

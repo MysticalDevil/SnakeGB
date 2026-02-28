@@ -142,7 +142,11 @@ ui_nav_apply_target() {
       send_token "DBG_ICONS"
       ;;
     dbg-static-boot)
-      send_token "DBG_STATIC_BOOT"
+      if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then
+        send_token "DBG_STATIC_BOOT:${DBG_STATIC_PARAMS}"
+      else
+        send_token "DBG_STATIC_BOOT"
+      fi
       ;;
     dbg-static-game)
       if [[ -n "${DBG_STATIC_PARAMS:-}" ]]; then

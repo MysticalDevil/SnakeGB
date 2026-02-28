@@ -36,6 +36,57 @@ QtObject {
     }
 
     function parseStaticSceneOptions(sceneName, rawOptions) {
+        function decodeLabel(value) {
+            return String(value || "").replace(/\+/g, " ").replace(/_/g, " ")
+        }
+
+        function parsePointList(value) {
+            return value
+                .split(/[|/]/)
+                .map((entry) => entry.trim())
+                .filter((entry) => entry.length > 0)
+                .map((entry) => {
+                    const parts = entry.split(":").map((part) => part.trim())
+                    if (parts.length < 2) {
+                        return null
+                    }
+                    const x = Number(parts[0])
+                    const y = Number(parts[1])
+                    if (!Number.isInteger(x) || !Number.isInteger(y)) {
+                        return null
+                    }
+                    const point = { x, y }
+                    if (parts.length >= 3) {
+                        const marker = parts[2]
+                        point.head = marker === "H" || marker === "h" || marker === "1"
+                    }
+                    return point
+                })
+                .filter((entry) => !!entry)
+        }
+
+        function parsePowerupList(value) {
+            return value
+                .split(/[|/]/)
+                .map((entry) => entry.trim())
+                .filter((entry) => entry.length > 0)
+                .map((entry) => {
+                    const parts = entry.split(":").map((part) => part.trim())
+                    if (parts.length < 2) {
+                        return null
+                    }
+                    const x = Number(parts[0])
+                    const y = Number(parts[1])
+                    const type = parts.length >= 3 ? Number(parts[2]) : 1
+                    if (!Number.isInteger(x) || !Number.isInteger(y) ||
+                            !Number.isInteger(type) || type < 1 || type > 9) {
+                        return null
+                    }
+                    return { x, y, type }
+                })
+                .filter((entry) => !!entry)
+        }
+
         const options = {}
         const raw = String(rawOptions || "").trim()
         if (raw.length === 0) {
@@ -87,12 +138,41 @@ QtObject {
                 if (Number.isInteger(choiceIndex) && choiceIndex >= 0) {
                     options.choiceIndex = choiceIndex
                 }
-            } else if (key === "TYPES") {
+            } else if (key === "TYPES" || key === "CHOICES") {
                 options.choiceTypes = value
                     .split(/[|/]/)
                     .map((entry) => Number(entry.trim()))
                     .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
                     .slice(0, 3)
+            } else if (key === "TITLE") {
+                if (sceneName === "boot") {
+                    options.bootTitle = decodeLabel(value)
+                } else if (sceneName === "choice") {
+                    options.choiceTitle = decodeLabel(value)
+                }
+            } else if (key === "SUBTITLE") {
+                if (sceneName === "boot") {
+                    options.bootSubtitle = decodeLabel(value)
+                } else if (sceneName === "choice") {
+                    options.choiceSubtitle = decodeLabel(value)
+                }
+            } else if (key === "LOAD" || key === "LOADLABEL") {
+                options.bootLoadLabel = decodeLabel(value)
+            } else if (key === "PROGRESS" || key === "LOADPROGRESS") {
+                const progress = Number(value)
+                if (!Number.isNaN(progress)) {
+                    options.bootLoadProgress = progress > 1 ? progress / 100.0 : progress
+                }
+            } else if (key === "FOOTER" || key === "FOOTERHINT") {
+                options.choiceFooterHint = decodeLabel(value)
+            } else if (key === "SNAKE") {
+                options.snakeSegments = parsePointList(value)
+            } else if (key === "FOOD") {
+                options.foodCells = parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
+            } else if (key === "OBSTACLES") {
+                options.obstacleCells = parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
+            } else if (key === "POWERUPS") {
+                options.powerupCells = parsePowerupList(value)
             }
         }
 

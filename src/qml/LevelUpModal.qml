@@ -21,6 +21,9 @@ ModalSurface {
     property color modalCardTitleInk: "black"
     property color modalCardDescInk: Qt.rgba(0, 0, 0, 0.84)
     property color cardBorderColor: "black"
+    property string headerTitleText: "LEVEL UP!"
+    property string headerSubtitleText: "CHOOSE 1 POWER"
+    property string footerHintText: "START PICK   SELECT MENU"
 
     panelWidth: Math.max(188, width - 32)
     panelHeight: Math.max(164, height - 28)
@@ -67,7 +70,7 @@ ModalSurface {
                     Text {
                         width: headerPanel.width
                         height: 15
-                        text: "LEVEL UP!"
+                        text: levelUpModal.headerTitleText
                         color: levelUpModal.modalTitleInk
                         font.family: levelUpModal.gameFont
                         font.pixelSize: 13
@@ -79,7 +82,7 @@ ModalSurface {
                     Text {
                         width: headerPanel.width
                         height: 9
-                        text: "CHOOSE 1 POWER"
+                        text: levelUpModal.headerSubtitleText
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
                         font.pixelSize: 8
@@ -131,21 +134,9 @@ ModalSurface {
                     spacing: 8
 
                     Text {
-                        width: (parent.width - parent.spacing) / 2
+                        width: parent.width
                         height: footerPanel.height
-                        text: "START PICK"
-                        color: levelUpModal.modalHintInk
-                        font.family: levelUpModal.gameFont
-                        font.pixelSize: 9
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    Text {
-                        width: (parent.width - parent.spacing) / 2
-                        height: footerPanel.height
-                        text: "SELECT MENU"
+                        text: levelUpModal.footerHintText
                         color: levelUpModal.modalHintInk
                         font.family: levelUpModal.gameFont
                         font.pixelSize: 9
