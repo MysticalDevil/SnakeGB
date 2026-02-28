@@ -1,0 +1,175 @@
+import QtQuick
+
+ModalSurface {
+    id: levelUpModal
+
+    property var gameLogic
+    property string gameFont: ""
+    property real elapsed: 0
+    property var drawPowerSymbol
+    property var rarityTier
+    property var rarityName
+    property var rarityColor
+    property color modalPanelFill: "white"
+    property color modalPanelBorder: "black"
+    property color modalInnerBorder: Qt.rgba(1, 1, 1, 0.08)
+    property color modalTitleInk: "black"
+    property color modalHintInk: Qt.rgba(0, 0, 0, 0.72)
+    property color modalCardFill: "white"
+    property color modalCardFillSelected: "white"
+    property color modalCardTitleInk: "black"
+    property color modalCardDescInk: Qt.rgba(0, 0, 0, 0.84)
+    property color cardBorderColor: "black"
+
+    panelWidth: Math.max(188, width - 32)
+    panelHeight: Math.max(164, height - 28)
+    panelColor: modalPanelFill
+    panelBorderColor: modalPanelBorder
+    panelInnerBorderColor: modalInnerBorder
+    contentMargin: 8
+
+    readonly property int sectionGap: 4
+    readonly property int headerHeight: 28
+    readonly property int footerHeight: 18
+
+    Item {
+        anchors.fill: parent
+
+        Rectangle {
+            id: headerPanel
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: levelUpModal.headerHeight
+            radius: 3
+            color: levelUpModal.modalPanelFill
+            border.color: levelUpModal.modalPanelBorder
+            border.width: 1
+
+            Column {
+                anchors.fill: parent
+                anchors.topMargin: 2
+                anchors.bottomMargin: 2
+                spacing: 0
+
+                Text {
+                    width: parent.width
+                    height: 15
+                    text: "LEVEL UP!"
+                    color: levelUpModal.modalTitleInk
+                    font.family: levelUpModal.gameFont
+                    font.pixelSize: 12
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Text {
+                    width: parent.width
+                    height: 9
+                    text: "CHOOSE 1 POWER"
+                    color: levelUpModal.modalHintInk
+                    font.family: levelUpModal.gameFont
+                    font.pixelSize: 6
+                    font.bold: false
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+        }
+
+        Rectangle {
+            id: footerPanel
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: levelUpModal.footerHeight
+            radius: 3
+            color: levelUpModal.modalPanelFill
+            border.color: levelUpModal.modalPanelBorder
+            border.width: 1
+
+            Row {
+                anchors.fill: parent
+                anchors.leftMargin: 6
+                anchors.rightMargin: 6
+                spacing: 8
+
+                Text {
+                    width: (parent.width - parent.spacing) / 2
+                    height: parent.height
+                    text: "START PICK"
+                    color: levelUpModal.modalHintInk
+                    font.family: levelUpModal.gameFont
+                    font.pixelSize: 7
+                    font.bold: false
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                Text {
+                    width: (parent.width - parent.spacing) / 2
+                    height: parent.height
+                    text: "SELECT MENU"
+                    color: levelUpModal.modalHintInk
+                    font.family: levelUpModal.gameFont
+                    font.pixelSize: 7
+                    font.bold: false
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+        }
+
+        Item {
+            id: cardsArea
+            anchors.top: headerPanel.bottom
+            anchors.topMargin: levelUpModal.sectionGap
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: footerPanel.top
+            anchors.bottomMargin: levelUpModal.sectionGap
+
+            readonly property int cardSpacing: 4
+            readonly property int cardHeight: Math.max(
+                                                   38,
+                                                   Math.min(46, Math.floor((height - (cardSpacing * 2)) / 3)))
+
+            Column {
+                anchors.fill: parent
+                spacing: cardsArea.cardSpacing
+
+                Repeater {
+                    model: levelUpModal.gameLogic ? levelUpModal.gameLogic.choices : []
+
+                    delegate: ModalChoiceCard {
+                        width: parent.width
+                        height: cardsArea.cardHeight
+                        gameFont: levelUpModal.gameFont
+                        titleText: modelData.name
+                        descriptionText: modelData.desc
+                        badgeText: levelUpModal.rarityName(Number(modelData.type))
+                        powerType: Number(modelData.type)
+                        selected: levelUpModal.gameLogic.choiceIndex === index
+                        elapsed: levelUpModal.elapsed
+                        accent: levelUpModal.rarityColor(powerType)
+                        fillColor: levelUpModal.modalCardFill
+                        fillSelectedColor: levelUpModal.modalCardFillSelected
+                        borderColor: levelUpModal.cardBorderColor
+                        borderSelectedColor: levelUpModal.modalPanelBorder
+                        titleColor: levelUpModal.modalCardTitleInk
+                        descriptionColor: levelUpModal.modalCardDescInk
+                        iconSocketColor: Qt.lighter(levelUpModal.modalCardFill, 1.02)
+                        iconBorderColor: levelUpModal.cardBorderColor
+                        iconGlyphColor: selected ? Qt.darker(accent, 1.45) : Qt.darker(accent, 1.22)
+                        badgeColor: Qt.rgba(accent.r, accent.g, accent.b, selected ? 0.16 : 0.10)
+                        badgeBorderColor: selected ? Qt.darker(accent, 1.30) : levelUpModal.cardBorderColor
+                        badgeTextColor: levelUpModal.modalCardTitleInk
+                        drawPowerSymbol: levelUpModal.drawPowerSymbol
+                        rarityTier: levelUpModal.rarityTier
+                    }
+                }
+            }
+        }
+    }
+}
