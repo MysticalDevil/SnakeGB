@@ -75,6 +75,12 @@ make clean
 - For palette/readability verification, use `scripts/palette_capture_matrix.sh` (captures 5 palette variants for menu/page/icon-lab flows).
 - UI capture scripts must be run serially. Do not start `scripts/ui_nav_capture.sh`, `scripts/palette_capture_focus.sh`, `scripts/palette_capture_matrix.sh`, or `scripts/palette_capture_review.sh` in parallel.
 - `scripts/ui_nav_capture.sh` owns the global capture lock; if you need multiple captures, queue them in one shell loop or run them one-by-one.
+- Current injectable UI debug entry points:
+  - `scripts/ui_nav_capture.sh dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
+  - `scripts/ui_nav_capture.sh dbg-static-{boot,game,replay,choice} ...` with `DBG_STATIC_PARAMS=...` to inject static scene content.
+  - `scripts/ui_nav_debug.sh <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
+  - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/snakegb_ui_input.txt`.
+  - Detailed parameter formats and supported scenes live in `docs/UI_DEBUG_INJECTION.md`.
 - Enforce this validation order for C++ changes: `clang-tidy` first, then build, then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/clang_tidy_cached.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
