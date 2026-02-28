@@ -90,8 +90,7 @@ void PausedState::handleSelect() {
 
 // --- GameOver State ---
 void GameOverState::enter() {
-    m_context.setInternalState(IGameEngine::GameOver);
-    m_context.updatePersistence();
+    m_context.enterGameOverState();
 }
 
 void GameOverState::handleStart() {
@@ -128,22 +127,11 @@ void ChoiceState::handleSelect() {
 
 // --- Replaying State ---
 void ReplayingState::enter() {
-    m_context.setInternalState(IGameEngine::Replaying);
-    m_historyIndex = 0;
-    m_choiceHistoryIndex = 0;
+    m_context.enterReplayState();
 }
 
 void ReplayingState::update() {
-    m_context.applyReplayTimelineForCurrentTick(m_historyIndex, m_choiceHistoryIndex);
-
-    // Run normal step simulation using replay-driven direction.
-    snakegb::fsm::runSessionStep(m_context, {
-                                            .activeState = IGameEngine::Replaying,
-                                            .collisionTargetState = IGameEngine::StartMenu,
-                                            .consumeInputQueue = false,
-                                            .recordConsumedInput = false,
-                                            .emitCrashFeedbackOnCollision = false,
-                                        });
+    m_context.advanceReplayState();
 }
 
 void ReplayingState::handleStart() {

@@ -204,8 +204,6 @@ public:
     }
     [[nodiscard]] auto hasSave() const -> bool override;
     [[nodiscard]] auto hasReplay() const noexcept -> bool override;
-    void applyReplayTimelineForCurrentTick(int &inputHistoryIndex,
-                                           int &choiceHistoryIndex) override;
 
     auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
         -> snakegb::core::SessionAdvanceResult override;
@@ -223,6 +221,9 @@ public:
     void triggerHaptic(int magnitude) override;
     void playEventSound(int type, float pan = 0.0f) override;
     void updatePersistence() override;
+    void enterGameOverState() override;
+    void enterReplayState() override;
+    void advanceReplayState() override;
     void lazyInit() override;
     void lazyInitState() override;
     void forceUpdate() override
@@ -423,6 +424,7 @@ private slots:
 private:
     void setupAudioSignals();
     void setupSensorRuntime();
+    void applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex);
     void applyPostTickTasks();
     void updateReflectionFallback();
     void dispatchStateCallback(const std::function<void(GameState &)> &callback);
@@ -472,6 +474,8 @@ private:
     uint m_bestRandomSeed = 0;
     int m_bestLevelIndex = 0;
     int m_ghostFrameIndex = 0;
+    int m_replayInputHistoryIndex = 0;
+    int m_replayChoiceHistoryIndex = 0;
     qint64 m_sessionStartTime = 0;
     QPointF m_reflectionOffset = {0.0, 0.0};
     QJSEngine m_jsEngine;

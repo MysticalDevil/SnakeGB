@@ -60,7 +60,6 @@ public:
     [[nodiscard]] auto hasPendingStateChange() const -> bool override { return false; }
     [[nodiscard]] auto hasSave() const -> bool override { return false; }
     [[nodiscard]] auto hasReplay() const -> bool override { return !inputFrames.isEmpty(); }
-    void applyReplayTimelineForCurrentTick(int &, int &) override {}
     auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &) -> snakegb::core::SessionAdvanceResult override { return {}; }
     void restart() override {}
     void startReplay() override {}
@@ -73,6 +72,9 @@ public:
     void triggerHaptic(int) override {}
     void playEventSound(int, float) override {}
     void updatePersistence() override {}
+    void enterGameOverState() override {}
+    void enterReplayState() override {}
+    void advanceReplayState() override {}
     void lazyInit() override {}
     void lazyInitState() override {}
     void forceUpdate() override {}

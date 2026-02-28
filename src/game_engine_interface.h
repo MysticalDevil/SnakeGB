@@ -46,8 +46,6 @@ public:
     [[nodiscard]] virtual auto hasPendingStateChange() const -> bool = 0;
     [[nodiscard]] virtual auto hasSave() const -> bool = 0;
     [[nodiscard]] virtual auto hasReplay() const -> bool = 0;
-    virtual void applyReplayTimelineForCurrentTick(int &inputHistoryIndex,
-                                                   int &choiceHistoryIndex) = 0;
 
     // --- Logic & Physics ---
     virtual auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
@@ -69,6 +67,9 @@ public:
     virtual void triggerHaptic(int magnitude) = 0;
     virtual void playEventSound(int type, float pan = 0.0f) = 0;
     virtual void updatePersistence() = 0;
+    virtual void enterGameOverState() = 0;
+    virtual void enterReplayState() = 0;
+    virtual void advanceReplayState() = 0;
     virtual void lazyInit() = 0;
     virtual void lazyInitState() = 0;
     virtual void forceUpdate() = 0;

@@ -1,6 +1,7 @@
 #include "adapter/game_logic.h"
 
 #include "adapter/profile_bridge.h"
+#include "fsm/session_step.h"
 
 using namespace Qt::StringLiterals;
 
@@ -27,7 +28,6 @@ auto GameLogic::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &co
     return result;
 }
 
-// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
 {
     const auto result = m_sessionCore.applyReplayTimeline(m_bestInputHistory, inputHistoryIndex,
@@ -36,6 +36,19 @@ void GameLogic::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &c
     if (result.choiceIndex.has_value()) {
         selectChoice(*result.choiceIndex);
     }
+}
+
+void GameLogic::advanceReplayState()
+{
+    applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
+
+    snakegb::fsm::runSessionStep(*this, {
+                                            .activeState = IGameEngine::Replaying,
+                                            .collisionTargetState = IGameEngine::StartMenu,
+                                            .consumeInputQueue = false,
+                                            .recordConsumedInput = false,
+                                            .emitCrashFeedbackOnCollision = false,
+                                        });
 }
 
 void GameLogic::applyCollisionMitigationEffects(

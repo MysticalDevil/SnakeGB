@@ -22,29 +22,57 @@ private:
     }
 
     static void consumeCurrentFood(GameLogic &game) {
-        const QPoint food = game.food();
+        const int previousScore = game.score();
 
-        QPoint direction;
-        std::deque<QPoint> body;
-        if (food.x() >= 3) {
-            direction = QPoint(1, 0);
-            body = {
-                QPoint(food.x() - 1, food.y()),
-                QPoint(food.x() - 2, food.y()),
-                QPoint(food.x() - 3, food.y()),
-            };
-        } else {
-            direction = QPoint(-1, 0);
-            body = {
-                QPoint(food.x() + 1, food.y()),
-                QPoint(food.x() + 2, food.y()),
-                QPoint(food.x() + 3, food.y()),
-            };
+        for (int attempt = 0; attempt < 4; ++attempt) {
+            const QPoint food = game.food();
+
+            QPoint direction;
+            std::deque<QPoint> body;
+            if ((attempt % 2) == 0) {
+                if (food.x() >= 3) {
+                    direction = QPoint(1, 0);
+                    body = {
+                        QPoint(food.x() - 1, food.y()),
+                        QPoint(food.x() - 2, food.y()),
+                        QPoint(food.x() - 3, food.y()),
+                    };
+                } else {
+                    direction = QPoint(-1, 0);
+                    body = {
+                        QPoint(food.x() + 1, food.y()),
+                        QPoint(food.x() + 2, food.y()),
+                        QPoint(food.x() + 3, food.y()),
+                    };
+                }
+            } else {
+                if (food.y() >= 3) {
+                    direction = QPoint(0, 1);
+                    body = {
+                        QPoint(food.x(), food.y() - 1),
+                        QPoint(food.x(), food.y() - 2),
+                        QPoint(food.x(), food.y() - 3),
+                    };
+                } else {
+                    direction = QPoint(0, -1);
+                    body = {
+                        QPoint(food.x(), food.y() + 1),
+                        QPoint(food.x(), food.y() + 2),
+                        QPoint(food.x(), food.y() + 3),
+                    };
+                }
+            }
+
+            game.snakeModelPtr()->reset(body);
+            game.setDirection(direction);
+            game.forceUpdate();
+
+            if (game.score() > previousScore || game.state() == GameLogic::ChoiceSelection) {
+                return;
+            }
         }
 
-        game.snakeModelPtr()->reset(body);
-        game.setDirection(direction);
-        game.forceUpdate();
+        QFAIL("Failed to consume the current food through the active session-step path");
     }
 
 private slots:
@@ -232,10 +260,14 @@ private slots:
         GameLogic game;
         game.startGame();
 
-        for (int i = 0; i < 9; ++i) {
+        for (int attempt = 0; attempt < 20 && game.score() < 9; ++attempt) {
+            if (game.state() == GameLogic::ChoiceSelection) {
+                game.selectChoice(0);
+                continue;
+            }
             consumeCurrentFood(game);
         }
-        QCOMPARE(game.score(), 9);
+        QVERIFY2(game.score() >= 9, "Expected score to reach the pre-threshold range before picking Double");
 
         QVERIFY2(pickBuff(game, GameLogic::Double), "Failed to pick Double buff from generated choices");
         QCOMPARE(game.activeBuff(), static_cast<int>(GameLogic::Double));

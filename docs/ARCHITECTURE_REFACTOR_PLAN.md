@@ -125,6 +125,7 @@ Current status:
 - per-frame runtime bookkeeping now enters update flow through `SessionCore` begin/end hooks instead of adapter-managed tick mutation;
 - timer cadence rules now also route through `SessionCore` instead of adapter-local score/buff checks;
 - obsolete adapter-local movement and direct consumption entry points have been removed, leaving `advanceSessionStep()` as the gameplay mutation path;
+- replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM states owning replay cursors or persistence calls;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -240,6 +241,7 @@ state, not the desired end state.
 - per-frame runtime bookkeeping now also routes through begin/end hooks on that core object.
 - timer cadence rules now also route through that core object.
 - the obsolete adapter-local direct movement/consumption path has been removed in favor of the core-driven step path.
+- replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM-local replay cursor state.
 - however, full replay execution and Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.

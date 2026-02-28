@@ -54,9 +54,6 @@ public:
     void update() override;
     void handleStart() override;
     void handleSelect() override;
-private:
-    int m_historyIndex = 0;
-    int m_choiceHistoryIndex = 0;
 };
 
 class ChoiceState : public GameState {

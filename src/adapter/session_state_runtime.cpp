@@ -28,6 +28,8 @@ void GameLogic::resetTransientRuntimeState()
 void GameLogic::resetReplayRuntimeTracking()
 {
     m_ghostFrameIndex = 0;
+    m_replayInputHistoryIndex = 0;
+    m_replayChoiceHistoryIndex = 0;
     m_currentInputHistory.clear();
     m_currentRecording.clear();
     m_currentChoiceHistory.clear();

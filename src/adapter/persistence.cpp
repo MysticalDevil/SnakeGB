@@ -39,6 +39,12 @@ void GameLogic::updatePersistence()
     clearSavedState();
 }
 
+void GameLogic::enterGameOverState()
+{
+    setInternalState(GameOver);
+    updatePersistence();
+}
+
 void GameLogic::lazyInit()
 {
     m_levelIndex = snakegb::adapter::levelIndex(m_profileManager.get());

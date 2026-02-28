@@ -41,7 +41,6 @@ void GameLogic::startReplay()
         return;
     }
 
-    setInternalState(Replaying);
     resetTransientRuntimeState();
     m_sessionCore.resetReplayRuntimeState();
     resetReplayRuntimeTracking();
@@ -60,6 +59,13 @@ void GameLogic::startReplay()
     if (auto nextState = snakegb::fsm::createStateFor(*this, Replaying); nextState) {
         changeState(std::move(nextState));
     }
+}
+
+void GameLogic::enterReplayState()
+{
+    setInternalState(Replaying);
+    m_replayInputHistoryIndex = 0;
+    m_replayChoiceHistoryIndex = 0;
 }
 
 void GameLogic::debugSeedReplayBuffPreview()
