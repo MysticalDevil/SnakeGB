@@ -3,7 +3,7 @@ import QtQuick
 Rectangle {
     id: medalCard
     property var modelData
-    property var gameLogic
+    property bool unlocked: false
     property bool selected: false
     property color cardNormal: "transparent"
     property color cardSelected: "transparent"
@@ -23,9 +23,6 @@ Rectangle {
     border.color: cardBorder
     border.width: 1
 
-    readonly property bool unlocked: gameLogic && modelData
-        ? gameLogic.achievements.indexOf(modelData.id) !== -1
-        : false
     readonly property color titleInk: selected ? badgeText : titleColor
     readonly property color hintInk: selected
         ? Qt.rgba(badgeText.r, badgeText.g, badgeText.b, 0.92)

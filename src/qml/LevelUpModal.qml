@@ -3,7 +3,8 @@ import QtQuick
 ModalSurface {
     id: levelUpModal
 
-    property var gameLogic
+    property var choices: []
+    property int choiceIndex: 0
     property string gameFont: ""
     property real elapsed: 0
     property var drawPowerSymbol
@@ -33,7 +34,7 @@ ModalSurface {
     readonly property int footerHeight: 20
     readonly property int choiceCount: Math.max(
                                            1,
-                                           gameLogic && gameLogic.choices ? gameLogic.choices.length : 3)
+                                           levelUpModal.choices ? levelUpModal.choices.length : 3)
 
     Item {
         anchors.fill: parent
@@ -96,7 +97,7 @@ ModalSurface {
             }
 
             Repeater {
-                model: levelUpModal.gameLogic ? levelUpModal.gameLogic.choices : []
+                model: levelUpModal.choices
 
                 delegate: ModalChoiceCard {
                     width: modalStack.width
@@ -106,7 +107,7 @@ ModalSurface {
                     descriptionText: modelData.desc
                     badgeText: levelUpModal.rarityName(Number(modelData.type))
                     powerType: Number(modelData.type)
-                    selected: levelUpModal.gameLogic.choiceIndex === index
+                    selected: levelUpModal.choiceIndex === index
                     elapsed: levelUpModal.elapsed
                     accent: levelUpModal.rarityColor(powerType)
                     fillColor: levelUpModal.modalCardFill

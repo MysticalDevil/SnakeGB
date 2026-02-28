@@ -2,6 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import SnakeGB 1.0
 import "ThemeCatalog.js" as ThemeCatalog
+import "ScreenThemeTokens.js" as ScreenThemeTokens
+import "PowerMeta.js" as PowerMeta
+import "ReadabilityRules.js" as ReadabilityRules
 import "LayerScale.js" as LayerScale
 
 Item {
@@ -17,34 +20,40 @@ Item {
     property string staticDebugScene: ""
     property int iconLabSelection: 0
 
-    function buffName(type) {
-        if (type === 1) return "GHOST"
-        if (type === 2) return "SLOW"
-        if (type === 3) return "MAGNET"
-        if (type === 4) return "SHIELD"
-        if (type === 5) return "PORTAL"
-        if (type === 6) return "DOUBLE"
-        if (type === 7) return "DIAMOND"
-        if (type === 8) return "LASER"
-        if (type === 9) return "MINI"
-        return "NONE"
+    readonly property var menuColor: function(role) {
+        return ScreenThemeTokens.menuColor(root.gameLogic.paletteName, role)
     }
-
-    function powerGlyph(type) {
-        if (type === 1) return "G"
-        if (type === 2) return "S"
-        if (type === 3) return "M"
-        if (type === 4) return "H"
-        if (type === 5) return "P"
-        if (type === 6) return "2"
-        if (type === 7) return "D"
-        if (type === 8) return "L"
-        if (type === 9) return "m"
-        return "?"
+    readonly property var powerColor: function(type) {
+        return ScreenThemeTokens.powerAccent(root.gameLogic.paletteName, type, root.gameInk)
     }
-
-    function powerColor(type) {
-        return ThemeCatalog.powerAccent(gameLogic.paletteName, type, gameInk)
+    readonly property var buffName: PowerMeta.buffName
+    readonly property var powerGlyph: PowerMeta.powerGlyph
+    readonly property var choiceGlyph: PowerMeta.choiceGlyph
+    readonly property var rarityTier: PowerMeta.rarityTier
+    readonly property var rarityName: PowerMeta.rarityName
+    readonly property var rarityColor: function(type) {
+        return ScreenThemeTokens.rarityAccent(
+            root.gameLogic.paletteName,
+            PowerMeta.rarityTier(type),
+            root.menuColor("actionInk"))
+    }
+    readonly property var readableText: function(bgColor) {
+        return ReadabilityRules.readableText(
+            bgColor,
+            root.menuColor("titleInk"),
+            root.menuColor("actionInk"))
+    }
+    readonly property var readableMutedText: function(bgColor) {
+        return ReadabilityRules.readableMutedText(
+            bgColor,
+            root.menuColor("titleInk"),
+            root.menuColor("actionInk"))
+    }
+    readonly property var readableSecondaryText: function(bgColor) {
+        return ReadabilityRules.readableSecondaryText(
+            bgColor,
+            root.menuColor("titleInk"),
+            root.menuColor("actionInk"))
     }
 
     function drawFoodSymbol(ctx, w, h) {
@@ -152,63 +161,6 @@ Item {
         iconLabSelection = nextRow * cols + nextCol
     }
 
-    function choiceGlyph(type) {
-        if (type === 1) return "G"
-        if (type === 2) return "S"
-        if (type === 3) return "M"
-        if (type === 4) return "H"
-        if (type === 5) return "P"
-        if (type === 6) return "2x"
-        if (type === 7) return "3x"
-        if (type === 8) return "L"
-        if (type === 9) return "m"
-        return "?"
-    }
-
-    function rarityTier(type) {
-        if (type === 7) return 4 // Diamond
-        if (type === 6 || type === 8) return 3 // Double / Laser
-        if (type === 4 || type === 5) return 2 // Shield / Portal
-        return 1 // Ghost / Slow / Magnet / Mini
-    }
-
-    function rarityName(type) {
-        const tier = rarityTier(type)
-        if (tier === 4) return "EPIC"
-        if (tier === 3) return "RARE"
-        if (tier === 2) return "UNCOMMON"
-        return "COMMON"
-    }
-
-    function rarityColor(type) {
-        const tier = rarityTier(type)
-        return ThemeCatalog.rarityAccent(gameLogic.paletteName, tier, menuColor("actionInk"))
-    }
-
-    function luminance(colorValue) {
-        return 0.299 * colorValue.r + 0.587 * colorValue.g + 0.114 * colorValue.b
-    }
-
-    function readableText(bgColor) {
-        const darkInk = menuColor("titleInk")
-        const lightInk = menuColor("actionInk")
-        return luminance(bgColor) > 0.54 ? darkInk : lightInk
-    }
-
-    function readableMutedText(bgColor) {
-        const c = readableText(bgColor)
-        return Qt.rgba(c.r, c.g, c.b, 0.9)
-    }
-
-    function readableSecondaryText(bgColor) {
-        const c = readableText(bgColor)
-        return Qt.rgba(c.r, c.g, c.b, 0.78)
-    }
-
-    function menuColor(role) {
-        return ThemeCatalog.menuColor(gameLogic.paletteName, role)
-    }
-
     readonly property color gameBg: menuColor("cardPrimary")
     // Lift play/replay/choice background so it matches menu brightness after LCD shader.
     readonly property color playBg: gameBg
@@ -312,7 +264,20 @@ Item {
                     id: worldLayer
                     z: LayerScale.stateWorld
                     active: gameLogic.state >= AppState.Playing && gameLogic.state <= AppState.ChoiceSelection
-                    gameLogic: root.gameLogic
+                    currentState: gameLogic.state
+                    boardWidth: gameLogic.boardWidth
+                    boardHeight: gameLogic.boardHeight
+                    ghostModel: gameLogic.ghost
+                    snakeModel: gameLogic.snakeModel
+                    shieldActive: gameLogic.shieldActive
+                    obstacleModel: gameLogic.obstacles
+                    currentLevelName: gameLogic.currentLevelName
+                    foodPos: gameLogic.food
+                    powerUpPos: gameLogic.powerUpPos
+                    powerUpType: gameLogic.powerUpType
+                    activeBuff: gameLogic.activeBuff
+                    buffTicksRemaining: gameLogic.buffTicksRemaining
+                    buffTicksTotal: gameLogic.buffTicksTotal
                     elapsed: root.elapsed
                     gameFont: root.gameFont
                     menuColor: root.menuColor
@@ -335,7 +300,11 @@ Item {
                     anchors.fill: parent
                     z: LayerScale.stateLibrary
                     active: gameLogic.state === AppState.Library
-                    gameLogic: root.gameLogic
+                    fruitLibraryModel: gameLogic.fruitLibrary
+                    libraryIndex: gameLogic.libraryIndex
+                    setLibraryIndex: function(index) {
+                        root.gameLogic.dispatchUiAction(`set_library_index:${index}`)
+                    }
                     gameFont: root.gameFont
                     powerColor: root.powerColor
                     menuColor: root.menuColor
@@ -352,7 +321,13 @@ Item {
                     p3: root.p3
                     menuColor: root.menuColor
                     pageTheme: ThemeCatalog.pageTheme(gameLogic.paletteName, "achievements")
-                    gameLogic: root.gameLogic
+                    medalLibraryModel: gameLogic.medalLibrary
+                    medalIndex: gameLogic.medalIndex
+                    unlockedCount: gameLogic.achievements.length
+                    unlockedAchievementIds: gameLogic.achievements
+                    setMedalIndex: function(index) {
+                        root.gameLogic.dispatchUiAction(`set_medal_index:${index}`)
+                    }
                     gameFont: root.gameFont
                     visible: gameLogic.state === AppState.MedalRoom
                 }
@@ -362,7 +337,8 @@ Item {
                     z: LayerScale.stateStaticDebug
                     visible: root.staticDebugScene !== ""
                     staticScene: root.staticDebugScene
-                    gameLogic: root.gameLogic
+                    boardWidth: gameLogic.boardWidth
+                    boardHeight: gameLogic.boardHeight
                     gameFont: root.gameFont
                     menuColor: root.menuColor
                     playBg: root.playBg
@@ -416,7 +392,10 @@ Item {
                 showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
                 showReplayAndChoice: !root.iconDebugMode && root.staticDebugScene === ""
                 blurSourceItem: preOverlayContent
-                gameLogic: root.gameLogic
+                currentState: gameLogic.state
+                currentScore: gameLogic.score
+                choices: gameLogic.choices
+                choiceIndex: gameLogic.choiceIndex
                 menuColor: root.menuColor
                 gameFont: root.gameFont
                 elapsed: root.elapsed

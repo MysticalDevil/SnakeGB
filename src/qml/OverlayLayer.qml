@@ -3,7 +3,10 @@ import SnakeGB 1.0
 
 Item {
     id: overlays
-    property var gameLogic
+    property int currentState: AppState.Splash
+    property int currentScore: 0
+    property var choices: []
+    property int choiceIndex: 0
     property var menuColor
     property string gameFont: ""
     property real elapsed: 0
@@ -41,7 +44,7 @@ Item {
     anchors.fill: parent
 
     ModalSurface {
-        active: showPausedAndGameOver && gameLogic.state === AppState.Paused
+        active: showPausedAndGameOver && overlays.currentState === AppState.Paused
         z: overlays.layerPause
         blurSourceItem: overlays.blurSourceItem
         blurScale: 1.8
@@ -68,7 +71,7 @@ Item {
     }
 
     ModalSurface {
-        active: showPausedAndGameOver && gameLogic.state === AppState.GameOver
+        active: showPausedAndGameOver && overlays.currentState === AppState.GameOver
         z: overlays.layerGameOver
         blurSourceItem: overlays.blurSourceItem
         blurScale: 1.8
@@ -83,7 +86,7 @@ Item {
         ModalTextPanel {
             anchors.fill: parent
             titleText: "GAME OVER"
-            bodyText: `SCORE ${gameLogic.score}`
+            bodyText: `SCORE ${overlays.currentScore}`
             hintText: "START RESTART   SELECT MENU"
             gameFont: overlays.gameFont
             titleColor: overlays.modalTitleInk
@@ -102,7 +105,7 @@ Item {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.topMargin: 2
-        active: showReplayAndChoice && gameLogic.state === AppState.Replaying
+        active: showReplayAndChoice && overlays.currentState === AppState.Replaying
         menuColor: overlays.menuColor
         gameFont: overlays.gameFont
         hintText: "START MENU   SELECT MENU"
@@ -112,9 +115,10 @@ Item {
     LevelUpModal {
         id: levelUpModal
         anchors.fill: parent
-        active: showReplayAndChoice && gameLogic.state === AppState.ChoiceSelection
+        active: showReplayAndChoice && overlays.currentState === AppState.ChoiceSelection
         z: overlays.layerChoiceModal
-        gameLogic: overlays.gameLogic
+        choices: overlays.choices
+        choiceIndex: overlays.choiceIndex
         gameFont: overlays.gameFont
         elapsed: overlays.elapsed
         drawPowerSymbol: overlays.drawPowerSymbol

@@ -11,7 +11,11 @@ Rectangle {
     property color p3
     property var menuColor
     property var pageTheme: ({})
-    property var gameLogic
+    property var medalLibraryModel: []
+    property int medalIndex: 0
+    property int unlockedCount: 0
+    property var unlockedAchievementIds: []
+    property var setMedalIndex
     property string gameFont
 
     readonly property color pageBg: menuColor("cardPrimary")
@@ -31,7 +35,6 @@ Rectangle {
     readonly property color unknownText: pageTheme && pageTheme.unknownText ? pageTheme.unknownText : secondaryText
     readonly property color scrollbarHandle: pageTheme && pageTheme.scrollbarHandle ? pageTheme.scrollbarHandle : dividerColor
     readonly property color scrollbarTrack: pageTheme && pageTheme.scrollbarTrack ? pageTheme.scrollbarTrack : panelBgSoft
-    readonly property int unlockedCount: gameLogic ? gameLogic.achievements.length : 0
 
     color: pageBg
     clip: true
@@ -86,8 +89,8 @@ Rectangle {
             height: Math.max(
                         0,
                         parent.height - headerPanel.height - footerPanel.height - (parent.spacing * 2))
-            model: gameLogic.medalLibrary
-            property bool syncingFromLogic: false
+            model: medalLibraryModel
+            property bool syncingFromState: false
             currentIndex: -1
             clip: true
             spacing: 6
@@ -95,29 +98,37 @@ Rectangle {
             boundsBehavior: Flickable.StopAtBounds
 
             Component.onCompleted: {
-                syncingFromLogic = true
-                currentIndex = gameLogic.medalIndex
-                syncingFromLogic = false
+                syncingFromState = true
+                currentIndex = medalRoot.medalIndex
+                syncingFromState = false
             }
 
             onCurrentIndexChanged: {
-                if (syncingFromLogic) {
+                if (syncingFromState) {
                     return
                 }
                 medalList.positionViewAtIndex(currentIndex, ListView.Contain)
-                if (currentIndex !== gameLogic.medalIndex) {
-                    gameLogic.dispatchUiAction(`set_medal_index:${currentIndex}`)
+                if (currentIndex !== medalRoot.medalIndex && medalRoot.setMedalIndex) {
+                    medalRoot.setMedalIndex(currentIndex)
+                }
+            }
+
+            onModelChanged: {
+                if (medalList.currentIndex < 0 && medalRoot.medalIndex >= 0) {
+                    medalList.syncingFromState = true
+                    medalList.currentIndex = medalRoot.medalIndex
+                    medalList.syncingFromState = false
                 }
             }
 
             Connections {
-                target: gameLogic
+                target: medalRoot
 
                 function onMedalIndexChanged() {
-                    if (medalList.currentIndex !== gameLogic.medalIndex) {
-                        medalList.syncingFromLogic = true
-                        medalList.currentIndex = gameLogic.medalIndex
-                        medalList.syncingFromLogic = false
+                    if (medalList.currentIndex !== medalRoot.medalIndex) {
+                        medalList.syncingFromState = true
+                        medalList.currentIndex = medalRoot.medalIndex
+                        medalList.syncingFromState = false
                         medalList.positionViewAtIndex(medalList.currentIndex, ListView.Contain)
                     }
                 }
@@ -152,7 +163,7 @@ Rectangle {
 
             delegate: MedalRoomCard {
                 modelData: modelData
-                gameLogic: gameLogic
+                unlocked: modelData && medalRoot.unlockedAchievementIds.indexOf(modelData.id) !== -1
                 selected: medalList.currentIndex === index
                 cardNormal: medalRoot.cardNormal
                 cardSelected: medalRoot.cardSelected

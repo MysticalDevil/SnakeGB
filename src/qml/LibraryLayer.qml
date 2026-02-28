@@ -5,7 +5,9 @@ Rectangle {
     id: libraryLayer
     property bool active: false
     property string gameFont: ""
-    property var gameLogic
+    property var fruitLibraryModel: []
+    property int libraryIndex: 0
+    property var setLibraryIndex
     property var menuColor
     property var pageTheme
     property var powerColor
@@ -27,12 +29,12 @@ Rectangle {
     readonly property color unknownText: pageTheme && pageTheme.unknownText ? pageTheme.unknownText : textMuted
     readonly property int cardRadius: 4
     readonly property int discoveredCount: {
-        if (!gameLogic || !gameLogic.fruitLibrary) {
+        if (!fruitLibraryModel) {
             return 0
         }
         let count = 0
-        for (let i = 0; i < gameLogic.fruitLibrary.length; ++i) {
-            if (gameLogic.fruitLibrary[i].discovered) {
+        for (let i = 0; i < fruitLibraryModel.length; ++i) {
+            if (fruitLibraryModel[i].discovered) {
                 count += 1
             }
         }
@@ -79,7 +81,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: `${libraryLayer.discoveredCount}/${gameLogic.fruitLibrary.length} DISCOVERED`
+                    text: `${libraryLayer.discoveredCount}/${fruitLibraryModel.length} DISCOVERED`
                     color: Qt.rgba(libraryLayer.textMuted.r, libraryLayer.textMuted.g, libraryLayer.textMuted.b, 0.92)
                     font.family: gameFont
                     font.pixelSize: 7
@@ -94,8 +96,8 @@ Rectangle {
             height: Math.max(
                         0,
                         parent.height - headerPanel.height - footerPanel.height - (parent.spacing * 2))
-            model: gameLogic.fruitLibrary
-            property bool syncingFromLogic: false
+            model: fruitLibraryModel
+            property bool syncingFromState: false
             currentIndex: -1
             spacing: 6
             clip: true
@@ -103,29 +105,37 @@ Rectangle {
             boundsBehavior: Flickable.StopAtBounds
 
             Component.onCompleted: {
-                syncingFromLogic = true
-                currentIndex = gameLogic.libraryIndex
-                syncingFromLogic = false
+                syncingFromState = true
+                currentIndex = libraryLayer.libraryIndex
+                syncingFromState = false
             }
 
             onCurrentIndexChanged: {
-                if (syncingFromLogic) {
+                if (syncingFromState) {
                     return
                 }
                 positionViewAtIndex(currentIndex, ListView.Contain)
-                if (currentIndex !== gameLogic.libraryIndex) {
-                    gameLogic.dispatchUiAction(`set_library_index:${currentIndex}`)
+                if (currentIndex !== libraryLayer.libraryIndex && libraryLayer.setLibraryIndex) {
+                    libraryLayer.setLibraryIndex(currentIndex)
+                }
+            }
+
+            onModelChanged: {
+                if (libraryList.currentIndex < 0 && libraryLayer.libraryIndex >= 0) {
+                    libraryList.syncingFromState = true
+                    libraryList.currentIndex = libraryLayer.libraryIndex
+                    libraryList.syncingFromState = false
                 }
             }
 
             Connections {
-                target: gameLogic
+                target: libraryLayer
 
                 function onLibraryIndexChanged() {
-                    if (libraryList.currentIndex !== gameLogic.libraryIndex) {
-                        libraryList.syncingFromLogic = true
-                        libraryList.currentIndex = gameLogic.libraryIndex
-                        libraryList.syncingFromLogic = false
+                    if (libraryList.currentIndex !== libraryLayer.libraryIndex) {
+                        libraryList.syncingFromState = true
+                        libraryList.currentIndex = libraryLayer.libraryIndex
+                        libraryList.syncingFromState = false
                         libraryList.positionViewAtIndex(libraryList.currentIndex, ListView.Contain)
                     }
                 }

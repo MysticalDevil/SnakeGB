@@ -5,7 +5,8 @@ Rectangle {
     property string staticScene: ""
     property string gameFont: ""
     property var menuColor
-    property var gameLogic
+    property int boardWidth: 24
+    property int boardHeight: 18
     property color playBg: "black"
     property color gameGrid: "gray"
     property color gameInk: "white"
@@ -158,8 +159,8 @@ Rectangle {
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.reset()
-                const cw = width / gameLogic.boardWidth
-                const ch = height / gameLogic.boardHeight
+                const cw = width / Math.max(1, staticSceneLayer.boardWidth)
+                const ch = height / Math.max(1, staticSceneLayer.boardHeight)
                 ctx.strokeStyle = staticSceneLayer.gameGrid
                 ctx.lineWidth = 1
                 for (let x = 0; x <= width; x += cw) {
@@ -246,7 +247,6 @@ Rectangle {
             anchors.rightMargin: 4
             z: staticSceneLayer.layerHud
             active: staticSceneLayer.showGame || staticSceneLayer.showReplay
-            gameLogic: staticSceneLayer.gameLogic
             gameFont: staticSceneLayer.gameFont
             ink: staticSceneLayer.gameInk
             highScoreOverride: previewHighScore
