@@ -39,7 +39,7 @@ void EngineAdapter::nextLevel()
     const int levelCount = m_levelRepository.levelCount();
     m_levelIndex = (m_levelIndex + 1) % levelCount;
     loadLevelData(m_levelIndex);
-    if (m_state == StartMenu && hasSave()) {
+    if (m_state == AppState::StartMenu && hasSave()) {
         clearSavedState();
     }
     emit levelChanged();

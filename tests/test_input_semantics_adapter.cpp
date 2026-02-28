@@ -13,16 +13,16 @@ private slots:
 void TestInputSemanticsAdapter::testBackActionByState() {
     using snakegb::adapter::BackAction;
 
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::StartMenu), BackAction::QuitApplication);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::Paused), BackAction::QuitToMenu);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::GameOver), BackAction::QuitToMenu);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::Replaying), BackAction::QuitToMenu);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::ChoiceSelection), BackAction::QuitToMenu);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::Library), BackAction::QuitToMenu);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::MedalRoom), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::StartMenu), BackAction::QuitApplication);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Paused), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::GameOver), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Replaying), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::ChoiceSelection), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Library), BackAction::QuitToMenu);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::MedalRoom), BackAction::QuitToMenu);
 
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::Splash), BackAction::None);
-    QCOMPARE(snakegb::adapter::resolveBackActionForState(IGameEngine::Playing), BackAction::None);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Splash), BackAction::None);
+    QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Playing), BackAction::None);
     QCOMPARE(snakegb::adapter::resolveBackActionForState(-1), BackAction::None);
 }
 

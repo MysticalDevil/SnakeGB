@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app_state.h"
 #include "core/replay_types.h"
 #include "core/session_step_types.h"
 
@@ -14,18 +15,6 @@ class SnakeModel;
  */
 class IGameEngine {
 public:
-    enum StateId {
-        Splash = 0,
-        StartMenu = 1,
-        Playing = 2,
-        Paused = 3,
-        GameOver = 4,
-        Replaying = 5,
-        ChoiceSelection = 6,
-        Library = 7,
-        MedalRoom = 8
-    };
-
     virtual ~IGameEngine() = default;
 
     // --- State Transitions ---

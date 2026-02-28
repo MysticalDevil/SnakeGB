@@ -33,7 +33,7 @@ void EngineAdapter::loadLastSession()
     emit foodChanged();
     emit obstaclesChanged();
     emit ghostChanged();
-    requestStateChange(Paused);
+    requestStateChange(AppState::Paused);
 }
 
 void EngineAdapter::updatePersistence()
@@ -45,7 +45,7 @@ void EngineAdapter::updatePersistence()
 
 void EngineAdapter::enterGameOverState()
 {
-    setInternalState(GameOver);
+    setInternalState(AppState::GameOver);
     updatePersistence();
 }
 

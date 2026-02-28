@@ -9,23 +9,23 @@ namespace snakegb::fsm
 auto createStateFor(IGameEngine &engine, int state) -> std::unique_ptr<GameState>
 {
     switch (state) {
-    case IGameEngine::Splash:
+    case AppState::Splash:
         return std::make_unique<SplashState>(engine);
-    case IGameEngine::StartMenu:
+    case AppState::StartMenu:
         return std::make_unique<MenuState>(engine);
-    case IGameEngine::Playing:
+    case AppState::Playing:
         return std::make_unique<PlayingState>(engine);
-    case IGameEngine::Paused:
+    case AppState::Paused:
         return std::make_unique<PausedState>(engine);
-    case IGameEngine::GameOver:
+    case AppState::GameOver:
         return std::make_unique<GameOverState>(engine);
-    case IGameEngine::Replaying:
+    case AppState::Replaying:
         return std::make_unique<ReplayingState>(engine);
-    case IGameEngine::ChoiceSelection:
+    case AppState::ChoiceSelection:
         return std::make_unique<ChoiceState>(engine);
-    case IGameEngine::Library:
+    case AppState::Library:
         return std::make_unique<LibraryState>(engine);
-    case IGameEngine::MedalRoom:
+    case AppState::MedalRoom:
         return std::make_unique<MedalRoomState>(engine);
     default:
         return nullptr;

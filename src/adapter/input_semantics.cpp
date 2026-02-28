@@ -5,16 +5,15 @@
 namespace snakegb::adapter {
 
 auto resolveBackActionForState(const int state) -> BackAction {
-    using StateId = IGameEngine::StateId;
     switch (state) {
-        case StateId::Paused:
-        case StateId::GameOver:
-        case StateId::Replaying:
-        case StateId::ChoiceSelection:
-        case StateId::Library:
-        case StateId::MedalRoom:
+        case AppState::Paused:
+        case AppState::GameOver:
+        case AppState::Replaying:
+        case AppState::ChoiceSelection:
+        case AppState::Library:
+        case AppState::MedalRoom:
             return BackAction::QuitToMenu;
-        case StateId::StartMenu:
+        case AppState::StartMenu:
             return BackAction::QuitApplication;
         default:
             return BackAction::None;

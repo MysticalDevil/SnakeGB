@@ -121,7 +121,7 @@ void EngineAdapter::debugSeedChoicePreview(const QVariantList &types)
     emit choicesChanged();
     emit choiceIndexChanged();
 
-    setInternalState(ChoiceSelection);
+    setInternalState(AppState::ChoiceSelection);
 }
 
 void EngineAdapter::selectChoice(const int index)
@@ -130,7 +130,7 @@ void EngineAdapter::selectChoice(const int index)
         return;
     }
 
-    if (m_state != Replaying) {
+    if (m_state != AppState::Replaying) {
         m_currentChoiceHistory.append({.frame = m_sessionCore.tickCounter(), .index = index});
     }
 
@@ -146,7 +146,7 @@ void EngineAdapter::selectChoice(const int index)
     }
 
     emit buffChanged();
-    if (m_state == Replaying) {
+    if (m_state == AppState::Replaying) {
         m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
         return;
     }
@@ -154,10 +154,10 @@ void EngineAdapter::selectChoice(const int index)
     m_timer->setInterval(500);
 
     QTimer::singleShot(500, this, [this]() -> void {
-        if (m_state == Playing) {
+        if (m_state == AppState::Playing) {
             m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
         }
     });
 
-    requestStateChange(Playing);
+    requestStateChange(AppState::Playing);
 }

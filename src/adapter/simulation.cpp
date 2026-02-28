@@ -8,8 +8,8 @@ namespace
 {
 
 struct SessionStepDriverConfig {
-    int activeState = IGameEngine::Playing;
-    int collisionTargetState = IGameEngine::GameOver;
+    int activeState = AppState::Playing;
+    int collisionTargetState = AppState::GameOver;
     bool consumeInputQueue = true;
     bool recordConsumedInput = true;
     bool emitCrashFeedbackOnCollision = true;
@@ -21,7 +21,7 @@ auto runSessionStepDriver(IGameEngine &engine, const SessionStepDriverConfig &co
         .boardWidth = 20,
         .boardHeight = 18,
         .consumeInputQueue = config.consumeInputQueue,
-        .pauseOnChoiceTrigger = (config.activeState != IGameEngine::Replaying),
+        .pauseOnChoiceTrigger = (config.activeState != AppState::Replaying),
     });
 
     if (result.consumedInput && config.recordConsumedInput) {
@@ -79,8 +79,8 @@ void EngineAdapter::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, in
 void EngineAdapter::advancePlayingState()
 {
     runSessionStepDriver(*this, {
-                                    .activeState = IGameEngine::Playing,
-                                    .collisionTargetState = IGameEngine::GameOver,
+                                    .activeState = AppState::Playing,
+                                    .collisionTargetState = AppState::GameOver,
                                     .consumeInputQueue = true,
                                     .recordConsumedInput = true,
                                     .emitCrashFeedbackOnCollision = true,
@@ -92,8 +92,8 @@ void EngineAdapter::advanceReplayState()
     applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
 
     runSessionStepDriver(*this, {
-                                    .activeState = IGameEngine::Replaying,
-                                    .collisionTargetState = IGameEngine::StartMenu,
+                                    .activeState = AppState::Replaying,
+                                    .collisionTargetState = AppState::StartMenu,
                                     .consumeInputQueue = false,
                                     .recordConsumedInput = false,
                                     .emitCrashFeedbackOnCollision = false,
@@ -117,10 +117,10 @@ void EngineAdapter::applyCollisionMitigationEffects(
 
 void EngineAdapter::applyChoiceTransition()
 {
-    if (m_state == Replaying) {
+    if (m_state == AppState::Replaying) {
         generateChoices();
     } else {
-        requestStateChange(ChoiceSelection);
+        requestStateChange(AppState::ChoiceSelection);
     }
 }
 

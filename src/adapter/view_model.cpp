@@ -69,7 +69,7 @@ auto EngineAdapter::shellName() const -> QString
 
 auto EngineAdapter::ghost() const -> QVariantList
 {
-    if (m_state == Replaying) {
+    if (m_state == AppState::Replaying) {
         return {};
     }
     QVariantList list;

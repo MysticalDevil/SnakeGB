@@ -34,7 +34,7 @@ void EngineAdapter::restart()
     emit powerUpChanged();
     emit scoreChanged();
     emit foodChanged();
-    requestStateChange(Playing);
+    requestStateChange(AppState::Playing);
 }
 
 void EngineAdapter::startReplay()
@@ -59,14 +59,14 @@ void EngineAdapter::startReplay()
     emit scoreChanged();
     emit foodChanged();
     emit ghostChanged();
-    if (auto nextState = snakegb::fsm::createStateFor(*this, Replaying); nextState) {
+    if (auto nextState = snakegb::fsm::createStateFor(*this, AppState::Replaying); nextState) {
         changeState(std::move(nextState));
     }
 }
 
 void EngineAdapter::enterReplayState()
 {
-    setInternalState(Replaying);
+    setInternalState(AppState::Replaying);
     m_replayInputHistoryIndex = 0;
     m_replayChoiceHistoryIndex = 0;
 }
@@ -98,22 +98,22 @@ void EngineAdapter::debugSeedReplayBuffPreview()
     emit buffChanged();
     emit ghostChanged();
 
-    setInternalState(Replaying);
+    setInternalState(AppState::Replaying);
 }
 
 void EngineAdapter::togglePause()
 {
-    if (m_state == Playing) {
-        requestStateChange(Paused);
-    } else if (m_state == Paused) {
-        requestStateChange(Playing);
+    if (m_state == AppState::Playing) {
+        requestStateChange(AppState::Paused);
+    } else if (m_state == AppState::Paused) {
+        requestStateChange(AppState::Playing);
     }
 }
 
 void EngineAdapter::lazyInitState()
 {
     if (!m_fsmState) {
-        if (auto nextState = snakegb::fsm::createStateFor(*this, Splash); nextState) {
+        if (auto nextState = snakegb::fsm::createStateFor(*this, AppState::Splash); nextState) {
             changeState(std::move(nextState));
         }
     }

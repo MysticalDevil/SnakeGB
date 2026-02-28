@@ -37,8 +37,8 @@ void EngineAdapter::dispatchUiAction(const QString &action)
             .onQuit = [this]() -> void { quit(); },
             .onNextPalette = [this]() -> void { nextPalette(); },
             .onDeleteSave = [this]() -> void { deleteSave(); },
-            .onStateStartMenu = [this]() -> void { requestStateChange(StartMenu); },
-            .onStateSplash = [this]() -> void { requestStateChange(Splash); },
+            .onStateStartMenu = [this]() -> void { requestStateChange(AppState::StartMenu); },
+            .onStateSplash = [this]() -> void { requestStateChange(AppState::Splash); },
             .onFeedbackLight = [this]() -> void { triggerHaptic(1); },
             .onFeedbackUi = [this]() -> void { triggerHaptic(5); },
             .onFeedbackHeavy = [this]() -> void { triggerHaptic(8); },
@@ -51,7 +51,7 @@ void EngineAdapter::move(const int dx, const int dy)
 {
     dispatchStateCallback([dx, dy](GameState &state) -> void { state.handleInput(dx, dy); });
 
-    if (m_state == Playing && m_sessionCore.enqueueDirection(QPoint(dx, dy))) {
+    if (m_state == AppState::Playing && m_sessionCore.enqueueDirection(QPoint(dx, dy))) {
         emit uiInteractTriggered();
     }
 }
@@ -83,19 +83,21 @@ void EngineAdapter::handleBAction()
     // Unified semantics:
     // - B is always the secondary visual action (palette cycle).
     // - Back/menu navigation uses Select/Back action paths.
-    if (m_state == StartMenu || m_state == Playing || m_state == Paused || m_state == GameOver ||
-        m_state == Replaying || m_state == ChoiceSelection || m_state == Library ||
-        m_state == MedalRoom) {
+    if (m_state == AppState::StartMenu || m_state == AppState::Playing ||
+        m_state == AppState::Paused || m_state == AppState::GameOver ||
+        m_state == AppState::Replaying || m_state == AppState::ChoiceSelection ||
+        m_state == AppState::Library || m_state == AppState::MedalRoom) {
         nextPalette();
     }
 }
 
 void EngineAdapter::quitToMenu()
 {
-    if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
+    if (m_state == AppState::Playing || m_state == AppState::Paused ||
+        m_state == AppState::ChoiceSelection) {
         saveCurrentState();
     }
-    requestStateChange(StartMenu);
+    requestStateChange(AppState::StartMenu);
 }
 
 void EngineAdapter::toggleMusic()
@@ -108,7 +110,8 @@ void EngineAdapter::toggleMusic()
 
 void EngineAdapter::quit()
 {
-    if (m_state == Playing || m_state == Paused || m_state == ChoiceSelection) {
+    if (m_state == AppState::Playing || m_state == AppState::Paused ||
+        m_state == AppState::ChoiceSelection) {
         saveCurrentState();
     }
     QCoreApplication::quit();
@@ -116,7 +119,7 @@ void EngineAdapter::quit()
 
 void EngineAdapter::handleSelect()
 {
-    if (m_state == StartMenu) {
+    if (m_state == AppState::StartMenu) {
         nextLevel();
         return;
     }
