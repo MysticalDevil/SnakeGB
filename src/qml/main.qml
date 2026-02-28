@@ -66,38 +66,16 @@ Window {
         setDpadPressed(dx, dy)
     }
 
-    function toggleIconLab() {
-        iconDebugMode = !iconDebugMode
-        konamiIndex = 0
-        staticDebugScene = ""
-        screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
-        if (!iconDebugMode) {
-            gameLogic.dispatchUiAction("state_start_menu")
-        }
+    function setIconDebugMode(enabled) {
+        iconDebugMode = enabled
     }
 
-    function setStaticDebugScene(sceneName) {
-        iconDebugMode = false
+    function setStaticDebugSceneValue(sceneName) {
         staticDebugScene = sceneName
-        if (sceneName === "") {
-            screen.showOSD("STATIC DEBUG OFF")
-            return
-        }
-        screen.showOSD(`STATIC DEBUG: ${sceneName.toUpperCase()}`)
     }
 
-    function cycleStaticDebug(direction) {
-        const scenes = ["boot", "game", "replay"]
-        if (staticDebugScene === "") {
-            setStaticDebugScene("boot")
-            return
-        }
-        let idx = scenes.indexOf(staticDebugScene)
-        if (idx < 0) {
-            idx = 0
-        }
-        idx = (idx + direction + scenes.length) % scenes.length
-        setStaticDebugScene(scenes[idx])
+    function resetKonamiProgress() {
+        konamiIndex = 0
     }
 
     UiActionRouter {
@@ -108,10 +86,10 @@ Window {
         staticDebugScene: window.staticDebugScene
         saveClearConfirmPending: window.saveClearConfirmPending
         handleDirection: window.handleDirection
-        toggleIconLabMode: window.toggleIconLab
-        setStaticScene: window.setStaticDebugScene
-        cycleStaticScene: window.cycleStaticDebug
-        exitIconLab: window.exitIconLabToMenu
+        toggleIconLabMode: debugTokenRouter.toggleIconLabMode
+        setStaticScene: debugTokenRouter.setStaticScene
+        cycleStaticScene: debugTokenRouter.cycleStaticScene
+        exitIconLab: debugTokenRouter.exitIconLab
         performPrimary: window.handleAButton
         performSecondary: window.handleBButton
         performStart: window.handleStartButton
@@ -123,6 +101,20 @@ Window {
         clearDirectionVisuals: window.clearDpadVisuals
     }
 
+    DebugTokenRouter {
+        id: debugTokenRouter
+        gameLogic: gameLogicRef
+        actionMap: window.inputAction
+        iconDebugMode: window.iconDebugMode
+        staticDebugScene: window.staticDebugScene
+        showOsd: screen.showOSD
+        dispatchAction: window.dispatchAction
+        clearDirectionVisuals: window.clearDpadVisuals
+        setIconDebugMode: window.setIconDebugMode
+        setStaticDebugSceneValue: window.setStaticDebugSceneValue
+        resetKonamiProgress: window.resetKonamiProgress
+    }
+
     function dispatchAction(action) {
         if (saveClearConfirmPending && action !== inputAction.Primary) {
             cancelSaveClearConfirm(false)
@@ -130,87 +122,9 @@ Window {
         uiActionRouter.route(action)
     }
 
-    function dispatchDebugToken(token) {
-        if (token === "DBG_MENU") {
-            if (iconDebugMode) {
-                exitIconLabToMenu()
-            } else {
-                gameLogic.dispatchUiAction("state_start_menu")
-                screen.showOSD("DBG: MENU")
-            }
-            return true
-        }
-        if (token === "DBG_PLAY") {
-            gameLogic.dispatchUiAction("state_start_menu")
-            gameLogic.dispatchUiAction(inputAction.Start)
-            screen.showOSD("DBG: PLAY")
-            return true
-        }
-        if (token === "DBG_PAUSE") {
-            gameLogic.dispatchUiAction("state_start_menu")
-            gameLogic.dispatchUiAction(inputAction.Start)
-            gameLogic.dispatchUiAction(inputAction.Start)
-            screen.showOSD("DBG: PAUSE")
-            return true
-        }
-        if (token === "DBG_GAMEOVER") {
-            gameLogic.requestStateChange(AppState.GameOver)
-            screen.showOSD("DBG: GAMEOVER")
-            return true
-        }
-        if (token === "DBG_REPLAY") {
-            gameLogic.requestStateChange(AppState.Replaying)
-            screen.showOSD("DBG: REPLAY")
-            return true
-        }
-        if (token === "DBG_REPLAY_BUFF") {
-            gameLogic.debugSeedReplayBuffPreview()
-            return true
-        }
-        if (token === "DBG_CHOICE") {
-            gameLogic.requestStateChange(AppState.ChoiceSelection)
-            screen.showOSD("DBG: CHOICE")
-            return true
-        }
-        if (token === "DBG_CATALOG") {
-            gameLogic.requestStateChange(AppState.Library)
-            screen.showOSD("DBG: CATALOG")
-            return true
-        }
-        if (token === "DBG_ACHIEVEMENTS") {
-            gameLogic.requestStateChange(AppState.MedalRoom)
-            screen.showOSD("DBG: ACHIEVEMENTS")
-            return true
-        }
-        if (token === "DBG_ICONS") {
-            if (!iconDebugMode) {
-                toggleIconLab()
-            }
-            screen.showOSD("DBG: ICON LAB")
-            return true
-        }
-        if (token === "DBG_STATIC_BOOT") {
-            setStaticDebugScene("boot")
-            return true
-        }
-        if (token === "DBG_STATIC_GAME") {
-            setStaticDebugScene("game")
-            return true
-        }
-        if (token === "DBG_STATIC_REPLAY") {
-            setStaticDebugScene("replay")
-            return true
-        }
-        if (token === "DBG_STATIC_OFF") {
-            setStaticDebugScene("")
-            return true
-        }
-        return false
-    }
-
     function dispatchInjectedToken(rawToken) {
         const token = String(rawToken).trim().toUpperCase()
-        if (dispatchDebugToken(token)) {
+        if (debugTokenRouter.routeDebugToken(token)) {
             return
         }
         if (token === "UP" || token === "U") {
@@ -270,19 +184,19 @@ Window {
             return
         }
         if (token === "STATIC_BOOT") {
-            setStaticDebugScene("boot")
+            debugTokenRouter.setStaticScene("boot")
             return
         }
         if (token === "STATIC_GAME") {
-            setStaticDebugScene("game")
+            debugTokenRouter.setStaticScene("game")
             return
         }
         if (token === "STATIC_REPLAY") {
-            setStaticDebugScene("replay")
+            debugTokenRouter.setStaticScene("replay")
             return
         }
         if (token === "STATIC_OFF") {
-            setStaticDebugScene("")
+            debugTokenRouter.setStaticScene("")
             return
         }
         screen.showOSD(`UNKNOWN INPUT: ${token}`)
@@ -586,7 +500,7 @@ Window {
                 dispatchAction(inputAction.ToggleIconLab)
             }
             else if (event.key === Qt.Key_F7) {
-                cycleStaticDebug(1)
+                debugTokenRouter.cycleStaticScene(1)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shellBridge.secondaryPressed = true
