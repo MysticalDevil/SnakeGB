@@ -20,7 +20,7 @@ private slots:
     void testApplyChoiceSelectionMutatesCoreBuffState();
     void testBootstrapForLevelResetsSessionAndBuildsBody();
     void testBootstrapForLevelPreservesAliasedObstacleInput();
-    void testSeedReplayPreviewOverwritesSessionWithPreviewState();
+    void testSeedPreviewStateOverwritesSessionWithPreviewState();
     void testApplyReplayTimelineConsumesMatchingFrames();
     void testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields();
 };
@@ -271,13 +271,13 @@ void TestSessionCore::testBootstrapForLevelPreservesAliasedObstacleInput()
     QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(2, 2), QPoint(3, 2)}));
 }
 
-void TestSessionCore::testSeedReplayPreviewOverwritesSessionWithPreviewState()
+void TestSessionCore::testSeedPreviewStateOverwritesSessionWithPreviewState()
 {
     snakegb::core::SessionCore core;
     core.state().lastRoguelikeChoiceScore = 88;
     QVERIFY(core.enqueueDirection(QPoint(1, 0)));
 
-    core.seedReplayPreview({
+    core.seedPreviewState({
         .obstacles = {QPoint(1, 1), QPoint(2, 1)},
         .body = {QPoint(10, 4), QPoint(10, 5), QPoint(10, 6), QPoint(10, 7)},
         .food = QPoint(12, 7),

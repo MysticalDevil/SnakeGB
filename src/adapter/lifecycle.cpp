@@ -67,7 +67,7 @@ void GameLogic::debugSeedReplayBuffPreview()
     stopEngineTimer();
     resetTransientRuntimeState();
     loadLevelData(m_levelIndex);
-    m_sessionCore.seedReplayPreview({
+    m_sessionCore.seedPreviewState({
         .obstacles = m_session.obstacles,
         .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
         .food = QPoint(12, 7),

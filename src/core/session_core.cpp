@@ -334,7 +334,7 @@ void SessionCore::restorePersistedSession(const StateSnapshot &snapshot)
     m_state.obstacles = persistedObstacles;
 }
 
-void SessionCore::seedReplayPreview(const ReplayPreviewSeed &seed)
+void SessionCore::seedPreviewState(const PreviewSeed &seed)
 {
     m_state = {};
     m_state.food = seed.food;

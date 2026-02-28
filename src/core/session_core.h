@@ -14,7 +14,7 @@
 
 namespace snakegb::core {
 
-struct ReplayPreviewSeed {
+struct PreviewSeed {
     QList<QPoint> obstacles;
     std::deque<QPoint> body;
     QPoint food = {0, 0};
@@ -78,7 +78,7 @@ public:
                             const std::function<int(int)> &randomBounded) -> SessionAdvanceResult;
     void bootstrapForLevel(QList<QPoint> obstacles, int boardWidth, int boardHeight);
     void restorePersistedSession(const StateSnapshot &snapshot);
-    void seedReplayPreview(const ReplayPreviewSeed &seed);
+    void seedPreviewState(const PreviewSeed &seed);
 
     void resetTransientRuntimeState();
     void resetReplayRuntimeState();
