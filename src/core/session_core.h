@@ -40,6 +40,8 @@ public:
                      const std::function<int(int)> &randomBounded) -> FoodConsumptionResult;
     auto consumePowerUp(const QPoint &head, int baseDurationTicks, bool halfDurationForRich)
         -> PowerUpConsumptionResult;
+    auto applyChoiceSelection(int powerUpType, int baseDurationTicks, bool halfDurationForRich)
+        -> PowerUpConsumptionResult;
     auto tickBuffCountdown() -> bool;
     auto spawnFood(int boardWidth, int boardHeight, const std::function<int(int)> &randomBounded)
         -> bool;
@@ -57,6 +59,7 @@ public:
 
 private:
     [[nodiscard]] auto isOccupied(const QPoint &point) const -> bool;
+    void applyPowerUpResult(const PowerUpConsumptionResult &result);
 
     SessionState m_state;
     std::deque<QPoint> m_body;

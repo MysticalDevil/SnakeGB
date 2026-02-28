@@ -123,16 +123,18 @@ auto SessionCore::consumePowerUp(const QPoint &head, const int baseDurationTicks
         return result;
     }
 
-    if (result.shieldActivated) {
-        m_state.shieldActive = true;
-    }
-    if (result.miniApplied) {
-        m_body = applyMiniShrink(m_body, 3);
-    }
-    m_state.activeBuff = result.activeBuffAfter;
-    m_state.buffTicksRemaining = result.buffTicksRemaining;
-    m_state.buffTicksTotal = result.buffTicksTotal;
+    applyPowerUpResult(result);
     m_state.powerUpPos = QPoint(-1, -1);
+    return result;
+}
+
+auto SessionCore::applyChoiceSelection(const int powerUpType, const int baseDurationTicks,
+                                       const bool halfDurationForRich)
+    -> PowerUpConsumptionResult
+{
+    m_state.lastRoguelikeChoiceScore = m_state.score;
+    const auto result = planPowerUpAcquisition(powerUpType, baseDurationTicks, halfDurationForRich);
+    applyPowerUpResult(result);
     return result;
 }
 
@@ -291,6 +293,19 @@ void SessionCore::restoreSnapshot(const StateSnapshot &snapshot)
     m_state = snapshot.state;
     m_body = snapshot.body;
     m_inputQueue.clear();
+}
+
+void SessionCore::applyPowerUpResult(const PowerUpConsumptionResult &result)
+{
+    if (result.shieldActivated) {
+        m_state.shieldActive = true;
+    }
+    if (result.miniApplied) {
+        m_body = applyMiniShrink(m_body, 3);
+    }
+    m_state.activeBuff = result.activeBuffAfter;
+    m_state.buffTicksRemaining = result.buffTicksRemaining;
+    m_state.buffTicksTotal = result.buffTicksTotal;
 }
 
 auto SessionCore::isOccupied(const QPoint &point) const -> bool

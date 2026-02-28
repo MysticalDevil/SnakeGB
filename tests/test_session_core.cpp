@@ -199,6 +199,25 @@ private slots:
         QCOMPARE(core.state().score, 1);
         QCOMPARE(core.headPosition(), QPoint(11, 10));
     }
+
+    void testApplyChoiceSelectionMutatesCoreBuffState()
+    {
+        snakegb::core::SessionCore core;
+        core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)});
+        core.state().score = 18;
+        core.state().lastRoguelikeChoiceScore = -1000;
+
+        const auto result = core.applyChoiceSelection(
+            static_cast<int>(snakegb::core::BuffId::Mini), 80, false);
+
+        QVERIFY(result.ate);
+        QVERIFY(result.miniApplied);
+        QCOMPARE(core.state().lastRoguelikeChoiceScore, 18);
+        QCOMPARE(core.state().activeBuff, static_cast<int>(snakegb::core::BuffId::None));
+        QCOMPARE(core.state().buffTicksRemaining, 80);
+        QCOMPARE(core.state().buffTicksTotal, 80);
+        QCOMPARE(core.body().size(), std::size_t(3));
+    }
 };
 // NOLINTEND(readability-convert-member-functions-to-static,readability-function-cognitive-complexity)
 
