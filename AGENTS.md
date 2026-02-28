@@ -1,9 +1,9 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/`: C++ game/runtime code (GameLogic adapter in `src/adapter/`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
+- `src/`: C++ game/runtime code (EngineAdapter in `src/adapter/`, FSM in `src/fsm/`, audio/profile/input adapters) and QML UI in `src/qml/`.
 - `src/themes/` and `src/levels/`: JSON-driven theme and level data.
-- `tests/`: QtTest-based unit/integration tests (`tests/test_game_logic.cpp`).
+- `tests/`: QtTest-based unit/integration tests (`tests/test_engine_adapter.cpp`).
 - `scripts/`: developer automation (desktop UI checks, input injection, Android deploy).
 - `docs/`: architecture and refactor plans (`ARCHITECTURE_REFACTOR_PLAN.md`).
 - `android/`: Android manifest/resources used by Qt Android packaging.
@@ -69,12 +69,18 @@ make clean
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
 
 ## Testing Guidelines
-- Framework: `Qt6::Test` via `game-tests` target and `ctest` (`GameLogicTest`).
+- Framework: `Qt6::Test` via `engine-adapter-tests` target and `ctest` (`EngineAdapterTest`).
 - Add tests in `tests/test_*.cpp`; keep test names descriptive by behavior (for example, `test_portalWrap_keepsHeadInsideBounds`).
 - For UI/input regressions, use scripts such as `scripts/ui_self_check.sh` and `scripts/input_semantics_matrix_wayland.sh` when relevant.
 - For palette/readability verification, use `scripts/palette_capture_matrix.sh` (captures 5 palette variants for menu/page/icon-lab flows).
 - UI capture scripts must be run serially. Do not start `scripts/ui_nav_capture.sh`, `scripts/palette_capture_focus.sh`, `scripts/palette_capture_matrix.sh`, or `scripts/palette_capture_review.sh` in parallel.
 - `scripts/ui_nav_capture.sh` owns the global capture lock; if you need multiple captures, queue them in one shell loop or run them one-by-one.
+- Shared script helpers live under `scripts/lib/`:
+  - `script_common.sh` for generic shell helpers
+  - `ui_window_common.sh` for process/window lifecycle
+  - `ui_nav_runtime.sh` for runtime-input-file capture/debug flows
+  - `capture_batch.sh` for palette wrapper loops and screenshot validation
+  - Detailed script structure and maintenance rules live in `docs/SCRIPT_AUTOMATION.md`.
 - Current injectable UI debug entry points:
   - `scripts/ui_nav_capture.sh dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
   - `scripts/ui_nav_capture.sh dbg-static-{boot,game,replay,choice} ...` with `DBG_STATIC_PARAMS=...` to inject static scene content.
