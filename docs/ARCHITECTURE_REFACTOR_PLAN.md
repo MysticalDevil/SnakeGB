@@ -1,6 +1,6 @@
 # SnakeGB Architecture Refactor Plan
 
-Last updated: 2026-02-22
+Last updated: 2026-02-28
 Scope: architecture baseline review + GameLogic core/adapter decoupling roadmap.
 
 ## 1. Executive Summary
@@ -98,7 +98,7 @@ Note:
 
 ## 4. Migration Plan (Atomic Steps)
 
-## Phase A: Core extraction without behavior change
+## Phase A: Core extraction without behavior change [Partial]
 
 Goal:
 - Introduce `GameSessionCore` and move tick/rule progression first.
@@ -113,7 +113,11 @@ Acceptance:
 - Existing gameplay behavior remains unchanged.
 - Existing manual flows and scripts still pass.
 
-## Phase B: Adapter contraction
+Current status:
+- rule/helper extraction into `src/core/` is real and already useful;
+- but the planned `GameSessionCore` object and immutable snapshot boundary are still missing.
+
+## Phase B: Adapter contraction [Completed]
 
 Goal:
 - Make adapter thin and explicit.
@@ -127,7 +131,12 @@ Acceptance:
 - QML does not call rule internals directly.
 - Adapter methods become orchestration-only.
 
-## Phase C: Headless reliability
+Current status:
+- adapter responsibilities have been split across focused translation units;
+- action-oriented adapter routing is in place;
+- hotspot file size reduction target is already met.
+
+## Phase C: Headless reliability [Partial]
 
 Goal:
 - Make gameplay verifiable without GUI.
@@ -140,6 +149,10 @@ Tasks:
 Acceptance:
 - Core tests pass in CI without GUI runtime.
 - Input matrix + smoke tests remain green.
+
+Current status:
+- headless tests for rule/helpers and adapter seams exist and are valuable;
+- but there is still no standalone full-session gameplay core running an entire session/replay without the adapter layer.
 
 ## 5. Hard Acceptance KPIs
 
@@ -180,14 +193,54 @@ Validation after each commit:
 - input semantics smoke/matrix
 - targeted gameplay checks (pause/B/menu/level switch/replay trigger)
 
-## 8. Documentation Status
+## 8. Current Status
 
-- [x] Refactor objectives documented.
-- [x] Module boundaries defined.
-- [x] Phase plan and KPIs defined.
-- [x] Phase A implementation started.
-- [x] Phase B implementation completed.
-- [x] Phase C test hardening completed.
+This section is intentionally stricter than the earlier progress notes below. It reflects the current repository
+state, not the desired end state.
+
+### 8.1 Completed
+
+- Refactor objectives are documented.
+- Module boundaries and target layering are documented.
+- Phase plan and acceptance KPIs are documented.
+- Adapter contraction work is substantially implemented:
+  - `GameLogic` has been split into focused adapter translation units.
+  - action-oriented QML input routing is in place via `dispatchUiAction(...)`.
+  - hotspot file size reduction target is met (`src/adapter/engine_adapter.cpp` is already well under 600 lines).
+- Headless/supporting tests exist for:
+  - core rule helpers
+  - input semantics
+  - UI action parsing/dispatch
+  - level loading/apply/script runtime
+  - library/choice model mapping
+
+### 8.2 Partially Completed
+
+- Phase A core extraction has started, but only as rule/helper extraction.
+  - deterministic rule code now lives in `src/core/`.
+  - session/runtime helpers are extracted.
+  - however, the planned `GameSessionCore` object and immutable snapshot API are still not present.
+- Phase C headless reliability is only partially complete.
+  - rule/helper tests are in place and useful.
+  - however, there is still no standalone full-session gameplay core that can run an entire game/replay headlessly.
+- QML coupling reduction is improved, but not finished.
+  - most interactive paths are action-routed.
+  - however, QML still directly touches several `GameLogic` methods/properties and debug-only entry points.
+- KPI progress is mixed.
+  - file-size, symbolic state checks, and compatibility goals are in good shape.
+  - true core replaceability and full headless session execution are not there yet.
+
+### 8.3 Not Completed
+
+- `GameSessionCore` has not been introduced.
+- `state_snapshot.h` has not been introduced as the planned immutable render/query boundary.
+- The minimal core command interface from Phase A is not implemented as one coherent core API
+  (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice` on a dedicated core object).
+- The proposed `services` split in Section 3.3 is not implemented as dedicated `src/services/` modules.
+- The refactor cannot yet be considered complete under the hard KPIs in Section 5, because:
+  - the core still cannot run a full session and replay independently of the adapter/QML stack;
+  - `GameLogic` still owns some gameplay-facing orchestration and debug/runtime entry points that would belong behind
+    a true core/adapter boundary.
 
 ## 9. Deferred Low-Priority Items
 
