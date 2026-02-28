@@ -22,10 +22,10 @@ Item {
     property int iconLabSelection: 0
 
     readonly property var menuColor: function(role) {
-        return ScreenThemeTokens.menuColor(root.engineAdapter.paletteName, role)
+        return ScreenThemeTokens.menuColor(themeViewModel.paletteName, role)
     }
     readonly property var powerColor: function(type) {
-        return ScreenThemeTokens.powerAccent(root.engineAdapter.paletteName, type, root.gameInk)
+        return ScreenThemeTokens.powerAccent(themeViewModel.paletteName, type, root.gameInk)
     }
     readonly property var buffName: PowerMeta.buffName
     readonly property var powerGlyph: PowerMeta.powerGlyph
@@ -34,7 +34,7 @@ Item {
     readonly property var rarityName: PowerMeta.rarityName
     readonly property var rarityColor: function(type) {
         return ScreenThemeTokens.rarityAccent(
-            root.engineAdapter.paletteName,
+            themeViewModel.paletteName,
             PowerMeta.rarityTier(type),
             root.menuColor("actionInk"))
     }
@@ -309,7 +309,7 @@ Item {
                     gameFont: root.gameFont
                     powerColor: root.powerColor
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(engineAdapter.paletteName, "catalog")
+                    pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "catalog")
                 }
 
                 // --- STATE 8: MEDAL ROOM ---
@@ -321,7 +321,7 @@ Item {
                     p2: root.p2
                     p3: root.p3
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(engineAdapter.paletteName, "achievements")
+                    pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "achievements")
                     medalLibraryModel: engineAdapter.medalLibrary
                     medalIndex: engineAdapter.medalIndex
                     unlockedCount: engineAdapter.achievements.length

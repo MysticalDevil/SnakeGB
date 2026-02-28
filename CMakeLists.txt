@@ -144,7 +144,6 @@ endif()
 
 enable_testing()
 add_executable(engine-adapter-tests
-    src/app_state.h
     tests/test_engine_adapter.cpp
 )
 target_include_directories(engine-adapter-tests PRIVATE src)
@@ -207,6 +206,22 @@ target_include_directories(adapter-semantics-tests PRIVATE src)
 target_link_libraries(adapter-semantics-tests PRIVATE Qt6::Test Qt6::Core snakegb_adapter)
 add_test(NAME AdapterSemanticsTest COMMAND adapter-semantics-tests)
 set_tests_properties(AdapterSemanticsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-theme-tests
+    tests/test_theme_view_model.cpp
+)
+target_include_directories(adapter-theme-tests PRIVATE src)
+target_link_libraries(adapter-theme-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(adapter-theme-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(adapter-theme-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+endif()
+if(TARGET Qt6::Sensors)
+    target_link_libraries(adapter-theme-tests PRIVATE Qt6::Sensors)
+    target_compile_definitions(adapter-theme-tests PRIVATE SNAKEGB_HAS_SENSORS)
+endif()
+add_test(NAME AdapterThemeTest COMMAND adapter-theme-tests)
+set_tests_properties(AdapterThemeTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
 add_executable(adapter-level-loader-tests
     tests/test_level_loader_adapter.cpp

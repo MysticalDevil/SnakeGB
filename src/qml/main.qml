@@ -10,10 +10,10 @@ Window {
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
 
-    readonly property color p0: engineAdapter.palette[0]
-    readonly property color p1: engineAdapter.palette[1]
-    readonly property color p2: engineAdapter.palette[2]
-    readonly property color p3: engineAdapter.palette[3]
+    readonly property color p0: themeViewModel.palette[0]
+    readonly property color p1: themeViewModel.palette[1]
+    readonly property color p2: themeViewModel.palette[2]
+    readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
     property var engineAdapterRef: engineAdapter
 
@@ -327,7 +327,7 @@ Window {
         target: engineAdapter
         function onPaletteChanged() { 
             if (engineAdapter.state === AppState.Splash) return
-            screen.showOSD(engineAdapter.paletteName) 
+            screen.showOSD(themeViewModel.paletteName)
         }
         function onShellColorChanged() { 
             if (engineAdapter.state !== AppState.Splash) {
@@ -382,8 +382,8 @@ Window {
                 id: shell
                 anchors.fill: parent
                 bridge: shellBridge
-                shellColor: engineAdapter.shellColor
-                shellThemeName: engineAdapter.shellName
+                shellColor: themeViewModel.shellColor
+                shellThemeName: themeViewModel.shellName
                 volume: engineAdapter.volume
                 
                 ScreenView {

@@ -20,8 +20,11 @@ target_include_directories(snakegb_fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(snakegb_fsm PRIVATE snakegb_core Qt6::Core)
 
 add_library(snakegb_adapter
+    app_state.h
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
+    adapter/theme_view_model.h
+    adapter/theme_view_model.cpp
     adapter/input_router.cpp
     adapter/tick_driver.cpp
     adapter/simulation.cpp
@@ -59,7 +62,6 @@ target_link_libraries(snakegb_adapter PRIVATE snakegb_fsm snakegb_core
 
 add_executable(SnakeGB
     main.cpp
-    app_state.h
     power_up_id.h
     input_injection_pipe.cpp
     input_injection_pipe.h
