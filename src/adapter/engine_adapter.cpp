@@ -45,21 +45,34 @@ auto stateName(const int state) -> const char *
 } // namespace
 
 GameLogic::GameLogic(QObject *parent)
-    : QObject(parent), m_rng(QRandomGenerator::securelySeeded()),
-      m_session(m_sessionCore.state()),
+    : QObject(parent), m_rng(QRandomGenerator::securelySeeded()), m_session(m_sessionCore.state()),
       m_timer(std::make_unique<QTimer>()),
 #ifdef SNAKEGB_HAS_SENSORS
       m_accelerometer(std::make_unique<QAccelerometer>()),
 #endif
-      m_profileManager(std::make_unique<ProfileManager>()), m_inputQueue(m_sessionCore.inputQueue()),
-      m_fsmState(nullptr)
+      m_profileManager(std::make_unique<ProfileManager>()),
+      m_inputQueue(m_sessionCore.inputQueue()), m_fsmState(nullptr)
 {
+    m_audioBus.setCallbacks({
+        .startMusic = [this]() -> void { emit audioStartMusic(); },
+        .stopMusic = [this]() -> void { emit audioStopMusic(); },
+        .setPaused = [this](const bool paused) -> void { emit audioSetPaused(paused); },
+        .setMusicEnabled = [this](const bool enabled) -> void {
+            emit audioSetMusicEnabled(enabled);
+        },
+        .setVolume = [this](const float volume) -> void { emit audioSetVolume(volume); },
+        .setScore = [this](const int score) -> void { emit audioSetScore(score); },
+        .playBeep = [this](const int frequencyHz, const int durationMs, const float pan) -> void {
+            emit audioPlayBeep(frequencyHz, durationMs, pan);
+        },
+        .playCrash = [this](const int durationMs) -> void { emit audioPlayCrash(durationMs); },
+    });
+
     connect(m_timer.get(), &QTimer::timeout, this, &GameLogic::update);
     setupAudioSignals();
     setupSensorRuntime();
-    m_snakeModel.setBodyChangedCallback([this](const std::deque<QPoint> &body) {
-        m_sessionCore.setBody(body);
-    });
+    m_snakeModel.setBodyChangedCallback(
+        [this](const std::deque<QPoint> &body) { m_sessionCore.setBody(body); });
 
     m_sessionCore.setBody({{10, 10}, {10, 11}, {10, 12}});
     syncSnakeModelFromCore();
@@ -86,60 +99,44 @@ void GameLogic::syncSnakeModelFromCore()
 void GameLogic::setupAudioSignals()
 {
     connect(this, &GameLogic::foodEaten, this, [this](const float pan) -> void {
-        emit audioSetScore(m_session.score);
-        emit audioPlayBeep(880, 100, pan);
+        m_audioBus.playFood({.score = m_session.score, .pan = pan});
         triggerHaptic(3);
     });
 
     connect(this, &GameLogic::powerUpEaten, this, [this]() -> void {
-        emit audioPlayBeep(1200, 150, 0.0F);
+        m_audioBus.playPowerUp();
         triggerHaptic(6);
     });
 
     connect(this, &GameLogic::playerCrashed, this, [this]() -> void {
-        emit audioPlayCrash(500);
+        m_audioBus.playCrash();
         triggerHaptic(12);
     });
 
     connect(this, &GameLogic::uiInteractTriggered, this, [this]() -> void {
-        emit audioPlayBeep(200, 50, 0.0F);
+        m_audioBus.playUiInteract();
         triggerHaptic(2);
     });
 
-    connect(
-        this, &GameLogic::stateChanged, this, [this]() -> void {
-            qInfo().noquote() << "[AudioFlow][GameLogic] stateChanged ->" << stateName(m_state)
-                              << "(musicEnabled=" << m_musicEnabled << ")";
-            if (m_state == StartMenu) {
-                const int token = m_audioStateToken;
-                QTimer::singleShot(650, this, [this, token]() -> void {
+    connect(this, &GameLogic::stateChanged, this, [this]() -> void {
+        qInfo().noquote() << "[AudioFlow][GameLogic] stateChanged ->" << stateName(m_state)
+                          << "(musicEnabled=" << m_musicEnabled << ")";
+        const int token = m_audioStateToken;
+        m_audioBus.handleStateChanged(
+            static_cast<int>(m_state), m_musicEnabled,
+            [this, token](const int delayMs, const std::function<void()> &callback) -> void {
+                QTimer::singleShot(delayMs, this, [this, token, callback]() -> void {
                     if (token != m_audioStateToken) {
                         qInfo().noquote()
                             << "[AudioFlow][GameLogic] menu BGM deferred start canceled by token";
                         return;
                     }
-                    if (m_state == StartMenu && m_musicEnabled) {
-                        qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStartMusic (menu)";
-                        emit audioStartMusic();
+                    if (callback) {
+                        callback();
                     }
                 });
-                return;
-            }
-
-            if (m_state == Playing || m_state == Replaying) {
-                if (m_musicEnabled) {
-                    qInfo().noquote()
-                        << "[AudioFlow][GameLogic] emit audioStartMusic (playing/replaying)";
-                    emit audioStartMusic();
-                }
-                return;
-            }
-
-            if (m_state == Splash || m_state == GameOver) {
-                qInfo().noquote() << "[AudioFlow][GameLogic] emit audioStopMusic (splash/gameover)";
-                emit audioStopMusic();
-            }
-        });
+            });
+    });
 }
 
 void GameLogic::setupSensorRuntime()
@@ -183,8 +180,7 @@ void GameLogic::setInternalState(const int s)
                           << "->" << stateName(next);
         m_state = next;
         m_audioStateToken++;
-        emit audioSetPaused(m_state == Paused || m_state == ChoiceSelection || m_state == Library ||
-                            m_state == MedalRoom);
+        m_audioBus.syncPausedState(static_cast<int>(m_state));
         emit stateChanged();
     }
 }
@@ -244,7 +240,7 @@ void GameLogic::playEventSound(const int type, const float pan)
     } else if (type == 2) {
         emit uiInteractTriggered();
     } else if (type == 3) {
-        emit audioPlayBeep(1046, 140, 0.0F);
+        m_audioBus.playConfirm();
     }
 }
 

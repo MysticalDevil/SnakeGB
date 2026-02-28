@@ -1,24 +1,20 @@
 #include "level_loader.h"
 
-#include <QFile>
+#include "services/level_repository.h"
 
-namespace snakegb::adapter {
+namespace snakegb::adapter
+{
 
-auto loadResolvedLevelFromResource(const QStringView resourcePath,
-                                   const int levelIndex) -> std::optional<snakegb::core::ResolvedLevelData> {
-    QFile file(resourcePath.toString());
-    if (!file.open(QIODevice::ReadOnly)) {
-        return std::nullopt;
-    }
-    return snakegb::core::resolvedLevelDataFromJsonBytes(file.readAll(), levelIndex);
+auto loadResolvedLevelFromResource(const QStringView resourcePath, const int levelIndex)
+    -> std::optional<snakegb::core::ResolvedLevelData>
+{
+    return snakegb::services::LevelRepository(resourcePath.toString())
+        .loadResolvedLevel(levelIndex);
 }
 
-auto readLevelCountFromResource(const QStringView resourcePath, const int fallbackCount) -> int {
-    QFile file(resourcePath.toString());
-    if (!file.open(QIODevice::ReadOnly)) {
-        return fallbackCount;
-    }
-    return snakegb::core::levelCountFromJsonBytes(file.readAll(), fallbackCount);
+auto readLevelCountFromResource(const QStringView resourcePath, const int fallbackCount) -> int
+{
+    return snakegb::services::LevelRepository(resourcePath.toString(), fallbackCount).levelCount();
 }
 
 } // namespace snakegb::adapter

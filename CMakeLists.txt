@@ -215,6 +215,22 @@ target_link_libraries(adapter-level-loader-tests PRIVATE Qt6::Test Qt6::Core sna
 add_test(NAME AdapterLevelLoaderTest COMMAND adapter-level-loader-tests)
 set_tests_properties(AdapterLevelLoaderTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(service-level-repository-tests
+    tests/test_level_repository_service.cpp
+)
+target_include_directories(service-level-repository-tests PRIVATE src)
+target_link_libraries(service-level-repository-tests PRIVATE Qt6::Test Qt6::Core snakegb_adapter)
+add_test(NAME ServiceLevelRepositoryTest COMMAND service-level-repository-tests)
+set_tests_properties(ServiceLevelRepositoryTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(service-audio-bus-tests
+    tests/test_audio_bus_service.cpp
+)
+target_include_directories(service-audio-bus-tests PRIVATE src)
+target_link_libraries(service-audio-bus-tests PRIVATE Qt6::Test Qt6::Core snakegb_adapter)
+add_test(NAME ServiceAudioBusTest COMMAND service-audio-bus-tests)
+set_tests_properties(ServiceAudioBusTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-level-applier-tests
     tests/test_level_applier_adapter.cpp
 )

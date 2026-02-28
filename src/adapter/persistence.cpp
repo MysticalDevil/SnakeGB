@@ -1,15 +1,18 @@
 #include "adapter/game_logic.h"
 
-#include "adapter/ghost_store.h"
 #include "adapter/profile_bridge.h"
-#include "adapter/session_state.h"
 #include "fsm/game_state.h"
 
 using namespace Qt::StringLiterals;
 
+auto GameLogic::saveRepository() const -> snakegb::services::SaveRepository
+{
+    return snakegb::services::SaveRepository(m_profileManager.get());
+}
+
 void GameLogic::loadLastSession()
 {
-    const auto snapshot = snakegb::adapter::loadSessionSnapshot(m_profileManager.get());
+    const auto snapshot = saveRepository().loadSessionSnapshot();
     if (!snapshot.has_value()) {
         return;
     }
@@ -48,10 +51,10 @@ void GameLogic::enterGameOverState()
 void GameLogic::lazyInit()
 {
     m_levelIndex = snakegb::adapter::levelIndex(m_profileManager.get());
-    emit audioSetVolume(snakegb::adapter::volume(m_profileManager.get()));
+    m_audioBus.applyVolume(snakegb::adapter::volume(m_profileManager.get()));
 
     snakegb::adapter::GhostSnapshot snapshot;
-    if (snakegb::adapter::loadGhostSnapshot(snapshot)) {
+    if (saveRepository().loadGhostSnapshot(snapshot)) {
         m_bestRecording = snapshot.recording;
         m_bestRandomSeed = snapshot.randomSeed;
         m_bestInputHistory = snapshot.inputHistory;
@@ -75,13 +78,14 @@ void GameLogic::updateHighScore()
         m_bestRandomSeed = m_randomSeed;
         m_bestLevelIndex = m_levelIndex;
 
-        const bool savedGhost = snakegb::adapter::saveGhostSnapshot({
+        const snakegb::adapter::GhostSnapshot ghostSnapshot{
             .recording = m_bestRecording,
             .randomSeed = m_bestRandomSeed,
             .inputHistory = m_bestInputHistory,
             .levelIndex = m_bestLevelIndex,
             .choiceHistory = m_bestChoiceHistory,
-        });
+        };
+        const bool savedGhost = saveRepository().saveGhostSnapshot(ghostSnapshot);
         if (!savedGhost) {
             qWarning().noquote() << "[ReplayFlow][GameLogic] failed to persist ghost snapshot";
         }
@@ -92,7 +96,7 @@ void GameLogic::updateHighScore()
 void GameLogic::saveCurrentState()
 {
     if (m_profileManager) {
-        snakegb::adapter::saveSession(m_profileManager.get(), m_sessionCore.snapshot({}));
+        saveRepository().saveSession(m_sessionCore.snapshot({}));
         emit hasSaveChanged();
     }
 }
@@ -100,7 +104,7 @@ void GameLogic::saveCurrentState()
 void GameLogic::clearSavedState()
 {
     if (m_profileManager) {
-        snakegb::adapter::clearSession(m_profileManager.get());
+        saveRepository().clearSession();
         emit hasSaveChanged();
     }
 }

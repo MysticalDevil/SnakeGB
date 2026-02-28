@@ -128,6 +128,7 @@ Current status:
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM states owning replay cursors or persistence calls;
 - the playing/replaying step driver no longer lives in `src/fsm/`; FSM states now delegate step advancement entirely through engine hooks;
 - `SessionRunner` now provides a headless core surface that can run full session and replay timelines without the adapter/QML layer;
+- dedicated `src/services/` modules now exist for level loading, audio policy, and session/ghost persistence;
 - but full replay execution and Qt-facing side effects are still split between adapter and core.
 
 ## Phase B: Adapter contraction [Completed]
@@ -147,6 +148,8 @@ Acceptance:
 Current status:
 - adapter responsibilities have been split across focused translation units;
 - action-oriented adapter routing is in place;
+- dedicated `src/services/` modules now exist for level loading, audio policy, and save/ghost persistence;
+- adapter infra calls for level data, audio policy, and session/ghost persistence now route through those services;
 - hotspot file size reduction target is already met.
 
 ## Phase C: Headless reliability [Partial]
@@ -246,6 +249,7 @@ state, not the desired end state.
 - replay and game-over state entry/update orchestration now route through engine-level commands instead of FSM-local replay cursor state.
 - the playing/replaying step driver has also been removed from the FSM layer in favor of engine-owned hooks.
 - a `SessionRunner` now drives full session and replay execution headlessly without the adapter layer.
+- the proposed `services` split in Section 3.3 now exists as dedicated `src/services/` modules.
 - however, Qt-facing side effects still are not fully moved behind that core object.
 - Phase C headless reliability is only partially complete.
   - rule/helper tests are in place and useful.
@@ -262,7 +266,6 @@ state, not the desired end state.
 
 - The minimal core command interface from Phase A is not implemented as one coherent core API
   (`enqueueDirection`, `tick`, `applyMetaAction`, `selectChoice` on a dedicated core object).
-- The proposed `services` split in Section 3.3 is not implemented as dedicated `src/services/` modules.
 - The refactor cannot yet be considered complete under the hard KPIs in Section 5, because:
   - `GameLogic` still owns some gameplay-facing orchestration and debug/runtime entry points that would belong behind
     a true core/adapter boundary.

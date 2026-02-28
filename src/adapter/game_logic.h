@@ -12,6 +12,9 @@
 #include "core/session_core.h"
 #include "core/session_state.h"
 #include "game_engine_interface.h"
+#include "services/audio_bus.h"
+#include "services/level_repository.h"
+#include "services/save_repository.h"
 #ifdef SNAKEGB_HAS_SENSORS
 #include <QAccelerometer>
 #endif
@@ -450,6 +453,7 @@ private:
     void checkAchievements();
     void runLevelScript();
     static auto isOutOfBounds(const QPoint &p) noexcept -> bool;
+    [[nodiscard]] auto saveRepository() const -> snakegb::services::SaveRepository;
 
     SnakeModel m_snakeModel;
     QRandomGenerator m_rng;
@@ -481,6 +485,8 @@ private:
     QPointF m_reflectionOffset = {0.0, 0.0};
     QJSEngine m_jsEngine;
     QString m_currentScript;
+    snakegb::services::AudioBus m_audioBus;
+    snakegb::services::LevelRepository m_levelRepository;
 
     std::unique_ptr<QTimer> m_timer;
 #ifdef SNAKEGB_HAS_SENSORS

@@ -102,12 +102,7 @@ void GameLogic::toggleMusic()
 {
     m_musicEnabled = !m_musicEnabled;
     qInfo().noquote() << "[AudioFlow][GameLogic] toggleMusic ->" << m_musicEnabled;
-    emit audioSetMusicEnabled(m_musicEnabled);
-    if (m_musicEnabled && m_state != Splash) {
-        emit audioStartMusic();
-    } else if (!m_musicEnabled) {
-        emit audioStopMusic();
-    }
+    m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state));
     emit musicEnabledChanged();
 }
 

@@ -43,6 +43,9 @@ add_library(snakegb_adapter
     adapter/level_applier.cpp
     adapter/level_loader.cpp
     adapter/level_script_runtime.cpp
+    services/audio_bus.cpp
+    services/level_repository.cpp
+    services/save_repository.cpp
     profile_manager.cpp
     profile_manager.h
 )

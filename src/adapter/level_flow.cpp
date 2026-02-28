@@ -4,7 +4,6 @@
 
 #include "adapter/achievement_runtime.h"
 #include "adapter/level_applier.h"
-#include "adapter/level_loader.h"
 #include "adapter/level_script_runtime.h"
 #include "adapter/profile_bridge.h"
 #include "core/level_runtime.h"
@@ -33,8 +32,7 @@ void GameLogic::loadLevelData(const int i)
     const int safeIndex = snakegb::core::normalizedFallbackLevelIndex(i);
     m_currentLevelName = snakegb::core::fallbackLevelData(safeIndex).name;
 
-    const auto resolvedLevel =
-        snakegb::adapter::loadResolvedLevelFromResource(u"qrc:/src/levels/levels.json"_s, i);
+    const auto resolvedLevel = m_levelRepository.loadResolvedLevel(i);
     if (!resolvedLevel.has_value()) {
         applyFallbackLevelData(safeIndex);
         return;
@@ -69,8 +67,8 @@ void GameLogic::checkAchievements()
 
 void GameLogic::runLevelScript()
 {
-    if (snakegb::adapter::applyLevelScriptStep(m_jsEngine, m_currentLevelName, m_session.tickCounter,
-                                               m_session.obstacles)) {
+    if (snakegb::adapter::applyLevelScriptStep(m_jsEngine, m_currentLevelName,
+                                               m_session.tickCounter, m_session.obstacles)) {
         emit obstaclesChanged();
     }
 }

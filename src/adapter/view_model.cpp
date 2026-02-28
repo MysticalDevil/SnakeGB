@@ -114,7 +114,7 @@ auto GameLogic::volume() const -> float
 void GameLogic::setVolume(float value)
 {
     snakegb::adapter::setVolume(m_profileManager.get(), value);
-    emit audioSetVolume(value);
+    m_audioBus.applyVolume(value);
     emit volumeChanged();
 }
 

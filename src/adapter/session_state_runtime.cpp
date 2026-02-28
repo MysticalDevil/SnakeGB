@@ -2,7 +2,6 @@
 
 #include <QList>
 
-#include "adapter/level_loader.h"
 #include "adapter/profile_bridge.h"
 #include "core/game_rules.h"
 
@@ -10,7 +9,7 @@ using namespace Qt::StringLiterals;
 
 auto GameLogic::hasSave() const -> bool
 {
-    return snakegb::adapter::hasSession(m_profileManager.get());
+    return saveRepository().hasSession();
 }
 
 auto GameLogic::hasReplay() const noexcept -> bool
@@ -37,8 +36,7 @@ void GameLogic::resetReplayRuntimeTracking()
 
 void GameLogic::nextLevel()
 {
-    const int levelCount{
-        snakegb::adapter::readLevelCountFromResource(u"qrc:/src/levels/levels.json"_s, 6)};
+    const int levelCount = m_levelRepository.levelCount();
     m_levelIndex = (m_levelIndex + 1) % levelCount;
     loadLevelData(m_levelIndex);
     if (m_state == StartMenu && hasSave()) {
