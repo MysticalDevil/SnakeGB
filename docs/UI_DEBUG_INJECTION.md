@@ -8,7 +8,7 @@ The current injection interfaces cover three layers:
 
 1. Runtime debug tokens routed by `src/qml/UiDebugController.qml`
 2. Script-level target helpers in `scripts/lib/ui_nav_targets.sh`
-3. Manual and automated launch flows in `scripts/ui_nav_capture.sh` and `scripts/ui_nav_debug.sh`
+3. Manual and automated launch flows in `scripts/ui/nav/capture.sh` and `scripts/ui/nav/debug.sh`
 
 These interfaces are intended for:
 
@@ -21,22 +21,22 @@ These interfaces are intended for:
 
 ### Automated capture
 
-Use `scripts/ui_nav_capture.sh` to launch, route to a scene, and save a screenshot.
+Use `scripts/ui/nav/capture.sh` to launch, route to a scene, and save a screenshot.
 
 ```bash
-./scripts/ui_nav_capture.sh menu /tmp/menu.png
-DBG_CHOICE_TYPES=7,4,1 ./scripts/ui_nav_capture.sh dbg-choice /tmp/choice.png
-DBG_STATIC_PARAMS='BUFF=7,SCORE=55,SNAKE=6:6|7:6|8:6:H' ./scripts/ui_nav_capture.sh dbg-static-game /tmp/static_game.png
+./scripts/ui/nav/capture.sh menu /tmp/menu.png
+DBG_CHOICE_TYPES=7,4,1 ./scripts/ui/nav/capture.sh dbg-choice /tmp/choice.png
+DBG_STATIC_PARAMS='BUFF=7,SCORE=55,SNAKE=6:6|7:6|8:6:H' ./scripts/ui/nav/capture.sh dbg-static-game /tmp/static_game.png
 ```
 
 ### Manual debug
 
-Use `scripts/ui_nav_debug.sh` to launch and hold the app open on a routed target.
+Use `scripts/ui/nav/debug.sh` to launch and hold the app open on a routed target.
 
 ```bash
-./scripts/ui_nav_debug.sh list
-./scripts/ui_nav_debug.sh dbg-static-choice
-DBG_STATIC_PARAMS='TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1' ./scripts/ui_nav_debug.sh dbg-static-choice
+./scripts/ui/nav/debug.sh list
+./scripts/ui/nav/debug.sh dbg-static-choice
+DBG_STATIC_PARAMS='TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1' ./scripts/ui/nav/debug.sh dbg-static-choice
 ```
 
 After launch, more tokens can be injected by writing to the runtime input file:
@@ -130,7 +130,7 @@ Rules:
 Equivalent script env var:
 
 ```bash
-DBG_CHOICE_TYPES=7,4,1 ./scripts/ui_nav_capture.sh dbg-choice /tmp/choice.png
+DBG_CHOICE_TYPES=7,4,1 ./scripts/ui/nav/capture.sh dbg-choice /tmp/choice.png
 ```
 
 ## Static Debug Injection
@@ -158,7 +158,7 @@ DBG_STATIC_<SCENE>:KEY=VALUE,KEY=VALUE,...
 Script equivalent:
 
 ```bash
-DBG_STATIC_PARAMS='KEY=VALUE,KEY=VALUE,...' ./scripts/ui_nav_capture.sh dbg-static-<scene> /tmp/out.png
+DBG_STATIC_PARAMS='KEY=VALUE,KEY=VALUE,...' ./scripts/ui/nav/capture.sh dbg-static-<scene> /tmp/out.png
 ```
 
 Separators and encoding rules:
@@ -182,7 +182,7 @@ Example:
 
 ```bash
 DBG_STATIC_PARAMS='TITLE=S_N_A_K_E+,SUBTITLE=PORTABLE_ARCADE_SURVIVAL,LOAD=BOOTING_88%,PROGRESS=0.88' \
-  ./scripts/ui_nav_capture.sh dbg-static-boot /tmp/static_boot.png
+  ./scripts/ui/nav/capture.sh dbg-static-boot /tmp/static_boot.png
 ```
 
 Behavior:
@@ -210,7 +210,7 @@ Example:
 
 ```bash
 DBG_STATIC_PARAMS='BUFF=7,SCORE=55,HI=120,REMAIN=96,TOTAL=180,SNAKE=6:6|7:6|8:6:H,FOOD=13:10|15:12,OBSTACLES=16:8|17:8,POWERUPS=18:10:7' \
-  ./scripts/ui_nav_capture.sh dbg-static-game /tmp/static_game.png
+  ./scripts/ui/nav/capture.sh dbg-static-game /tmp/static_game.png
 ```
 
 ### Board parameter formats
@@ -277,7 +277,7 @@ Example:
 
 ```bash
 DBG_STATIC_PARAMS='TITLE=POWER_PICK,SUBTITLE=CHOOSE_YOUR_LOADOUT,FOOTER=START_CONFIRM___SELECT_BACK,CHOICES=7|4|1,INDEX=1' \
-  ./scripts/ui_nav_capture.sh dbg-static-choice /tmp/static_choice.png
+  ./scripts/ui/nav/capture.sh dbg-static-choice /tmp/static_choice.png
 ```
 
 Behavior:
@@ -352,16 +352,16 @@ Suggested coverage:
 
 ```bash
 DBG_STATIC_PARAMS='TITLE=S_N_A_K_E+,SUBTITLE=PORTABLE_ARCADE_SURVIVAL,LOAD=BOOTING_88%,PROGRESS=0.88' \
-  ./scripts/ui_nav_capture.sh dbg-static-boot /tmp/static_boot_p0.png
+  ./scripts/ui/nav/capture.sh dbg-static-boot /tmp/static_boot_p0.png
 
 PALETTE_STEPS=4 DBG_STATIC_PARAMS='TITLE=S_N_A_K_E+,SUBTITLE=PORTABLE_ARCADE_SURVIVAL,LOAD=BOOTING_88%,PROGRESS=0.88' \
-  ./scripts/ui_nav_capture.sh dbg-static-boot /tmp/static_boot_p4.png
+  ./scripts/ui/nav/capture.sh dbg-static-boot /tmp/static_boot_p4.png
 
 DBG_STATIC_PARAMS='BUFF=7,SCORE=55,HI=120,SNAKE=6:6|7:6|8:6:H,FOOD=13:10|15:12,OBSTACLES=16:8|17:8,POWERUPS=18:10:7' \
-  ./scripts/ui_nav_capture.sh dbg-static-game /tmp/static_game_p0.png
+  ./scripts/ui/nav/capture.sh dbg-static-game /tmp/static_game_p0.png
 
 PALETTE_STEPS=4 DBG_STATIC_PARAMS='TITLE=POWER_PICK,SUBTITLE=CHOOSE_YOUR_LOADOUT,FOOTER=START_CONFIRM___SELECT_BACK,CHOICES=7|4|1,INDEX=1' \
-  ./scripts/ui_nav_capture.sh dbg-static-choice /tmp/static_choice_p4.png
+  ./scripts/ui/nav/capture.sh dbg-static-choice /tmp/static_choice_p4.png
 ```
 
 ## Files To Update When Expanding Injection

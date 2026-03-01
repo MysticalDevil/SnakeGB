@@ -37,8 +37,8 @@ It does not know whether input will be sent by runtime input file, Hyprland shor
 
 Shared runtime helpers for:
 
-- `scripts/ui_nav_capture.sh`
-- `scripts/ui_nav_debug.sh`
+- `scripts/ui/nav/capture.sh`
+- `scripts/ui/nav/debug.sh`
 
 Responsibilities:
 
@@ -61,8 +61,8 @@ Caller-facing outputs:
 
 Shared runtime helpers for:
 
-- `scripts/input_semantics_matrix_wayland.sh`
-- `scripts/input_semantics_cases_wayland.sh`
+- `scripts/input/semantics/matrix_wayland.sh`
+- `scripts/input/semantics/cases_wayland.sh`
 
 Responsibilities:
 
@@ -84,41 +84,41 @@ Shared palette capture wrapper helpers:
 
 This layer is used by:
 
-- `scripts/palette_capture_focus.sh`
-- `scripts/palette_capture_matrix.sh`
-- `scripts/palette_capture_single.sh`
-- `scripts/debug_palette_capture_matrix.sh`
+- `scripts/ui/palette/focus.sh`
+- `scripts/ui/palette/matrix.sh`
+- `scripts/ui/palette/single.sh`
+- `scripts/ui/palette/debug_matrix.sh`
 
 ## High-Level Entry Points
 
 ### UI navigation and capture
 
-- `scripts/ui_nav_capture.sh <target> <out.png>`
-- `scripts/ui_nav_debug.sh <target>`
+- `scripts/ui/nav/capture.sh <target> <out.png>`
+- `scripts/ui/nav/debug.sh <target>`
 
 Both share target routing via `scripts/lib/ui_nav_targets.sh`.
 That file now builds explicit target plans (`UI_NAV_TARGET_STEPS`, `UI_NAV_TARGET_POST_WAIT_OVERRIDE`) instead of calling token helpers directly.
 
 ### Palette review
 
-- `scripts/palette_capture_focus.sh <out-dir>`
-- `scripts/palette_capture_matrix.sh <out-dir>`
-- `scripts/palette_capture_single.sh <palette-step> <out-dir> [targets]`
-- `scripts/debug_palette_capture_matrix.sh <out-dir>`
-- `scripts/palette_capture_review.sh <out-dir>`
+- `scripts/ui/palette/focus.sh <out-dir>`
+- `scripts/ui/palette/matrix.sh <out-dir>`
+- `scripts/ui/palette/single.sh <palette-step> <out-dir> [targets]`
+- `scripts/ui/palette/debug_matrix.sh <out-dir>`
+- `scripts/ui/palette/review.sh <out-dir>`
 
-`scripts/palette_capture_review.sh` delegates HTML generation to:
+`scripts/ui/palette/review.sh` delegates HTML generation to:
 
-- `scripts/render_palette_review_html.sh`
+- `scripts/ui/palette/render_html.sh`
 
 The review script should remain a shell orchestrator.
 Large inline HTML should not be reintroduced there.
 
 ### Input semantics
 
-- `scripts/input_semantics_smoke.sh`
-- `scripts/input_semantics_matrix_wayland.sh`
-- `scripts/input_semantics_cases_wayland.sh`
+- `scripts/input/semantics/smoke.sh`
+- `scripts/input/semantics/matrix_wayland.sh`
+- `scripts/input/semantics/cases_wayland.sh`
 
 ## Maintenance Rules
 
@@ -126,8 +126,8 @@ Large inline HTML should not be reintroduced there.
 2. Do not embed non-trivial Python/Perl/Node snippets inline inside shell scripts.
 3. If a script needs another language, place it in its own file and invoke it directly.
 4. Keep window/process lifecycle separate from input transport.
-5. UI capture scripts must remain serial; `ui_nav_capture.sh` continues to own the global capture lock.
-6. Keep target definition separate from execution. `ui_nav_targets.sh` should declare steps, not directly call send helpers.
+5. UI capture scripts must remain serial; `scripts/ui/nav/capture.sh` continues to own the global capture lock.
+6. Keep target definition separate from execution. `scripts/lib/ui_nav_targets.sh` should declare steps, not directly call send helpers.
 
 ## Validation
 
@@ -135,12 +135,12 @@ When modifying script helpers, run the smallest relevant validation set first:
 
 ```bash
 shellcheck -P SCRIPTDIR -x <touched scripts>
-./scripts/ui_nav_capture.sh menu /tmp/script_smoke.png
-FOCUS_TARGETS=menu MATRIX_TARGETS=menu PALETTES=0 ./scripts/palette_capture_review.sh /tmp/script_review_smoke
+./scripts/ui/nav/capture.sh menu /tmp/script_smoke.png
+FOCUS_TARGETS=menu MATRIX_TARGETS=menu PALETTES=0 ./scripts/ui/palette/review.sh /tmp/script_review_smoke
 ```
 
 For input semantics helper changes, also run:
 
 ```bash
-./scripts/input_semantics_smoke.sh
+./scripts/input/semantics/smoke.sh
 ```
