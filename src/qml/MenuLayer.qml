@@ -78,8 +78,7 @@ Rectangle {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 8
-                width: implicitWidth
+                spacing: 10
 
                 Text {
                     text: "START"
@@ -87,6 +86,8 @@ Rectangle {
                     font.family: gameFont
                     font.pixelSize: 10
                     font.bold: true
+                    width: 42
+                    horizontalAlignment: Text.AlignRight
                 }
 
                 Text {
@@ -96,6 +97,8 @@ Rectangle {
                     font.pixelSize: 15
                     font.bold: true
                     opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
+                    width: 86
+                    horizontalAlignment: Text.AlignLeft
                 }
             }
         }
@@ -106,8 +109,8 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 16
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 16
-        spacing: 1
+        anchors.bottomMargin: 24
+        spacing: 2
 
         Repeater {
             model: [
@@ -144,8 +147,8 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 16
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 16
-        spacing: 1
+        anchors.bottomMargin: 24
+        spacing: 2
 
         Repeater {
             model: [
