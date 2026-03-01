@@ -101,6 +101,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 
 ## 输入架构说明
 - 日志系统计划：`docs/LOGGING_SYSTEM_PLAN.md`
+- 日志指南：`docs/LOGGING_GUIDE.md`
 - 音频编写指南：`docs/AUDIO_AUTHORING.md`
 - 关卡编写指南：`docs/LEVEL_AUTHORING.md`
 - 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token

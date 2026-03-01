@@ -157,7 +157,7 @@ helper.
 
 ## Migration Plan
 
-## Phase 1: Logging categories and startup policy
+## Phase 1: Logging categories and startup policy (Completed)
 
 Goal:
 
@@ -175,7 +175,7 @@ Acceptance:
 - C++ logs use categories
 - `release/dev/debug` enable distinct category sets
 
-## Phase 2: `dev` noise reduction
+## Phase 2: `dev` noise reduction (Completed)
 
 Goal:
 
@@ -192,7 +192,7 @@ Acceptance:
 - `dev` log stream is short enough to read while manually testing
 - raw press/release spam and cue spam are gone from `dev`
 
-## Phase 3: QML logging helper extraction
+## Phase 3: QML logging helper extraction (Completed)
 
 Goal:
 
@@ -210,7 +210,7 @@ Acceptance:
 - QML controllers no longer duplicate logging helper logic
 - message style is consistent across controllers
 
-## Phase 4: Documentation and operator guidance
+## Phase 4: Documentation and operator guidance (Completed)
 
 Goal:
 
@@ -218,7 +218,7 @@ Goal:
 
 Tasks:
 
-- add a short logging guide
+- add a short logging guide (`docs/LOGGING_GUIDE.md`)
 - update README build-mode notes
 - document category names and intended usage
 
