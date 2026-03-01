@@ -33,6 +33,7 @@ SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **
 - **Language**: C++23 (std::ranges, std::unique_ptr, Coroutines-ready)
 - **Framework**: Qt 6.7+ (Quick, JSEngine, Multimedia, Sensors, ShaderTools)
 - **Build System**: CMake + Ninja
+- **Optional Wrapper**: `zig build` can drive the existing CMake flow
 
 ## Project Layout
 - Runtime adapter implementation lives in `src/adapter/` (GameLogic split across focused translation units).
@@ -56,6 +57,25 @@ cmake --build build/release --parallel
 
 - `Debug`: full runtime logs enabled.
 - `Release` / `MinSizeRel` / `RelWithDebInfo`: `qDebug/qInfo/qWarning` logs are compiled out (desktop + Android).
+
+### Build and Run via Zig
+```bash
+# Debug -> build/debug
+zig build
+
+# Release -> build/release
+zig build -Doptimize=ReleaseFast
+
+# Build and run
+zig build run
+
+# Configure/build debug tests and run ctest from build/debug
+zig build test
+```
+
+- `zig build` does not call `cmake`; it drives `moc`, `qsb`, `rcc`, `pkg-config`, and `zig c++` directly.
+- Override the output profile directory with `-Dprofile=<name>`.
+- `zig build test` builds and runs the Qt test executables directly instead of delegating to `ctest`.
 
 ### Build and Deploy (Android)
 ```bash

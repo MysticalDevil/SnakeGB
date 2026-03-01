@@ -33,6 +33,7 @@ SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 Ga
 - **语言**: C++23 (std::ranges, unique_ptr, 异步就绪)
 - **框架**: Qt 6.7+ (Quick, JSEngine, Multimedia, Sensors, ShaderTools)
 - **构建系统**: CMake + Ninja
+- **可选封装**: 支持用 `zig build` 驱动现有 CMake 流程
 
 ## 快速开始
 
@@ -53,6 +54,25 @@ cmake --build build/release --parallel
 
 - `Debug`: 保留完整运行日志。
 - `Release` / `MinSizeRel` / `RelWithDebInfo`: 编译期关闭 `qDebug/qInfo/qWarning` 日志（桌面端与 Android 一致）。
+
+### 通过 Zig 编译与运行
+```bash
+# Debug -> build/debug
+zig build
+
+# Release -> build/release
+zig build -Doptimize=ReleaseFast
+
+# 编译后直接运行
+zig build run
+
+# 以 Debug 配置编译并执行测试
+zig build test
+```
+
+- `zig build` 不会调用 `cmake`，而是直接驱动 `moc`、`qsb`、`rcc`、`pkg-config` 和 `zig c++`。
+- 可通过 `-Dprofile=<name>` 覆盖输出目录名。
+- `zig build test` 会直接构建并运行 Qt 测试可执行文件，而不是委托给 `ctest`。
 
 ### Android 构建与部署
 ```bash
