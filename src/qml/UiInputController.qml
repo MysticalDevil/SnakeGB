@@ -251,35 +251,35 @@ QtObject {
         }
 
         function onPrimaryTriggered() {
-            controller.dispatchAction(controller.actionMap.Primary)
+            controller.handlePrimaryAction()
         }
 
         function onSecondaryTriggered() {
-            controller.dispatchAction(controller.actionMap.Secondary)
+            controller.handleSecondaryAction()
         }
 
         function onSelectPressed() {
-            controller.inputPressController.onSelectPressed()
+            controller.handleSelectPressed()
         }
 
         function onSelectReleased() {
-            controller.inputPressController.onSelectReleased()
+            controller.handleSelectReleased()
         }
 
         function onSelectTriggered() {
-            controller.dispatchAction(controller.actionMap.SelectShort)
+            controller.handleSelectShortAction()
         }
 
         function onStartPressed() {
-            controller.inputPressController.onStartPressed()
+            controller.handleStartPressed()
         }
 
         function onStartReleased() {
-            controller.inputPressController.onStartReleased()
+            controller.handleStartReleased()
         }
 
         function onStartTriggered() {
-            controller.dispatchAction(controller.actionMap.Start)
+            controller.handleStartAction()
         }
 
         function onShellColorToggleTriggered() {
