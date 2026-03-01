@@ -62,16 +62,20 @@ Item {
 
     function drawFoodSymbol(ctx, w, h) {
         ctx.clearRect(0, 0, w, h)
+        ctx.strokeStyle = gameBorder
+        ctx.lineWidth = Math.max(1, w * 0.08)
         ctx.fillStyle = gameFoodCore
         ctx.beginPath()
         ctx.arc(w * 0.50, h * 0.56, Math.max(2, w * 0.30), 0, Math.PI * 2)
         ctx.fill()
+        ctx.stroke()
         ctx.fillStyle = Qt.rgba(gameFoodHighlight.r, gameFoodHighlight.g, gameFoodHighlight.b, 0.45)
         ctx.beginPath()
         ctx.arc(w * 0.40, h * 0.42, Math.max(1.2, w * 0.12), 0, Math.PI * 2)
         ctx.fill()
         ctx.fillStyle = gameFoodStem
         ctx.fillRect(w * 0.50, h * 0.12, Math.max(1, w * 0.08), Math.max(2, h * 0.22))
+        ctx.fillRect(w * 0.56, h * 0.16, Math.max(1, w * 0.12), Math.max(1, h * 0.05))
         ctx.fillStyle = gameFoodSpark
         ctx.fillRect(w * 0.64, h * 0.22, Math.max(1, w * 0.14), 1)
         ctx.fillRect(w * 0.22, h * 0.74, 1, 1)

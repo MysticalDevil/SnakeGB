@@ -66,8 +66,51 @@ Item {
             height: gameWorld.cellH
             color: gameWorld.activeBuff === 6
                    ? (Math.floor(gameWorld.elapsed * 10) % 2 === 0 ? powerColor(6) : gameWorld.gameInk)
-                   : (index === 0 ? gameWorld.gameInk : gameWorld.gameSubInk)
-            radius: index === 0 ? 2 : 0
+                   : (index === 0 ? gameWorld.gameInk : Qt.darker(gameWorld.gameSubInk, 1.12))
+            radius: index === 0 ? 3 : 1
+            border.color: index === 0 ? gameWorld.gameBorder : Qt.rgba(gameWorld.gameBorder.r,
+                                                                         gameWorld.gameBorder.g,
+                                                                         gameWorld.gameBorder.b,
+                                                                         0.55)
+            border.width: 1
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: index === 0 ? 2 : 1
+                radius: Math.max(1, parent.radius - 1)
+                color: "transparent"
+                border.color: index === 0
+                              ? Qt.rgba(gameWorld.gamePanel.r,
+                                        gameWorld.gamePanel.g,
+                                        gameWorld.gamePanel.b,
+                                        0.34)
+                              : Qt.rgba(gameWorld.gameInk.r,
+                                        gameWorld.gameInk.g,
+                                        gameWorld.gameInk.b,
+                                        0.14)
+                border.width: 1
+            }
+
+            Rectangle {
+                visible: index === 0
+                width: Math.max(2, parent.width * 0.24)
+                height: width
+                radius: width / 2
+                x: parent.width * 0.26
+                y: parent.height * 0.22
+                color: gameWorld.gamePanel
+            }
+
+            Rectangle {
+                visible: index === 0
+                width: Math.max(2, parent.width * 0.24)
+                height: width
+                radius: width / 2
+                x: parent.width * 0.56
+                y: parent.height * 0.22
+                color: gameWorld.gamePanel
+            }
+
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: -2
@@ -87,11 +130,47 @@ Item {
             width: gameWorld.cellW
             height: gameWorld.cellH
             color: gameWorld.currentLevelName === "Dynamic Pulse" || gameWorld.currentLevelName === "Crossfire" || gameWorld.currentLevelName === "Shifting Box"
-                   ? ((Math.floor(gameWorld.elapsed * 8) % 2 === 0) ? gameWorld.gameInk : gameWorld.gameSubInk)
-                   : gameWorld.gameSubInk
+                   ? ((Math.floor(gameWorld.elapsed * 8) % 2 === 0)
+                      ? Qt.darker(gameWorld.gameInk, 1.06)
+                      : Qt.darker(gameWorld.gameSubInk, 1.18))
+                   : Qt.darker(gameWorld.gameSubInk, 1.18)
             border.color: gameWorld.gameBorder
             border.width: 1
+            radius: 1
             z: gameWorld.layerObstacle
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 2
+                color: "transparent"
+                border.color: Qt.rgba(gameWorld.gamePanel.r,
+                                      gameWorld.gamePanel.g,
+                                      gameWorld.gamePanel.b,
+                                      0.24)
+                border.width: 1
+            }
+
+            Rectangle {
+                width: Math.max(1, parent.width * 0.16)
+                height: parent.height - 4
+                x: parent.width * 0.22
+                y: 2
+                color: Qt.rgba(gameWorld.gameBorder.r,
+                               gameWorld.gameBorder.g,
+                               gameWorld.gameBorder.b,
+                               0.26)
+            }
+
+            Rectangle {
+                width: Math.max(1, parent.width * 0.16)
+                height: parent.height - 4
+                x: parent.width * 0.62
+                y: 2
+                color: Qt.rgba(gameWorld.gamePanel.r,
+                               gameWorld.gamePanel.g,
+                               gameWorld.gamePanel.b,
+                               0.18)
+            }
         }
     }
 
@@ -125,30 +204,35 @@ Item {
 
         Rectangle {
             anchors.centerIn: parent
-            width: parent.width + 2
-            height: parent.height + 2
-            radius: width / 2
+            width: parent.width + 4
+            height: parent.height + 4
+            radius: 4
             color: "transparent"
-            border.color: gameWorld.gameBorder
+            border.color: powerColor(gameWorld.powerUpType)
             border.width: 1
-            opacity: 0.75
+            opacity: 0.85
         }
 
         Rectangle {
             anchors.centerIn: parent
-            width: parent.width - 1
-            height: parent.height - 1
-            radius: 2
-            color: Qt.rgba(gameWorld.gamePanel.r, gameWorld.gamePanel.g, gameWorld.gamePanel.b, 0.78)
+            width: parent.width + 1
+            height: parent.height + 1
+            radius: 3
+            color: Qt.rgba(gameWorld.gamePanel.r, gameWorld.gamePanel.g, gameWorld.gamePanel.b, 0.90)
+            border.color: Qt.rgba(powerColor(gameWorld.powerUpType).r,
+                                  powerColor(gameWorld.powerUpType).g,
+                                  powerColor(gameWorld.powerUpType).b,
+                                  0.30)
+            border.width: 1
         }
 
         Rectangle {
             anchors.centerIn: parent
             width: parent.width + 6
             height: parent.height + 6
-            radius: width / 2
+            radius: 6
             color: "transparent"
-            border.color: gameWorld.gameBorder
+            border.color: powerColor(gameWorld.powerUpType)
             border.width: 1
             opacity: (Math.floor(gameWorld.elapsed * 8) % 2 === 0) ? 0.45 : 0.1
         }
@@ -156,6 +240,7 @@ Item {
         Canvas {
             id: worldPowerIcon
             anchors.fill: parent
+            anchors.margins: 1
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.reset()
