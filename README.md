@@ -116,6 +116,8 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
 ## Input Architecture Notes
 - Architecture refactor roadmap: `docs/ARCHITECTURE_REFACTOR_PLAN.md`
+- Audio authoring guide: `docs/AUDIO_AUTHORING.md`
+- Level authoring guide: `docs/LEVEL_AUTHORING.md`
 - Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 
 ## License
