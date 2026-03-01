@@ -27,7 +27,7 @@ Rectangle {
         id: titleBlock
         width: parent.width - 28
         anchors.top: parent.top
-        anchors.topMargin: 18
+        anchors.topMargin: 24
         anchors.horizontalCenter: parent.horizontalCenter
         height: 48
         radius: 4
@@ -63,13 +63,13 @@ Rectangle {
         id: centerStack
         width: parent.width - 44
         anchors.top: titleBlock.bottom
-        anchors.topMargin: 24
+        anchors.topMargin: 20
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 0
 
         Rectangle {
-            width: 176
-            height: 36
+            width: 190
+            height: 40
             anchors.horizontalCenter: parent.horizontalCenter
             radius: 4
             color: menuLayer.actionCard
@@ -80,7 +80,7 @@ Rectangle {
                 text: sessionStatus.hasSave ? "START  CONTINUE" : "START  NEW GAME"
                 color: menuLayer.actionInk
                 font.family: gameFont
-                font.pixelSize: 13
+                font.pixelSize: 15
                 font.bold: true
                 anchors.centerIn: parent
                 opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
@@ -98,30 +98,30 @@ Rectangle {
 
         Text {
             text: "UP MEDALS"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.bold: true
         }
         Text {
             text: "DOWN REPLAY"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.bold: true
         }
         Text {
             text: "LEFT CATALOG"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.bold: true
         }
         Text {
             text: "SELECT LEVEL"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 7
             font.bold: true
         }
     }
@@ -138,17 +138,17 @@ Rectangle {
             anchors.right: parent.right
             text: `HI ${highScore}`
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 10
             font.bold: true
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.64)
+            color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.78)
         }
         Text {
             anchors.right: parent.right
             text: `LEVEL ${sessionStatus.currentLevelName}`
             font.family: gameFont
-            font.pixelSize: 8
+            font.pixelSize: 9
             font.bold: true
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.64)
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.72)
         }
     }
 }
