@@ -61,66 +61,54 @@ QtObject {
         return dispatch(router.actionMap.Back)
     }
 
-    function routeDirection(action) {
-        let dx = 0
-        let dy = 0
-        let token = ""
+    function directionForAction(action) {
         if (action === router.actionMap.NavUp) {
-            dy = -1
-            token = "U"
-        } else if (action === router.actionMap.NavDown) {
-            dy = 1
-            token = "D"
-        } else if (action === router.actionMap.NavLeft) {
-            dx = -1
-            token = "L"
-        } else if (action === router.actionMap.NavRight) {
-            dx = 1
-            token = "R"
-        } else {
+            return { dx: 0, dy: -1, token: "U" }
+        }
+        if (action === router.actionMap.NavDown) {
+            return { dx: 0, dy: 1, token: "D" }
+        }
+        if (action === router.actionMap.NavLeft) {
+            return { dx: -1, dy: 0, token: "L" }
+        }
+        if (action === router.actionMap.NavRight) {
+            return { dx: 1, dy: 0, token: "R" }
+        }
+        return null
+    }
+
+    function routeDirection(action) {
+        const direction = router.directionForAction(action)
+        if (!direction) {
             return false
         }
 
-        if (router.debugController && router.debugController.handleEasterInput(token)) {
+        if (router.debugController && router.debugController.handleEasterInput(direction.token)) {
             if (router.inputController) {
                 router.inputController.clearDirectionVisuals()
             }
             return true
         }
         if (router.inputController) {
-            router.inputController.handleDirection(dx, dy)
+            router.inputController.handleDirection(direction.dx, direction.dy)
         }
         return true
     }
 
     function routeIconDirection(action) {
-        let dx = 0
-        let dy = 0
-        let token = ""
-        if (action === router.actionMap.NavUp) {
-            dy = -1
-            token = "U"
-        } else if (action === router.actionMap.NavDown) {
-            dy = 1
-            token = "D"
-        } else if (action === router.actionMap.NavLeft) {
-            dx = -1
-            token = "L"
-        } else if (action === router.actionMap.NavRight) {
-            dx = 1
-            token = "R"
-        } else {
+        const direction = router.directionForAction(action)
+        if (!direction) {
             return false
         }
 
         if (router.debugController) {
-            router.debugController.handleEasterInput(token)
+            router.debugController.handleEasterInput(direction.token)
         }
         if (router.moveIconLabSelection) {
-            router.moveIconLabSelection(dx, dy)
+            router.moveIconLabSelection(direction.dx, direction.dy)
         }
         if (router.inputController) {
-            router.inputController.setDpadPressed(dx, dy)
+            router.inputController.setDpadPressed(direction.dx, direction.dy)
         }
         return true
     }
