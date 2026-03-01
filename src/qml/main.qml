@@ -136,7 +136,11 @@ Window {
         Component {
             id: shellOnlyScreenPlaceholder
 
-            Item { }
+            Rectangle {
+                color: Qt.rgba(window.p0.r, window.p0.g, window.p0.b, 0.96)
+                border.color: Qt.rgba(window.p1.r, window.p1.g, window.p1.b, 0.42)
+                border.width: 1
+            }
         }
 
         Component {
