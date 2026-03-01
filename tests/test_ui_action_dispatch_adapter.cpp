@@ -2,9 +2,7 @@
 
 #include "adapter/ui/action.h"
 
-using snakegb::adapter::UiAction;
 using snakegb::adapter::UiActionDispatchCallbacks;
-using snakegb::adapter::UiActionKind;
 
 class UiActionDispatchAdapterTest final : public QObject {
   Q_OBJECT
@@ -24,14 +22,14 @@ private slots:
     callbacks.onSetLibraryIndex = [&](int value) { libraryIndex = value; };
     callbacks.onSetMedalIndex = [&](int value) { medalIndex = value; };
 
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::NavLeft, 0}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::NavAction{-1, 0}, callbacks);
     QCOMPARE(dx, -1);
     QCOMPARE(dy, 0);
 
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::SetLibraryIndex, 7}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::SetLibraryIndexAction{7}, callbacks);
     QCOMPARE(libraryIndex, 7);
 
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::SetMedalIndex, 3}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::SetMedalIndexAction{3}, callbacks);
     QCOMPARE(medalIndex, 3);
   }
 
@@ -43,9 +41,9 @@ private slots:
     callbacks.onStart = [&]() { ++startCalls; };
     callbacks.onBack = [&]() { ++backCalls; };
 
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::Primary, 0}, callbacks);
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::Start, 0}, callbacks);
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::Back, 0}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::PrimaryAction{}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::StartAction{}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::BackCommandAction{}, callbacks);
 
     QCOMPARE(startCalls, 2);
     QCOMPARE(backCalls, 1);
@@ -58,7 +56,7 @@ private slots:
     callbacks.onMove = [&](int, int) { ++calls; };
     callbacks.onBack = [&]() { ++calls; };
 
-    snakegb::adapter::dispatchUiAction(UiAction{UiActionKind::Unknown, 0}, callbacks);
+    snakegb::adapter::dispatchUiAction(snakegb::adapter::UnknownAction{}, callbacks);
     QCOMPARE(calls, 0);
   }
 };

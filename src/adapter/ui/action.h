@@ -1,41 +1,60 @@
 #pragma once
 
 #include <functional>
+#include <variant>
 
 #include <QString>
 
 namespace snakegb::adapter {
 
-enum class UiActionKind {
-  Unknown = 0,
-  NavUp,
-  NavDown,
-  NavLeft,
-  NavRight,
-  Primary,
-  Start,
-  Secondary,
-  SelectShort,
-  Back,
-  ToggleShellColor,
-  ToggleMusic,
-  QuitToMenu,
-  Quit,
-  NextPalette,
-  DeleteSave,
-  StateStartMenu,
-  StateSplash,
-  FeedbackLight,
-  FeedbackUi,
-  FeedbackHeavy,
-  SetLibraryIndex,
-  SetMedalIndex,
+struct UnknownAction {};
+struct NavAction {
+  int dx = 0;
+  int dy = 0;
 };
-
-struct UiAction {
-  UiActionKind kind = UiActionKind::Unknown;
+struct PrimaryAction {};
+struct StartAction {};
+struct SecondaryAction {};
+struct SelectShortAction {};
+struct BackCommandAction {};
+struct ToggleShellColorAction {};
+struct ToggleMusicAction {};
+struct QuitToMenuAction {};
+struct QuitAction {};
+struct NextPaletteAction {};
+struct DeleteSaveAction {};
+struct StateStartMenuAction {};
+struct StateSplashAction {};
+struct FeedbackLightAction {};
+struct FeedbackUiAction {};
+struct FeedbackHeavyAction {};
+struct SetLibraryIndexAction {
   int value = 0;
 };
+struct SetMedalIndexAction {
+  int value = 0;
+};
+
+using UiAction = std::variant<UnknownAction,
+                              NavAction,
+                              PrimaryAction,
+                              StartAction,
+                              SecondaryAction,
+                              SelectShortAction,
+                              BackCommandAction,
+                              ToggleShellColorAction,
+                              ToggleMusicAction,
+                              QuitToMenuAction,
+                              QuitAction,
+                              NextPaletteAction,
+                              DeleteSaveAction,
+                              StateStartMenuAction,
+                              StateSplashAction,
+                              FeedbackLightAction,
+                              FeedbackUiAction,
+                              FeedbackHeavyAction,
+                              SetLibraryIndexAction,
+                              SetMedalIndexAction>;
 
 struct UiActionDispatchCallbacks {
   std::function<void(int, int)> onMove;

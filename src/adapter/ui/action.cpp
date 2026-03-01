@@ -1,161 +1,162 @@
 #include "adapter/ui/action.h"
 
+#include <utility>
+
 #include <QtCore/qstringliteral.h>
 
 using namespace Qt::StringLiterals;
 
 namespace snakegb::adapter {
 
+namespace {
+template <class... Ts> struct Overloaded : Ts... {
+  using Ts::operator()...;
+};
+
+template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
+} // namespace
+
 auto parseUiAction(const QString& action) -> UiAction {
   if (action == u"nav_up"_s)
-    return {UiActionKind::NavUp, 0};
+    return NavAction{0, -1};
   if (action == u"nav_down"_s)
-    return {UiActionKind::NavDown, 0};
+    return NavAction{0, 1};
   if (action == u"nav_left"_s)
-    return {UiActionKind::NavLeft, 0};
+    return NavAction{-1, 0};
   if (action == u"nav_right"_s)
-    return {UiActionKind::NavRight, 0};
+    return NavAction{1, 0};
   if (action == u"primary"_s)
-    return {UiActionKind::Primary, 0};
+    return PrimaryAction{};
   if (action == u"start"_s)
-    return {UiActionKind::Start, 0};
+    return StartAction{};
   if (action == u"secondary"_s)
-    return {UiActionKind::Secondary, 0};
+    return SecondaryAction{};
   if (action == u"select_short"_s)
-    return {UiActionKind::SelectShort, 0};
+    return SelectShortAction{};
   if (action == u"back"_s)
-    return {UiActionKind::Back, 0};
+    return BackCommandAction{};
   if (action == u"toggle_shell_color"_s)
-    return {UiActionKind::ToggleShellColor, 0};
+    return ToggleShellColorAction{};
   if (action == u"toggle_music"_s)
-    return {UiActionKind::ToggleMusic, 0};
+    return ToggleMusicAction{};
   if (action == u"quit_to_menu"_s)
-    return {UiActionKind::QuitToMenu, 0};
+    return QuitToMenuAction{};
   if (action == u"quit"_s)
-    return {UiActionKind::Quit, 0};
+    return QuitAction{};
   if (action == u"next_palette"_s)
-    return {UiActionKind::NextPalette, 0};
+    return NextPaletteAction{};
   if (action == u"delete_save"_s)
-    return {UiActionKind::DeleteSave, 0};
+    return DeleteSaveAction{};
   if (action == u"state_start_menu"_s)
-    return {UiActionKind::StateStartMenu, 0};
+    return StateStartMenuAction{};
   if (action == u"state_splash"_s)
-    return {UiActionKind::StateSplash, 0};
+    return StateSplashAction{};
   if (action == u"feedback_light"_s)
-    return {UiActionKind::FeedbackLight, 0};
+    return FeedbackLightAction{};
   if (action == u"feedback_ui"_s)
-    return {UiActionKind::FeedbackUi, 0};
+    return FeedbackUiAction{};
   if (action == u"feedback_heavy"_s)
-    return {UiActionKind::FeedbackHeavy, 0};
+    return FeedbackHeavyAction{};
 
   if (action.startsWith(u"set_library_index:"_s)) {
     bool ok = false;
     const int value = action.sliced(18).toInt(&ok);
     if (ok)
-      return {UiActionKind::SetLibraryIndex, value};
-    return {UiActionKind::Unknown, 0};
+      return SetLibraryIndexAction{value};
+    return UnknownAction{};
   }
   if (action.startsWith(u"set_medal_index:"_s)) {
     bool ok = false;
     const int value = action.sliced(16).toInt(&ok);
     if (ok)
-      return {UiActionKind::SetMedalIndex, value};
-    return {UiActionKind::Unknown, 0};
+      return SetMedalIndexAction{value};
+    return UnknownAction{};
   }
 
-  return {UiActionKind::Unknown, 0};
+  return UnknownAction{};
 }
 
 auto dispatchUiAction(const UiAction& action, const UiActionDispatchCallbacks& callbacks) -> void {
-  switch (action.kind) {
-  case UiActionKind::NavUp:
-    if (callbacks.onMove)
-      callbacks.onMove(0, -1);
-    break;
-  case UiActionKind::NavDown:
-    if (callbacks.onMove)
-      callbacks.onMove(0, 1);
-    break;
-  case UiActionKind::NavLeft:
-    if (callbacks.onMove)
-      callbacks.onMove(-1, 0);
-    break;
-  case UiActionKind::NavRight:
-    if (callbacks.onMove)
-      callbacks.onMove(1, 0);
-    break;
-  case UiActionKind::Primary:
-  case UiActionKind::Start:
-    if (callbacks.onStart)
-      callbacks.onStart();
-    break;
-  case UiActionKind::Secondary:
-    if (callbacks.onSecondary)
-      callbacks.onSecondary();
-    break;
-  case UiActionKind::SelectShort:
-    if (callbacks.onSelect)
-      callbacks.onSelect();
-    break;
-  case UiActionKind::Back:
-    if (callbacks.onBack)
-      callbacks.onBack();
-    break;
-  case UiActionKind::ToggleShellColor:
-    if (callbacks.onToggleShellColor)
-      callbacks.onToggleShellColor();
-    break;
-  case UiActionKind::ToggleMusic:
-    if (callbacks.onToggleMusic)
-      callbacks.onToggleMusic();
-    break;
-  case UiActionKind::QuitToMenu:
-    if (callbacks.onQuitToMenu)
-      callbacks.onQuitToMenu();
-    break;
-  case UiActionKind::Quit:
-    if (callbacks.onQuit)
-      callbacks.onQuit();
-    break;
-  case UiActionKind::NextPalette:
-    if (callbacks.onNextPalette)
-      callbacks.onNextPalette();
-    break;
-  case UiActionKind::DeleteSave:
-    if (callbacks.onDeleteSave)
-      callbacks.onDeleteSave();
-    break;
-  case UiActionKind::StateStartMenu:
-    if (callbacks.onStateStartMenu)
-      callbacks.onStateStartMenu();
-    break;
-  case UiActionKind::StateSplash:
-    if (callbacks.onStateSplash)
-      callbacks.onStateSplash();
-    break;
-  case UiActionKind::FeedbackLight:
-    if (callbacks.onFeedbackLight)
-      callbacks.onFeedbackLight();
-    break;
-  case UiActionKind::FeedbackUi:
-    if (callbacks.onFeedbackUi)
-      callbacks.onFeedbackUi();
-    break;
-  case UiActionKind::FeedbackHeavy:
-    if (callbacks.onFeedbackHeavy)
-      callbacks.onFeedbackHeavy();
-    break;
-  case UiActionKind::SetLibraryIndex:
-    if (callbacks.onSetLibraryIndex)
-      callbacks.onSetLibraryIndex(action.value);
-    break;
-  case UiActionKind::SetMedalIndex:
-    if (callbacks.onSetMedalIndex)
-      callbacks.onSetMedalIndex(action.value);
-    break;
-  case UiActionKind::Unknown:
-    break;
-  }
+  std::visit(Overloaded{
+               [&](const UnknownAction&) -> void {},
+               [&](const NavAction& nav) -> void {
+                 if (callbacks.onMove)
+                   callbacks.onMove(nav.dx, nav.dy);
+               },
+               [&](const PrimaryAction&) -> void {
+                 if (callbacks.onStart)
+                   callbacks.onStart();
+               },
+               [&](const StartAction&) -> void {
+                 if (callbacks.onStart)
+                   callbacks.onStart();
+               },
+               [&](const SecondaryAction&) -> void {
+                 if (callbacks.onSecondary)
+                   callbacks.onSecondary();
+               },
+               [&](const SelectShortAction&) -> void {
+                 if (callbacks.onSelect)
+                   callbacks.onSelect();
+               },
+               [&](const BackCommandAction&) -> void {
+                 if (callbacks.onBack)
+                   callbacks.onBack();
+               },
+               [&](const ToggleShellColorAction&) -> void {
+                 if (callbacks.onToggleShellColor)
+                   callbacks.onToggleShellColor();
+               },
+               [&](const ToggleMusicAction&) -> void {
+                 if (callbacks.onToggleMusic)
+                   callbacks.onToggleMusic();
+               },
+               [&](const QuitToMenuAction&) -> void {
+                 if (callbacks.onQuitToMenu)
+                   callbacks.onQuitToMenu();
+               },
+               [&](const QuitAction&) -> void {
+                 if (callbacks.onQuit)
+                   callbacks.onQuit();
+               },
+               [&](const NextPaletteAction&) -> void {
+                 if (callbacks.onNextPalette)
+                   callbacks.onNextPalette();
+               },
+               [&](const DeleteSaveAction&) -> void {
+                 if (callbacks.onDeleteSave)
+                   callbacks.onDeleteSave();
+               },
+               [&](const StateStartMenuAction&) -> void {
+                 if (callbacks.onStateStartMenu)
+                   callbacks.onStateStartMenu();
+               },
+               [&](const StateSplashAction&) -> void {
+                 if (callbacks.onStateSplash)
+                   callbacks.onStateSplash();
+               },
+               [&](const FeedbackLightAction&) -> void {
+                 if (callbacks.onFeedbackLight)
+                   callbacks.onFeedbackLight();
+               },
+               [&](const FeedbackUiAction&) -> void {
+                 if (callbacks.onFeedbackUi)
+                   callbacks.onFeedbackUi();
+               },
+               [&](const FeedbackHeavyAction&) -> void {
+                 if (callbacks.onFeedbackHeavy)
+                   callbacks.onFeedbackHeavy();
+               },
+               [&](const SetLibraryIndexAction& setIndex) -> void {
+                 if (callbacks.onSetLibraryIndex)
+                   callbacks.onSetLibraryIndex(setIndex.value);
+               },
+               [&](const SetMedalIndexAction& setIndex) -> void {
+                 if (callbacks.onSetMedalIndex)
+                   callbacks.onSetMedalIndex(setIndex.value);
+               },
+             },
+             action);
 }
 
 } // namespace snakegb::adapter
