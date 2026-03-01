@@ -4,6 +4,8 @@
 
 NenoSerpent is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience with modern engineering standards and premium haptic/audio feedback.
 
+Build requirement: **CMake 4.x**.
+
 ## Core Features (v2.0.0)
 
 - **GameBoy Boot Flow**: Boot bounce animation + boot beep + delayed BGM handoff to menu.

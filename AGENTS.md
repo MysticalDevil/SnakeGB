@@ -9,6 +9,7 @@
 - `android/`: Android manifest/resources used by Qt Android packaging.
 
 ## Build, Test, and Development Commands
+- Requires CMake 4.x.
 - Debug desktop build/run:
 ```bash
 cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug

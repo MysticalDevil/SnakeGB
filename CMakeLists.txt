@@ -1,9 +1,6 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 4.0...4.1)
 
 project(NenoSerpent VERSION 2.0.0 LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Place executables in the build root (not subdirectories like build/<profile>/src).
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -18,24 +15,45 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not supported. Use: cmake -S . -B build/<profile>")
 endif()
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type")
 endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release RelWithDebInfo MinSizeRel)
 
 option(NENOSERPENT_OPTIMIZE_SIZE "Enable binary size optimizations" ON)
 option(NENOSERPENT_USE_CCACHE "Use ccache as compiler launcher when available" ON)
 
-if(NENOSERPENT_USE_CCACHE)
-    find_program(NENOSERPENT_CCACHE_PROGRAM ccache)
-    if(NENOSERPENT_CCACHE_PROGRAM)
-        set(NENOSERPENT_CCACHE_DIR "${CMAKE_BINARY_DIR}/.ccache")
-        set(CMAKE_C_COMPILER_LAUNCHER
-            "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${NENOSERPENT_CCACHE_DIR};${NENOSERPENT_CCACHE_PROGRAM}")
-        set(CMAKE_CXX_COMPILER_LAUNCHER
-            "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${NENOSERPENT_CCACHE_DIR};${NENOSERPENT_CCACHE_PROGRAM}")
-        message(STATUS "ccache enabled: ${NENOSERPENT_CCACHE_PROGRAM} (dir=${NENOSERPENT_CCACHE_DIR})")
+add_library(nenoserpent_project_options INTERFACE)
+target_compile_features(nenoserpent_project_options INTERFACE cxx_std_23)
+set_target_properties(nenoserpent_project_options PROPERTIES EXPORT_NAME project_options)
+
+function(nenoserpent_enable_ccache)
+    if(NOT NENOSERPENT_USE_CCACHE)
+        return()
     endif()
-endif()
+    find_program(NENOSERPENT_CCACHE_PROGRAM ccache)
+    if(NOT NENOSERPENT_CCACHE_PROGRAM)
+        return()
+    endif()
+    set(NENOSERPENT_CCACHE_DIR "${CMAKE_BINARY_DIR}/.ccache")
+    set(CMAKE_C_COMPILER_LAUNCHER
+        "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${NENOSERPENT_CCACHE_DIR};${NENOSERPENT_CCACHE_PROGRAM}"
+        PARENT_SCOPE)
+    set(CMAKE_CXX_COMPILER_LAUNCHER
+        "${CMAKE_COMMAND};-E;env;CCACHE_DIR=${NENOSERPENT_CCACHE_DIR};${NENOSERPENT_CCACHE_PROGRAM}"
+        PARENT_SCOPE)
+    message(STATUS "ccache enabled: ${NENOSERPENT_CCACHE_PROGRAM} (dir=${NENOSERPENT_CCACHE_DIR})")
+endfunction()
+
+function(nenoserpent_apply_project_options)
+    foreach(target_name IN LISTS ARGN)
+        if(TARGET "${target_name}")
+            target_link_libraries("${target_name}" PRIVATE nenoserpent_project_options)
+        endif()
+    endforeach()
+endfunction()
+
+nenoserpent_enable_ccache()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick OpenGL ShaderTools Test)
 find_package(Qt6 QUIET COMPONENTS Multimedia Sensors)
@@ -381,6 +399,35 @@ target_include_directories(adapter-choice-models-tests PRIVATE src)
 target_link_libraries(adapter-choice-models-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
 add_test(NAME AdapterChoiceModelsTest COMMAND adapter-choice-models-tests)
 set_tests_properties(AdapterChoiceModelsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+nenoserpent_apply_project_options(
+    nenoserpent_core
+    nenoserpent_fsm
+    nenoserpent_adapter
+    NenoSerpent
+    engine-adapter-tests
+    core-rules-tests
+    session-core-tests
+    session-runner-tests
+    adapter-tests
+    adapter-ui-dispatch-tests
+    adapter-ui-command-tests
+    adapter-semantics-tests
+    adapter-theme-tests
+    adapter-session-status-tests
+    adapter-session-render-tests
+    adapter-selection-tests
+    adapter-audio-settings-tests
+    adapter-level-loader-tests
+    service-level-repository-tests
+    service-audio-bus-tests
+    adapter-level-applier-tests
+    adapter-level-script-runtime-tests
+    adapter-ghost-store-tests
+    adapter-session-state-tests
+    adapter-library-models-tests
+    adapter-choice-models-tests
+)
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)
     install(TARGETS NenoSerpent RUNTIME DESTINATION bin)
