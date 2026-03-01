@@ -258,6 +258,22 @@ void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {
   QVERIFY(dynamicPulse.has_value());
   QVERIFY(!dynamicPulse->isEmpty());
 
+  const auto dynamicPulseSoon = snakegb::core::dynamicObstaclesForLevel(u"Dynamic Pulse", 11);
+  QVERIFY(dynamicPulseSoon.has_value());
+  QCOMPARE(dynamicPulse.value(), dynamicPulseSoon.value());
+
+  const auto crossfire = snakegb::core::dynamicObstaclesForLevel(u"Crossfire", 20);
+  const auto crossfireSoon = snakegb::core::dynamicObstaclesForLevel(u"Crossfire", 21);
+  QVERIFY(crossfire.has_value());
+  QVERIFY(crossfireSoon.has_value());
+  QCOMPARE(crossfire.value(), crossfireSoon.value());
+
+  const auto shiftingBox = snakegb::core::dynamicObstaclesForLevel(u"Shifting Box", 28);
+  const auto shiftingBoxSoon = snakegb::core::dynamicObstaclesForLevel(u"Shifting Box", 29);
+  QVERIFY(shiftingBox.has_value());
+  QVERIFY(shiftingBoxSoon.has_value());
+  QCOMPARE(shiftingBox.value(), shiftingBoxSoon.value());
+
   const auto unknown = snakegb::core::dynamicObstaclesForLevel(u"Classic", 10);
   QVERIFY(!unknown.has_value());
 }

@@ -1,49 +1,69 @@
 #include "core/level/runtime.h"
 
-#include <cmath>
-
 #include <QJsonDocument>
 #include <QJsonObject>
 
 namespace snakegb::core {
 
+namespace {
+
+auto phaseOffset(const int tick, const int phaseTicks, const std::initializer_list<int> phases)
+  -> int {
+  const QList<int> values(phases);
+  if (values.isEmpty()) {
+    return 0;
+  }
+  const int safePhaseTicks = std::max(1, phaseTicks);
+  const int phaseCount = static_cast<int>(values.size());
+  const int index = (tick / safePhaseTicks) % phaseCount;
+  return values[index];
+}
+
+auto shiftingBoxWalls(const int min, const int max) -> QList<QPoint> {
+  return QList<QPoint>{QPoint(min, min),
+                       QPoint(min + 1, min),
+                       QPoint(max - 1, min),
+                       QPoint(max, min),
+                       QPoint(min, max),
+                       QPoint(min + 1, max),
+                       QPoint(max - 1, max),
+                       QPoint(max, max),
+                       QPoint(min, min + 1),
+                       QPoint(min, max - 1),
+                       QPoint(max, min + 1),
+                       QPoint(max, max - 1)};
+}
+
+} // namespace
+
 auto dynamicObstaclesForLevel(QStringView levelName, int gameTickCounter)
   -> std::optional<QList<QPoint>> {
   if (levelName == u"Dynamic Pulse") {
-    const int a = static_cast<int>(std::floor(std::abs(std::sin(gameTickCounter * 0.1)) * 10.0));
-    const int x1 = 5 + a;
-    const int x2 = 15 - a;
+    const int offset = phaseOffset(gameTickCounter, 12, {0, 1, 2, 3, 2, 1});
+    const int x1 = 5 + offset;
+    const int x2 = 15 - offset;
     return QList<QPoint>{QPoint(x1, 5), QPoint(x1, 6), QPoint(x2, 12), QPoint(x2, 13)};
   }
 
   if (levelName == u"Crossfire") {
-    const int t = (gameTickCounter / 2) % 8;
-    const int left = 4 + t;
-    const int right = 15 - t;
+    const int offset = phaseOffset(gameTickCounter, 10, {0, 1, 2, 1});
+    const int left = 5 + offset;
+    const int right = 14 - offset;
+    const int top = 5 + offset;
+    const int bottom = 12 - offset;
     return QList<QPoint>{QPoint(left, 8),
                          QPoint(left, 9),
                          QPoint(right, 8),
                          QPoint(right, 9),
-                         QPoint(9, 4 + t),
-                         QPoint(10, 13 - t)};
+                         QPoint(9, top),
+                         QPoint(10, bottom)};
   }
 
   if (levelName == u"Shifting Box") {
-    const int d = static_cast<int>(std::floor((std::sin(gameTickCounter * 0.08) + 1.0) * 2.0));
-    const int min = 4 + d;
-    const int max = 15 - d;
-    return QList<QPoint>{QPoint(min, min),
-                         QPoint(min + 1, min),
-                         QPoint(max - 1, min),
-                         QPoint(max, min),
-                         QPoint(min, max),
-                         QPoint(min + 1, max),
-                         QPoint(max - 1, max),
-                         QPoint(max, max),
-                         QPoint(min, min + 1),
-                         QPoint(min, max - 1),
-                         QPoint(max, min + 1),
-                         QPoint(max, max - 1)};
+    const int offset = phaseOffset(gameTickCounter, 14, {0, 1, 2, 1});
+    const int min = 4 + offset;
+    const int max = 15 - offset;
+    return shiftingBoxWalls(min, max);
   }
 
   return std::nullopt;
@@ -73,10 +93,10 @@ auto fallbackLevelData(int levelIndex) -> FallbackLevelData {
   case 2:
     return {.name = QStringLiteral("Dynamic Pulse"),
             .script = QStringLiteral(
-              "function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick "
-              "* 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) "
-              "* 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: "
-              "13}]; }"),
+              "function onTick(tick) { var phases = [0,1,2,3,2,1]; var offset = "
+              "phases[Math.floor(tick / 12) % phases.length]; var x1 = 5 + offset; var "
+              "x2 = 15 - offset; return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, "
+              "{x: x2, y: 13}]; }"),
             .walls = {}};
   case 3:
     return {.name = QStringLiteral("Tunnel Run"),
@@ -100,10 +120,11 @@ auto fallbackLevelData(int levelIndex) -> FallbackLevelData {
   case 4:
     return {.name = QStringLiteral("Crossfire"),
             .script = QStringLiteral(
-              "function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = "
-              "4 + t; var right = 15 - t; return "
-              "[{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,"
-              "y:13-t}]; }"),
+              "function onTick(tick) { var phases = [0,1,2,1]; var offset = "
+              "phases[Math.floor(tick / 10) % phases.length]; var left = 5 + offset; "
+              "var right = 14 - offset; var top = 5 + offset; var bottom = 12 - offset; "
+              "return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:top},"
+              "{x:10,y:bottom}]; }"),
             .walls = {QPoint(5, 8),
                       QPoint(6, 8),
                       QPoint(7, 8),
@@ -123,8 +144,9 @@ auto fallbackLevelData(int levelIndex) -> FallbackLevelData {
   case 5:
     return {.name = QStringLiteral("Shifting Box"),
             .script = QStringLiteral(
-              "function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) "
-              "* 2.0); var min = 4 + d; var max = 15 - d; return "
+              "function onTick(tick) { var phases = [0,1,2,1]; var d = "
+              "phases[Math.floor(tick / 14) % phases.length]; var min = 4 + d; var max = "
+              "15 - d; return "
               "[{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:"
               "max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,"
               "y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"),
@@ -166,7 +188,8 @@ auto resolvedLevelDataFromJson(const QJsonArray& levelsJson, const int levelInde
   if (levelsJson.isEmpty()) {
     return std::nullopt;
   }
-  const int normalized = ((levelIndex % levelsJson.size()) + levelsJson.size()) % levelsJson.size();
+  const int levelCount = static_cast<int>(levelsJson.size());
+  const int normalized = ((levelIndex % levelCount) + levelCount) % levelCount;
   const auto levelObject = levelsJson[normalized].toObject();
 
   ResolvedLevelData resolved;

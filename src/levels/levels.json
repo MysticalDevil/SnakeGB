@@ -13,7 +13,7 @@
         },
         {
             "name": "Dynamic Pulse",
-            "script": "function onTick(tick) { var x1 = 5 + Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); var x2 = 15 - Math.floor(Math.abs(Math.sin(tick * 0.1) * 10)); return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"
+            "script": "function onTick(tick) { var phases = [0,1,2,3,2,1]; var offset = phases[Math.floor(tick / 12) % phases.length]; var x1 = 5 + offset; var x2 = 15 - offset; return [{x: x1, y: 5}, {x: x1, y: 6}, {x: x2, y: 12}, {x: x2, y: 13}]; }"
         },
         {
             "name": "Tunnel Run",
@@ -26,11 +26,11 @@
         },
         {
             "name": "Crossfire",
-            "script": "function onTick(tick) { var t = Math.floor(tick * 0.5) % 8; var left = 4 + t; var right = 15 - t; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:4+t},{x:10,y:13-t}]; }"
+            "script": "function onTick(tick) { var phases = [0,1,2,1]; var offset = phases[Math.floor(tick / 10) % phases.length]; var left = 5 + offset; var right = 14 - offset; var top = 5 + offset; var bottom = 12 - offset; return [{x:left,y:8},{x:left,y:9},{x:right,y:8},{x:right,y:9},{x:9,y:top},{x:10,y:bottom}]; }"
         },
         {
             "name": "Shifting Box",
-            "script": "function onTick(tick) { var d = Math.floor((Math.sin(tick * 0.08) + 1.0) * 2.0); var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"
+            "script": "function onTick(tick) { var phases = [0,1,2,1]; var d = phases[Math.floor(tick / 14) % phases.length]; var min = 4 + d; var max = 15 - d; return [{x:min,y:min},{x:min+1,y:min},{x:max-1,y:min},{x:max,y:min},{x:min,y:max},{x:min+1,y:max},{x:max-1,y:max},{x:max,y:max},{x:min,y:min+1},{x:min,y:max-1},{x:max,y:min+1},{x:max,y:max-1}]; }"
         }
     ]
 }
