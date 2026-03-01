@@ -3,12 +3,15 @@ import QtQuick.Controls
 
 Rectangle {
     id: osdBox
-    anchors.centerIn: parent
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.verticalCenter: osdMode === "volume" ? undefined : parent.verticalCenter
+    anchors.bottom: osdMode === "volume" ? parent.bottom : undefined
+    anchors.bottomMargin: osdMode === "volume" ? 14 : 0
     width: osdMode === "volume"
-           ? Math.max(112, volumeColumn.implicitWidth + (volumePadding * 2))
+           ? Math.max(92, volumeRow.implicitWidth + (volumePadding * 2))
            : Math.max(88, osdLabel.implicitWidth + (textPadding * 2))
     height: osdMode === "volume"
-            ? Math.max(34, volumeColumn.implicitHeight + (volumePadding * 2))
+            ? Math.max(24, volumeRow.implicitHeight + (volumePadding * 2))
             : Math.max(24, osdLabel.implicitHeight + (textPadding * 2))
     radius: osdMode === "volume" ? 5 : 4
     color: Qt.rgba(bg.r, bg.g, bg.b, 0.8)
@@ -20,7 +23,7 @@ Rectangle {
     property string osdMode: "text"
     property real volumeValue: 1.0
     readonly property int textPadding: 9
-    readonly property int volumePadding: 8
+    readonly property int volumePadding: 6
 
     function show(text) {
         osdMode = "text"
@@ -46,35 +49,34 @@ Rectangle {
         font.pixelSize: 9
     }
 
-    Column {
-        id: volumeColumn
+    Row {
+        id: volumeRow
         anchors.fill: parent
         anchors.margins: volumePadding
-        spacing: 3
+        spacing: 5
         visible: osdBox.osdMode === "volume"
+        layoutDirection: Qt.LeftToRight
 
         Text {
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
+            anchors.verticalCenter: parent.verticalCenter
             color: osdBox.ink
             font.family: osdBox.gameFont
             font.bold: true
             font.pixelSize: 8
-            text: "VOLUME"
+            text: "VOL"
         }
 
         Row {
-            width: parent.width
-            height: 14
+            anchors.verticalCenter: parent.verticalCenter
+            height: 10
             spacing: 2
-            anchors.horizontalCenter: parent.horizontalCenter
 
             Repeater {
                 model: 10
                 delegate: Rectangle {
                     readonly property int activeStep: Math.round(osdBox.volumeValue * 9)
-                    width: 8
-                    height: 10
+                    width: 5
+                    height: 8
                     radius: 1
                     anchors.verticalCenter: parent.verticalCenter
                     color: index <= activeStep
