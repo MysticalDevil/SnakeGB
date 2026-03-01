@@ -189,7 +189,7 @@ Rectangle {
 
             Text {
                 anchors.centerIn: parent
-                text: "UP/DOWN BROWSE   B MENU"
+                text: "UP PREV   DOWN NEXT   SELECT MENU"
                 color: medalRoot.secondaryText
                 font.family: gameFont
                 font.pixelSize: 8

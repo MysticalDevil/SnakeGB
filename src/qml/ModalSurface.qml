@@ -5,6 +5,7 @@ Item {
     property bool active: false
     property var blurSourceItem: null
     property real blurScale: 2.5
+    property bool lowPerfMode: Qt.platform.os === "android"
     property color tintColor: "transparent"
     property color panelColor: "white"
     property color panelBorderColor: "black"
@@ -24,14 +25,14 @@ Item {
     ShaderEffectSource {
         id: blurSource
         sourceItem: modalSurface.blurSourceItem
-        live: true
+        live: !modalSurface.lowPerfMode
         recursive: false
         hideSource: false
     }
 
     ShaderEffect {
         anchors.fill: parent
-        visible: modalSurface.visible && !!modalSurface.blurSourceItem
+        visible: modalSurface.visible && !!modalSurface.blurSourceItem && !modalSurface.lowPerfMode
         property variant source: blurSource
         property vector2d texelStep: Qt.vector2d(1.0 / Math.max(1.0, width), 1.0 / Math.max(1.0, height))
         property real blurScale: modalSurface.blurScale

@@ -5,7 +5,7 @@ import NenoSerpent 1.0
 Window {
     id: window
     readonly property int shellBaseWidth: 350
-    readonly property int shellBaseHeight: 570
+    readonly property int shellBaseHeight: 620
     readonly property int screenBaseWidth: 240
     readonly property int screenBaseHeight: 216
     readonly property real screenOnlyScale: 3.0
@@ -13,6 +13,7 @@ Window {
     readonly property bool fullUiMode: uiMode === "full"
     readonly property bool screenOnlyUiMode: uiMode === "screen"
     readonly property bool shellOnlyUiMode: uiMode === "shell"
+    readonly property bool androidPlatform: Qt.platform.os === "android"
 
     width: screenOnlyUiMode ? Math.round(screenBaseWidth * screenOnlyScale) : shellBaseWidth
     height: screenOnlyUiMode ? Math.round(screenBaseHeight * screenOnlyScale) : shellBaseHeight
@@ -31,6 +32,7 @@ Window {
     readonly property var inputInjectorRef: inputInjector
     readonly property var themeViewModelRef: themeViewModel
     property real elapsed: 0.0
+    readonly property int elapsedTickMs: androidPlatform ? 50 : 16
     readonly property int currentState: sessionRenderViewModelRef.state
     readonly property var inputAction: ({
         NavUp: "nav_up",
@@ -47,11 +49,11 @@ Window {
         ToggleShellColor: "toggle_shell_color",
         ToggleMusic: "toggle_music"
     })
-    NumberAnimation on elapsed { 
-        from: 0
-        to: 1000
-        duration: 1000000
-        loops: Animation.Infinite 
+    Timer {
+        interval: window.elapsedTickMs
+        repeat: true
+        running: true
+        onTriggered: window.elapsed = (window.elapsed + (interval / 1000.0)) % 1000.0
     }
 
     UiRuntimeState {

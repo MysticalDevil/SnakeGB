@@ -23,6 +23,7 @@ Item {
     property string staticDebugScene: ""
     property var staticDebugOptions: ({})
     property int iconLabSelection: 0
+    readonly property bool lowPerfFxMode: Qt.platform.os === "android"
 
     readonly property var menuColor: function(role) {
         return ScreenThemeTokens.menuColor(themeViewModel.paletteName, role)
@@ -449,7 +450,8 @@ Item {
                 id: crtLayer
                 anchors.fill: parent
                 z: LayerScale.screenCrt
-                opacity: 0.06
+                opacity: root.lowPerfFxMode ? 0.035 : 0.06
+                visible: true
 
                 Canvas {
                     anchors.fill: parent
@@ -470,34 +472,61 @@ Item {
             }
         }
 
+        ShaderEffectSource {
+            id: lcdSource
+            sourceItem: gameContent
+            hideSource: true
+            live: true
+        }
+
+        ShaderEffectSource {
+            id: lcdHistoryRecursive
+            sourceItem: lcdShader
+            live: true
+            recursive: true
+        }
+
+        ShaderEffectSource {
+            id: lcdHistoryDirect
+            sourceItem: gameContent
+            hideSource: true
+            live: true
+            recursive: false
+        }
+
         // --- 2. FX layer ---
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent
             z: LayerScale.screenFx
-            property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
-            property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
-            property real time: root.elapsed
-            property real reflectionX: sessionRender.reflectionOffset.x
-            property real reflectionY: sessionRender.reflectionOffset.y
+            property variant source: lcdSource
+            property variant history: root.lowPerfFxMode ? lcdHistoryDirect : lcdHistoryRecursive
+            property real time: root.lowPerfFxMode ? root.elapsed * 0.24 : root.elapsed
+            property real reflectionX: root.lowPerfFxMode ? sessionRender.reflectionOffset.x * 0.25 : sessionRender.reflectionOffset.x
+            property real reflectionY: root.lowPerfFxMode ? sessionRender.reflectionOffset.y * 0.25 : sessionRender.reflectionOffset.y
             property bool isPlayScene: sessionRender.state === AppState.Playing || root.staticDebugScene === "game"
             property bool isReplayScene: sessionRender.state === AppState.Replaying || root.staticDebugScene === "replay"
             property bool isChoiceScene: sessionRender.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
-            property real lumaBoost: isPlayScene ? 0.95
+            property real lumaBoost: root.lowPerfFxMode ? 0.985
+                                   : (isPlayScene ? 0.95
                                    : (isReplayScene ? 0.985
-                                      : (isChoiceScene ? 0.99 : 1.0))
-            property real ghostMix: isPlayScene ? 0.12
+                                      : (isChoiceScene ? 0.99 : 1.0)))
+            property real ghostMix: root.lowPerfFxMode ? 0.065
+                                   : (isPlayScene ? 0.12
                                    : (isReplayScene ? 0.07
-                                      : (isChoiceScene ? 0.05 : 0.25))
-            property real scanlineStrength: isPlayScene ? 0.045
+                                      : (isChoiceScene ? 0.05 : 0.25)))
+            property real scanlineStrength: root.lowPerfFxMode ? 0.048
+                                           : (isPlayScene ? 0.045
                                            : (isReplayScene ? 0.028
-                                              : (isChoiceScene ? 0.018 : 0.03))
-            property real gridStrength: isPlayScene ? 0.07
+                                              : (isChoiceScene ? 0.018 : 0.03)))
+            property real gridStrength: root.lowPerfFxMode ? 0.062
+                                       : (isPlayScene ? 0.07
                                        : (isReplayScene ? 0.045
-                                          : (isChoiceScene ? 0.04 : 0.08))
-            property real vignetteStrength: isPlayScene ? 0.14
+                                          : (isChoiceScene ? 0.04 : 0.08)))
+            property real vignetteStrength: root.lowPerfFxMode ? 0.09
+                                           : (isPlayScene ? 0.14
                                            : (isReplayScene ? 0.10
-                                              : (isChoiceScene ? 0.11 : 0.15))
+                                              : (isChoiceScene ? 0.11 : 0.15)))
             fragmentShader: "qrc:/shaders/src/qml/lcd.frag.qsb"
         }
 
@@ -540,7 +569,7 @@ Item {
         }
 
         function onEventPrompt(text) {
-            root.showOSD(`>> ${text} <<`)
+            root.showOSD(text)
         }
     }
 }

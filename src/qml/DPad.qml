@@ -5,6 +5,7 @@ Item {
     id: dpad
     width: 92
     height: 92
+    readonly property real baseSize: Math.min(width, height)
 
     property bool externalUpPressed: false
     property bool externalDownPressed: false
@@ -24,8 +25,9 @@ Item {
     signal leftClicked
     signal rightClicked
 
-    readonly property int arm: 30
-    readonly property int cross: 84
+    readonly property int arm: Math.max(28, Math.round(baseSize * 0.34))
+    readonly property int cross: Math.max(80, Math.round(baseSize * 0.92))
+    readonly property int edgePadding: Math.max(8, Math.round(baseSize * 0.10))
     readonly property int pressX: (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
     readonly property int pressY: (downPressed ? 1 : 0) - (upPressed ? 1 : 0)
     readonly property color bodyHi: "#2c3138"
@@ -71,7 +73,7 @@ Item {
                 ctx.fillStyle = g
                 ctx.fill()
 
-                ctx.lineWidth = 1.5
+                ctx.lineWidth = Math.max(1.2, dpad.baseSize * 0.016)
                 ctx.strokeStyle = dpad.edgeInk
                 ctx.lineJoin = "round"
                 ctx.stroke()
@@ -121,18 +123,20 @@ Item {
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.reset()
-                drawTri(ctx, width / 2, 15, 5, "up")
-                drawTri(ctx, width / 2, height - 15, 5, "down")
-                drawTri(ctx, 15, height / 2, 5, "left")
-                drawTri(ctx, width - 15, height / 2, 5, "right")
+                const triOffset = Math.max(14, dpad.baseSize * 0.16)
+                const triSize = Math.max(5, dpad.baseSize * 0.055)
+                drawTri(ctx, width / 2, triOffset, triSize, "up")
+                drawTri(ctx, width / 2, height - triOffset, triSize, "down")
+                drawTri(ctx, triOffset, height / 2, triSize, "left")
+                drawTri(ctx, width - triOffset, height / 2, triSize, "right")
             }
         }
 
         Rectangle {
             anchors.centerIn: parent
-            width: 16
-            height: 16
-            radius: 8
+            width: Math.max(16, Math.round(dpad.baseSize * 0.17))
+            height: width
+            radius: width / 2
             color: "#0e1217"
             border.color: dpad.edgeInk
             border.width: 1
@@ -140,9 +144,9 @@ Item {
 
         Rectangle {
             anchors.centerIn: parent
-            width: 10
-            height: 4
-            radius: 2
+            width: Math.max(10, Math.round(dpad.baseSize * 0.11))
+            height: Math.max(4, Math.round(dpad.baseSize * 0.045))
+            radius: height / 2
             color: Qt.rgba(1, 1, 1, 0.03)
         }
     }
@@ -155,7 +159,7 @@ Item {
             x: (parent.width - dpad.arm) / 2
             y: 0
             width: dpad.arm
-            height: (parent.height - dpad.arm) / 2 + 8
+            height: (parent.height - dpad.arm) / 2 + dpad.edgePadding
             onPressed: { dpad.pointerUpPressed = true; dpad.upClicked() }
             onReleased: dpad.pointerUpPressed = false
             onCanceled: dpad.pointerUpPressed = false
@@ -163,9 +167,9 @@ Item {
 
         MouseArea {
             x: (parent.width - dpad.arm) / 2
-            y: (parent.height + dpad.arm) / 2 - 8
+            y: (parent.height + dpad.arm) / 2 - dpad.edgePadding
             width: dpad.arm
-            height: (parent.height - dpad.arm) / 2 + 8
+            height: (parent.height - dpad.arm) / 2 + dpad.edgePadding
             onPressed: { dpad.pointerDownPressed = true; dpad.downClicked() }
             onReleased: dpad.pointerDownPressed = false
             onCanceled: dpad.pointerDownPressed = false
@@ -174,7 +178,7 @@ Item {
         MouseArea {
             x: 0
             y: (parent.height - dpad.arm) / 2
-            width: (parent.width - dpad.arm) / 2 + 8
+            width: (parent.width - dpad.arm) / 2 + dpad.edgePadding
             height: dpad.arm
             onPressed: { dpad.pointerLeftPressed = true; dpad.leftClicked() }
             onReleased: dpad.pointerLeftPressed = false
@@ -182,9 +186,9 @@ Item {
         }
 
         MouseArea {
-            x: (parent.width + dpad.arm) / 2 - 8
+            x: (parent.width + dpad.arm) / 2 - dpad.edgePadding
             y: (parent.height - dpad.arm) / 2
-            width: (parent.width - dpad.arm) / 2 + 8
+            width: (parent.width - dpad.arm) / 2 + dpad.edgePadding
             height: dpad.arm
             onPressed: { dpad.pointerRightPressed = true; dpad.rightClicked() }
             onReleased: dpad.pointerRightPressed = false

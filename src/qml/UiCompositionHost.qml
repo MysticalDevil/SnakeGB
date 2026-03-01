@@ -7,7 +7,7 @@ Item {
     property bool screenOnlyUiMode: false
     property bool shellOnlyUiMode: false
     property int shellBaseWidth: 350
-    property int shellBaseHeight: 570
+    property int shellBaseHeight: 620
     property int screenBaseWidth: 240
     property int screenBaseHeight: 216
     property var commandController

@@ -17,6 +17,9 @@ Item {
     property real shellLowerRightRadius: 72
     readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
     readonly property real lowerDeckTop: screenBorder.bottom + 28
+    // Local z-layer tokens (avoid bare numbers in component tree).
+    readonly property int zSpeakerCluster: 20
+    readonly property int zStartSelectCluster: 30
 
     Behavior on shellColor {
         ColorAnimation { duration: 300 }
@@ -60,7 +63,7 @@ Item {
     Item {
         id: controlsBand
         width: 304
-        height: 136
+        height: 146
         anchors.top: shellBranding.bottom
         anchors.topMargin: 2
         anchors.horizontalCenter: parent.horizontalCenter
@@ -68,10 +71,10 @@ Item {
 
         Item {
             id: dpadCluster
-            width: 106
-            height: 106
+            width: 132
+            height: 132
             x: 0
-            y: 18
+            y: 6
 
             Rectangle {
                 anchors.centerIn: parent
@@ -103,6 +106,8 @@ Item {
             DPad {
                 id: dpadUI
                 anchors.centerIn: parent
+                width: 118
+                height: 118
                 externalUpPressed: shell.bridge ? shell.bridge.upPressed : false
                 externalDownPressed: shell.bridge ? shell.bridge.downPressed : false
                 externalLeftPressed: shell.bridge ? shell.bridge.leftPressed : false
@@ -208,6 +213,7 @@ Item {
 
     Item {
         id: startSelectCluster
+        z: shell.zStartSelectCluster
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 58
         anchors.horizontalCenter: parent.horizontalCenter
@@ -259,6 +265,7 @@ Item {
 
     Item {
         id: speakerCluster
+        z: shell.zSpeakerCluster
         anchors.right: parent.right
         anchors.rightMargin: 10
         anchors.bottom: parent.bottom
@@ -270,7 +277,11 @@ Item {
         SpeakerGrill { anchors.fill: parent; theme: shell.shellTheme }
 
         MouseArea {
-            anchors.fill: parent
+            // Keep speaker tap gesture away from START/SELECT cluster.
+            x: Math.round(parent.width * 0.34)
+            y: Math.round(parent.height * 0.10)
+            width: Math.round(parent.width * 0.58)
+            height: Math.round(parent.height * 0.78)
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
             onClicked: {

@@ -117,7 +117,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.leftMargin: 16
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 24
+        anchors.bottomMargin: 4
         spacing: 2
 
         Repeater {
@@ -125,6 +125,7 @@ Rectangle {
                 { key: "UP", value: "MEDALS" },
                 { key: "DOWN", value: "REPLAY" },
                 { key: "LEFT", value: "CATALOG" },
+                { key: "RIGHT", value: "PALETTE" },
                 { key: "SELECT", value: "LEVEL" }
             ]
 
@@ -160,7 +161,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 16
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 24
+        anchors.bottomMargin: 4
         spacing: 2
 
         Repeater {

@@ -252,10 +252,10 @@ QtObject {
         switch (action) {
         case router.actionMap.Secondary:
         case router.actionMap.Back:
+        case router.actionMap.SelectShort:
             return dispatchBack()
         case router.actionMap.Primary:
         case router.actionMap.Start:
-        case router.actionMap.SelectShort:
             return true
         default:
             return false

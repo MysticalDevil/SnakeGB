@@ -317,7 +317,7 @@ Rectangle {
 
             Text {
                 anchors.centerIn: parent
-                text: "UP/DOWN BROWSE   B MENU"
+                text: "UP PREV   DOWN NEXT   SELECT MENU"
                 color: libraryLayer.textMuted
                 font.family: gameFont
                 font.pixelSize: 8

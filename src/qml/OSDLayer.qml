@@ -10,8 +10,8 @@ Item {
     property string osdMode: "text"
     property real volumeValue: 1.0
     property bool pinned: false
-    readonly property int textPadding: 9
-    readonly property int volumePadding: 6
+    readonly property int panelPaddingX: 8
+    readonly property int panelHeight: 24
 
     function show(text) {
         osdMode = "text"
@@ -30,18 +30,27 @@ Item {
     Rectangle {
         id: osdBox
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: osdLayer.osdMode === "volume" ? undefined : parent.verticalCenter
-        anchors.bottom: osdLayer.osdMode === "volume" ? parent.bottom : undefined
-        anchors.bottomMargin: osdLayer.osdMode === "volume" ? 14 : 0
-        width: osdLayer.osdMode === "volume"
-               ? Math.max(92, volumeRow.implicitWidth + (osdLayer.volumePadding * 2))
-               : Math.max(88, osdLabel.implicitWidth + (osdLayer.textPadding * 2))
-        height: osdLayer.osdMode === "volume"
-                ? Math.max(24, volumeRow.implicitHeight + (osdLayer.volumePadding * 2))
-                : Math.max(24, osdLabel.implicitHeight + (osdLayer.textPadding * 2))
-        radius: osdLayer.osdMode === "volume" ? 5 : 4
-        color: Qt.rgba(osdLayer.bg.r, osdLayer.bg.g, osdLayer.bg.b, 0.8)
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10
+        width: Math.min(parent.width - 8,
+                        osdLayer.osdMode === "volume"
+                        ? Math.max(96, volumeRow.implicitWidth + (osdLayer.panelPaddingX * 2))
+                        : Math.max(88, osdLabel.implicitWidth + (osdLayer.panelPaddingX * 2)))
+        height: osdLayer.panelHeight
+        radius: 4
+        color: Qt.rgba(osdLayer.bg.r, osdLayer.bg.g, osdLayer.bg.b, 0.84)
+        border.color: Qt.rgba(osdLayer.ink.r, osdLayer.ink.g, osdLayer.ink.b, 0.26)
+        border.width: 1
         visible: false
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: 3
+            color: "transparent"
+            border.color: Qt.rgba(1, 1, 1, 0.08)
+            border.width: 1
+        }
 
         Text {
             id: osdLabel
@@ -50,13 +59,13 @@ Item {
             color: osdLayer.ink
             font.family: osdLayer.gameFont
             font.bold: true
-            font.pixelSize: 9
+            font.pixelSize: 8
         }
 
         Row {
             id: volumeRow
             anchors.centerIn: parent
-            spacing: 5
+            spacing: 4
             visible: osdLayer.osdMode === "volume"
 
             Text {
@@ -70,15 +79,15 @@ Item {
 
             Row {
                 anchors.verticalCenter: parent.verticalCenter
-                height: 10
+                height: 8
                 spacing: 2
 
                 Repeater {
                     model: 10
                     delegate: Rectangle {
                         readonly property int activeStep: Math.round(osdLayer.volumeValue * 9)
-                        width: 5
-                        height: 8
+                        width: 4
+                        height: 6
                         radius: 1
                         anchors.verticalCenter: parent.verticalCenter
                         color: index <= activeStep
@@ -96,7 +105,7 @@ Item {
 
     Timer {
         id: osdTimer
-        interval: osdLayer.osdMode === "volume" ? 850 : 1500
+        interval: osdLayer.osdMode === "volume" ? 800 : 1200
         running: false
         onTriggered: {
             if (!osdLayer.pinned) {
