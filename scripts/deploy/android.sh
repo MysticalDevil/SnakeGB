@@ -131,46 +131,51 @@ if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
   fi
 fi
 if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
-  echo "[error] Android build dir not found. checked:"
+  echo "[warn] Android build dir not found. checked:"
   for candidate in "${android_build_candidates[@]}"; do
     echo "  - ${candidate}"
   done
-  exit 1
 fi
 
-if [[ -d "${PROJECT_ROOT}/android/res" ]]; then
-  log_phase "overlay android resources"
-  mkdir -p "${ANDROID_BUILD_DIR}/res"
-  # Overlay project resources only. Do not wipe Qt-generated values/arrays.
-  cp -r "${PROJECT_ROOT}/android/res/." "${ANDROID_BUILD_DIR}/res/"
-fi
-if [[ -f "${ANDROID_BUILD_DIR}/gradle.properties" ]]; then
-  if rg -q '^androidPackageName=' "${ANDROID_BUILD_DIR}/gradle.properties"; then
-    sed -i "s/^androidPackageName=.*/androidPackageName=${APP_ID}/" \
-      "${ANDROID_BUILD_DIR}/gradle.properties"
-  else
-    printf '\nandroidPackageName=%s\n' "${APP_ID}" >>"${ANDROID_BUILD_DIR}/gradle.properties"
+if [[ -n "${ANDROID_BUILD_DIR}" ]]; then
+  if [[ -d "${PROJECT_ROOT}/android/res" ]]; then
+    log_phase "overlay android resources"
+    mkdir -p "${ANDROID_BUILD_DIR}/res"
+    # Overlay project resources only. Do not wipe Qt-generated values/arrays.
+    cp -r "${PROJECT_ROOT}/android/res/." "${ANDROID_BUILD_DIR}/res/"
   fi
-fi
+  if [[ -f "${ANDROID_BUILD_DIR}/gradle.properties" ]]; then
+    if rg -q '^androidPackageName=' "${ANDROID_BUILD_DIR}/gradle.properties"; then
+      sed -i "s/^androidPackageName=.*/androidPackageName=${APP_ID}/" \
+        "${ANDROID_BUILD_DIR}/gradle.properties"
+    else
+      printf '\nandroidPackageName=%s\n' "${APP_ID}" >>"${ANDROID_BUILD_DIR}/gradle.properties"
+    fi
+  fi
 
-build_type_lc="$(echo "${CMAKE_BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
-case "${build_type_lc}" in
-  release|minsizerel)
-    gradle_task="assembleRelease"
-    ;;
-  *)
-    gradle_task="assembleDebug"
-    ;;
-esac
+  build_type_lc="$(echo "${CMAKE_BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
+  case "${build_type_lc}" in
+    release|minsizerel)
+      gradle_task="assembleRelease"
+      ;;
+    *)
+      gradle_task="assembleDebug"
+      ;;
+  esac
 
-log_phase "gradle ${gradle_task}"
-gradle_cmd=("${ANDROID_BUILD_DIR}/gradlew" --no-daemon --console=plain -p "${ANDROID_BUILD_DIR}" "${gradle_task}")
-if [[ "${GRADLE_TIMEOUT_SECS}" =~ ^[0-9]+$ ]] && [[ "${GRADLE_TIMEOUT_SECS}" -gt 0 ]]; then
-  timeout --preserve-status "${GRADLE_TIMEOUT_SECS}" "${gradle_cmd[@]}"
+  log_phase "gradle ${gradle_task}"
+  gradle_cmd=("${ANDROID_BUILD_DIR}/gradlew" --no-daemon --console=plain -p "${ANDROID_BUILD_DIR}" "${gradle_task}")
+  if [[ "${GRADLE_TIMEOUT_SECS}" =~ ^[0-9]+$ ]] && [[ "${GRADLE_TIMEOUT_SECS}" -gt 0 ]]; then
+    timeout --preserve-status "${GRADLE_TIMEOUT_SECS}" "${gradle_cmd[@]}"
+  else
+    "${gradle_cmd[@]}"
+  fi
 else
-  "${gradle_cmd[@]}"
+  build_type_lc="$(echo "${CMAKE_BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
+  echo "[warn] skip gradle assemble: android-build dir unavailable; trying direct APK discovery"
 fi
 apk_roots=(
+  "${BUILD_DIR}/build/outputs/apk"
   "${BUILD_DIR}/android-build/build/outputs/apk"
   "${BUILD_DIR}/src/android-build/build/outputs/apk"
 )
@@ -216,6 +221,10 @@ if [[ -z "${UNSIGNED_APK}" ]]; then
       fi
     fi
   done
+fi
+
+if [[ -z "${UNSIGNED_APK}" && -z "${SIGNED_INPUT_APK}" ]]; then
+  SIGNED_INPUT_APK="$(find "${BUILD_DIR}" -type f -name '*.apk' ! -name '*-unsigned.apk' | head -n1)"
 fi
 
 if [[ -z "${UNSIGNED_APK}" && -z "${SIGNED_INPUT_APK}" ]]; then
