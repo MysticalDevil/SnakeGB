@@ -1,10 +1,19 @@
 #pragma once
 
+#include <array>
+#include <chrono>
 #include <functional>
+#include <optional>
 
 #include "audio/event.h"
 
 namespace snakegb::services {
+
+enum class AudioGroup {
+  Music,
+  Ui,
+  Sfx,
+};
 
 enum class MusicCommand {
   None,
@@ -40,14 +49,32 @@ public:
   void handleMusicToggle(bool musicEnabled, int state) const;
   void applyVolume(float value) const;
 
-  void dispatchEvent(snakegb::audio::Event event,
-                     const snakegb::audio::EventPayload& payload = {}) const;
+  void dispatchEvent(snakegb::audio::Event event, const snakegb::audio::EventPayload& payload = {});
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
+  [[nodiscard]] static auto eventGroup(snakegb::audio::Event event) -> AudioGroup;
+  [[nodiscard]] static auto eventCooldownMs(snakegb::audio::Event event) -> int;
+  [[nodiscard]] static auto eventPriority(snakegb::audio::Event event) -> int;
 
 private:
+  struct RecentUiEvent {
+    snakegb::audio::Event event;
+    std::chrono::steady_clock::time_point timestamp;
+    int priority = 0;
+  };
+
+  [[nodiscard]] auto shouldDispatchEvent(snakegb::audio::Event event,
+                                         std::chrono::steady_clock::time_point now) -> bool;
+  void rememberDispatch(snakegb::audio::Event event, std::chrono::steady_clock::time_point now);
+  [[nodiscard]] auto lastEventTime(snakegb::audio::Event event)
+    -> std::chrono::steady_clock::time_point&;
+  [[nodiscard]] auto lastEventTime(snakegb::audio::Event event) const
+    -> const std::chrono::steady_clock::time_point&;
+
   AudioCallbacks m_callbacks;
+  std::array<std::chrono::steady_clock::time_point, 5> m_lastEventTimes{};
+  std::optional<RecentUiEvent> m_recentUiEvent;
 };
 
 } // namespace snakegb::services

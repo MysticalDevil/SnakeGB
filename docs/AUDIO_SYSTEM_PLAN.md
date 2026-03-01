@@ -306,6 +306,14 @@ Acceptance:
 - event routing and playback policy are separate concerns
 - repeated UI events can be throttled centrally
 
+Current status:
+
+- `Completed` for the initial bus-policy milestone
+- `AudioBus` now owns event grouping, UI cooldown policy, and simple priority handling
+- repeated `UiInteract` events are throttled centrally
+- `Confirm` is allowed to override recent lower-priority UI interaction cues
+- mixer-level ducking and richer group policy remain deferred to later audio phases
+
 ### Phase 3: Data-Driven Cues
 
 Move cue mapping into configuration-driven data.

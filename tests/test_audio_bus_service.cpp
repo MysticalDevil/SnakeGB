@@ -10,6 +10,8 @@ private slots:
   void testStateChangePolicy();
   void testMusicTogglePolicy();
   void testDispatchEventRoutesCallbacks();
+  void testUiEventsRespectCooldownPolicy();
+  void testConfirmOverridesRecentUiInteract();
 };
 
 void TestAudioBusService::testPausedStates() {
@@ -116,6 +118,42 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
 
   audioBus.dispatchEvent(snakegb::audio::Event::Crash);
   QCOMPARE(crashDuration, 500);
+}
+
+void TestAudioBusService::testUiEventsRespectCooldownPolicy() {
+  int beepCount = 0;
+  int lastFrequency = 0;
+
+  snakegb::services::AudioBus audioBus({
+    .playBeep = [&](const int frequencyHz, const int, const float) -> void {
+      beepCount++;
+      lastFrequency = frequencyHz;
+    },
+  });
+
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+
+  QCOMPARE(beepCount, 1);
+  QCOMPARE(lastFrequency, 200);
+}
+
+void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
+  QList<int> frequencies;
+
+  snakegb::services::AudioBus audioBus({
+    .playBeep = [&](const int frequencyHz, const int, const float) -> void {
+      frequencies.push_back(frequencyHz);
+    },
+  });
+
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+  audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+
+  QCOMPARE(frequencies.size(), 2);
+  QCOMPARE(frequencies.at(0), 200);
+  QCOMPARE(frequencies.at(1), 1046);
 }
 
 QTEST_MAIN(TestAudioBusService)
