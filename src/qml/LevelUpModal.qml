@@ -29,16 +29,16 @@ ModalSurface {
     property real verticalInsetBottom: 0
 
     panelWidth: Math.max(188, width - 28 - horizontalInset)
-    panelHeight: Math.max(154, height - 42 - verticalInsetTop - verticalInsetBottom)
+    panelHeight: Math.max(170, height - 42 - verticalInsetTop - verticalInsetBottom)
     panelColor: modalPanelFill
     panelBorderColor: modalPanelBorder
     panelInnerBorderColor: modalInnerBorder
     panelOffsetY: 6
     contentMargin: 8
 
-    readonly property int verticalGap: 6
+    readonly property int verticalGap: 5
     readonly property int headerHeight: 26
-    readonly property int footerHeight: 18
+    readonly property int footerHeight: 20
     readonly property int choiceCount: Math.max(
                                            1,
                                            levelUpModal.choices ? levelUpModal.choices.length : 3)
@@ -52,9 +52,9 @@ ModalSurface {
             width: parent.width
             spacing: levelUpModal.verticalGap
             readonly property int cardHeight: Math.max(
-                                                  36,
+                                                  32,
                                                   Math.min(
-                                                      42,
+                                                      40,
                                                       Math.floor(
                                                           (parent.height
                                                            - levelUpModal.headerHeight

@@ -267,6 +267,8 @@ state, not the desired end state.
     dedicated `UiDebugController`.
   - keyboard and shell-bridge input orchestration now route through a dedicated `UiInputController`, leaving
     `main.qml` primarily as app wiring.
+  - `UiActionRouter` now routes through mode-based declarative action dispatch instead of repeated per-state
+    if/else chains.
   - `EngineAdapter` no longer exposes QML properties directly; it remains as an action/state bridge for C++ and
     QML command dispatch.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.
