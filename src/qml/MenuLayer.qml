@@ -79,6 +79,7 @@ Rectangle {
             Row {
                 anchors.centerIn: parent
                 spacing: 8
+                width: implicitWidth
 
                 Text {
                     text: "START"
