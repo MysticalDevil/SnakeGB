@@ -131,9 +131,9 @@ jobs:
 
       - name: Build signed Android APK
         env:
-          QT_ANDROID_PREFIX: ${{ github.workspace }}/.qt/6.7.2/android_arm64_v8a
-          QT_HOST_PATH: ${{ github.workspace }}/.qt/6.7.2/gcc_64
-          QT_CMAKE_BIN: ${{ github.workspace }}/.qt/6.7.2/gcc_64/bin/qt-cmake
+          QT_ANDROID_PREFIX: ${{ github.workspace }}/.qt/Qt/6.7.2/android_arm64_v8a
+          QT_HOST_PATH: ${{ github.workspace }}/.qt/Qt/6.7.2/gcc_64
+          QT_CMAKE_BIN: ${{ github.workspace }}/.qt/Qt/6.7.2/gcc_64/bin/qt-cmake
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.2.12479018
           CMAKE_BUILD_TYPE: Release
