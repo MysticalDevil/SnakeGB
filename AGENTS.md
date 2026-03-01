@@ -68,6 +68,7 @@ make clean
   - Debug takeover layers (`IconLab`, `StaticDebug`) must suppress lower-priority overlays/HUD so only one top-level mode owns the screen at a time.
 - `OSDLayer` should remain topmost above CRT/screen treatment layers.
 - For audio-system upgrade work, follow `docs/AUDIO_SYSTEM_PLAN.md`.
+- For runtime logging cleanup work, follow `docs/LOGGING_SYSTEM_PLAN.md`.
 
 ## Testing Guidelines
 - Framework: `Qt6::Test` via `engine-adapter-tests` target and `ctest` (`EngineAdapterTest`).

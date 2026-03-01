@@ -55,8 +55,9 @@ cmake --build build/release --parallel
 ./build/release/SnakeGB
 ```
 
-- `Debug`: full runtime logs enabled.
-- `Release` / `MinSizeRel` / `RelWithDebInfo`: `qDebug/qInfo/qWarning` logs are compiled out (desktop + Android).
+- `Debug`: detailed runtime logs enabled.
+- `RelWithDebInfo` (`dev`): compact runtime logs enabled.
+- `Release` / `MinSizeRel`: routine runtime logs are compiled out.
 
 ### Build and Run via Zig
 ```bash
@@ -115,6 +116,7 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 - **Back / Esc**: Quit App
 
 ## Input Architecture Notes
+- Logging system plan: `docs/LOGGING_SYSTEM_PLAN.md`
 - Audio authoring guide: `docs/AUDIO_AUTHORING.md`
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
 - Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
