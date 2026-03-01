@@ -40,8 +40,6 @@ Window {
         ToggleShellColor: "toggle_shell_color",
         ToggleMusic: "toggle_music"
     })
-    property var konamiSeq: ["U","U","D","D","L","R","L","R","B","A"]
-    property int konamiIndex: 0
     NumberAnimation on elapsed { 
         from: 0
         to: 1000
@@ -78,10 +76,6 @@ Window {
         staticDebugOptions = options ? options : ({})
     }
 
-    function resetKonamiProgress() {
-        konamiIndex = 0
-    }
-
     function dispatchRuntimeAction(action) {
         uiCommandController.dispatch(action)
     }
@@ -95,25 +89,26 @@ Window {
         staticDebugScene: window.staticDebugScene
         saveClearConfirmPending: inputPressController.saveClearConfirmPending
         handleDirection: window.handleDirection
-        toggleIconLabMode: debugTokenRouter.toggleIconLabMode
-        setStaticScene: debugTokenRouter.setStaticScene
-        cycleStaticScene: debugTokenRouter.cycleStaticScene
-        exitIconLab: debugTokenRouter.exitIconLab
+        toggleIconLabMode: uiDebugController.toggleIconLabMode
+        setStaticScene: uiDebugController.setStaticScene
+        cycleStaticScene: uiDebugController.cycleStaticScene
+        exitIconLab: uiDebugController.exitIconLab
         performPrimary: window.handleAButton
         performSecondary: window.handleBButton
         performStart: window.handleStartButton
         performSelectShort: window.handleSelectShortPress
         performBack: window.handleBackAction
-        trackEasterToken: window.handleEasterInput
+        trackEasterToken: uiDebugController.handleEasterInput
         moveIconLabSelection: screen.iconLabMove
         setDirectionPressed: window.setDpadPressed
         clearDirectionVisuals: window.clearDpadVisuals
     }
 
-    DebugTokenRouter {
-        id: debugTokenRouter
+    UiDebugController {
+        id: uiDebugController
         commandController: commandControllerRef
         actionMap: window.inputAction
+        currentState: window.currentState
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
         staticDebugOptions: window.staticDebugOptions
@@ -123,7 +118,6 @@ Window {
         setIconDebugMode: window.setIconDebugMode
         setStaticDebugSceneValue: window.setStaticDebugSceneValue
         setStaticDebugOptionsValue: window.setStaticDebugOptionsValue
-        resetKonamiProgress: window.resetKonamiProgress
     }
 
     InputPressController {
@@ -141,92 +135,12 @@ Window {
         uiActionRouter.route(action)
     }
 
-    function dispatchInjectedToken(rawToken) {
-        const token = String(rawToken).trim().toUpperCase()
-        if (debugTokenRouter.routeDebugToken(token)) {
-            return
-        }
-        if (token === "UP" || token === "U") {
-            dispatchAction(inputAction.NavUp)
-            return
-        }
-        if (token === "DOWN" || token === "D") {
-            dispatchAction(inputAction.NavDown)
-            return
-        }
-        if (token === "LEFT" || token === "L") {
-            dispatchAction(inputAction.NavLeft)
-            return
-        }
-        if (token === "RIGHT" || token === "R") {
-            dispatchAction(inputAction.NavRight)
-            return
-        }
-        if (token === "A" || token === "PRIMARY" || token === "OK") {
-            dispatchAction(inputAction.Primary)
-            return
-        }
-        if (token === "B" || token === "SECONDARY") {
-            dispatchAction(inputAction.Secondary)
-            return
-        }
-        if (token === "START") {
-            dispatchAction(inputAction.Start)
-            return
-        }
-        if (token === "SELECT") {
-            dispatchAction(inputAction.SelectShort)
-            return
-        }
-        if (token === "BACK") {
-            dispatchAction(inputAction.Back)
-            return
-        }
-        if (token === "ESC" || token === "ESCAPE") {
-            dispatchAction(inputAction.Escape)
-            return
-        }
-        if (token === "F6" || token === "ICON") {
-            dispatchAction(inputAction.ToggleIconLab)
-            return
-        }
-        if (token === "COLOR" || token === "SHELL") {
-            dispatchAction(inputAction.ToggleShellColor)
-            return
-        }
-        if (token === "PALETTE" || token === "NEXT_PALETTE") {
-            uiCommandController.dispatch("next_palette")
-            return
-        }
-        if (token === "MUSIC") {
-            dispatchAction(inputAction.ToggleMusic)
-            return
-        }
-        if (token === "STATIC_BOOT") {
-            debugTokenRouter.setStaticScene("boot")
-            return
-        }
-        if (token === "STATIC_GAME") {
-            debugTokenRouter.setStaticScene("game")
-            return
-        }
-        if (token === "STATIC_REPLAY") {
-            debugTokenRouter.setStaticScene("replay")
-            return
-        }
-        if (token === "STATIC_OFF") {
-            debugTokenRouter.setStaticScene("")
-            return
-        }
-        screen.showOSD(`UNKNOWN INPUT: ${token}`)
-    }
-
     function clearDpadVisuals() {
         shellBridge.clearDirectionPressed()
     }
 
     function handleBButton() {
-        if (handleEasterInput("B")) {
+        if (uiDebugController.handleEasterInput("B")) {
             return
         }
         uiCommandController.dispatch(inputAction.Secondary)
@@ -236,73 +150,10 @@ Window {
         if (inputPressController.confirmSaveClear()) {
             return
         }
-        if (handleEasterInput("A")) {
+        if (uiDebugController.handleEasterInput("A")) {
             return
         }
         uiCommandController.dispatch(inputAction.Primary)
-    }
-
-    function exitIconLabToMenu() {
-        iconDebugMode = false
-        konamiIndex = 0
-        clearDpadVisuals()
-        uiCommandController.dispatch("state_start_menu")
-        screen.showOSD("ICON LAB OFF")
-    }
-
-    function feedEasterInput(token) {
-        if (token === konamiSeq[konamiIndex]) {
-            konamiIndex += 1
-            konamiResetTimer.restart()
-            if (konamiIndex >= konamiSeq.length) {
-                konamiIndex = 0
-                konamiResetTimer.stop()
-                iconDebugMode = !iconDebugMode
-                screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
-                if (!iconDebugMode) {
-                    uiCommandController.dispatch("state_start_menu")
-                }
-                return "toggle"
-            }
-            return "progress"
-        }
-        konamiIndex = (token === konamiSeq[0]) ? 1 : 0
-        if (konamiIndex > 0) {
-            konamiResetTimer.restart()
-        } else {
-            konamiResetTimer.stop()
-        }
-        return "mismatch"
-    }
-
-    function handleEasterInput(token) {
-        // Keep Konami isolated from normal navigation:
-        // only allow entering sequence from paused overlay (or while already in icon lab).
-        const trackEaster = iconDebugMode || window.currentState === AppState.Paused
-        if (!trackEaster) {
-            return false
-        }
-
-        // Quick exit in icon lab: B always returns to main menu.
-        if (iconDebugMode && token === "B" && konamiIndex === 0) {
-            exitIconLabToMenu()
-            return true
-        }
-
-        const beforeIndex = konamiIndex
-        const status = feedEasterInput(token)
-        if (iconDebugMode) {
-            if (status === "toggle") {
-                uiCommandController.dispatch("state_start_menu")
-            }
-            return true
-        }
-        if (status === "toggle") {
-            return true
-        }
-        // Let the first token pass through for normal controls; consume the rest
-        // of a potential Konami sequence to avoid gameplay/menu side effects.
-        return beforeIndex > 0
     }
 
     function handleSelectShortPress() {
@@ -322,7 +173,7 @@ Window {
 
     function handleBackAction() {
         if (iconDebugMode) {
-            exitIconLabToMenu()
+            uiDebugController.exitIconLab()
             return
         }
         uiCommandController.dispatch(inputAction.Back)
@@ -359,16 +210,7 @@ Window {
     Connections {
         target: inputInjector
         function onActionInjected(action) {
-            dispatchInjectedToken(action)
-        }
-    }
-
-    Timer {
-        id: konamiResetTimer
-        interval: 1400
-        repeat: false
-        onTriggered: {
-            konamiIndex = 0
+            uiDebugController.routeInjectedToken(action)
         }
     }
 
@@ -465,7 +307,7 @@ Window {
                 dispatchAction(inputAction.ToggleIconLab)
             }
             else if (event.key === Qt.Key_F7) {
-                debugTokenRouter.cycleStaticScene(1)
+                uiDebugController.cycleStaticScene(1)
             }
             else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
                 shellBridge.secondaryPressed = true
@@ -493,9 +335,15 @@ Window {
             if (event.isAutoRepeat) return
             clearDpadVisuals()
             if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startHeld = false
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) inputPressController.onStartReleased()
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) shellBridge.primaryPressed = false
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) shellBridge.secondaryPressed = false
+            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
+                inputPressController.onStartReleased()
+            }
+            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
+                shellBridge.primaryPressed = false
+            }
+            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
+                shellBridge.secondaryPressed = false
+            }
             else if (event.key === Qt.Key_Shift) {
                 inputPressController.selectKeyDown = false
                 shellBridge.selectHeld = false

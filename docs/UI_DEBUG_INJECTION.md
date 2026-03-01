@@ -6,7 +6,7 @@ This document describes the current UI/debug injection surface used by screensho
 
 The current injection interfaces cover three layers:
 
-1. Runtime debug tokens routed by `src/qml/DebugTokenRouter.qml`
+1. Runtime debug tokens routed by `src/qml/UiDebugController.qml`
 2. Script-level target helpers in `scripts/lib/ui_nav_targets.sh`
 3. Manual and automated launch flows in `scripts/ui_nav_capture.sh` and `scripts/ui_nav_debug.sh`
 
@@ -88,7 +88,7 @@ The shared target router in `scripts/lib/ui_nav_targets.sh` currently supports:
 
 ## Runtime Debug Tokens
 
-The following tokens are routed by `src/qml/DebugTokenRouter.qml`.
+The following tokens are routed by `src/qml/UiDebugController.qml`.
 
 ### Scene/state tokens
 
@@ -361,7 +361,7 @@ PALETTE_STEPS=4 DBG_STATIC_PARAMS='TITLE=POWER_PICK,SUBTITLE=CHOOSE_YOUR_LOADOUT
 
 When new injectable UI surfaces are added, keep these in sync:
 
-- `src/qml/DebugTokenRouter.qml`
+- `src/qml/UiDebugController.qml`
 - `src/qml/StaticDebugLayer.qml`
 - `src/qml/LevelUpModal.qml` if static choice header/footer bindings change
 - `scripts/lib/ui_nav_targets.sh`

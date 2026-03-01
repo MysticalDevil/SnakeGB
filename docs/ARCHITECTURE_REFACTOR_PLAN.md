@@ -263,6 +263,8 @@ state, not the desired end state.
     through dedicated view models.
   - QML command dispatch now routes through a dedicated `UiCommandController` instead of direct
     `EngineAdapter` object access.
+  - injected debug-token parsing, static-scene seeding, and Konami/icon-lab orchestration now route through a
+    dedicated `UiDebugController`.
   - `EngineAdapter` no longer exposes QML properties directly; it remains as an action/state bridge for C++ and
     QML command dispatch.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.
