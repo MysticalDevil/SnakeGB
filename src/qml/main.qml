@@ -26,9 +26,6 @@ Window {
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
     readonly property var themeViewModelRef: themeViewModel
-    readonly property var screenRef: fullUiMode
-                                      ? (fullShellLoader.item ? fullShellLoader.item.screenItem : null)
-                                      : (screenOnlyUiMode ? screenOnlyLoader.item : null)
     property real elapsed: 0.0
     readonly property int currentState: sessionRenderViewModel.state
     readonly property var inputAction: ({
@@ -108,109 +105,30 @@ Window {
         actionMap: window.inputAction
     }
 
-    Item {
-        id: rootContainer
+    readonly property var screenRef: compositionHost.screenItem
+
+    UiCompositionHost {
+        id: compositionHost
         anchors.fill: parent
-
-        ShellBridge {
-            id: shellBridge
-        }
-
-        Component {
-            id: screenComponent
-
-            ScreenView {
-                commandController: uiCommandController
-                themeViewModel: window.themeViewModelRef
-                p0: window.p0
-                p1: window.p1
-                p2: window.p2
-                p3: window.p3
-                gameFont: window.gameFont
-                elapsed: window.elapsed
-                iconDebugMode: uiRuntimeState.iconDebugMode
-                staticDebugScene: uiRuntimeState.staticDebugScene
-                staticDebugOptions: uiRuntimeState.staticDebugOptions
-            }
-        }
-
-        Component {
-            id: shellOnlyScreenPlaceholder
-
-            Rectangle {
-                color: Qt.rgba(window.p0.r, window.p0.g, window.p0.b, 0.96)
-                border.color: Qt.rgba(window.p1.r, window.p1.g, window.p1.b, 0.42)
-                border.width: 1
-            }
-        }
-
-        Component {
-            id: fullShellComponent
-
-            Shell {
-                bridge: shellBridge
-                commandController: uiCommandController
-                inputController: uiInputController
-                shellColor: themeViewModel.shellColor
-                shellThemeName: themeViewModel.shellName
-                volume: audioSettingsViewModel.volume
-                screenContentComponent: screenComponent
-            }
-        }
-
-        Component {
-            id: shellOnlyComponent
-
-            Shell {
-                bridge: shellBridge
-                commandController: uiCommandController
-                inputController: uiInputController
-                shellColor: themeViewModel.shellColor
-                shellThemeName: themeViewModel.shellName
-                volume: audioSettingsViewModel.volume
-                screenContentComponent: shellOnlyScreenPlaceholder
-            }
-        }
-
-        Item {
-            id: shellHost
-            visible: !window.screenOnlyUiMode
-            width: window.shellBaseWidth
-            height: window.shellBaseHeight
-            anchors.centerIn: parent
-            scale: Math.min(window.width / window.shellBaseWidth,
-                            window.height / window.shellBaseHeight)
-
-            Loader {
-                id: fullShellLoader
-                anchors.fill: parent
-                active: window.fullUiMode
-                sourceComponent: fullShellComponent
-            }
-
-            Loader {
-                id: shellOnlyLoader
-                anchors.fill: parent
-                active: window.shellOnlyUiMode
-                sourceComponent: shellOnlyComponent
-            }
-        }
-
-        Item {
-            id: screenOnlyHost
-            visible: window.screenOnlyUiMode
-            width: window.screenBaseWidth
-            height: window.screenBaseHeight
-            anchors.centerIn: parent
-            scale: Math.min(window.width / window.screenBaseWidth,
-                            window.height / window.screenBaseHeight)
-
-            Loader {
-                id: screenOnlyLoader
-                anchors.fill: parent
-                active: window.screenOnlyUiMode
-                sourceComponent: screenComponent
-            }
-        }
+        fullUiMode: window.fullUiMode
+        screenOnlyUiMode: window.screenOnlyUiMode
+        shellOnlyUiMode: window.shellOnlyUiMode
+        shellBaseWidth: window.shellBaseWidth
+        shellBaseHeight: window.shellBaseHeight
+        screenBaseWidth: window.screenBaseWidth
+        screenBaseHeight: window.screenBaseHeight
+        commandController: uiCommandController
+        inputController: uiInputController
+        themeViewModel: window.themeViewModelRef
+        audioSettingsViewModel: audioSettingsViewModel
+        uiRuntimeState: uiRuntimeState
+        p0: window.p0
+        p1: window.p1
+        p2: window.p2
+        p3: window.p3
+        gameFont: window.gameFont
+        elapsed: window.elapsed
     }
+
+    readonly property var shellBridge: compositionHost.bridge
 }
