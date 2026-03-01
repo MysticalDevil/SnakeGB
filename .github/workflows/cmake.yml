@@ -51,7 +51,7 @@ jobs:
       run: |
         export CC=gcc
         export CXX=g++
-        cmake --preset debug
+        cmake --preset debug --fresh
 
     - name: Build
       run: cmake --build --preset debug
@@ -59,4 +59,4 @@ jobs:
     - name: Run Tests
       run: |
         export QT_QPA_PLATFORM=offscreen
-        xvfb-run ctest --preset debug --output-on-failure
+        xvfb-run -a ctest --preset debug --output-on-failure

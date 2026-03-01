@@ -45,7 +45,7 @@ jobs:
 
       - name: Configure Release
         run: |
-          cmake --preset release
+          cmake --preset release --fresh
 
       - name: Build Release
         run: cmake --build --preset release
@@ -75,10 +75,79 @@ jobs:
 
       - name: Build Android (placeholder)
         run: |
-          echo "Android build requires Qt Android toolchain, SDK/NDK, and signing; provide secrets to enable." > dist/android-placeholder.txt
+          echo "Android release moved to android-release job in this workflow." > dist/android-placeholder.txt
 
       - name: Upload Android Placeholder
         uses: actions/upload-artifact@v4
         with:
           name: neno-serpent-android-placeholder
           path: dist/android-placeholder.txt
+
+  android-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup CMake 4.x
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK/NDK packages
+        run: |
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "ndk;27.2.12479018"
+
+      - name: Install Qt6 Host Tools
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.2'
+          host: 'linux'
+          target: 'desktop'
+          dir: '${{ github.workspace }}/.qt'
+          modules: 'qtmultimedia qtshadertools qtsensors'
+
+      - name: Install Qt6 Android
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: '6.7.2'
+          host: 'linux'
+          target: 'android'
+          arch: 'android_arm64_v8a'
+          dir: '${{ github.workspace }}/.qt'
+          modules: 'qtmultimedia qtshadertools qtsensors'
+
+      - name: Restore signing keystore
+        run: |
+          mkdir -p "$HOME/.keystores"
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$HOME/.keystores/nenoserpent-release.jks"
+          chmod 600 "$HOME/.keystores/nenoserpent-release.jks"
+
+      - name: Build signed Android APK
+        env:
+          QT_ANDROID_PREFIX: ${{ github.workspace }}/.qt/6.7.2/android_arm64_v8a
+          QT_HOST_PATH: ${{ github.workspace }}/.qt/6.7.2/gcc_64
+          QT_CMAKE_BIN: ${{ github.workspace }}/.qt/6.7.2/gcc_64/bin/qt-cmake
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.2.12479018
+          CMAKE_BUILD_TYPE: Release
+          APP_ID: org.devil.nenoserpent
+          DEBUG_KEYSTORE_PATH: $HOME/.keystores/nenoserpent-release.jks
+          DEBUG_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          DEBUG_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          DEBUG_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
+          INSTALL_TO_DEVICE: "0"
+          LAUNCH_AFTER_INSTALL: "0"
+        run: ./scripts/deploy.sh android
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neno-serpent-android-apk
+          path: /tmp/org.devil.nenoserpent-arm64-v8a.apk
