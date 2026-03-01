@@ -61,6 +61,100 @@ QtObject {
         SHELL: "ToggleShellColor",
         MUSIC: "ToggleMusic"
     })
+    readonly property var staticSceneOptionHandlers: ({
+        BUFF: function(sceneName, options, value, helpers) {
+            const buffType = helpers.parseBoundedInt(value, 1, 9)
+            if (buffType !== null) {
+                options.buffType = buffType
+            }
+        },
+        SCORE: function(sceneName, options, value, helpers) {
+            const score = helpers.parseBoundedInt(value, 0)
+            if (score !== null) {
+                options.score = score
+            }
+        },
+        HI: function(sceneName, options, value, helpers) {
+            const highScore = helpers.parseBoundedInt(value, 0)
+            if (highScore !== null) {
+                options.highScore = highScore
+            }
+        },
+        REMAIN: function(sceneName, options, value, helpers) {
+            const remaining = helpers.parseBoundedInt(value, 0)
+            if (remaining !== null) {
+                options.buffRemaining = remaining
+            }
+        },
+        TOTAL: function(sceneName, options, value, helpers) {
+            const total = helpers.parseBoundedInt(value, 1)
+            if (total !== null) {
+                options.buffTotal = total
+            }
+        },
+        INDEX: function(sceneName, options, value, helpers) {
+            const choiceIndex = helpers.parseBoundedInt(value, 0)
+            if (choiceIndex !== null) {
+                options.choiceIndex = choiceIndex
+            }
+        },
+        TYPES: function(sceneName, options, value, helpers) {
+            options.choiceTypes = helpers.parseChoiceTypes(value)
+        },
+        CHOICES: function(sceneName, options, value, helpers) {
+            options.choiceTypes = helpers.parseChoiceTypes(value)
+        },
+        TITLE: function(sceneName, options, value, helpers) {
+            if (sceneName === "boot") {
+                options.bootTitle = helpers.decodeLabel(value)
+            } else if (sceneName === "choice") {
+                options.choiceTitle = helpers.decodeLabel(value)
+            }
+        },
+        SUBTITLE: function(sceneName, options, value, helpers) {
+            if (sceneName === "boot") {
+                options.bootSubtitle = helpers.decodeLabel(value)
+            } else if (sceneName === "choice") {
+                options.choiceSubtitle = helpers.decodeLabel(value)
+            }
+        },
+        LOAD: function(sceneName, options, value, helpers) {
+            options.bootLoadLabel = helpers.decodeLabel(value)
+        },
+        LOADLABEL: function(sceneName, options, value, helpers) {
+            options.bootLoadLabel = helpers.decodeLabel(value)
+        },
+        PROGRESS: function(sceneName, options, value, helpers) {
+            const progress = helpers.parseProgress(value)
+            if (progress !== null) {
+                options.bootLoadProgress = progress
+            }
+        },
+        LOADPROGRESS: function(sceneName, options, value, helpers) {
+            const progress = helpers.parseProgress(value)
+            if (progress !== null) {
+                options.bootLoadProgress = progress
+            }
+        },
+        FOOTER: function(sceneName, options, value, helpers) {
+            options.choiceFooterHint = helpers.decodeLabel(value)
+        },
+        FOOTERHINT: function(sceneName, options, value, helpers) {
+            options.choiceFooterHint = helpers.decodeLabel(value)
+        },
+        SNAKE: function(sceneName, options, value, helpers) {
+            options.snakeSegments = helpers.parsePointList(value)
+        },
+        FOOD: function(sceneName, options, value, helpers) {
+            options.foodCells = helpers.parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
+        },
+        OBSTACLES: function(sceneName, options, value, helpers) {
+            options.obstacleCells = helpers.parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
+        },
+        POWERUPS: function(sceneName, options, value, helpers) {
+            options.powerupCells = helpers.parsePowerupList(value)
+        }
+    })
     property int konamiIndex: 0
 
     function resetKonamiProgress() {
@@ -89,55 +183,82 @@ QtObject {
     }
 
     function parseStaticSceneOptions(sceneName, rawOptions) {
-        function decodeLabel(value) {
-            return String(value || "").replace(/\+/g, " ").replace(/_/g, " ")
-        }
-
-        function parsePointList(value) {
-            return value
-                .split(/[|/]/)
-                .map((entry) => entry.trim())
-                .filter((entry) => entry.length > 0)
-                .map((entry) => {
-                    const parts = entry.split(":").map((part) => part.trim())
-                    if (parts.length < 2) {
-                        return null
-                    }
-                    const x = Number(parts[0])
-                    const y = Number(parts[1])
-                    if (!Number.isInteger(x) || !Number.isInteger(y)) {
-                        return null
-                    }
-                    const point = { x, y }
-                    if (parts.length >= 3) {
-                        const marker = parts[2]
-                        point.head = marker === "H" || marker === "h" || marker === "1"
-                    }
-                    return point
-                })
-                .filter((entry) => !!entry)
-        }
-
-        function parsePowerupList(value) {
-            return value
-                .split(/[|/]/)
-                .map((entry) => entry.trim())
-                .filter((entry) => entry.length > 0)
-                .map((entry) => {
-                    const parts = entry.split(":").map((part) => part.trim())
-                    if (parts.length < 2) {
-                        return null
-                    }
-                    const x = Number(parts[0])
-                    const y = Number(parts[1])
-                    const type = parts.length >= 3 ? Number(parts[2]) : 1
-                    if (!Number.isInteger(x) || !Number.isInteger(y) ||
-                            !Number.isInteger(type) || type < 1 || type > 9) {
-                        return null
-                    }
-                    return { x, y, type }
-                })
-                .filter((entry) => !!entry)
+        const helpers = {
+            decodeLabel(value) {
+                return String(value || "").replace(/\+/g, " ").replace(/_/g, " ")
+            },
+            parseBoundedInt(value, min, max) {
+                const parsed = Number(value)
+                if (!Number.isInteger(parsed)) {
+                    return null
+                }
+                if (parsed < min) {
+                    return null
+                }
+                if (max !== undefined && parsed > max) {
+                    return null
+                }
+                return parsed
+            },
+            parseChoiceTypes(value) {
+                return String(value || "")
+                    .split(/[|/]/)
+                    .map((entry) => Number(entry.trim()))
+                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
+                    .slice(0, 3)
+            },
+            parseProgress(value) {
+                const progress = Number(value)
+                if (Number.isNaN(progress)) {
+                    return null
+                }
+                return progress > 1 ? progress / 100.0 : progress
+            },
+            parsePointList(value) {
+                return value
+                    .split(/[|/]/)
+                    .map((entry) => entry.trim())
+                    .filter((entry) => entry.length > 0)
+                    .map((entry) => {
+                        const parts = entry.split(":").map((part) => part.trim())
+                        if (parts.length < 2) {
+                            return null
+                        }
+                        const x = Number(parts[0])
+                        const y = Number(parts[1])
+                        if (!Number.isInteger(x) || !Number.isInteger(y)) {
+                            return null
+                        }
+                        const point = { x, y }
+                        if (parts.length >= 3) {
+                            const marker = parts[2]
+                            point.head = marker === "H" || marker === "h" || marker === "1"
+                        }
+                        return point
+                    })
+                    .filter((entry) => !!entry)
+            },
+            parsePowerupList(value) {
+                return value
+                    .split(/[|/]/)
+                    .map((entry) => entry.trim())
+                    .filter((entry) => entry.length > 0)
+                    .map((entry) => {
+                        const parts = entry.split(":").map((part) => part.trim())
+                        if (parts.length < 2) {
+                            return null
+                        }
+                        const x = Number(parts[0])
+                        const y = Number(parts[1])
+                        const type = parts.length >= 3 ? Number(parts[2]) : 1
+                        if (!Number.isInteger(x) || !Number.isInteger(y) ||
+                                !Number.isInteger(type) || type < 1 || type > 9) {
+                            return null
+                        }
+                        return { x, y, type }
+                    })
+                    .filter((entry) => !!entry)
+            }
         }
 
         const options = {}
@@ -161,73 +282,9 @@ QtObject {
 
             const key = part.slice(0, separatorIndex).trim().toUpperCase()
             const value = part.slice(separatorIndex + 1).trim()
-            if (key === "BUFF") {
-                const buffType = Number(value)
-                if (Number.isInteger(buffType) && buffType >= 1 && buffType <= 9) {
-                    options.buffType = buffType
-                }
-            } else if (key === "SCORE") {
-                const score = Number(value)
-                if (Number.isInteger(score) && score >= 0) {
-                    options.score = score
-                }
-            } else if (key === "HI") {
-                const highScore = Number(value)
-                if (Number.isInteger(highScore) && highScore >= 0) {
-                    options.highScore = highScore
-                }
-            } else if (key === "REMAIN") {
-                const remaining = Number(value)
-                if (Number.isInteger(remaining) && remaining >= 0) {
-                    options.buffRemaining = remaining
-                }
-            } else if (key === "TOTAL") {
-                const total = Number(value)
-                if (Number.isInteger(total) && total >= 1) {
-                    options.buffTotal = total
-                }
-            } else if (key === "INDEX") {
-                const choiceIndex = Number(value)
-                if (Number.isInteger(choiceIndex) && choiceIndex >= 0) {
-                    options.choiceIndex = choiceIndex
-                }
-            } else if (key === "TYPES" || key === "CHOICES") {
-                options.choiceTypes = value
-                    .split(/[|/]/)
-                    .map((entry) => Number(entry.trim()))
-                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
-                    .slice(0, 3)
-            } else if (key === "TITLE") {
-                if (sceneName === "boot") {
-                    options.bootTitle = decodeLabel(value)
-                } else if (sceneName === "choice") {
-                    options.choiceTitle = decodeLabel(value)
-                }
-            } else if (key === "SUBTITLE") {
-                if (sceneName === "boot") {
-                    options.bootSubtitle = decodeLabel(value)
-                } else if (sceneName === "choice") {
-                    options.choiceSubtitle = decodeLabel(value)
-                }
-            } else if (key === "LOAD" || key === "LOADLABEL") {
-                options.bootLoadLabel = decodeLabel(value)
-            } else if (key === "PROGRESS" || key === "LOADPROGRESS") {
-                const progress = Number(value)
-                if (!Number.isNaN(progress)) {
-                    options.bootLoadProgress = progress > 1 ? progress / 100.0 : progress
-                }
-            } else if (key === "FOOTER" || key === "FOOTERHINT") {
-                options.choiceFooterHint = decodeLabel(value)
-            } else if (key === "SNAKE") {
-                options.snakeSegments = parsePointList(value)
-            } else if (key === "FOOD") {
-                options.foodCells = parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
-            } else if (key === "OBSTACLES") {
-                options.obstacleCells = parsePointList(value).map((cell) => (
-                    { x: cell.x, y: cell.y }
-                ))
-            } else if (key === "POWERUPS") {
-                options.powerupCells = parsePowerupList(value)
+            const handler = controller.staticSceneOptionHandlers[key]
+            if (handler) {
+                handler(sceneName, options, value, helpers)
             }
         }
 
