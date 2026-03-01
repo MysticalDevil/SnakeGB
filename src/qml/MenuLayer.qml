@@ -76,29 +76,37 @@ Rectangle {
             border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.72)
             border.width: 1
 
-            Row {
+            Item {
+                width: 138
+                height: parent.height
                 anchors.centerIn: parent
-                spacing: 10
 
                 Text {
                     text: "START"
+                    width: 42
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.68)
                     font.family: gameFont
                     font.pixelSize: 10
                     font.bold: true
-                    width: 42
                     horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 Text {
                     text: sessionStatus.hasSave ? "CONTINUE" : "NEW GAME"
+                    width: 86
+                    anchors.left: parent.left
+                    anchors.leftMargin: 52
+                    anchors.verticalCenter: parent.verticalCenter
                     color: menuLayer.actionInk
                     font.family: gameFont
                     font.pixelSize: 15
                     font.bold: true
                     opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
-                    width: 86
                     horizontalAlignment: Text.AlignLeft
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
