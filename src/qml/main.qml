@@ -8,13 +8,14 @@ Window {
     readonly property int shellBaseHeight: 570
     readonly property int screenBaseWidth: 240
     readonly property int screenBaseHeight: 216
+    readonly property real screenOnlyScale: 3.0
     readonly property string uiMode: typeof appUiMode === "string" ? appUiMode : "full"
     readonly property bool fullUiMode: uiMode === "full"
     readonly property bool screenOnlyUiMode: uiMode === "screen"
     readonly property bool shellOnlyUiMode: uiMode === "shell"
 
-    width: screenOnlyUiMode ? screenBaseWidth : shellBaseWidth
-    height: screenOnlyUiMode ? screenBaseHeight : shellBaseHeight
+    width: screenOnlyUiMode ? Math.round(screenBaseWidth * screenOnlyScale) : shellBaseWidth
+    height: screenOnlyUiMode ? Math.round(screenBaseHeight * screenOnlyScale) : shellBaseHeight
     visible: true
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
@@ -195,13 +196,21 @@ Window {
             }
         }
 
-        Loader {
-            id: screenOnlyLoader
-            anchors.centerIn: parent
+        Item {
+            id: screenOnlyHost
+            visible: window.screenOnlyUiMode
             width: window.screenBaseWidth
             height: window.screenBaseHeight
-            active: window.screenOnlyUiMode
-            sourceComponent: screenComponent
+            anchors.centerIn: parent
+            scale: Math.min(window.width / window.screenBaseWidth,
+                            window.height / window.screenBaseHeight)
+
+            Loader {
+                id: screenOnlyLoader
+                anchors.fill: parent
+                active: window.screenOnlyUiMode
+                sourceComponent: screenComponent
+            }
         }
     }
 }
