@@ -5,6 +5,7 @@
 #include "adapter/profile/bridge.h"
 #include "adapter/ui/action.h"
 #include "fsm/game_state.h"
+#include "logging/categories.h"
 
 using namespace Qt::StringLiterals;
 
@@ -99,14 +100,14 @@ void EngineAdapter::quitToMenu() {
 
 void EngineAdapter::toggleMusic() {
   m_musicEnabled = !m_musicEnabled;
-  qInfo().noquote() << "[AudioFlow][EngineAdapter] toggleMusic ->" << m_musicEnabled;
+  qCInfo(snakegbAudioLog).noquote() << "toggleMusic ->" << m_musicEnabled;
   m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state), m_bgmVariant);
   emit musicEnabledChanged();
 }
 
 void EngineAdapter::cycleBgm() {
   m_bgmVariant = (m_bgmVariant + 1) % 2;
-  qInfo().noquote() << "[AudioFlow][EngineAdapter] cycleBgm -> variant" << m_bgmVariant;
+  qCInfo(snakegbAudioLog).noquote() << "cycleBgm -> variant" << m_bgmVariant;
 
   emit eventPrompt(m_bgmVariant == 0 ? u"BGM A"_s : u"BGM B"_s);
 

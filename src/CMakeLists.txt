@@ -59,6 +59,13 @@ add_library(snakegb_adapter
     adapter/level/applier.cpp
     adapter/level/loader.cpp
     adapter/level/script_runtime.cpp
+    logging/categories.h
+    logging/categories.cpp
+    logging/mode.h
+    logging/policy.h
+    logging/policy.cpp
+    logging/runtime_logger.h
+    logging/runtime_logger.cpp
     services/audio/bus.cpp
     services/level/repository.cpp
     services/save/repository.cpp

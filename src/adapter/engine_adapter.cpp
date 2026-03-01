@@ -4,6 +4,7 @@
 
 #include "fsm/game_state.h"
 #include "fsm/state_factory.h"
+#include "logging/categories.h"
 #include "profile_manager.h"
 #ifdef SNAKEGB_HAS_SENSORS
 #include <QAccelerometer>
@@ -122,8 +123,8 @@ void EngineAdapter::setupAudioSignals() {
   });
 
   connect(this, &EngineAdapter::stateChanged, this, [this]() -> void {
-    qInfo().noquote() << "[AudioFlow][EngineAdapter] stateChanged ->" << stateName(m_state)
-                      << "(musicEnabled=" << m_musicEnabled << ")";
+    qCInfo(snakegbAudioLog).noquote()
+      << "stateChanged ->" << stateName(m_state) << "(musicEnabled=" << m_musicEnabled << ")";
     const int token = m_audioStateToken;
     m_audioBus.handleStateChanged(
       static_cast<int>(m_state),
@@ -132,8 +133,7 @@ void EngineAdapter::setupAudioSignals() {
       [this, token](const int delayMs, const std::function<void()>& callback) -> void {
         QTimer::singleShot(delayMs, this, [this, token, callback]() -> void {
           if (token != m_audioStateToken) {
-            qInfo().noquote()
-              << "[AudioFlow][EngineAdapter] menu BGM deferred start canceled by token";
+            qCDebug(snakegbAudioLog).noquote() << "menu BGM deferred start canceled by token";
             return;
           }
           if (callback) {
@@ -167,9 +167,9 @@ void EngineAdapter::setupSensorRuntime() {
     if (!m_accelerometer) {
       return;
     }
-    qInfo().noquote() << "[SensorFlow][EngineAdapter] accelerometer connected="
-                      << m_accelerometer->isConnectedToBackend()
-                      << "active=" << m_accelerometer->isActive();
+    qCInfo(snakegbStateLog).noquote()
+      << "accelerometer connected=" << m_accelerometer->isConnectedToBackend()
+      << "active=" << m_accelerometer->isActive();
   });
 #else
   m_hasAccelerometerReading = false;
@@ -179,8 +179,8 @@ void EngineAdapter::setupSensorRuntime() {
 void EngineAdapter::setInternalState(const int s) {
   const auto next = static_cast<AppState::Value>(s);
   if (m_state != next) {
-    qInfo().noquote() << "[StateFlow][EngineAdapter] setInternalState:" << stateName(m_state)
-                      << "->" << stateName(next);
+    qCInfo(snakegbStateLog).noquote()
+      << "setInternalState:" << stateName(m_state) << "->" << stateName(next);
     m_state = next;
     m_audioStateToken++;
     m_audioBus.syncPausedState(static_cast<int>(m_state));
@@ -190,12 +190,12 @@ void EngineAdapter::setInternalState(const int s) {
 
 void EngineAdapter::requestStateChange(const int newState) {
   if (m_stateCallbackInProgress) {
-    qInfo().noquote() << "[StateFlow][EngineAdapter] defer requestStateChange to"
-                      << stateName(newState) << "(inside callback)";
+    qCDebug(snakegbStateLog).noquote()
+      << "defer requestStateChange to" << stateName(newState) << "(inside callback)";
     m_pendingStateChange = newState;
     return;
   }
-  qInfo().noquote() << "[StateFlow][EngineAdapter] requestStateChange ->" << stateName(newState);
+  qCInfo(snakegbStateLog).noquote() << "requestStateChange ->" << stateName(newState);
 
   if (auto nextState = snakegb::fsm::createStateFor(*this, newState); nextState) {
     changeState(std::move(nextState));
@@ -231,8 +231,8 @@ void EngineAdapter::triggerHaptic(const int magnitude) {
 }
 
 void EngineAdapter::emitAudioEvent(const snakegb::audio::Event event, const float pan) {
-  qInfo().noquote() << "[AudioFlow][EngineAdapter] emitAudioEvent =" << static_cast<int>(event)
-                    << " pan=" << pan;
+  qCDebug(snakegbAudioLog).noquote()
+    << "emitAudioEvent =" << static_cast<int>(event) << " pan=" << pan;
   switch (event) {
   case snakegb::audio::Event::Food:
     emit foodEaten(pan);

@@ -58,11 +58,17 @@ Window {
         id: uiRuntimeState
     }
 
+    UiLog {
+        id: uiLog
+        runtimeLogger: typeof runtimeLogBridge === "undefined" ? null : runtimeLogBridge
+    }
+
     UiActionRouter {
         id: uiActionRouter
         commandController: window.commandControllerRef
         inputController: uiInputController
         debugController: uiDebugController
+        uiLogger: uiLog
         screen: compositionHost.screenItem
         currentState: window.currentState
         actionMap: window.inputAction
@@ -74,6 +80,7 @@ Window {
         id: uiDebugController
         commandController: window.commandControllerRef
         inputInjector: window.inputInjectorRef
+        uiLogger: uiLog
         actionMap: window.inputAction
         currentState: window.currentState
         iconDebugMode: uiRuntimeState.iconDebugMode
@@ -101,6 +108,7 @@ Window {
         actionRouter: uiActionRouter
         inputPressController: inputPressController
         debugController: uiDebugController
+        uiLogger: uiLog
         shellBridge: compositionHost.bridge
         sessionRenderViewModel: window.sessionRenderViewModelRef
         audioSettingsViewModel: window.audioSettingsViewModelRef

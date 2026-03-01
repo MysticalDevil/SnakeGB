@@ -13,6 +13,8 @@
 #include <QTimer>
 #include <QtMath>
 
+#include "logging/categories.h"
+
 namespace {
 constexpr int SampleRate = 44100;
 constexpr int DefaultAmplitude = 32;
@@ -89,22 +91,22 @@ void SoundManager::applyMusicVolumes() {
 }
 
 auto SoundManager::setPaused(bool paused) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] setPaused =" << paused;
+  qCInfo(snakegbAudioLog).noquote() << "setPaused =" << paused;
   m_isPaused = paused;
   if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive())
     startMusic(static_cast<int>(m_currentTrackId));
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] setMusicEnabled =" << enabled;
+  qCInfo(snakegbAudioLog).noquote() << "setMusicEnabled =" << enabled;
   m_musicEnabled = enabled;
   if (!m_musicEnabled)
     stopMusic();
 }
 
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float pan) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] playBeep f=" << frequencyHz << "ms=" << durationMs
-                    << "pan=" << pan;
+  qCDebug(snakegbAudioLog).noquote()
+    << "playBeep f=" << frequencyHz << "ms=" << durationMs << "pan=" << pan;
   if (m_sfxSink == nullptr)
     return;
   QByteArray data;
@@ -117,7 +119,7 @@ auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float p
 }
 
 auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] playScoreCue id=" << cueId << "pan=" << pan;
+  qCDebug(snakegbAudioLog).noquote() << "playScoreCue id=" << cueId << "pan=" << pan;
   if (m_sfxSink == nullptr) {
     return;
   }
@@ -141,7 +143,7 @@ auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] playCrash ms=" << durationMs;
+  qCDebug(snakegbAudioLog).noquote() << "playCrash ms=" << durationMs;
   if (m_sfxSink == nullptr)
     return;
   QByteArray data;
@@ -154,9 +156,9 @@ auto SoundManager::playCrash(const int durationMs) -> void {
 }
 
 auto SoundManager::startMusic(const int trackId) -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] startMusic"
-                    << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused
-                    << ", track=" << trackId << ")";
+  qCInfo(snakegbAudioLog).noquote()
+    << "startMusic"
+    << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused << ", track=" << trackId << ")";
   if (!m_musicEnabled || m_bgmLeadSink == nullptr)
     return;
   m_currentTrackId = static_cast<snakegb::audio::ScoreTrackId>(trackId);
@@ -165,7 +167,7 @@ auto SoundManager::startMusic(const int trackId) -> void {
 }
 
 auto SoundManager::stopMusic() -> void {
-  qInfo().noquote() << "[AudioFlow][SoundManager] stopMusic";
+  qCInfo(snakegbAudioLog).noquote() << "stopMusic";
   m_musicTimer.stop();
   if (m_bgmLeadSink != nullptr)
     m_bgmLeadSink->stop();

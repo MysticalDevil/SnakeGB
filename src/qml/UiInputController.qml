@@ -8,15 +8,15 @@ QtObject {
     property var actionRouter
     property var inputPressController
     property var debugController
+    property var uiLogger
     property var shellBridge
     property var sessionRenderViewModel
     property var audioSettingsViewModel
     property var screen
     property bool iconDebugMode: false
     property var actionMap: ({})
-    readonly property string logMode: typeof appLogMode === "string" ? appLogMode : "release"
-    readonly property bool logButtons: logMode === "debug" || logMode === "dev"
-    readonly property bool detailedButtonLogs: logMode === "debug"
+    readonly property bool logButtons: uiLogger ? uiLogger.isDevOrDebug : false
+    readonly property bool detailedButtonLogs: uiLogger ? uiLogger.isDebug : false
     readonly property var directionActionByAxis: ({
         up: "NavUp",
         down: "NavDown",
@@ -58,16 +58,27 @@ QtObject {
     })
 
     function dispatchAction(action) {
+        if (!action || action === "") {
+            controller.logButton("router", "action", "failed", "empty")
+            return
+        }
         controller.logAction("dispatch", action)
         controller.inputPressController.beforeDispatch(action)
         controller.actionRouter.route(action)
     }
 
-    function logInput(source, message) {
+    function logInputSummary(source, message) {
         if (!controller.logButtons) {
             return
         }
-        console.log(`[Input][${source}] ${message}`)
+        controller.uiLogger.inputSummary(`${source}: ${message}`)
+    }
+
+    function logInputDebug(source, message) {
+        if (!controller.detailedButtonLogs) {
+            return
+        }
+        controller.uiLogger.inputDebug(`${source}: ${message}`)
     }
 
     function logButton(source, name, phase, detail) {
@@ -76,20 +87,25 @@ QtObject {
         }
         if (controller.detailedButtonLogs) {
             const suffix = detail ? ` ${detail}` : ""
-            controller.logInput(source, `${name} ${phase}${suffix}`)
+            controller.logInputDebug(source, `${name} ${phase}${suffix}`)
             return
         }
-        if (phase === "press" || phase === "release") {
+        if (phase === "dispatch" || phase === "semantic" || phase === "ignored" ||
+                phase === "failed") {
             const suffix = detail ? ` ${detail}` : ""
-            controller.logInput(source, `${name}${suffix}`)
+            controller.logInputSummary(source, `${name} ${phase}${suffix}`)
         }
     }
 
     function logAction(source, action) {
-        if (!controller.detailedButtonLogs) {
+        if (!controller.logButtons) {
             return
         }
-        controller.logButton(source, "action", "dispatch", action)
+        if (controller.detailedButtonLogs) {
+            controller.logInputDebug(source, `action dispatch ${action}`)
+            return
+        }
+        controller.logInputSummary(source, `action ${action}`)
     }
 
     function keyName(key) {
@@ -226,8 +242,13 @@ QtObject {
     }
 
     function handlePressedDispatch(actionKey) {
+        const action = controller.actionMap[actionKey]
+        if (!action || action === "") {
+            controller.logButton("keyboard", "key", "failed", actionKey)
+            return
+        }
         controller.logButton("keyboard", "key", "dispatch", actionKey)
-        controller.dispatchAction(controller.actionMap[actionKey])
+        controller.dispatchAction(action)
     }
 
     function handlePrimaryPressed() {
@@ -251,6 +272,7 @@ QtObject {
 
     function handleSelectPressed() {
         if (controller.inputPressController.selectKeyDown) {
+            controller.logButton("keyboard", "select", "ignored", "already_down")
             return
         }
         controller.logButton("keyboard", "select", "press")

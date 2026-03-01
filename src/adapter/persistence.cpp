@@ -1,6 +1,7 @@
 #include "adapter/engine_adapter.h"
 #include "adapter/profile/bridge.h"
 #include "fsm/game_state.h"
+#include "logging/categories.h"
 
 using namespace Qt::StringLiterals;
 
@@ -81,7 +82,7 @@ void EngineAdapter::updateHighScore() {
     };
     const bool savedGhost = saveRepository().saveGhostSnapshot(ghostSnapshot);
     if (!savedGhost) {
-      qWarning().noquote() << "[ReplayFlow][EngineAdapter] failed to persist ghost snapshot";
+      qCWarning(snakegbReplayLog).noquote() << "failed to persist ghost snapshot";
     }
     emit highScoreChanged();
   }

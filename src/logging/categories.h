@@ -1,0 +1,10 @@
+#pragma once
+
+#include <QLoggingCategory>
+
+Q_DECLARE_LOGGING_CATEGORY(snakegbStateLog)
+Q_DECLARE_LOGGING_CATEGORY(snakegbAudioLog)
+Q_DECLARE_LOGGING_CATEGORY(snakegbInputLog)
+Q_DECLARE_LOGGING_CATEGORY(snakegbInjectLog)
+Q_DECLARE_LOGGING_CATEGORY(snakegbLevelLog)
+Q_DECLARE_LOGGING_CATEGORY(snakegbReplayLog)

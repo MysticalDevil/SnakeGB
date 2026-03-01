@@ -7,6 +7,7 @@ QtObject {
     property var commandController
     property var inputController
     property var debugController
+    property var uiLogger
     property var screen
     property int currentState: AppState.Splash
     property var actionMap: ({})
@@ -19,6 +20,9 @@ QtObject {
     readonly property string modeShell: "shell"
 
     function route(action) {
+        if (router.uiLogger) {
+            router.uiLogger.routingDebug(`route action=${action}`)
+        }
         if (routeGlobal(action)) {
             return true
         }
@@ -28,7 +32,11 @@ QtObject {
         if (router.iconDebugMode) {
             return routeIconDebug(action)
         }
-        return routeMode(router.modeForState(router.currentState), action)
+        const handled = routeMode(router.modeForState(router.currentState), action)
+        if (!handled && router.uiLogger) {
+            router.uiLogger.routingSummary(`ignored action=${action} state=${router.currentState}`)
+        }
+        return handled
     }
 
     function modeForState(state) {
@@ -53,6 +61,9 @@ QtObject {
     }
 
     function dispatch(action) {
+        if (router.uiLogger) {
+            router.uiLogger.routingDebug(`dispatch action=${action}`)
+        }
         router.commandController.dispatch(action)
         return true
     }
@@ -63,6 +74,9 @@ QtObject {
 
     function performInput(methodName) {
         if (!router.inputController || !router.inputController[methodName]) {
+            if (router.uiLogger) {
+                router.uiLogger.routingSummary(`missing input handler=${methodName}`)
+            }
             return false
         }
         return perform(() => router.inputController[methodName]())

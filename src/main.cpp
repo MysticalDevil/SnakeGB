@@ -21,6 +21,10 @@
 #include "adapter/view_models/theme.h"
 #include "app_state.h"
 #include "input_injection_pipe.h"
+#include "logging/categories.h"
+#include "logging/mode.h"
+#include "logging/policy.h"
+#include "logging/runtime_logger.h"
 #include "power_up_id.h"
 #include "sound_manager.h"
 
@@ -57,12 +61,9 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
   QGuiApplication app(argc, argv);
-  QString appLogMode = "release";
-#if defined(SNAKEGB_BUILD_DEBUG)
-  appLogMode = "debug";
-#elif defined(SNAKEGB_BUILD_DEV)
-  appLogMode = "dev";
-#endif
+  const snakegb::logging::LogMode logMode = snakegb::logging::detectBuildLogMode();
+  snakegb::logging::applyLoggingPolicy(logMode);
+  const QString appLogMode = QString::fromLatin1(snakegb::logging::logModeName(logMode));
   QString uiMode = "full";
   const QStringList arguments = QCoreApplication::arguments();
   for (const QString& argument : arguments) {
@@ -80,9 +81,7 @@ auto main(int argc, char* argv[]) -> int {
   QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
   QGuiApplication::setApplicationVersion("1.4.6");
 
-#ifndef QT_NO_INFO_OUTPUT
-  qInfo().noquote() << "[BuildMode]" << appLogMode << "logging enabled";
-#endif
+  qCInfo(snakegbStateLog).noquote() << "build mode" << appLogMode << "logging enabled";
 
   EngineAdapter engineAdapter;
   UiCommandController uiCommandController(&engineAdapter);
@@ -93,6 +92,7 @@ auto main(int argc, char* argv[]) -> int {
   ThemeViewModel themeViewModel(&engineAdapter);
   SoundManager soundManager;
   InputInjectionPipe inputInjectionPipe;
+  RuntimeLogger runtimeLogger;
   soundManager.setVolume(engineAdapter.volume());
 
   QObject::connect(
@@ -130,6 +130,7 @@ auto main(int argc, char* argv[]) -> int {
   engine.rootContext()->setContextProperty("sessionStatusViewModel", &sessionStatusViewModel);
   engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);
   engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
+  engine.rootContext()->setContextProperty("runtimeLogBridge", &runtimeLogger);
   engine.rootContext()->setContextProperty("appUiMode", uiMode);
   engine.rootContext()->setContextProperty("appLogMode", appLogMode);
 

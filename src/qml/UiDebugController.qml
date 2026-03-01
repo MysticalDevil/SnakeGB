@@ -6,6 +6,7 @@ QtObject {
 
     property var commandController
     property var inputInjector
+    property var uiLogger
     property var actionMap: ({})
     property int currentState: AppState.Splash
     property bool iconDebugMode: false
@@ -327,6 +328,11 @@ QtObject {
                 ? "STATIC DEBUG OFF"
                 : `STATIC DEBUG: ${sceneName.toUpperCase()}`)
         }
+        if (controller.uiLogger) {
+            controller.uiLogger.routingSummary(sceneName === ""
+                ? "static scene cleared"
+                : `static scene=${sceneName}`)
+        }
     }
 
     function cycleStaticScene(direction) {
@@ -526,6 +532,9 @@ QtObject {
 
     function routeInjectedToken(rawToken) {
         const token = String(rawToken).trim().toUpperCase()
+        if (controller.uiLogger) {
+            controller.uiLogger.inputDebug(`inject token=${token}`)
+        }
         if (controller.routeDebugToken(token)) {
             return true
         }
@@ -540,6 +549,9 @@ QtObject {
             return true
         }
         controller.showDebugOsd(`UNKNOWN INPUT: ${token}`)
+        if (controller.uiLogger) {
+            controller.uiLogger.injectWarning(`unknown token=${token}`)
+        }
         return false
     }
 
