@@ -54,7 +54,9 @@ EngineAdapter::EngineAdapter(QObject* parent)
       m_inputQueue(m_sessionCore.inputQueue()),
       m_fsmState(nullptr) {
   m_audioBus.setCallbacks({
-    .startMusic = [this]() -> void { emit audioStartMusic(); },
+    .startMusic = [this](const snakegb::audio::ScoreTrackId trackId) -> void {
+      emit audioStartMusic(static_cast<int>(trackId));
+    },
     .stopMusic = [this]() -> void { emit audioStopMusic(); },
     .setPaused = [this](const bool paused) -> void { emit audioSetPaused(paused); },
     .setMusicEnabled = [this](const bool enabled) -> void { emit audioSetMusicEnabled(enabled); },

@@ -30,7 +30,7 @@ public:
   Q_INVOKABLE void playBeep(int frequencyHz, int durationMs, float pan = 0.0f);
   Q_INVOKABLE void playScoreCue(int cueId, float pan = 0.0f);
   Q_INVOKABLE void playCrash(int durationMs);
-  Q_INVOKABLE void startMusic();
+  Q_INVOKABLE void startMusic(int trackId);
   Q_INVOKABLE void stopMusic();
   [[nodiscard]] auto musicEnabled() const -> bool {
     return m_musicEnabled;
@@ -82,6 +82,7 @@ private:
   float m_volume = 1.0f;
   int m_noteIndex = 0;
   int m_currentScore = 0;
+  snakegb::audio::ScoreTrackId m_currentTrackId = snakegb::audio::ScoreTrackId::Menu;
 
 #ifdef SNAKEGB_HAS_MULTIMEDIA
   // Filter state
@@ -93,18 +94,5 @@ private:
   std::vector<double> m_reverbBuffer;
   int m_reverbWriteHead = 0;
 
-  struct NotePair {
-    int leadFreq;
-    int bassFreq;
-    int duration;
-  };
-
-  const std::vector<NotePair> m_richMelody = {
-    {440, 220, 300}, {494, 247, 300}, {523, 261, 300}, {587, 293, 300}, {659, 329, 600},
-    {587, 293, 600}, {523, 261, 300}, {494, 247, 300}, {440, 220, 600}, {0, 0, 300},
-    {330, 165, 300}, {392, 196, 300}, {440, 220, 600}, {392, 196, 300}, {330, 165, 300},
-    {293, 146, 600}, {440, 220, 300}, {494, 247, 300}, {523, 261, 300}, {587, 293, 300},
-    {659, 329, 600}, {784, 392, 600}, {880, 440, 600}, {784, 392, 300}, {659, 329, 300},
-    {587, 293, 600}};
 #endif
 };

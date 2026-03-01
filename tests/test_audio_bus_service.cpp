@@ -60,14 +60,16 @@ void TestAudioBusService::testPausedStates() {
 
 void TestAudioBusService::testStateChangePolicy() {
   int startCount = 0;
+  int startedTrack = -1;
   int stopCount = 0;
   int pausedState = -1;
   int deferredDelay = 0;
   int deferredStartCount = 0;
 
   snakegb::services::AudioBus audioBus({
-    .startMusic = [&]() -> void {
+    .startMusic = [&](const snakegb::audio::ScoreTrackId trackId) -> void {
       startCount++;
+      startedTrack = static_cast<int>(trackId);
       deferredStartCount++;
     },
     .stopMusic = [&]() -> void { stopCount++; },
@@ -85,9 +87,11 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(deferredDelay, 650);
   QCOMPARE(startCount, 1);
   QCOMPARE(deferredStartCount, 1);
+  QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Menu));
 
   audioBus.handleStateChanged(2, true, {});
   QCOMPARE(startCount, 2);
+  QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Gameplay));
 
   audioBus.handleStateChanged(4, true, {});
   QCOMPARE(stopCount, 1);
@@ -97,9 +101,13 @@ void TestAudioBusService::testMusicTogglePolicy() {
   int startCount = 0;
   int stopCount = 0;
   int musicEnabled = -1;
+  int startedTrack = -1;
 
   snakegb::services::AudioBus audioBus({
-    .startMusic = [&]() -> void { startCount++; },
+    .startMusic = [&](const snakegb::audio::ScoreTrackId trackId) -> void {
+      startCount++;
+      startedTrack = static_cast<int>(trackId);
+    },
     .stopMusic = [&]() -> void { stopCount++; },
     .setMusicEnabled = [&](const bool enabled) -> void { musicEnabled = enabled ? 1 : 0; },
   });
@@ -107,6 +115,7 @@ void TestAudioBusService::testMusicTogglePolicy() {
   audioBus.handleMusicToggle(true, 2);
   QCOMPARE(musicEnabled, 1);
   QCOMPARE(startCount, 1);
+  QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Gameplay));
   QCOMPARE(stopCount, 0);
 
   audioBus.handleMusicToggle(false, 2);

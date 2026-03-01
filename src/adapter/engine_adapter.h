@@ -312,7 +312,7 @@ signals:
   void audioPlayBeep(int frequencyHz, int durationMs, float pan);
   void audioPlayScoreCue(int cueId, float pan);
   void audioPlayCrash(int durationMs);
-  void audioStartMusic();
+  void audioStartMusic(int trackId);
   void audioStopMusic();
   void audioSetPaused(bool paused);
   void audioSetMusicEnabled(bool enabled);

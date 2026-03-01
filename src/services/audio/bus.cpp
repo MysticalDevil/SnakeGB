@@ -22,11 +22,12 @@ using Ms = std::chrono::milliseconds;
 
 } // namespace
 
-AudioBus::AudioBus(AudioCallbacks callbacks)
+AudioBus::AudioBus(AudioCallbacks callbacks) // NOLINT(performance-unnecessary-value-param)
     : m_callbacks(std::move(callbacks)) {
 }
 
-void AudioBus::setCallbacks(AudioCallbacks callbacks) {
+void AudioBus::setCallbacks(
+  AudioCallbacks callbacks) { // NOLINT(performance-unnecessary-value-param)
   m_callbacks = std::move(callbacks);
 }
 
@@ -45,6 +46,13 @@ auto AudioBus::musicCommandForState(const int state, const bool musicEnabled) ->
     return MusicCommand::StopNow;
   }
   return MusicCommand::None;
+}
+
+auto AudioBus::musicTrackForState(const int state) -> snakegb::audio::ScoreTrackId {
+  if (state == 1) {
+    return snakegb::audio::ScoreTrackId::Menu;
+  }
+  return snakegb::audio::ScoreTrackId::Gameplay;
 }
 
 auto AudioBus::eventGroup(const snakegb::audio::Event event) -> AudioGroup {
@@ -157,16 +165,22 @@ void AudioBus::handleStateChanged(
   const int state,
   const bool musicEnabled,
   const std::function<void(int delayMs, const std::function<void()>& callback)>& deferStart) const {
+  const auto trackId = musicTrackForState(state);
   switch (musicCommandForState(state, musicEnabled)) {
   case MusicCommand::StartNow:
-    emitIfSet(m_callbacks.startMusic);
+    emitIfSet(m_callbacks.startMusic, trackId);
     break;
   case MusicCommand::StopNow:
     emitIfSet(m_callbacks.stopMusic);
     break;
   case MusicCommand::DeferMenuStart:
     if (deferStart && m_callbacks.startMusic) {
-      deferStart(650, m_callbacks.startMusic);
+      const auto startMusic = m_callbacks.startMusic;
+      deferStart(650, [startMusic, trackId]() -> void {
+        if (startMusic) {
+          startMusic(trackId);
+        }
+      });
     }
     break;
   case MusicCommand::None:
@@ -178,7 +192,7 @@ void AudioBus::handleMusicToggle(const bool musicEnabled, const int state) const
   emitIfSet(m_callbacks.setMusicEnabled, musicEnabled);
 
   if (musicEnabled && state != 0) {
-    emitIfSet(m_callbacks.startMusic);
+    emitIfSet(m_callbacks.startMusic, musicTrackForState(state));
     return;
   }
   if (!musicEnabled) {

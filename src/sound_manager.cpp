@@ -83,7 +83,7 @@ auto SoundManager::setPaused(bool paused) -> void {
   qInfo().noquote() << "[AudioFlow][SoundManager] setPaused =" << paused;
   m_isPaused = paused;
   if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive())
-    startMusic();
+    startMusic(static_cast<int>(m_currentTrackId));
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
@@ -144,11 +144,13 @@ auto SoundManager::playCrash(const int durationMs) -> void {
     m_sfxSink->start(&m_sfxBuffer);
 }
 
-auto SoundManager::startMusic() -> void {
+auto SoundManager::startMusic(const int trackId) -> void {
   qInfo().noquote() << "[AudioFlow][SoundManager] startMusic"
-                    << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused << ")";
+                    << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused
+                    << ", track=" << trackId << ")";
   if (!m_musicEnabled || m_bgmLeadSink == nullptr)
     return;
+  m_currentTrackId = static_cast<snakegb::audio::ScoreTrackId>(trackId);
   m_noteIndex = 0;
   playNextNote();
 }
@@ -165,10 +167,13 @@ auto SoundManager::stopMusic() -> void {
 auto SoundManager::playNextNote() -> void {
   if (m_bgmLeadSink == nullptr || !m_musicEnabled)
     return;
-  if (std::cmp_greater_equal(m_noteIndex, m_richMelody.size()))
+  const auto trackSteps = snakegb::audio::scoreTrackSteps(m_currentTrackId);
+  if (trackSteps.empty())
+    return;
+  if (std::cmp_greater_equal(m_noteIndex, trackSteps.size()))
     m_noteIndex = 0;
 
-  const auto [leadFreq, bassFreq, duration] = m_richMelody[m_noteIndex];
+  const auto [leadFreq, bassFreq, duration] = trackSteps[static_cast<std::size_t>(m_noteIndex)];
   m_noteIndex++;
 
   double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
@@ -335,7 +340,7 @@ auto SoundManager::playScoreCue(int, float) -> void {
 auto SoundManager::playCrash(int) -> void {
 }
 
-auto SoundManager::startMusic() -> void {
+auto SoundManager::startMusic(int) -> void {
 }
 
 auto SoundManager::stopMusic() -> void {

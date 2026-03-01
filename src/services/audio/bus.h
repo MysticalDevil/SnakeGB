@@ -24,7 +24,7 @@ enum class MusicCommand {
 };
 
 struct AudioCallbacks {
-  std::function<void()> startMusic;
+  std::function<void(snakegb::audio::ScoreTrackId)> startMusic;
   std::function<void()> stopMusic;
   std::function<void(bool)> setPaused;
   std::function<void(bool)> setMusicEnabled;
@@ -38,9 +38,9 @@ struct AudioCallbacks {
 class AudioBus {
 public:
   AudioBus() = default;
-  explicit AudioBus(AudioCallbacks callbacks);
+  explicit AudioBus(AudioCallbacks callbacks); // NOLINT(performance-unnecessary-value-param)
 
-  void setCallbacks(AudioCallbacks callbacks);
+  void setCallbacks(AudioCallbacks callbacks); // NOLINT(performance-unnecessary-value-param)
 
   void syncPausedState(int state) const;
   void
@@ -55,6 +55,7 @@ public:
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
+  [[nodiscard]] static auto musicTrackForState(int state) -> snakegb::audio::ScoreTrackId;
   [[nodiscard]] static auto eventGroup(snakegb::audio::Event event) -> AudioGroup;
   [[nodiscard]] static auto eventCooldownMs(snakegb::audio::Event event) -> int;
   [[nodiscard]] static auto eventPriority(snakegb::audio::Event event) -> int;
