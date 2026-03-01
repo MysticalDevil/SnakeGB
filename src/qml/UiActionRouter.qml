@@ -61,6 +61,20 @@ QtObject {
         return dispatch(router.actionMap.Back)
     }
 
+    function performInput(methodName) {
+        if (!router.inputController || !router.inputController[methodName]) {
+            return false
+        }
+        return perform(() => router.inputController[methodName]())
+    }
+
+    function clearStaticScene() {
+        if (!router.debugController) {
+            return false
+        }
+        return perform(() => router.debugController.setStaticScene("", {}))
+    }
+
     function directionForAction(action) {
         if (action === router.actionMap.NavUp) {
             return { dx: 0, dy: -1, token: "U" }
@@ -114,72 +128,71 @@ QtObject {
     }
 
     function routeGlobal(action) {
-        if (action === router.actionMap.ToggleIconLab) {
+        switch (action) {
+        case router.actionMap.ToggleIconLab:
             return router.debugController
                 ? perform(router.debugController.toggleIconLabMode)
                 : false
-        }
-        if (action === router.actionMap.ToggleShellColor) {
+        case router.actionMap.ToggleShellColor:
             return dispatch("toggle_shell_color")
-        }
-        if (action === router.actionMap.ToggleMusic) {
+        case router.actionMap.ToggleMusic:
             return dispatch("toggle_music")
-        }
-        if (action === router.actionMap.Escape) {
+        case router.actionMap.Escape:
             if (router.iconDebugMode) {
                 return router.debugController
                     ? perform(router.debugController.exitIconLab)
                     : false
             }
             if (router.staticDebugScene !== "") {
-                return router.debugController
-                    ? perform(() => router.debugController.setStaticScene("", {}))
-                    : false
+                return clearStaticScene()
             }
             return dispatch("quit")
+        default:
+            return false
         }
-        return false
     }
 
     function routeIconDebug(action) {
         if (routeIconDirection(action)) {
             return true
         }
-        if (action === router.actionMap.Secondary || action === router.actionMap.Back) {
+        switch (action) {
+        case router.actionMap.Secondary:
+        case router.actionMap.Back:
             return router.debugController
                 ? perform(router.debugController.exitIconLab)
                 : false
-        }
-        if (action === router.actionMap.Primary) {
-            return router.inputController
-                ? perform(router.inputController.handlePrimaryAction)
-                : false
-        }
-        if (action === router.actionMap.Start || action === router.actionMap.SelectShort) {
+        case router.actionMap.Primary:
+            return performInput("handlePrimaryAction")
+        case router.actionMap.Start:
+        case router.actionMap.SelectShort:
             return true
+        default:
+            return false
         }
-        return false
     }
 
     function routeStaticScene(action) {
-        if (action === router.actionMap.NavUp || action === router.actionMap.NavLeft) {
+        switch (action) {
+        case router.actionMap.NavUp:
+        case router.actionMap.NavLeft:
             return router.debugController
                 ? perform(() => router.debugController.cycleStaticScene(-1))
                 : false
-        }
-        if (action === router.actionMap.NavDown || action === router.actionMap.NavRight) {
+        case router.actionMap.NavDown:
+        case router.actionMap.NavRight:
             return router.debugController
                 ? perform(() => router.debugController.cycleStaticScene(1))
                 : false
+        case router.actionMap.Primary:
+        case router.actionMap.Secondary:
+        case router.actionMap.Start:
+        case router.actionMap.SelectShort:
+        case router.actionMap.Back:
+            return clearStaticScene()
+        default:
+            return true
         }
-        if (action === router.actionMap.Primary || action === router.actionMap.Secondary ||
-                action === router.actionMap.Start || action === router.actionMap.SelectShort ||
-                action === router.actionMap.Back) {
-            return router.debugController
-                ? perform(() => router.debugController.setStaticScene("", {}))
-                : false
-        }
-        return true
     }
 
     function routeMode(mode, action) {
@@ -187,108 +200,89 @@ QtObject {
             return true
         }
 
-        if (mode === router.modeOverlay) {
+        switch (mode) {
+        case router.modeOverlay:
             return routeOverlayAction(action)
-        }
-        if (mode === router.modePage) {
+        case router.modePage:
             return routePageAction(action)
-        }
-        if (mode === router.modeGame) {
+        case router.modeGame:
             return routeGameAction(action)
+        default:
+            return routeShellAction(action)
         }
-        return routeShellAction(action)
     }
 
     function routeOverlayAction(action) {
-        if (action === router.actionMap.Start) {
-            return router.inputController
-                ? perform(router.inputController.handleStartAction)
-                : false
-        }
-        if (action === router.actionMap.Primary) {
+        switch (action) {
+        case router.actionMap.Start:
+            return performInput("handleStartAction")
+        case router.actionMap.Primary:
             if (router.currentState === AppState.Paused && router.debugController) {
                 router.debugController.handleEasterInput("A")
             }
             return true
-        }
-        if (action === router.actionMap.Secondary) {
+        case router.actionMap.Secondary:
             if (router.currentState === AppState.Paused && router.debugController) {
                 router.debugController.handleEasterInput("B")
             }
             return true
-        }
-        if (action === router.actionMap.SelectShort || action === router.actionMap.Back) {
+        case router.actionMap.SelectShort:
+        case router.actionMap.Back:
             return dispatchBack()
+        default:
+            return false
         }
-        return false
     }
 
     function routePageAction(action) {
-        if (action === router.actionMap.Secondary || action === router.actionMap.Back) {
+        switch (action) {
+        case router.actionMap.Secondary:
+        case router.actionMap.Back:
             return dispatchBack()
-        }
-        if (action === router.actionMap.Primary || action === router.actionMap.Start ||
-                action === router.actionMap.SelectShort) {
+        case router.actionMap.Primary:
+        case router.actionMap.Start:
+        case router.actionMap.SelectShort:
             return true
+        default:
+            return false
         }
-        return false
     }
 
     function routeGameAction(action) {
-        if (action === router.actionMap.Primary) {
+        switch (action) {
+        case router.actionMap.Primary:
             return true
+        case router.actionMap.Secondary:
+            return performInput("handleSecondaryAction")
+        case router.actionMap.Start:
+            return performInput("handleStartAction")
+        case router.actionMap.SelectShort:
+            return performInput("handleSelectShortAction")
+        case router.actionMap.Back:
+            return performInput("handleBackAction")
+        default:
+            return false
         }
-        if (action === router.actionMap.Secondary) {
-            return router.inputController
-                ? perform(router.inputController.handleSecondaryAction)
-                : false
-        }
-        if (action === router.actionMap.Start) {
-            return router.inputController
-                ? perform(router.inputController.handleStartAction)
-                : false
-        }
-        if (action === router.actionMap.SelectShort) {
-            return router.inputController
-                ? perform(router.inputController.handleSelectShortAction)
-                : false
-        }
-        if (action === router.actionMap.Back) {
-            return router.inputController
-                ? perform(router.inputController.handleBackAction)
-                : false
-        }
-        return false
     }
 
     function routeShellAction(action) {
-        if (action === router.actionMap.Primary) {
+        switch (action) {
+        case router.actionMap.Primary:
             if (router.inputController &&
                     router.inputController.inputPressController.saveClearConfirmPending) {
-                return perform(router.inputController.handlePrimaryAction)
+                return performInput("handlePrimaryAction")
             }
             return true
+        case router.actionMap.Secondary:
+            return performInput("handleSecondaryAction")
+        case router.actionMap.Back:
+            return performInput("handleBackAction")
+        case router.actionMap.Start:
+            return performInput("handleStartAction")
+        case router.actionMap.SelectShort:
+            return performInput("handleSelectShortAction")
+        default:
+            return false
         }
-        if (action === router.actionMap.Secondary) {
-            return router.inputController
-                ? perform(router.inputController.handleSecondaryAction)
-                : false
-        }
-        if (action === router.actionMap.Back) {
-            return router.inputController
-                ? perform(router.inputController.handleBackAction)
-                : false
-        }
-        if (action === router.actionMap.Start) {
-            return router.inputController
-                ? perform(router.inputController.handleStartAction)
-                : false
-        }
-        if (action === router.actionMap.SelectShort) {
-            return router.inputController
-                ? perform(router.inputController.handleSelectShortAction)
-                : false
-        }
-        return false
     }
 }
