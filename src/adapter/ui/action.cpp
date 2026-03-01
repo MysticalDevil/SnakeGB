@@ -1,5 +1,6 @@
 #include "adapter/ui/action.h"
 
+#include <array>
 #include <utility>
 
 #include <QtCore/qstringliteral.h>
@@ -14,63 +15,71 @@ template <class... Ts> struct Overloaded : Ts... {
 };
 
 template <class... Ts> Overloaded(Ts...) -> Overloaded<Ts...>;
+
+struct StaticActionMapping {
+  QStringView key;
+  UiAction action;
+};
+
+const auto kStaticMappings = std::to_array<StaticActionMapping>({
+  {u"nav_up"_s, UiAction{NavAction{0, -1}}},
+  {u"nav_down"_s, UiAction{NavAction{0, 1}}},
+  {u"nav_left"_s, UiAction{NavAction{-1, 0}}},
+  {u"nav_right"_s, UiAction{NavAction{1, 0}}},
+  {u"primary"_s, UiAction{PrimaryAction{}}},
+  {u"start"_s, UiAction{StartAction{}}},
+  {u"secondary"_s, UiAction{SecondaryAction{}}},
+  {u"select_short"_s, UiAction{SelectShortAction{}}},
+  {u"back"_s, UiAction{BackCommandAction{}}},
+  {u"toggle_shell_color"_s, UiAction{ToggleShellColorAction{}}},
+  {u"toggle_music"_s, UiAction{ToggleMusicAction{}}},
+  {u"quit_to_menu"_s, UiAction{QuitToMenuAction{}}},
+  {u"quit"_s, UiAction{QuitAction{}}},
+  {u"next_palette"_s, UiAction{NextPaletteAction{}}},
+  {u"delete_save"_s, UiAction{DeleteSaveAction{}}},
+  {u"state_start_menu"_s, UiAction{StateStartMenuAction{}}},
+  {u"state_splash"_s, UiAction{StateSplashAction{}}},
+  {u"feedback_light"_s, UiAction{FeedbackLightAction{}}},
+  {u"feedback_ui"_s, UiAction{FeedbackUiAction{}}},
+  {u"feedback_heavy"_s, UiAction{FeedbackHeavyAction{}}},
+});
+
+auto parseIndexedAction(const QString& action, const QStringView prefix, const auto makeAction)
+  -> UiAction {
+  if (!action.startsWith(prefix)) {
+    return UnknownAction{};
+  }
+
+  bool ok = false;
+  const int value = action.sliced(prefix.size()).toInt(&ok);
+  if (!ok) {
+    return UnknownAction{};
+  }
+  return makeAction(value);
+}
 } // namespace
 
 auto parseUiAction(const QString& action) -> UiAction {
-  if (action == u"nav_up"_s)
-    return NavAction{0, -1};
-  if (action == u"nav_down"_s)
-    return NavAction{0, 1};
-  if (action == u"nav_left"_s)
-    return NavAction{-1, 0};
-  if (action == u"nav_right"_s)
-    return NavAction{1, 0};
-  if (action == u"primary"_s)
-    return PrimaryAction{};
-  if (action == u"start"_s)
-    return StartAction{};
-  if (action == u"secondary"_s)
-    return SecondaryAction{};
-  if (action == u"select_short"_s)
-    return SelectShortAction{};
-  if (action == u"back"_s)
-    return BackCommandAction{};
-  if (action == u"toggle_shell_color"_s)
-    return ToggleShellColorAction{};
-  if (action == u"toggle_music"_s)
-    return ToggleMusicAction{};
-  if (action == u"quit_to_menu"_s)
-    return QuitToMenuAction{};
-  if (action == u"quit"_s)
-    return QuitAction{};
-  if (action == u"next_palette"_s)
-    return NextPaletteAction{};
-  if (action == u"delete_save"_s)
-    return DeleteSaveAction{};
-  if (action == u"state_start_menu"_s)
-    return StateStartMenuAction{};
-  if (action == u"state_splash"_s)
-    return StateSplashAction{};
-  if (action == u"feedback_light"_s)
-    return FeedbackLightAction{};
-  if (action == u"feedback_ui"_s)
-    return FeedbackUiAction{};
-  if (action == u"feedback_heavy"_s)
-    return FeedbackHeavyAction{};
-
-  if (action.startsWith(u"set_library_index:"_s)) {
-    bool ok = false;
-    const int value = action.sliced(18).toInt(&ok);
-    if (ok)
-      return SetLibraryIndexAction{value};
-    return UnknownAction{};
+  for (const auto& mapping : kStaticMappings) {
+    if (action == mapping.key) {
+      return mapping.action;
+    }
   }
-  if (action.startsWith(u"set_medal_index:"_s)) {
-    bool ok = false;
-    const int value = action.sliced(16).toInt(&ok);
-    if (ok)
-      return SetMedalIndexAction{value};
-    return UnknownAction{};
+
+  if (const UiAction libraryAction = parseIndexedAction(
+        action,
+        u"set_library_index:"_s,
+        [](const int value) -> UiAction { return SetLibraryIndexAction{value}; });
+      !std::holds_alternative<UnknownAction>(libraryAction)) {
+    return libraryAction;
+  }
+
+  if (const UiAction medalAction =
+        parseIndexedAction(action,
+                           u"set_medal_index:"_s,
+                           [](const int value) -> UiAction { return SetMedalIndexAction{value}; });
+      !std::holds_alternative<UnknownAction>(medalAction)) {
+    return medalAction;
   }
 
   return UnknownAction{};
