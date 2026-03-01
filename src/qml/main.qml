@@ -53,15 +53,11 @@ Window {
         commandController: uiCommandController
         inputController: uiInputController
         debugController: uiDebugController
+        screen: window.screenRef
         currentState: window.currentState
         actionMap: window.inputAction
         iconDebugMode: uiRuntimeState.iconDebugMode
         staticDebugScene: uiRuntimeState.staticDebugScene
-        moveIconLabSelection: function(dx, dy) {
-            if (window.screenRef) {
-                window.screenRef.iconLabMove(dx, dy)
-            }
-        }
     }
 
     UiDebugController {
@@ -73,11 +69,7 @@ Window {
         iconDebugMode: uiRuntimeState.iconDebugMode
         staticDebugScene: uiRuntimeState.staticDebugScene
         staticDebugOptions: uiRuntimeState.staticDebugOptions
-        showOsd: function(text) {
-            if (window.screenRef) {
-                window.screenRef.showOSD(text)
-            }
-        }
+        screen: window.screenRef
         inputController: uiInputController
         clearDirectionVisuals: uiInputController.clearDirectionVisuals
         stateOwner: uiRuntimeState
@@ -90,11 +82,7 @@ Window {
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
         commandController: uiCommandController
-        showOsd: function(text) {
-            if (window.screenRef) {
-                window.screenRef.showOSD(text)
-            }
-        }
+        screen: window.screenRef
     }
 
     UiInputController {
@@ -106,11 +94,7 @@ Window {
         shellBridge: shellBridge
         sessionRenderViewModel: sessionRenderViewModel
         audioSettingsViewModel: audioSettingsViewModel
-        showVolumeOsd: function(value) {
-            if (window.screenRef) {
-                window.screenRef.showVolumeOSD(value)
-            }
-        }
+        screen: window.screenRef
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
     }

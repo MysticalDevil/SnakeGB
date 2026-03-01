@@ -9,7 +9,7 @@ Item {
     property bool iconDebugMode: false
     property var actionMap: ({})
     property var commandController
-    property var showOsd
+    property var screen
 
     property bool selectPressActive: false
     property bool selectLongPressConsumed: false
@@ -18,8 +18,8 @@ Item {
     property bool saveClearConfirmPending: false
 
     function showStatus(text) {
-        if (controller.showOsd) {
-            controller.showOsd(text)
+        if (controller.screen) {
+            controller.screen.showOSD(text)
         }
     }
 

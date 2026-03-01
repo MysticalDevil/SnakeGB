@@ -11,7 +11,7 @@ QtObject {
     property bool iconDebugMode: false
     property string staticDebugScene: ""
     property var staticDebugOptions: ({})
-    property var showOsd
+    property var screen
     property var inputController
     property var clearDirectionVisuals
     property var stateOwner
@@ -169,8 +169,8 @@ QtObject {
             controller.stateOwner.staticDebugOptions = ({})
         }
         controller.resetKonamiProgress()
-        if (controller.showOsd) {
-            controller.showOsd(nextEnabled ? "ICON LAB ON" : "ICON LAB OFF")
+        if (controller.screen) {
+            controller.screen.showOSD(nextEnabled ? "ICON LAB ON" : "ICON LAB OFF")
         }
         if (!nextEnabled && controller.commandController) {
             controller.commandController.dispatch("state_start_menu")
@@ -396,8 +396,8 @@ QtObject {
     }
 
     function showDebugOsd(text) {
-        if (controller.showOsd) {
-            controller.showOsd(text)
+        if (controller.screen) {
+            controller.screen.showOSD(text)
         }
     }
 

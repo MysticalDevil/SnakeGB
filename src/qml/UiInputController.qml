@@ -11,7 +11,7 @@ QtObject {
     property var shellBridge
     property var sessionRenderViewModel
     property var audioSettingsViewModel
-    property var showVolumeOsd
+    property var screen
     property bool iconDebugMode: false
     property var actionMap: ({})
     readonly property var directionActionByAxis: ({
@@ -220,7 +220,9 @@ QtObject {
 
     function handleVolumeRequested(value, withHaptic) {
         controller.audioSettingsViewModel.volume = value
-        controller.showVolumeOsd(value)
+        if (controller.screen) {
+            controller.screen.showVolumeOSD(value)
+        }
         if (withHaptic) {
             controller.commandController.dispatch("feedback_light")
         }

@@ -7,11 +7,11 @@ QtObject {
     property var commandController
     property var inputController
     property var debugController
+    property var screen
     property int currentState: AppState.Splash
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
-    property var moveIconLabSelection
 
     readonly property string modeOverlay: "overlay"
     readonly property string modePage: "page"
@@ -118,8 +118,8 @@ QtObject {
         if (router.debugController) {
             router.debugController.handleEasterInput(direction.token)
         }
-        if (router.moveIconLabSelection) {
-            router.moveIconLabSelection(direction.dx, direction.dy)
+        if (router.screen) {
+            router.screen.iconLabMove(direction.dx, direction.dy)
         }
         if (router.inputController) {
             router.inputController.setDpadPressed(direction.dx, direction.dy)
