@@ -2,10 +2,21 @@
 
 namespace {
 
+auto powerUpSpawnChancePercent() -> int {
+#if defined(NENOSERPENT_BUILD_DEBUG)
+  return 24;
+#elif defined(NENOSERPENT_BUILD_DEV)
+  return 18;
+#else
+  return 10;
+#endif
+}
+
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto buildPowerUpResult(const int powerUpType,
                         const int baseDurationTicks,
-                        const bool halfDurationForRich) -> nenoserpent::core::PowerUpConsumptionResult {
+                        const bool halfDurationForRich)
+  -> nenoserpent::core::PowerUpConsumptionResult {
   nenoserpent::core::PowerUpConsumptionResult result;
   const int acquired = powerUpType;
   if (acquired == static_cast<int>(nenoserpent::core::BuffId::Shield)) {
@@ -71,7 +82,7 @@ auto planFoodConsumption(const QPoint& head,
     return result;
   }
 
-  if (randomBounded(100) < 15 && powerUpPos == QPoint(-1, -1)) {
+  if (randomBounded(100) < powerUpSpawnChancePercent() && powerUpPos == QPoint(-1, -1)) {
     result.spawnPowerUp = true;
   }
   return result;

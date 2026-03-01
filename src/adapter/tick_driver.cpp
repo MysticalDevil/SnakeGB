@@ -25,6 +25,9 @@ void EngineAdapter::update() {
       if (runtimeUpdate.buffExpired) {
         deactivateBuff();
       }
+      if (runtimeUpdate.powerUpExpired) {
+        emit powerUpChanged();
+      }
       applyPostTickTasks();
     }
   }

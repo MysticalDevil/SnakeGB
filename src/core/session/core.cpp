@@ -4,6 +4,10 @@
 
 namespace nenoserpent::core {
 
+namespace {
+constexpr int PowerUpLifetimeTicks = 100;
+}
+
 auto MetaAction::resetTransientRuntime() -> MetaAction {
   return {
     .kind = Kind::ResetTransientRuntime,
@@ -193,6 +197,7 @@ auto SessionCore::consumePowerUp(const QPoint& head,
 
   applyPowerUpResult(result);
   m_state.powerUpPos = QPoint(-1, -1);
+  m_state.powerUpTicksRemaining = 0;
   return result;
 }
 
@@ -255,6 +260,7 @@ auto SessionCore::spawnPowerUp(const int boardWidth,
   if (found) {
     m_state.powerUpPos = pickedPoint;
     m_state.powerUpType = static_cast<int>(weightedRandomBuffId(randomBounded));
+    m_state.powerUpTicksRemaining = PowerUpLifetimeTicks;
   }
   return found;
 }
@@ -315,6 +321,7 @@ auto SessionCore::applyReplayTimeline(const QList<ReplayFrame>& inputFrames,
 auto SessionCore::beginRuntimeUpdate() -> RuntimeUpdateResult {
   return {
     .buffExpired = tickBuffCountdown(),
+    .powerUpExpired = tickPowerUpCountdown(),
   };
 }
 
@@ -466,6 +473,7 @@ void SessionCore::seedPreviewState(const PreviewSeed& seed) {
   m_state.direction = seed.direction;
   m_state.powerUpPos = seed.powerUpPos;
   m_state.powerUpType = seed.powerUpType;
+  m_state.powerUpTicksRemaining = seed.powerUpTicksRemaining;
   m_state.score = seed.score;
   m_state.obstacles = seed.obstacles;
   m_state.tickCounter = seed.tickCounter;
@@ -486,6 +494,8 @@ void SessionCore::resetTransientRuntimeState() {
   m_state.buffTicksTotal = 0;
   m_state.shieldActive = false;
   m_state.powerUpPos = QPoint(-1, -1);
+  m_state.powerUpType = 0;
+  m_state.powerUpTicksRemaining = 0;
 }
 
 void SessionCore::resetReplayRuntimeState() {
@@ -516,6 +526,19 @@ void SessionCore::applyPowerUpResult(const PowerUpConsumptionResult& result) {
   m_state.activeBuff = result.activeBuffAfter;
   m_state.buffTicksRemaining = result.buffTicksRemaining;
   m_state.buffTicksTotal = result.buffTicksTotal;
+}
+
+auto SessionCore::tickPowerUpCountdown() -> bool {
+  if (m_state.powerUpPos == QPoint(-1, -1) || m_state.powerUpTicksRemaining <= 0) {
+    return false;
+  }
+  m_state.powerUpTicksRemaining -= 1;
+  if (m_state.powerUpTicksRemaining > 0) {
+    return false;
+  }
+  m_state.powerUpPos = QPoint(-1, -1);
+  m_state.powerUpType = 0;
+  return true;
 }
 
 auto SessionCore::isOccupied(const QPoint& point) const -> bool {

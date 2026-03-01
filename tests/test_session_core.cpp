@@ -15,6 +15,7 @@ private slots:
   void testCollisionConsumesLaserObstacleAndShield();
   void testFoodAndPowerUpConsumptionMutateSessionState();
   void testSpawnMagnetAndBuffCountdownMutateCoreState();
+  void testPowerUpExpiresWhenNotEaten();
   void testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate();
   void testApplyChoiceSelectionMutatesCoreBuffState();
   void testBootstrapForLevelResetsSessionAndBuildsBody();
@@ -180,6 +181,20 @@ void TestSessionCore::testSpawnMagnetAndBuffCountdownMutateCoreState() {
   core.state().shieldActive = true;
   QVERIFY(!core.beginRuntimeUpdate().buffExpired);
   QCOMPARE(core.state().buffTicksRemaining, 1);
+}
+
+void TestSessionCore::testPowerUpExpiresWhenNotEaten() {
+  nenoserpent::core::SessionCore core;
+  core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
+  core.state().powerUpPos = QPoint(12, 10);
+  core.state().powerUpType = static_cast<int>(nenoserpent::core::BuffId::Laser);
+  core.state().powerUpTicksRemaining = 1;
+
+  const auto beginResult = core.beginRuntimeUpdate();
+  QVERIFY(beginResult.powerUpExpired);
+  QCOMPARE(core.state().powerUpPos, QPoint(-1, -1));
+  QCOMPARE(core.state().powerUpType, 0);
+  QCOMPARE(core.state().powerUpTicksRemaining, 0);
 }
 
 void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate() {

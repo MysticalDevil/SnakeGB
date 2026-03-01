@@ -9,6 +9,7 @@ struct SessionState {
   QPoint food = {0, 0};
   QPoint powerUpPos = {-1, -1};
   int powerUpType = 0;
+  int powerUpTicksRemaining = 0;
   int activeBuff = 0;
   int buffTicksRemaining = 0;
   int buffTicksTotal = 0;

@@ -21,6 +21,7 @@ struct PreviewSeed {
   QPoint direction = {0, -1};
   QPoint powerUpPos = {-1, -1};
   int powerUpType = 0;
+  int powerUpTicksRemaining = 0;
   int score = 0;
   int tickCounter = 0;
   int activeBuff = 0;
@@ -37,6 +38,7 @@ struct ReplayTimelineApplication {
 
 struct RuntimeUpdateResult {
   bool buffExpired = false;
+  bool powerUpExpired = false;
 };
 
 struct TickCommand {
@@ -153,6 +155,7 @@ public:
 private:
   void incrementTick();
   auto tickBuffCountdown() -> bool;
+  auto tickPowerUpCountdown() -> bool;
   [[nodiscard]] auto isOccupied(const QPoint& point) const -> bool;
   void applyPowerUpResult(const PowerUpConsumptionResult& result);
 
