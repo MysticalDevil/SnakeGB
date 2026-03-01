@@ -1,6 +1,6 @@
 # SnakeGB Architecture Refactor Plan
 
-Last updated: 2026-02-28
+Last updated: 2026-03-01
 Scope: architecture baseline review + EngineAdapter core/adapter decoupling roadmap.
 
 ## 1. Executive Summary
@@ -257,11 +257,12 @@ state, not the desired end state.
   - rule/helper tests are in place and useful.
   - a standalone full-session gameplay core now can run an entire game/replay headlessly.
   - adapter/input smoke coverage and UI self-check coverage remain in place for boundary validation.
-- QML coupling reduction is improved, but not finished.
-  - most interactive paths are action-routed.
-  - remaining direct `EngineAdapter` exposure is now adapter-surface exposure rather than core-rule leakage.
-  - runtime render-facing QML state is now partially contracted behind dedicated view models, including
-    `SessionRenderViewModel` for screen/HUD render data.
+- QML coupling reduction is now effectively complete within this plan's scope.
+  - interactive paths are action-routed.
+  - runtime render-facing, selection-facing, status-facing, theme-facing, and audio-facing QML state now route
+    through dedicated view models.
+  - `EngineAdapter` no longer exposes QML properties directly; it remains as an action/state bridge for C++ and
+    QML command dispatch.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.
 
 ## 9. Deferred Low-Priority Items

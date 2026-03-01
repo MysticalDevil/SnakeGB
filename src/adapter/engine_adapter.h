@@ -100,7 +100,6 @@ private:
 class EngineAdapter final : public QObject, public IGameEngine
 {
     Q_OBJECT
-    Q_PROPERTY(AppState::Value state READ state NOTIFY stateChanged)
 
 public:
     explicit EngineAdapter(QObject *parent = nullptr);

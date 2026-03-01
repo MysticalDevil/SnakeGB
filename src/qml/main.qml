@@ -24,6 +24,7 @@ Window {
     property bool iconDebugMode: false
     property string staticDebugScene: ""
     property var staticDebugOptions: ({})
+    readonly property int currentState: sessionRenderViewModel.state
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -88,6 +89,7 @@ Window {
     UiActionRouter {
         id: uiActionRouter
         engineAdapter: engineAdapterRef
+        currentState: window.currentState
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
@@ -126,7 +128,7 @@ Window {
 
     InputPressController {
         id: inputPressController
-        currentState: engineAdapter.state
+        currentState: window.currentState
         hasSave: sessionStatusViewModel.hasSave
         iconDebugMode: window.iconDebugMode
         actionMap: window.inputAction
@@ -276,7 +278,7 @@ Window {
     function handleEasterInput(token) {
         // Keep Konami isolated from normal navigation:
         // only allow entering sequence from paused overlay (or while already in icon lab).
-        const trackEaster = iconDebugMode || engineAdapter.state === AppState.Paused
+        const trackEaster = iconDebugMode || window.currentState === AppState.Paused
         if (!trackEaster) {
             return false
         }
@@ -329,16 +331,16 @@ Window {
     Connections {
         target: engineAdapter
         function onPaletteChanged() { 
-            if (engineAdapter.state === AppState.Splash) return
+            if (window.currentState === AppState.Splash) return
             screen.showOSD(themeViewModel.paletteName)
         }
         function onShellColorChanged() { 
-            if (engineAdapter.state !== AppState.Splash) {
+            if (window.currentState !== AppState.Splash) {
                 screen.triggerPowerCycle()
             }
         }
         function onStateChanged() {
-            if (engineAdapter.state !== AppState.StartMenu) {
+            if (window.currentState !== AppState.StartMenu) {
                 cancelSaveClearConfirm(false)
             }
         }

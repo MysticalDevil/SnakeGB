@@ -5,6 +5,7 @@ QtObject {
     id: router
 
     property var engineAdapter
+    property int currentState: AppState.Splash
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
@@ -29,7 +30,7 @@ QtObject {
         if (router.staticDebugScene !== "") return routeStaticLayer(action)
         if (router.iconDebugMode) return routeIconLayer(action)
 
-        const state = router.engineAdapter.state
+        const state = router.currentState
         if (isOverlayState(state)) return routeOverlayLayer(action)
         if (isPageState(state)) return routePageLayer(action)
         if (isGameplayState(state)) return routeGameLayer(action)
@@ -195,13 +196,13 @@ QtObject {
             return true
         }
         if (action === router.actionMap.Primary) {
-            if (router.engineAdapter.state === AppState.Paused && router.trackEasterToken) {
+            if (router.currentState === AppState.Paused && router.trackEasterToken) {
                 router.trackEasterToken("A")
             }
             return true
         }
         if (action === router.actionMap.Secondary) {
-            if (router.engineAdapter.state === AppState.Paused && router.trackEasterToken) {
+            if (router.currentState === AppState.Paused && router.trackEasterToken) {
                 router.trackEasterToken("B")
             }
             return true
