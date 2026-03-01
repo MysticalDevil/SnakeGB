@@ -18,8 +18,6 @@ Window {
     readonly property color p2: themeViewModel.palette[2]
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
-    property var commandControllerRef: uiCommandController
-
     property real elapsed: 0.0
     property bool iconDebugMode: false
     property string staticDebugScene: ""
@@ -47,25 +45,9 @@ Window {
         loops: Animation.Infinite 
     }
 
-    function setIconDebugMode(enabled) {
-        iconDebugMode = enabled
-    }
-
-    function setStaticDebugSceneValue(sceneName) {
-        staticDebugScene = sceneName
-    }
-
-    function setStaticDebugOptionsValue(options) {
-        staticDebugOptions = options ? options : ({})
-    }
-
-    function dispatchRuntimeAction(action) {
-        uiCommandController.dispatch(action)
-    }
-
     UiActionRouter {
         id: uiActionRouter
-        commandController: commandControllerRef
+        commandController: uiCommandController
         inputController: uiInputController
         debugController: uiDebugController
         currentState: window.currentState
@@ -77,18 +59,16 @@ Window {
 
     UiDebugController {
         id: uiDebugController
-        commandController: commandControllerRef
+        commandController: uiCommandController
         actionMap: window.inputAction
         currentState: window.currentState
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
         staticDebugOptions: window.staticDebugOptions
         showOsd: screen.showOSD
-        dispatchAction: uiInputController.dispatchAction
+        inputController: uiInputController
         clearDirectionVisuals: uiInputController.clearDirectionVisuals
-        setIconDebugMode: window.setIconDebugMode
-        setStaticDebugSceneValue: window.setStaticDebugSceneValue
-        setStaticDebugOptionsValue: window.setStaticDebugOptionsValue
+        stateOwner: window
     }
 
     InputPressController {
@@ -97,13 +77,13 @@ Window {
         hasSave: sessionStatusViewModel.hasSave
         iconDebugMode: window.iconDebugMode
         actionMap: window.inputAction
-        commandController: commandControllerRef
+        commandController: uiCommandController
         showOsd: screen.showOSD
     }
 
     UiInputController {
         id: uiInputController
-        commandController: commandControllerRef
+        commandController: uiCommandController
         actionRouter: uiActionRouter
         inputPressController: inputPressController
         debugController: uiDebugController
@@ -169,7 +149,7 @@ Window {
                 id: shell
                 anchors.fill: parent
                 bridge: shellBridge
-                commandController: commandControllerRef
+                commandController: uiCommandController
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
                 volume: audioSettingsViewModel.volume
@@ -177,7 +157,7 @@ Window {
                 ScreenView {
                     id: screen
                     anchors.fill: parent
-                    commandController: commandControllerRef
+                    commandController: uiCommandController
                     p0: window.p0
                     p1: window.p1
                     p2: window.p2

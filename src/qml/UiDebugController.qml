@@ -11,11 +11,9 @@ QtObject {
     property string staticDebugScene: ""
     property var staticDebugOptions: ({})
     property var showOsd
-    property var dispatchAction
+    property var inputController
     property var clearDirectionVisuals
-    property var setIconDebugMode
-    property var setStaticDebugSceneValue
-    property var setStaticDebugOptionsValue
+    property var stateOwner
 
     readonly property var konamiSequence: ["U", "U", "D", "D", "L", "R", "L", "R", "B", "A"]
     readonly property var debugStateTokens: ({
@@ -164,14 +162,10 @@ QtObject {
 
     function toggleIconLabMode() {
         const nextEnabled = !controller.iconDebugMode
-        if (controller.setIconDebugMode) {
-            controller.setIconDebugMode(nextEnabled)
-        }
-        if (controller.setStaticDebugSceneValue) {
-            controller.setStaticDebugSceneValue("")
-        }
-        if (controller.setStaticDebugOptionsValue) {
-            controller.setStaticDebugOptionsValue({})
+        if (controller.stateOwner) {
+            controller.stateOwner.iconDebugMode = nextEnabled
+            controller.stateOwner.staticDebugScene = ""
+            controller.stateOwner.staticDebugOptions = ({})
         }
         controller.resetKonamiProgress()
         if (controller.showOsd) {
@@ -305,14 +299,10 @@ QtObject {
     }
 
     function setStaticScene(sceneName, options) {
-        if (controller.setIconDebugMode) {
-            controller.setIconDebugMode(false)
-        }
-        if (controller.setStaticDebugSceneValue) {
-            controller.setStaticDebugSceneValue(sceneName)
-        }
-        if (controller.setStaticDebugOptionsValue) {
-            controller.setStaticDebugOptionsValue(options ? options : {})
+        if (controller.stateOwner) {
+            controller.stateOwner.iconDebugMode = false
+            controller.stateOwner.staticDebugScene = sceneName
+            controller.stateOwner.staticDebugOptions = options ? options : ({})
         }
         controller.resetKonamiProgress()
         if (controller.showOsd) {
@@ -337,8 +327,8 @@ QtObject {
     }
 
     function exitIconLab() {
-        if (controller.setIconDebugMode) {
-            controller.setIconDebugMode(false)
+        if (controller.stateOwner) {
+            controller.stateOwner.iconDebugMode = false
         }
         if (controller.clearDirectionVisuals) {
             controller.clearDirectionVisuals()
@@ -360,8 +350,8 @@ QtObject {
                 const nextEnabled = !controller.iconDebugMode
                 controller.konamiIndex = 0
                 konamiResetTimer.stop()
-                if (controller.setIconDebugMode) {
-                    controller.setIconDebugMode(nextEnabled)
+                if (controller.stateOwner) {
+                    controller.stateOwner.iconDebugMode = nextEnabled
                 }
                 if (controller.showOsd) {
                     controller.showOsd(nextEnabled ? "ICON LAB ON" : "ICON LAB OFF")
@@ -445,7 +435,9 @@ QtObject {
         if (!actionKey) {
             return false
         }
-        controller.dispatchAction(controller.actionMap[actionKey])
+        if (controller.inputController) {
+            controller.inputController.dispatchAction(controller.actionMap[actionKey])
+        }
         return true
     }
 
@@ -477,17 +469,17 @@ QtObject {
         }
         if (token === "DBG_PLAY") {
             controller.commandController.dispatch("state_start_menu")
-            if (controller.dispatchAction) {
-                controller.dispatchAction(controller.actionMap.Start)
+            if (controller.inputController) {
+                controller.inputController.dispatchAction(controller.actionMap.Start)
             }
             controller.showDebugOsd("DBG: PLAY")
             return true
         }
         if (token === "DBG_PAUSE") {
             controller.commandController.dispatch("state_start_menu")
-            if (controller.dispatchAction) {
-                controller.dispatchAction(controller.actionMap.Start)
-                controller.dispatchAction(controller.actionMap.Start)
+            if (controller.inputController) {
+                controller.inputController.dispatchAction(controller.actionMap.Start)
+                controller.inputController.dispatchAction(controller.actionMap.Start)
             }
             controller.showDebugOsd("DBG: PAUSE")
             return true
