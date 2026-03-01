@@ -5,6 +5,7 @@ QtObject {
     id: controller
 
     property var commandController
+    property var inputInjector
     property var actionMap: ({})
     property int currentState: AppState.Splash
     property bool iconDebugMode: false
@@ -530,5 +531,13 @@ QtObject {
         interval: 1400
         repeat: false
         onTriggered: controller.konamiIndex = 0
+    }
+
+    property var inputInjectorConnection: Connections {
+        target: controller.inputInjector
+
+        function onActionInjected(action) {
+            controller.routeInjectedToken(action)
+        }
     }
 }

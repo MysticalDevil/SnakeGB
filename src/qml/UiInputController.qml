@@ -9,6 +9,7 @@ QtObject {
     property var inputPressController
     property var debugController
     property var shellBridge
+    property var sessionRenderViewModel
     property var audioSettingsViewModel
     property var showVolumeOsd
     property bool iconDebugMode: false
@@ -238,5 +239,63 @@ QtObject {
         }
         controller.clearDirectionVisuals()
         controller.applyKeyAction(controller.releasedKeyActions[event.key])
+    }
+
+    property var shellBridgeConnections: Connections {
+        target: controller.shellBridge
+
+        function onDirectionTriggered(dx, dy) {
+            controller.handleShellBridgeDirection(dx, dy)
+        }
+
+        function onPrimaryTriggered() {
+            controller.dispatchAction(controller.actionMap.Primary)
+        }
+
+        function onSecondaryTriggered() {
+            controller.dispatchAction(controller.actionMap.Secondary)
+        }
+
+        function onSelectPressed() {
+            controller.inputPressController.onSelectPressed()
+        }
+
+        function onSelectReleased() {
+            controller.inputPressController.onSelectReleased()
+        }
+
+        function onSelectTriggered() {
+            controller.dispatchAction(controller.actionMap.SelectShort)
+        }
+
+        function onStartPressed() {
+            controller.inputPressController.onStartPressed()
+        }
+
+        function onStartReleased() {
+            controller.inputPressController.onStartReleased()
+        }
+
+        function onStartTriggered() {
+            controller.dispatchAction(controller.actionMap.Start)
+        }
+
+        function onShellColorToggleTriggered() {
+            controller.handleShellColorToggle()
+        }
+
+        function onVolumeRequested(value, withHaptic) {
+            controller.handleVolumeRequested(value, withHaptic)
+        }
+    }
+
+    property var sessionRenderConnections: Connections {
+        target: controller.sessionRenderViewModel
+
+        function onStateChanged() {
+            if (controller.sessionRenderViewModel.state !== AppState.StartMenu) {
+                controller.cancelSaveClearConfirm(false)
+            }
+        }
     }
 }

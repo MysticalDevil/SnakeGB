@@ -60,6 +60,7 @@ Window {
     UiDebugController {
         id: uiDebugController
         commandController: uiCommandController
+        inputInjector: inputInjector
         actionMap: window.inputAction
         currentState: window.currentState
         iconDebugMode: window.iconDebugMode
@@ -88,6 +89,7 @@ Window {
         inputPressController: inputPressController
         debugController: uiDebugController
         shellBridge: shellBridge
+        sessionRenderViewModel: sessionRenderViewModel
         audioSettingsViewModel: audioSettingsViewModel
         showVolumeOsd: screen.showVolumeOSD
         iconDebugMode: window.iconDebugMode
@@ -110,22 +112,6 @@ Window {
         }
         function onEventPrompt(text) {
             screen.showOSD(`>> ${text} <<`)
-        }
-    }
-
-    Connections {
-        target: sessionRenderViewModel
-        function onStateChanged() {
-            if (window.currentState !== AppState.StartMenu) {
-                uiInputController.cancelSaveClearConfirm(false)
-            }
-        }
-    }
-
-    Connections {
-        target: inputInjector
-        function onActionInjected(action) {
-            uiDebugController.routeInjectedToken(action)
         }
     }
 
@@ -169,25 +155,6 @@ Window {
                     staticDebugOptions: window.staticDebugOptions
                 }
             }
-        }
-    }
-
-    Connections {
-        target: shellBridge
-        function onDirectionTriggered(dx, dy) {
-            uiInputController.handleShellBridgeDirection(dx, dy)
-        }
-        function onPrimaryTriggered() { uiInputController.dispatchAction(inputAction.Primary) }
-        function onSecondaryTriggered() { uiInputController.dispatchAction(inputAction.Secondary) }
-        function onSelectPressed() { inputPressController.onSelectPressed() }
-        function onSelectReleased() { inputPressController.onSelectReleased() }
-        function onSelectTriggered() { uiInputController.dispatchAction(inputAction.SelectShort) }
-        function onStartPressed() { inputPressController.onStartPressed() }
-        function onStartReleased() { inputPressController.onStartReleased() }
-        function onStartTriggered() { uiInputController.dispatchAction(inputAction.Start) }
-        function onShellColorToggleTriggered() { uiInputController.handleShellColorToggle() }
-        function onVolumeRequested(value, withHaptic) {
-            uiInputController.handleVolumeRequested(value, withHaptic)
         }
     }
 
