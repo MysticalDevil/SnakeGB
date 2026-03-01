@@ -129,22 +129,27 @@ Rectangle {
             ]
 
             delegate: Row {
+                height: 10
                 spacing: 4
 
                 Text {
                     text: modelData.key
+                    height: parent.height
                     color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.44)
                     font.family: gameFont
                     font.pixelSize: 6
                     font.bold: true
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 Text {
                     text: modelData.value
+                    height: parent.height
                     color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.58)
                     font.family: gameFont
                     font.pixelSize: 7
                     font.bold: true
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
@@ -165,25 +170,30 @@ Rectangle {
             ]
 
             delegate: Row {
+                height: index === 0 ? 12 : 11
                 anchors.right: parent ? parent.right : undefined
                 spacing: 4
 
                 Text {
                     text: modelData.label
+                    height: parent.height
                     font.family: gameFont
                     font.pixelSize: 7
                     font.bold: true
                     color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.5)
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 Text {
                     text: modelData.value
+                    height: parent.height
                     font.family: gameFont
                     font.pixelSize: index === 0 ? 10 : 9
                     font.bold: true
                     color: index === 0
                            ? Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
                            : Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.78)
+                    verticalAlignment: Text.AlignVCenter
                 }
             }
         }
