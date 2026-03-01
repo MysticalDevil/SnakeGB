@@ -55,6 +55,8 @@ ui_nav_need_cmd hyprctl
 ui_nav_need_cmd jq
 ui_nav_require_wayland
 ui_nav_acquire_lock "${CAPTURE_LOCK_FILE}" "Another UI navigation session is running"
+ui_nav_build_target_plan "${TARGET}" "${NAV_RETRIES}"
+APP_ARGS="${UI_NAV_TARGET_APP_ARGS:-${APP_ARGS:-}}"
 ui_nav_build_app "${BUILD_DIR}" "${APP_BIN}"
 ui_nav_setup_isolated_config "${ISOLATED_CONFIG}"
 
@@ -88,7 +90,6 @@ send_token_list "${PRE_TOKENS}"
 
 ui_nav_apply_palette_steps "${INPUT_FILE}" "${NAV_STEP_DELAY}" "${PALETTE_TOKEN}" "${PALETTE_STEPS}"
 
-ui_nav_build_target_plan "${TARGET}" "${NAV_RETRIES}"
 ui_nav_execute_target_plan "${INPUT_FILE}" "${NAV_STEP_DELAY}" "${UI_NAV_TARGET_STEPS[@]}"
 send_token_list "${POST_TOKENS}"
 

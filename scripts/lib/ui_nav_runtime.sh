@@ -78,6 +78,11 @@ ui_nav_launch_and_locate() {
   local runtime_log="$4"
   local max_launch_attempts="${5:-1}"
   local attempt=1
+  local -a app_args=()
+
+  if [[ -n "${APP_ARGS:-}" ]]; then
+    read -r -a app_args <<<"${APP_ARGS}"
+  fi
 
   UI_NAV_APP_PID=""
   # shellcheck disable=SC2034 # Consumed by callers after this shared helper returns.
@@ -94,7 +99,7 @@ ui_nav_launch_and_locate() {
       echo "[info] Launching ${app_bin}"
     fi
     rm -f "${input_file}" >/dev/null 2>&1 || true
-    SNAKEGB_INPUT_FILE="${input_file}" "${app_bin}" >"${runtime_log}" 2>&1 &
+    SNAKEGB_INPUT_FILE="${input_file}" "${app_bin}" "${app_args[@]}" >"${runtime_log}" 2>&1 &
     UI_NAV_APP_PID=$!
 
     if ui_nav_find_window_for_pid "${UI_NAV_APP_PID}" "${wait_seconds}"; then

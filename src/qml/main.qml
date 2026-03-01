@@ -6,9 +6,15 @@ Window {
     id: window
     readonly property int shellBaseWidth: 350
     readonly property int shellBaseHeight: 570
+    readonly property int screenBaseWidth: 240
+    readonly property int screenBaseHeight: 216
+    readonly property string uiMode: typeof appUiMode === "string" ? appUiMode : "full"
+    readonly property bool fullUiMode: uiMode === "full"
+    readonly property bool screenOnlyUiMode: uiMode === "screen"
+    readonly property bool shellOnlyUiMode: uiMode === "shell"
 
-    width: shellBaseWidth
-    height: shellBaseHeight
+    width: screenOnlyUiMode ? screenBaseWidth : shellBaseWidth
+    height: screenOnlyUiMode ? screenBaseHeight : shellBaseHeight
     visible: true
     title: qsTr("Snake GB Edition")
     color: "#1a1a1a"
@@ -19,7 +25,9 @@ Window {
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
     readonly property var themeViewModelRef: themeViewModel
-    readonly property var screenRef: shell.screenItem
+    readonly property var screenRef: fullUiMode
+                                      ? (fullShellLoader.item ? fullShellLoader.item.screenItem : null)
+                                      : (screenOnlyUiMode ? screenOnlyLoader.item : null)
     property real elapsed: 0.0
     readonly property int currentState: sessionRenderViewModel.state
     readonly property var inputAction: ({
@@ -107,40 +115,89 @@ Window {
             id: shellBridge
         }
 
-        Item {
-            id: scaledWrapper
-            width: window.shellBaseWidth
-            height: window.shellBaseHeight
-            anchors.centerIn: parent
-            scale: Math.min(window.width / window.shellBaseWidth,
-                            window.height / window.shellBaseHeight)
-            
+        Component {
+            id: screenComponent
+
+            ScreenView {
+                commandController: uiCommandController
+                themeViewModel: window.themeViewModelRef
+                p0: window.p0
+                p1: window.p1
+                p2: window.p2
+                p3: window.p3
+                gameFont: window.gameFont
+                elapsed: window.elapsed
+                iconDebugMode: uiRuntimeState.iconDebugMode
+                staticDebugScene: uiRuntimeState.staticDebugScene
+                staticDebugOptions: uiRuntimeState.staticDebugOptions
+            }
+        }
+
+        Component {
+            id: shellOnlyScreenPlaceholder
+
+            Item { }
+        }
+
+        Component {
+            id: fullShellComponent
+
             Shell {
-                id: shell
-                anchors.fill: parent
                 bridge: shellBridge
                 commandController: uiCommandController
                 inputController: uiInputController
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
                 volume: audioSettingsViewModel.volume
-
-                screenContentComponent: Component {
-                    ScreenView {
-                        commandController: uiCommandController
-                        themeViewModel: window.themeViewModelRef
-                        p0: window.p0
-                        p1: window.p1
-                        p2: window.p2
-                        p3: window.p3
-                        gameFont: window.gameFont
-                        elapsed: window.elapsed
-                        iconDebugMode: uiRuntimeState.iconDebugMode
-                        staticDebugScene: uiRuntimeState.staticDebugScene
-                        staticDebugOptions: uiRuntimeState.staticDebugOptions
-                    }
-                }
+                screenContentComponent: screenComponent
             }
+        }
+
+        Component {
+            id: shellOnlyComponent
+
+            Shell {
+                bridge: shellBridge
+                commandController: uiCommandController
+                inputController: uiInputController
+                shellColor: themeViewModel.shellColor
+                shellThemeName: themeViewModel.shellName
+                volume: audioSettingsViewModel.volume
+                screenContentComponent: shellOnlyScreenPlaceholder
+            }
+        }
+
+        Item {
+            id: shellHost
+            visible: !window.screenOnlyUiMode
+            width: window.shellBaseWidth
+            height: window.shellBaseHeight
+            anchors.centerIn: parent
+            scale: Math.min(window.width / window.shellBaseWidth,
+                            window.height / window.shellBaseHeight)
+
+            Loader {
+                id: fullShellLoader
+                anchors.fill: parent
+                active: window.fullUiMode
+                sourceComponent: fullShellComponent
+            }
+
+            Loader {
+                id: shellOnlyLoader
+                anchors.fill: parent
+                active: window.shellOnlyUiMode
+                sourceComponent: shellOnlyComponent
+            }
+        }
+
+        Loader {
+            id: screenOnlyLoader
+            anchors.centerIn: parent
+            width: window.screenBaseWidth
+            height: window.screenBaseHeight
+            active: window.screenOnlyUiMode
+            sourceComponent: screenComponent
         }
     }
 }

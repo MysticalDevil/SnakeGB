@@ -86,6 +86,8 @@ make clean
 - Current injectable UI debug entry points:
   - `scripts/ui_nav_capture.sh dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
   - `scripts/ui_nav_capture.sh dbg-static-{boot,game,replay,choice} ...` with `DBG_STATIC_PARAMS=...` to inject static scene content.
+  - `scripts/ui_nav_capture.sh dbg-screen-only ...` launches a screen-only window via `--ui-mode=screen`.
+  - `scripts/ui_nav_capture.sh dbg-shell-only ...` launches a shell-only window via `--ui-mode=shell`.
   - `scripts/ui_nav_debug.sh <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
   - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/snakegb_ui_input.txt`.
   - Detailed parameter formats and supported scenes live in `docs/UI_DEBUG_INJECTION.md`.

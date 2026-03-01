@@ -85,6 +85,8 @@ The shared target router in `scripts/lib/ui_nav_targets.sh` currently supports:
 - `dbg-static-replay`
 - `dbg-static-choice`
 - `dbg-static-off`
+- `dbg-screen-only`
+- `dbg-shell-only`
 
 ## Runtime Debug Tokens
 
@@ -134,6 +136,11 @@ DBG_CHOICE_TYPES=7,4,1 ./scripts/ui_nav_capture.sh dbg-choice /tmp/choice.png
 ## Static Debug Injection
 
 Static debug scenes are driven by `DBG_STATIC_*:<params>` tokens. Script entry points expose this via `DBG_STATIC_PARAMS`.
+
+Standalone composition debug scenes are driven by launch args instead of injected tokens:
+
+- `dbg-screen-only` maps to `--ui-mode=screen`
+- `dbg-shell-only` maps to `--ui-mode=shell`
 
 ### Supported static scenes
 

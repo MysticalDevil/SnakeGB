@@ -57,6 +57,16 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
   QGuiApplication app(argc, argv);
+  QString uiMode = "full";
+  const QStringList arguments = QCoreApplication::arguments();
+  for (const QString& argument : arguments) {
+    if (argument.startsWith("--ui-mode=")) {
+      const QString candidate = argument.sliced(QString("--ui-mode=").size()).trimmed().toLower();
+      if (candidate == "full" || candidate == "screen" || candidate == "shell") {
+        uiMode = candidate;
+      }
+    }
+  }
 
   QCoreApplication::setOrganizationName("DevilOrg");
   QCoreApplication::setOrganizationDomain("org.devil");
@@ -110,6 +120,7 @@ auto main(int argc, char* argv[]) -> int {
   engine.rootContext()->setContextProperty("sessionStatusViewModel", &sessionStatusViewModel);
   engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);
   engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
+  engine.rootContext()->setContextProperty("appUiMode", uiMode);
 
   using namespace Qt::StringLiterals;
   const QUrl url(u"qrc:/src/qml/main.qml"_s);

@@ -2,7 +2,7 @@
 
 ui_nav_supported_targets() {
   printf '%s\n' \
-    "splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-choice|dbg-static-off"
+    "splash|menu|game|pause|pause-back|pause-back-b|pause-resume|achievements|medals|replay|catalog|library|icons|icons-f6|icons-right|konami-on|konami-off|konami-on-paused|konami-off-paused|icons-exit-b|dbg-menu|dbg-play|dbg-pause|dbg-gameover|dbg-replay|dbg-replay-buff|dbg-choice|dbg-catalog|dbg-achievements|dbg-icons|dbg-static-boot|dbg-static-game|dbg-static-replay|dbg-static-choice|dbg-static-off|dbg-screen-only|dbg-shell-only"
 }
 
 ui_nav_append_repeated_tokens() {
@@ -35,6 +35,8 @@ ui_nav_build_target_plan() {
   UI_NAV_TARGET_STEPS=()
   # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
   UI_NAV_TARGET_POST_WAIT_OVERRIDE=""
+  # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
+  UI_NAV_TARGET_APP_ARGS=""
 
   case "${target}" in
     splash)
@@ -136,6 +138,14 @@ ui_nav_build_target_plan() {
       ;;
     dbg-static-off)
       UI_NAV_TARGET_STEPS+=("TOKEN:DBG_STATIC_OFF")
+      ;;
+    dbg-screen-only)
+      # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
+      UI_NAV_TARGET_APP_ARGS="--ui-mode=screen"
+      ;;
+    dbg-shell-only)
+      # shellcheck disable=SC2034 # Consumed by caller after this helper returns.
+      UI_NAV_TARGET_APP_ARGS="--ui-mode=shell"
       ;;
     *)
       echo "[error] Unknown target '${target}'. Supported: $(ui_nav_supported_targets)"
