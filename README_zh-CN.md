@@ -1,10 +1,10 @@
-# NenoSerpent - 复古 GameBoy 风格贪吃蛇 (v1.4.0)
+# NenoSerpent - 复古 GameBoy 风格贪吃蛇 (v2.0.0)
 
 [English](README.md)
 
 NenoSerpent 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 GameBoy 风格贪吃蛇游戏。它以现代工程标准忠实还原了经典复古掌机的操作体验，并提供触觉与音频反馈。
 
-## 核心特性 (v1.4.0)
+## 核心特性 (v2.0.0)
 
 - **GB 风格开机链路**：Logo 下落弹跳、开机提示音、进入主界面后延迟播放 BGM。
 - **主界面导航扩展**：隐藏图鉴（`LEFT`）、成就页（`UP`）、高分回放（`DOWN`）、`SELECT` 切关。
@@ -101,7 +101,6 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 
 ## 输入架构说明
 - 日志系统计划：`docs/LOGGING_SYSTEM_PLAN.md`
-- 日志指南：`docs/LOGGING_GUIDE.md`
 - 音频编写指南：`docs/AUDIO_AUTHORING.md`
 - 关卡编写指南：`docs/LEVEL_AUTHORING.md`
 - 运行时自动化注入：建议使用 `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue`（或 `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token

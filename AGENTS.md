@@ -69,7 +69,6 @@ make clean
 - `OSDLayer` should remain topmost above CRT/screen treatment layers.
 - For audio-system upgrade work, follow `docs/AUDIO_SYSTEM_PLAN.md`.
 - For runtime logging cleanup work, follow `docs/LOGGING_SYSTEM_PLAN.md`.
-- Runtime logging conventions are documented in `docs/LOGGING_GUIDE.md`.
 
 ## Testing Guidelines
 - Framework: `Qt6::Test` via `engine-adapter-tests` target and `ctest` (`EngineAdapterTest`).

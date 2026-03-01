@@ -218,9 +218,8 @@ Goal:
 
 Tasks:
 
-- add a short logging guide (`docs/LOGGING_GUIDE.md`)
 - update README build-mode notes
-- document category names and intended usage
+- document category names and intended usage directly in this plan
 
 Acceptance:
 

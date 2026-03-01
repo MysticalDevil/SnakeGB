@@ -79,7 +79,7 @@ auto main(int argc, char* argv[]) -> int {
   QCoreApplication::setOrganizationDomain("org.devil.nenoserpent");
   QCoreApplication::setApplicationName("nenoserpent");
   QGuiApplication::setApplicationDisplayName("NenoSerpent");
-  QGuiApplication::setApplicationVersion("1.4.6");
+  QGuiApplication::setApplicationVersion("2.0.0");
 
   qCInfo(nenoserpentStateLog).noquote() << "build mode" << appLogMode << "logging enabled";
 

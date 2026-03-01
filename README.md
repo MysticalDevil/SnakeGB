@@ -1,10 +1,10 @@
-# NenoSerpent - Retro GameBoy Style Snake Game (v1.4.0)
+# NenoSerpent - Retro GameBoy Style Snake Game (v2.0.0)
 
 [中文版](README_zh-CN.md)
 
 NenoSerpent is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience with modern engineering standards and premium haptic/audio feedback.
 
-## Core Features (v1.4.0)
+## Core Features (v2.0.0)
 
 - **GameBoy Boot Flow**: Boot bounce animation + boot beep + delayed BGM handoff to menu.
 - **Expanded Navigation**: Hidden fruit library (`LEFT`), achievements room (`UP`), replay (`DOWN`), level switch (`SELECT`).
@@ -117,7 +117,6 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
 ## Input Architecture Notes
 - Logging system plan: `docs/LOGGING_SYSTEM_PLAN.md`
-- Logging guide: `docs/LOGGING_GUIDE.md`
 - Audio authoring guide: `docs/AUDIO_AUTHORING.md`
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
 - Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
