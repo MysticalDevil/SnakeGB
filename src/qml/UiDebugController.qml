@@ -18,6 +18,49 @@ QtObject {
     property var setStaticDebugOptionsValue
 
     readonly property var konamiSequence: ["U", "U", "D", "D", "L", "R", "L", "R", "B", "A"]
+    readonly property var debugStateTokens: ({
+        DBG_GAMEOVER: { state: AppState.GameOver, osd: "DBG: GAMEOVER" },
+        DBG_REPLAY: { state: AppState.Replaying, osd: "DBG: REPLAY" },
+        DBG_CATALOG: { state: AppState.Library, osd: "DBG: CATALOG" },
+        DBG_ACHIEVEMENTS: { state: AppState.MedalRoom, osd: "DBG: ACHIEVEMENTS" }
+    })
+    readonly property var staticSceneAliases: ({
+        DBG_STATIC_BOOT: "boot",
+        DBG_STATIC_GAME: "game",
+        DBG_STATIC_REPLAY: "replay",
+        DBG_STATIC_CHOICE: "choice",
+        DBG_STATIC_OFF: "",
+        STATIC_BOOT: "boot",
+        STATIC_GAME: "game",
+        STATIC_REPLAY: "replay",
+        STATIC_CHOICE: "choice",
+        STATIC_OFF: ""
+    })
+    readonly property var injectedActionTokens: ({
+        UP: "NavUp",
+        U: "NavUp",
+        DOWN: "NavDown",
+        D: "NavDown",
+        LEFT: "NavLeft",
+        L: "NavLeft",
+        RIGHT: "NavRight",
+        R: "NavRight",
+        A: "Primary",
+        PRIMARY: "Primary",
+        OK: "Primary",
+        B: "Secondary",
+        SECONDARY: "Secondary",
+        START: "Start",
+        SELECT: "SelectShort",
+        BACK: "Back",
+        ESC: "Escape",
+        ESCAPE: "Escape",
+        F6: "ToggleIconLab",
+        ICON: "ToggleIconLab",
+        COLOR: "ToggleShellColor",
+        SHELL: "ToggleShellColor",
+        MUSIC: "ToggleMusic"
+    })
     property int konamiIndex: 0
 
     function resetKonamiProgress() {
@@ -304,6 +347,51 @@ QtObject {
         return previousIndex > 0
     }
 
+    function showDebugOsd(text) {
+        if (controller.showOsd) {
+            controller.showOsd(text)
+        }
+    }
+
+    function activateStaticScene(sceneName, rawOptions) {
+        const options = rawOptions === undefined
+            ? {}
+            : controller.parseStaticSceneOptions(sceneName, rawOptions)
+        controller.setStaticScene(sceneName, options)
+        return true
+    }
+
+    function routeMappedDebugStateToken(token) {
+        const entry = controller.debugStateTokens[token]
+        if (!entry) {
+            return false
+        }
+        controller.commandController.requestStateChange(entry.state)
+        controller.showDebugOsd(entry.osd)
+        return true
+    }
+
+    function routeMappedStaticSceneToken(token, rawOptions) {
+        if (!(token in controller.staticSceneAliases)) {
+            return false
+        }
+        const sceneName = controller.staticSceneAliases[token]
+        if (rawOptions !== undefined && token.startsWith("DBG_STATIC_") && sceneName !== "") {
+            return controller.activateStaticScene(sceneName, rawOptions)
+        }
+        controller.setStaticScene(sceneName, {})
+        return true
+    }
+
+    function dispatchInjectedAlias(token) {
+        const actionKey = controller.injectedActionTokens[token]
+        if (!actionKey) {
+            return false
+        }
+        controller.dispatchAction(controller.actionMap[actionKey])
+        return true
+    }
+
     function routeDebugToken(token) {
         if (token.startsWith("DBG_CHOICE")) {
             let choiceTypes = []
@@ -316,11 +404,9 @@ QtObject {
                     .filter((value) => Number.isInteger(value) && value >= 1 && value <= 9)
             }
             controller.commandController.seedChoicePreview(choiceTypes)
-            if (controller.showOsd) {
-                controller.showOsd(choiceTypes.length > 0
-                    ? `DBG: CHOICE ${choiceTypes.join("/")}`
-                    : "DBG: CHOICE")
-            }
+            controller.showDebugOsd(choiceTypes.length > 0
+                ? `DBG: CHOICE ${choiceTypes.join("/")}`
+                : "DBG: CHOICE")
             return true
         }
         if (token === "DBG_MENU") {
@@ -328,9 +414,7 @@ QtObject {
                 controller.exitIconLab()
             } else {
                 controller.commandController.dispatch("state_start_menu")
-                if (controller.showOsd) {
-                    controller.showOsd("DBG: MENU")
-                }
+                controller.showDebugOsd("DBG: MENU")
             }
             return true
         }
@@ -339,9 +423,7 @@ QtObject {
             if (controller.dispatchAction) {
                 controller.dispatchAction(controller.actionMap.Start)
             }
-            if (controller.showOsd) {
-                controller.showOsd("DBG: PLAY")
-            }
+            controller.showDebugOsd("DBG: PLAY")
             return true
         }
         if (token === "DBG_PAUSE") {
@@ -350,85 +432,28 @@ QtObject {
                 controller.dispatchAction(controller.actionMap.Start)
                 controller.dispatchAction(controller.actionMap.Start)
             }
-            if (controller.showOsd) {
-                controller.showOsd("DBG: PAUSE")
-            }
+            controller.showDebugOsd("DBG: PAUSE")
             return true
         }
-        if (token === "DBG_GAMEOVER") {
-            controller.commandController.requestStateChange(AppState.GameOver)
-            if (controller.showOsd) {
-                controller.showOsd("DBG: GAMEOVER")
-            }
-            return true
-        }
-        if (token === "DBG_REPLAY") {
-            controller.commandController.requestStateChange(AppState.Replaying)
-            if (controller.showOsd) {
-                controller.showOsd("DBG: REPLAY")
-            }
+        if (controller.routeMappedDebugStateToken(token)) {
             return true
         }
         if (token === "DBG_REPLAY_BUFF") {
             controller.commandController.seedReplayBuffPreview()
             return true
         }
-        if (token === "DBG_CATALOG") {
-            controller.commandController.requestStateChange(AppState.Library)
-            if (controller.showOsd) {
-                controller.showOsd("DBG: CATALOG")
-            }
-            return true
-        }
-        if (token === "DBG_ACHIEVEMENTS") {
-            controller.commandController.requestStateChange(AppState.MedalRoom)
-            if (controller.showOsd) {
-                controller.showOsd("DBG: ACHIEVEMENTS")
-            }
-            return true
-        }
         if (token === "DBG_ICONS") {
             if (!controller.iconDebugMode) {
                 controller.toggleIconLabMode()
             }
-            if (controller.showOsd) {
-                controller.showOsd("DBG: ICON LAB")
-            }
+            controller.showDebugOsd("DBG: ICON LAB")
             return true
         }
         if (token.startsWith("DBG_STATIC_")) {
             const separatorIndex = token.indexOf(":")
             const baseToken = separatorIndex >= 0 ? token.slice(0, separatorIndex) : token
             const rawOptions = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
-            if (baseToken === "DBG_STATIC_BOOT") {
-                controller.setStaticScene(
-                    "boot",
-                    controller.parseStaticSceneOptions("boot", rawOptions))
-                return true
-            }
-            if (baseToken === "DBG_STATIC_GAME") {
-                controller.setStaticScene(
-                    "game",
-                    controller.parseStaticSceneOptions("game", rawOptions))
-                return true
-            }
-            if (baseToken === "DBG_STATIC_REPLAY") {
-                controller.setStaticScene(
-                    "replay",
-                    controller.parseStaticSceneOptions("replay", rawOptions))
-                return true
-            }
-            if (baseToken === "DBG_STATIC_CHOICE") {
-                controller.setStaticScene(
-                    "choice",
-                    controller.parseStaticSceneOptions("choice", rawOptions))
-                return true
-            }
-            if (baseToken === "DBG_STATIC_OFF") {
-                controller.setStaticScene("", {})
-                return true
-            }
-            return true
+            return controller.routeMappedStaticSceneToken(baseToken, rawOptions)
         }
         return false
     }
@@ -438,85 +463,17 @@ QtObject {
         if (controller.routeDebugToken(token)) {
             return true
         }
-        if (token === "UP" || token === "U") {
-            controller.dispatchAction(controller.actionMap.NavUp)
-            return true
-        }
-        if (token === "DOWN" || token === "D") {
-            controller.dispatchAction(controller.actionMap.NavDown)
-            return true
-        }
-        if (token === "LEFT" || token === "L") {
-            controller.dispatchAction(controller.actionMap.NavLeft)
-            return true
-        }
-        if (token === "RIGHT" || token === "R") {
-            controller.dispatchAction(controller.actionMap.NavRight)
-            return true
-        }
-        if (token === "A" || token === "PRIMARY" || token === "OK") {
-            controller.dispatchAction(controller.actionMap.Primary)
-            return true
-        }
-        if (token === "B" || token === "SECONDARY") {
-            controller.dispatchAction(controller.actionMap.Secondary)
-            return true
-        }
-        if (token === "START") {
-            controller.dispatchAction(controller.actionMap.Start)
-            return true
-        }
-        if (token === "SELECT") {
-            controller.dispatchAction(controller.actionMap.SelectShort)
-            return true
-        }
-        if (token === "BACK") {
-            controller.dispatchAction(controller.actionMap.Back)
-            return true
-        }
-        if (token === "ESC" || token === "ESCAPE") {
-            controller.dispatchAction(controller.actionMap.Escape)
-            return true
-        }
-        if (token === "F6" || token === "ICON") {
-            controller.dispatchAction(controller.actionMap.ToggleIconLab)
-            return true
-        }
-        if (token === "COLOR" || token === "SHELL") {
-            controller.dispatchAction(controller.actionMap.ToggleShellColor)
+        if (controller.dispatchInjectedAlias(token)) {
             return true
         }
         if (token === "PALETTE" || token === "NEXT_PALETTE") {
             controller.commandController.dispatch("next_palette")
             return true
         }
-        if (token === "MUSIC") {
-            controller.dispatchAction(controller.actionMap.ToggleMusic)
+        if (controller.routeMappedStaticSceneToken(token)) {
             return true
         }
-        if (token === "STATIC_BOOT") {
-            controller.setStaticScene("boot", {})
-            return true
-        }
-        if (token === "STATIC_GAME") {
-            controller.setStaticScene("game", {})
-            return true
-        }
-        if (token === "STATIC_REPLAY") {
-            controller.setStaticScene("replay", {})
-            return true
-        }
-        if (token === "STATIC_CHOICE") {
-            controller.setStaticScene("choice", {})
-            return true
-        }
-        if (token === "STATIC_OFF") {
-            controller.setStaticScene("", {})
-            return true
-        }
-        if (controller.showOsd) {
-            controller.showOsd(`UNKNOWN INPUT: ${token}`)
-        }
+        controller.showDebugOsd(`UNKNOWN INPUT: ${token}`)
         return false
     }
 
