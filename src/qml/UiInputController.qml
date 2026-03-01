@@ -30,7 +30,9 @@ QtObject {
         [Qt.Key_B]: { type: "secondary_press" },
         [Qt.Key_X]: { type: "secondary_press" },
         [Qt.Key_S]: { type: "start_press" },
+        [Qt.Key_Space]: { type: "start_press" },
         [Qt.Key_Return]: { type: "start_press" },
+        [Qt.Key_Enter]: { type: "start_press" },
         [Qt.Key_C]: { type: "dispatch", action: "ToggleShellColor" },
         [Qt.Key_Y]: { type: "dispatch", action: "ToggleShellColor" },
         [Qt.Key_M]: { type: "dispatch", action: "ToggleMusic" },
@@ -46,7 +48,9 @@ QtObject {
         [Qt.Key_B]: { type: "secondary_release" },
         [Qt.Key_X]: { type: "secondary_release" },
         [Qt.Key_S]: { type: "start_release" },
+        [Qt.Key_Space]: { type: "start_release" },
         [Qt.Key_Return]: { type: "start_release" },
+        [Qt.Key_Enter]: { type: "start_release" },
         [Qt.Key_Shift]: { type: "select_release" }
     })
 
