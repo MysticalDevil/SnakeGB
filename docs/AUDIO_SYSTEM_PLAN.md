@@ -360,10 +360,12 @@ Current status:
 - short confirmation and UI interaction cues now route through score-based cue ids instead of raw
   beep parameters
 - `SoundManager` can render a minimal in-memory score sequence for score cues
-- menu/game music routing now selects score-backed tracks by track id
+- menu/game/replay music routing now selects score-backed tracks by track id
 - the first longer classic chiptune-style menu BGM has replaced the earlier minimal placeholder loop
 - score-backed tracks now use note/duration/duty data instead of inlined raw frequency pairs
-- full score resource files and additional track expansion remain the next step inside this phase
+- score data now loads from external Qt resource JSON rather than staying compiled into header constants
+- a dedicated replay track has been added as the second BGM expansion step inside this phase
+- user-authored score import remains the next unfinished step after resource-backed built-in tracks
 
 ### Phase 5: User BGM Import
 

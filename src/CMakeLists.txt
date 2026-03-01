@@ -24,6 +24,7 @@ add_library(snakegb_adapter
     audio/cue.h
     audio/event.h
     audio/score.h
+    audio/score.cpp
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
     adapter/view_models/audio.h
@@ -70,6 +71,11 @@ target_link_libraries(snakegb_adapter PRIVATE snakegb_fsm snakegb_core
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
+)
+qt_add_resources(snakegb_adapter "audio_score_res"
+    PREFIX "/"
+    FILES
+        "audio/score_catalog.json"
 )
 
 add_executable(SnakeGB

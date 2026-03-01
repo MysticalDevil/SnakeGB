@@ -57,6 +57,11 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
     snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Gameplay);
   QCOMPARE(gameplayTrack.front().leadPitch, snakegb::audio::Pitch::A4);
   QCOMPARE(gameplayTrack.front().leadDuty, snakegb::audio::PulseDuty::Half);
+
+  const auto replayTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Replay);
+  QCOMPARE(replayTrack.size(), 12U);
+  QCOMPARE(replayTrack.front().leadPitch, snakegb::audio::Pitch::C5);
+  QCOMPARE(replayTrack.front().bassPitch, snakegb::audio::Pitch::C3);
 }
 
 void TestAudioBusService::testPausedStates() {
@@ -103,6 +108,10 @@ void TestAudioBusService::testStateChangePolicy() {
   audioBus.handleStateChanged(2, true, {});
   QCOMPARE(startCount, 2);
   QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Gameplay));
+
+  audioBus.handleStateChanged(5, true, {});
+  QCOMPARE(startCount, 3);
+  QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Replay));
 
   audioBus.handleStateChanged(4, true, {});
   QCOMPARE(stopCount, 1);

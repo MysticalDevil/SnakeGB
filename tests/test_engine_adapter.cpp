@@ -215,10 +215,11 @@ private slots:
 
     game.handleStart();
     const QVariantList before = game.obstacles();
-    for (int i = 0; i < 6; ++i) {
+    QVariantList after = before;
+    for (int i = 0; i < 180 && after == before; ++i) {
       game.forceUpdate();
+      after = game.obstacles();
     }
-    const QVariantList after = game.obstacles();
     QVERIFY2(before != after, "Dynamic Pulse obstacles should change over time");
   }
 

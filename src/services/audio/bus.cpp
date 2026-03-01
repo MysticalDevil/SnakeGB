@@ -52,6 +52,9 @@ auto AudioBus::musicTrackForState(const int state) -> snakegb::audio::ScoreTrack
   if (state == 1) {
     return snakegb::audio::ScoreTrackId::Menu;
   }
+  if (state == 5) {
+    return snakegb::audio::ScoreTrackId::Replay;
+  }
   return snakegb::audio::ScoreTrackId::Gameplay;
 }
 
