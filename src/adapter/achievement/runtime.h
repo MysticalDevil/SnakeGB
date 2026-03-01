@@ -6,7 +6,10 @@ class ProfileManager;
 
 namespace nenoserpent::adapter {
 
-auto unlockAchievements(ProfileManager* profile, int score, int tickIntervalMs, bool timerActive)
-  -> QStringList;
+auto unlockAchievements(ProfileManager* profile,
+                        int score,
+                        int tickIntervalMs,
+                        bool timerActive,
+                        int noFoodElapsedMs) -> QStringList;
 
 } // namespace nenoserpent::adapter

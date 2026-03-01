@@ -24,6 +24,10 @@ SelectionViewModel::SelectionViewModel(EngineAdapter* engineAdapter, QObject* pa
           this,
           &SelectionViewModel::libraryIndexChanged);
   connect(m_engineAdapter,
+          &EngineAdapter::fruitLibraryChanged,
+          this,
+          &SelectionViewModel::fruitLibraryChanged);
+  connect(m_engineAdapter,
           &EngineAdapter::medalIndexChanged,
           this,
           &SelectionViewModel::medalIndexChanged);

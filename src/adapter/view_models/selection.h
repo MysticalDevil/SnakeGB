@@ -10,7 +10,7 @@ class SelectionViewModel final : public QObject {
   Q_PROPERTY(QVariantList choices READ choices NOTIFY choicesChanged)
   Q_PROPERTY(bool choicePending READ choicePending NOTIFY choicePendingChanged)
   Q_PROPERTY(int choiceIndex READ choiceIndex NOTIFY choiceIndexChanged)
-  Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary CONSTANT)
+  Q_PROPERTY(QVariantList fruitLibrary READ fruitLibrary NOTIFY fruitLibraryChanged)
   Q_PROPERTY(int libraryIndex READ libraryIndex NOTIFY libraryIndexChanged)
   Q_PROPERTY(QVariantList medalLibrary READ medalLibrary CONSTANT)
   Q_PROPERTY(int medalIndex READ medalIndex NOTIFY medalIndexChanged)
@@ -33,6 +33,7 @@ signals:
   void choicePendingChanged();
   void choiceIndexChanged();
   void libraryIndexChanged();
+  void fruitLibraryChanged();
   void medalIndexChanged();
   void achievementsChanged();
 

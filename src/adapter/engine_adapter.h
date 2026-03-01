@@ -308,6 +308,7 @@ signals:
   void choicePendingChanged();
   void choiceIndexChanged();
   void libraryIndexChanged();
+  void fruitLibraryChanged();
   void medalIndexChanged();
   void eventPrompt(QString text);
 
@@ -370,6 +371,7 @@ private:
   int m_choiceIndex = 0;
   int m_libraryIndex = 0;
   int m_medalIndex = 0;
+  int m_noFoodElapsedMs = 0;
   QVariantList m_choices;
   int m_levelIndex = 0;
   QString m_currentLevelName = QStringLiteral("Classic");

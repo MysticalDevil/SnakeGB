@@ -10,7 +10,8 @@
 using namespace Qt::StringLiterals;
 
 void EngineAdapter::applyFallbackLevelData(const int levelIndex) {
-  const nenoserpent::core::FallbackLevelData fallback = nenoserpent::core::fallbackLevelData(levelIndex);
+  const nenoserpent::core::FallbackLevelData fallback =
+    nenoserpent::core::fallbackLevelData(levelIndex);
   m_session.obstacles.clear();
   m_currentLevelName = fallback.name;
   m_currentScript = fallback.script;
@@ -37,17 +38,17 @@ void EngineAdapter::loadLevelData(const int i) {
 
   const bool applied =
     nenoserpent::adapter::applyResolvedLevelData(*resolvedLevel,
-                                             m_currentLevelName,
-                                             m_currentScript,
-                                             m_session.obstacles,
-                                             [this](const QString& script) -> bool {
-                                               const QJSValue res = m_jsEngine.evaluate(script);
-                                               if (res.isError()) {
-                                                 return false;
-                                               }
-                                               runLevelScript();
-                                               return true;
-                                             });
+                                                 m_currentLevelName,
+                                                 m_currentScript,
+                                                 m_session.obstacles,
+                                                 [this](const QString& script) -> bool {
+                                                   const QJSValue res = m_jsEngine.evaluate(script);
+                                                   if (res.isError()) {
+                                                     return false;
+                                                   }
+                                                   runLevelScript();
+                                                   return true;
+                                                 });
   if (!applied) {
     applyFallbackLevelData(safeIndex);
     return;
@@ -56,8 +57,11 @@ void EngineAdapter::loadLevelData(const int i) {
 }
 
 void EngineAdapter::checkAchievements() {
-  const QStringList newlyUnlocked = nenoserpent::adapter::unlockAchievements(
-    m_profileManager.get(), m_session.score, m_timer->interval(), m_timer->isActive());
+  const QStringList newlyUnlocked = nenoserpent::adapter::unlockAchievements(m_profileManager.get(),
+                                                                             m_session.score,
+                                                                             m_timer->interval(),
+                                                                             m_timer->isActive(),
+                                                                             m_noFoodElapsedMs);
   for (const QString& title : newlyUnlocked) {
     emit achievementEarned(title);
     emit achievementsChanged();

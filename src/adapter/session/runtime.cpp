@@ -18,6 +18,7 @@ void EngineAdapter::resetTransientRuntimeState() {
   m_sessionCore.resetTransientRuntimeState();
   m_choicePending = false;
   m_choiceIndex = 0;
+  m_noFoodElapsedMs = 0;
 }
 
 void EngineAdapter::resetReplayRuntimeTracking() {

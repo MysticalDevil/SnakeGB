@@ -51,14 +51,17 @@ auto ProfileManager::unlockMedal(const QString& t) -> bool {
   return true;
 }
 
-void ProfileManager::discoverFruit(int t) {
-  if (m_discoveredFruits.contains(t))
-    return;
+auto ProfileManager::discoverFruit(const int t) -> bool {
+  if (m_discoveredFruits.contains(t)) {
+    return false;
+  }
   m_discoveredFruits << t;
   QVariantList list;
   for (int type : m_discoveredFruits)
     list << type;
   m_settings.setValue(u"discoveredFruits"_s, list);
+  emit fruitDiscovered(t);
+  return true;
 }
 
 void ProfileManager::saveStats() {

@@ -1,5 +1,7 @@
 #include "adapter/engine_adapter.h"
+#include "adapter/models/library.h"
 #include "adapter/profile/bridge.h"
+#include "power_up_id.h"
 
 using namespace Qt::StringLiterals;
 
@@ -120,6 +122,8 @@ void EngineAdapter::applyChoiceTransition() {
 void EngineAdapter::applyFoodConsumptionEffects(const float pan,
                                                 const bool triggerChoice,
                                                 const bool spawnPowerUpAfterFood) {
+  nenoserpent::adapter::logFoodEaten(m_profileManager.get());
+  m_noFoodElapsedMs = 0;
   emit foodEaten(pan);
   m_timer->setInterval(gameplayTickIntervalMs());
   emit scoreChanged();
@@ -136,7 +140,15 @@ void EngineAdapter::applyFoodConsumptionEffects(const float pan,
 
 void EngineAdapter::applyPowerUpConsumptionEffects(
   const nenoserpent::core::SessionAdvanceResult& result) {
-  nenoserpent::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
+  if (m_state != AppState::Replaying &&
+      nenoserpent::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType)) {
+    emit fruitLibraryChanged();
+    emit eventPrompt(u"CATALOG UNLOCK: "_s +
+                     nenoserpent::adapter::fruitNameForType(m_session.powerUpType));
+  }
+  if (m_state != AppState::Replaying && m_session.powerUpType == PowerUpId::Ghost) {
+    nenoserpent::adapter::logGhostTrigger(m_profileManager.get());
+  }
   if (result.miniApplied) {
     syncSnakeModelFromCore();
     emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
@@ -153,6 +165,7 @@ void EngineAdapter::applyPowerUpConsumptionEffects(
 void EngineAdapter::applyMovementEffects(const nenoserpent::core::SessionAdvanceResult& result) {
   syncSnakeModelFromCore();
   m_currentRecording.append(m_sessionCore.headPosition());
+  m_noFoodElapsedMs += m_timer->interval();
 
   if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
     m_ghostFrameIndex++;

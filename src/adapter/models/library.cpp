@@ -26,6 +26,31 @@ auto createMedalEntry(const QString& id, const QString& hint) -> QVariantMap {
 
 } // namespace
 
+auto fruitNameForType(const int type) -> QString {
+  switch (type) {
+  case 1:
+    return u"Ghost"_s;
+  case 2:
+    return u"Slow"_s;
+  case 3:
+    return u"Magnet"_s;
+  case 4:
+    return u"Shield"_s;
+  case 5:
+    return u"Portal"_s;
+  case 6:
+    return u"Golden"_s;
+  case 7:
+    return u"Diamond"_s;
+  case 8:
+    return u"Laser"_s;
+  case 9:
+    return u"Mini"_s;
+  default:
+    return u"Unknown"_s;
+  }
+}
+
 auto buildFruitLibraryModel(const QList<int>& discoveredFruitTypes) -> QVariantList {
   struct FruitInfo {
     int type;

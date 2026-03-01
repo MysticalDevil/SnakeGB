@@ -37,6 +37,7 @@ void EngineAdapter::loadLastSession() {
 void EngineAdapter::updatePersistence() {
   updateHighScore();
   nenoserpent::adapter::incrementCrashes(m_profileManager.get());
+  checkAchievements();
   clearSavedState();
 }
 

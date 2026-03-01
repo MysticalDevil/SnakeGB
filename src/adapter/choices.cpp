@@ -1,5 +1,6 @@
 #include "adapter/engine_adapter.h"
 #include "adapter/models/choice.h"
+#include "adapter/models/library.h"
 #include "adapter/profile/bridge.h"
 #include "core/choice/runtime.h"
 #include "fsm/game_state.h"
@@ -130,7 +131,14 @@ void EngineAdapter::selectChoice(const int index) {
     return;
   }
   const auto result = m_sessionCore.selectChoice(type.value(), BuffDurationTicks * 2, false);
-  nenoserpent::adapter::discoverFruit(m_profileManager.get(), type.value());
+  if (m_state != AppState::Replaying &&
+      nenoserpent::adapter::discoverFruit(m_profileManager.get(), type.value())) {
+    emit fruitLibraryChanged();
+    emit eventPrompt(u"CATALOG UNLOCK: "_s + nenoserpent::adapter::fruitNameForType(type.value()));
+  }
+  if (m_state != AppState::Replaying && type.value() == PowerUpId::Ghost) {
+    nenoserpent::adapter::logGhostTrigger(m_profileManager.get());
+  }
   if (result.miniApplied) {
     syncSnakeModelFromCore();
     emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);

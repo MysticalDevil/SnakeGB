@@ -66,10 +66,29 @@ void logFoodEaten(ProfileManager* profile) {
   }
 }
 
-void discoverFruit(ProfileManager* profile, const int type) {
+void logGhostTrigger(ProfileManager* profile) {
   if (profile != nullptr) {
-    profile->discoverFruit(type);
+    profile->logGhostTrigger();
   }
+}
+
+auto discoverFruit(ProfileManager* profile, const int type) -> bool {
+  if (profile == nullptr) {
+    return false;
+  }
+  return profile->discoverFruit(type);
+}
+
+auto totalCrashes(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->totalCrashes() : 0;
+}
+
+auto totalFoodEaten(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->totalFoodEaten() : 0;
+}
+
+auto totalGhostTriggers(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->totalGhostTriggers() : 0;
 }
 
 auto unlockedMedals(const ProfileManager* profile) -> QStringList {

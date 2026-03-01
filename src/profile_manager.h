@@ -53,7 +53,7 @@ public:
   }
   auto unlockMedal(const QString& title) -> bool;
 
-  void discoverFruit(int type);
+  auto discoverFruit(int type) -> bool;
   [[nodiscard]] auto discoveredFruits() const -> QList<int> {
     return m_discoveredFruits;
   }
@@ -79,6 +79,7 @@ public:
 
 signals:
   void medalUnlocked(const QString& title);
+  void fruitDiscovered(int type);
 
 private:
   void saveStats();
