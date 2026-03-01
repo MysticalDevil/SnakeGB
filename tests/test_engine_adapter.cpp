@@ -1,13 +1,40 @@
-#include <QtTest>
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QSet>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QtTest>
 #include "app_state.h"
+#include "adapter/ghost/store.h"
 #include "adapter/engine_adapter.h"
 #include "power_up_id.h"
 
 class TestEngineAdapter : public QObject {
     Q_OBJECT
 private:
+    static void clearPersistentState() {
+        QSettings settings;
+        const QString settingsFile = settings.fileName();
+        settings.clear();
+        settings.sync();
+
+        if (!settingsFile.isEmpty()) {
+            QFile::remove(settingsFile);
+            const QFileInfo settingsInfo(settingsFile);
+            QDir settingsDir(settingsInfo.absolutePath());
+            settingsDir.removeRecursively();
+        }
+
+        const QString appDataDirectory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+        QFile::remove(snakegb::adapter::ghostFilePathForDirectory(appDataDirectory));
+        QDir appDataDir(appDataDirectory);
+        if (appDataDir.exists()) {
+            appDataDir.removeRecursively();
+        }
+    }
+
     static auto pickBuff(EngineAdapter &game, int buffType) -> bool {
         for (int attempt = 0; attempt < 80; ++attempt) {
             game.generateChoices();
@@ -78,6 +105,17 @@ private:
     }
 
 private slots:
+    void initTestCase() {
+        QStandardPaths::setTestModeEnabled(true);
+        QCoreApplication::setOrganizationName("SnakeGBTests");
+        QCoreApplication::setApplicationName("EngineAdapterTest");
+        clearPersistentState();
+    }
+
+    void init() { clearPersistentState(); }
+
+    void cleanup() { clearPersistentState(); }
+
     void testInitialState() {
         EngineAdapter game;
         QVERIFY(game.state() == AppState::Splash || game.state() == AppState::StartMenu);
@@ -274,8 +312,9 @@ private slots:
         QVERIFY2(pickBuff(game, PowerUpId::Double), "Failed to pick Double buff from generated choices");
         QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Double));
 
+        const int scoreBeforeDoubleFood = game.score();
         consumeCurrentFood(game);
-        QCOMPARE(game.score(), 11);
+        QCOMPARE(game.score(), scoreBeforeDoubleFood + 2);
         QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::ChoiceSelection,
                  "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
     }
