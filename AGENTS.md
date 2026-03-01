@@ -5,7 +5,7 @@
 - `src/themes/` and `src/levels/`: JSON-driven theme and level data.
 - `tests/`: QtTest-based unit/integration tests (`tests/test_engine_adapter.cpp`).
 - `scripts/`: developer automation (desktop UI checks, input injection, Android deploy).
-- `docs/`: architecture and refactor plans (`ARCHITECTURE_REFACTOR_PLAN.md`).
+- `docs/`: authoring guides and architecture/audio references.
 - `android/`: Android manifest/resources used by Qt Android packaging.
 
 ## Build, Test, and Development Commands
@@ -67,7 +67,6 @@ make clean
   - Inside a component, `z` is only for local draw order and should use named local properties instead of bare numbers.
   - Debug takeover layers (`IconLab`, `StaticDebug`) must suppress lower-priority overlays/HUD so only one top-level mode owns the screen at a time.
 - `OSDLayer` should remain topmost above CRT/screen treatment layers.
-- For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
 - For audio-system upgrade work, follow `docs/AUDIO_SYSTEM_PLAN.md`.
 
 ## Testing Guidelines

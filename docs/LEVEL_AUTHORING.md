@@ -9,8 +9,6 @@ It covers:
 - dynamic script level format
 - board and safety constraints
 
-For gameplay/runtime architecture, see [ARCHITECTURE_REFACTOR_PLAN.md](/home/omega/ai-workspace/gameboy-snack/docs/ARCHITECTURE_REFACTOR_PLAN.md).
-
 ## File Locations
 
 Built-in levels live in:

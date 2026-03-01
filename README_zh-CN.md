@@ -99,7 +99,6 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 - **Back / Esc**: 退出应用
 
 ## 输入架构说明
-- 架构重构路线图：`docs/ARCHITECTURE_REFACTOR_PLAN.md`
 - 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token
 
 ## 授权
