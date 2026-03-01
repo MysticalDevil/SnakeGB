@@ -5,6 +5,7 @@
 #include <functional>
 #include <optional>
 
+#include "audio/cue.h"
 #include "audio/event.h"
 
 namespace snakegb::services {

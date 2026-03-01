@@ -198,30 +198,24 @@ void AudioBus::dispatchEvent(const snakegb::audio::Event event,
   }
   rememberDispatch(event, now);
 
-  switch (event) {
-  case snakegb::audio::Event::Food:
+  const auto cue = snakegb::audio::cueForEvent(event);
+  if (!cue.has_value()) {
+    return;
+  }
+
+  if (cue->updatesScore) {
     emitIfSet(m_callbacks.setScore, payload.score);
+  }
+
+  switch (cue->kind) {
+  case snakegb::audio::CueKind::Beep:
     if (m_callbacks.playBeep) {
-      m_callbacks.playBeep(880, 100, payload.pan);
+      const auto pan = event == snakegb::audio::Event::Food ? payload.pan : 0.0F;
+      m_callbacks.playBeep(cue->frequencyHz, cue->durationMs, pan);
     }
     break;
-  case snakegb::audio::Event::PowerUp:
-    if (m_callbacks.playBeep) {
-      m_callbacks.playBeep(1200, 150, 0.0F);
-    }
-    break;
-  case snakegb::audio::Event::Crash:
-    emitIfSet(m_callbacks.playCrash, 500);
-    break;
-  case snakegb::audio::Event::UiInteract:
-    if (m_callbacks.playBeep) {
-      m_callbacks.playBeep(200, 50, 0.0F);
-    }
-    break;
-  case snakegb::audio::Event::Confirm:
-    if (m_callbacks.playBeep) {
-      m_callbacks.playBeep(1046, 140, 0.0F);
-    }
+  case snakegb::audio::CueKind::Crash:
+    emitIfSet(m_callbacks.playCrash, cue->durationMs);
     break;
   }
 }

@@ -1,11 +1,13 @@
 #include <QtTest/QtTest>
 
+#include "audio/cue.h"
 #include "services/audio/bus.h"
 
 class TestAudioBusService : public QObject {
   Q_OBJECT
 
 private slots:
+  void testCueTableCoversAllEvents();
   void testPausedStates();
   void testStateChangePolicy();
   void testMusicTogglePolicy();
@@ -13,6 +15,22 @@ private slots:
   void testUiEventsRespectCooldownPolicy();
   void testConfirmOverridesRecentUiInteract();
 };
+
+void TestAudioBusService::testCueTableCoversAllEvents() {
+  const auto foodCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Food);
+  QVERIFY(foodCue.has_value());
+  QCOMPARE(foodCue->frequencyHz, 880);
+  QVERIFY(foodCue->updatesScore);
+
+  const auto confirmCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Confirm);
+  QVERIFY(confirmCue.has_value());
+  QCOMPARE(confirmCue->frequencyHz, 1046);
+
+  const auto crashCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Crash);
+  QVERIFY(crashCue.has_value());
+  QCOMPARE(crashCue->kind, snakegb::audio::CueKind::Crash);
+  QCOMPARE(crashCue->durationMs, 500);
+}
 
 void TestAudioBusService::testPausedStates() {
   QVERIFY(!snakegb::services::AudioBus::pausedForState(0));

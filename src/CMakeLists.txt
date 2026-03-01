@@ -21,6 +21,7 @@ target_link_libraries(snakegb_fsm PRIVATE snakegb_core Qt6::Core)
 
 add_library(snakegb_adapter
     app_state.h
+    audio/cue.h
     audio/event.h
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp

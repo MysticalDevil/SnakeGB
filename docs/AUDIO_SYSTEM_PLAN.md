@@ -329,6 +329,13 @@ Acceptance:
 - changing a cue mapping does not require touching gameplay/controller code
 - short cues can be represented as resource data rather than hard-coded playback logic
 
+Current status:
+
+- `Completed` for the initial cue-table milestone
+- short cue mapping now lives in a centralized `AudioEvent -> CueSpec` table
+- `AudioBus` consumes cue data instead of hard-coding per-event beep/crash values inline
+- cue data is still compiled into code for now; external score/resource files remain part of later phases
+
 ### Phase 4: Score Resources and BGM Expansion
 
 Add structured score resources and expand the number of BGM tracks.
