@@ -265,6 +265,8 @@ state, not the desired end state.
     `EngineAdapter` object access.
   - injected debug-token parsing, static-scene seeding, and Konami/icon-lab orchestration now route through a
     dedicated `UiDebugController`.
+  - keyboard and shell-bridge input orchestration now route through a dedicated `UiInputController`, leaving
+    `main.qml` primarily as app wiring.
   - `EngineAdapter` no longer exposes QML properties directly; it remains as an action/state bridge for C++ and
     QML command dispatch.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.

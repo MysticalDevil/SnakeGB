@@ -47,23 +47,6 @@ Window {
         loops: Animation.Infinite 
     }
 
-    function setDpadPressed(dx, dy) {
-        shellBridge.setDirectionPressed(dx, dy)
-    }
-
-    function handleDirection(dx, dy) {
-        if (dy < 0) {
-            uiCommandController.dispatch(inputAction.NavUp)
-        } else if (dy > 0) {
-            uiCommandController.dispatch(inputAction.NavDown)
-        } else if (dx < 0) {
-            uiCommandController.dispatch(inputAction.NavLeft)
-        } else if (dx > 0) {
-            uiCommandController.dispatch(inputAction.NavRight)
-        }
-        setDpadPressed(dx, dy)
-    }
-
     function setIconDebugMode(enabled) {
         iconDebugMode = enabled
     }
@@ -88,20 +71,20 @@ Window {
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
         saveClearConfirmPending: inputPressController.saveClearConfirmPending
-        handleDirection: window.handleDirection
+        handleDirection: uiInputController.handleDirection
         toggleIconLabMode: uiDebugController.toggleIconLabMode
         setStaticScene: uiDebugController.setStaticScene
         cycleStaticScene: uiDebugController.cycleStaticScene
         exitIconLab: uiDebugController.exitIconLab
-        performPrimary: window.handleAButton
-        performSecondary: window.handleBButton
-        performStart: window.handleStartButton
-        performSelectShort: window.handleSelectShortPress
-        performBack: window.handleBackAction
+        performPrimary: uiInputController.handlePrimaryAction
+        performSecondary: uiInputController.handleSecondaryAction
+        performStart: uiInputController.handleStartAction
+        performSelectShort: uiInputController.handleSelectShortAction
+        performBack: uiInputController.handleBackAction
         trackEasterToken: uiDebugController.handleEasterInput
         moveIconLabSelection: screen.iconLabMove
-        setDirectionPressed: window.setDpadPressed
-        clearDirectionVisuals: window.clearDpadVisuals
+        setDirectionPressed: uiInputController.setDpadPressed
+        clearDirectionVisuals: uiInputController.clearDirectionVisuals
     }
 
     UiDebugController {
@@ -113,8 +96,8 @@ Window {
         staticDebugScene: window.staticDebugScene
         staticDebugOptions: window.staticDebugOptions
         showOsd: screen.showOSD
-        dispatchAction: window.dispatchAction
-        clearDirectionVisuals: window.clearDpadVisuals
+        dispatchAction: uiInputController.dispatchAction
+        clearDirectionVisuals: uiInputController.clearDirectionVisuals
         setIconDebugMode: window.setIconDebugMode
         setStaticDebugSceneValue: window.setStaticDebugSceneValue
         setStaticDebugOptionsValue: window.setStaticDebugOptionsValue
@@ -130,53 +113,17 @@ Window {
         dispatchUiAction: window.dispatchRuntimeAction
     }
 
-    function dispatchAction(action) {
-        inputPressController.beforeDispatch(action)
-        uiActionRouter.route(action)
-    }
-
-    function clearDpadVisuals() {
-        shellBridge.clearDirectionPressed()
-    }
-
-    function handleBButton() {
-        if (uiDebugController.handleEasterInput("B")) {
-            return
-        }
-        uiCommandController.dispatch(inputAction.Secondary)
-    }
-
-    function handleAButton() {
-        if (inputPressController.confirmSaveClear()) {
-            return
-        }
-        if (uiDebugController.handleEasterInput("A")) {
-            return
-        }
-        uiCommandController.dispatch(inputAction.Primary)
-    }
-
-    function handleSelectShortPress() {
-        inputPressController.triggerSelectShort()
-    }
-
-    function handleStartButton() {
-        if (iconDebugMode) {
-            return
-        }
-        uiCommandController.dispatch(inputAction.Start)
-    }
-
-    function cancelSaveClearConfirm(showToast) {
-        inputPressController.cancelSaveClearConfirm(showToast)
-    }
-
-    function handleBackAction() {
-        if (iconDebugMode) {
-            uiDebugController.exitIconLab()
-            return
-        }
-        uiCommandController.dispatch(inputAction.Back)
+    UiInputController {
+        id: uiInputController
+        commandController: commandControllerRef
+        actionRouter: uiActionRouter
+        inputPressController: inputPressController
+        debugController: uiDebugController
+        shellBridge: shellBridge
+        audioSettingsViewModel: audioSettingsViewModel
+        showVolumeOsd: screen.showVolumeOSD
+        iconDebugMode: window.iconDebugMode
+        actionMap: window.inputAction
     }
 
     Connections {
@@ -202,7 +149,7 @@ Window {
         target: sessionRenderViewModel
         function onStateChanged() {
             if (window.currentState !== AppState.StartMenu) {
-                cancelSaveClearConfirm(false)
+                uiInputController.cancelSaveClearConfirm(false)
             }
         }
     }
@@ -260,96 +207,26 @@ Window {
     Connections {
         target: shellBridge
         function onDirectionTriggered(dx, dy) {
-            if (dy < 0) dispatchAction(inputAction.NavUp)
-            else if (dy > 0) dispatchAction(inputAction.NavDown)
-            else if (dx < 0) dispatchAction(inputAction.NavLeft)
-            else if (dx > 0) dispatchAction(inputAction.NavRight)
+            uiInputController.handleShellBridgeDirection(dx, dy)
         }
-        function onPrimaryTriggered() { dispatchAction(inputAction.Primary) }
-        function onSecondaryTriggered() { dispatchAction(inputAction.Secondary) }
+        function onPrimaryTriggered() { uiInputController.dispatchAction(inputAction.Primary) }
+        function onSecondaryTriggered() { uiInputController.dispatchAction(inputAction.Secondary) }
         function onSelectPressed() { inputPressController.onSelectPressed() }
         function onSelectReleased() { inputPressController.onSelectReleased() }
-        function onSelectTriggered() { dispatchAction(inputAction.SelectShort) }
+        function onSelectTriggered() { uiInputController.dispatchAction(inputAction.SelectShort) }
         function onStartPressed() { inputPressController.onStartPressed() }
         function onStartReleased() { inputPressController.onStartReleased() }
-        function onStartTriggered() { dispatchAction(inputAction.Start) }
-        function onShellColorToggleTriggered() {
-            uiCommandController.dispatch("feedback_ui")
-            uiCommandController.dispatch("toggle_shell_color")
-        }
+        function onStartTriggered() { uiInputController.dispatchAction(inputAction.Start) }
+        function onShellColorToggleTriggered() { uiInputController.handleShellColorToggle() }
         function onVolumeRequested(value, withHaptic) {
-            audioSettingsViewModel.volume = value
-            screen.showVolumeOSD(value)
-            if (withHaptic) {
-                uiCommandController.dispatch("feedback_light")
-            }
+            uiInputController.handleVolumeRequested(value, withHaptic)
         }
     }
 
     Item {
         focus: true
-        Keys.onPressed: (event) => {
-            if (event.isAutoRepeat) return
-            if (event.key === Qt.Key_Up) dispatchAction(inputAction.NavUp)
-            else if (event.key === Qt.Key_Down) dispatchAction(inputAction.NavDown)
-            else if (event.key === Qt.Key_Left) dispatchAction(inputAction.NavLeft)
-            else if (event.key === Qt.Key_Right) dispatchAction(inputAction.NavRight)
-            else if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                shellBridge.startHeld = true
-                inputPressController.onStartPressed()
-                dispatchAction(inputAction.Start)
-            }
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
-                shellBridge.primaryPressed = true
-                dispatchAction(inputAction.Primary)
-            }
-            else if (event.key === Qt.Key_F6) {
-                dispatchAction(inputAction.ToggleIconLab)
-            }
-            else if (event.key === Qt.Key_F7) {
-                uiDebugController.cycleStaticScene(1)
-            }
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                shellBridge.secondaryPressed = true
-                dispatchAction(inputAction.Secondary)
-            }
-            else if (event.key === Qt.Key_C || event.key === Qt.Key_Y) {
-                dispatchAction(inputAction.ToggleShellColor)
-            }
-            else if (event.key === Qt.Key_Shift) {
-                if (inputPressController.selectKeyDown) return
-                inputPressController.selectKeyDown = true
-                shellBridge.selectHeld = true
-                inputPressController.onSelectPressed()
-            }
-            else if (event.key === Qt.Key_M) dispatchAction(inputAction.ToggleMusic)
-            else if (event.key === Qt.Key_Back) {
-                dispatchAction(inputAction.Back)
-            }
-            else if (event.key === Qt.Key_Escape) {
-                dispatchAction(inputAction.Escape)
-            }
-        }
+        Keys.onPressed: (event) => uiInputController.handleKeyPressed(event)
         
-        Keys.onReleased: (event) => {
-            if (event.isAutoRepeat) return
-            clearDpadVisuals()
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) shellBridge.startHeld = false
-            if (event.key === Qt.Key_S || event.key === Qt.Key_Return) {
-                inputPressController.onStartReleased()
-            }
-            else if (event.key === Qt.Key_A || event.key === Qt.Key_Z) {
-                shellBridge.primaryPressed = false
-            }
-            else if (event.key === Qt.Key_B || event.key === Qt.Key_X) {
-                shellBridge.secondaryPressed = false
-            }
-            else if (event.key === Qt.Key_Shift) {
-                inputPressController.selectKeyDown = false
-                shellBridge.selectHeld = false
-                inputPressController.onSelectReleased()
-                dispatchAction(inputAction.SelectShort)
-            }
-        }
+        Keys.onReleased: (event) => uiInputController.handleKeyReleased(event)
     }
 }
