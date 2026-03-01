@@ -3,13 +3,14 @@
 #include <array>
 #include <cmath>
 
+#include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStandardPaths>
 
 namespace snakegb::audio {
-using namespace Qt::StringLiterals;
 namespace {
 
 struct ScoreCatalog {
@@ -18,6 +19,12 @@ struct ScoreCatalog {
   QVector<ScoreTrackStep> menuTrack;
   QVector<ScoreTrackStep> gameplayTrack;
   QVector<ScoreTrackStep> replayTrack;
+};
+
+struct ScoreCatalogCache {
+  bool initialized = false;
+  QString overridePath;
+  ScoreCatalog catalog;
 };
 
 auto parseDuty(const QStringView name, const PulseDuty fallback) -> PulseDuty {
@@ -67,7 +74,57 @@ auto parseTrackSteps(const QJsonArray& stepsJson) -> QVector<ScoreTrackStep> {
   return steps;
 }
 
-auto loadScoreCatalog() -> ScoreCatalog {
+void applyTrackOverride(const QJsonObject& tracks,
+                        const char* key,
+                        QVector<ScoreTrackStep>& target) {
+  const auto override = parseTrackSteps(tracks.value(QLatin1String(key)).toArray());
+  if (!override.isEmpty()) {
+    target = override;
+  }
+}
+
+auto defaultOverridePath() -> QString {
+  const auto appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+  if (appDataDir.isEmpty()) {
+    return {};
+  }
+  return QDir(appDataDir).filePath("audio/custom_tracks.json");
+}
+
+auto activeOverridePath() -> QString {
+  auto envPath = qEnvironmentVariable("SNAKEGB_SCORE_OVERRIDE_FILE").trimmed();
+  if (!envPath.isEmpty()) {
+    return envPath;
+  }
+  return defaultOverridePath();
+}
+
+void applyExternalOverrides(ScoreCatalog& catalog, const QString& overridePath) {
+  if (overridePath.isEmpty()) {
+    return;
+  }
+
+  QFile file(overridePath);
+  if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+    return;
+  }
+
+  const auto document = QJsonDocument::fromJson(file.readAll());
+  if (!document.isObject()) {
+    return;
+  }
+
+  const auto tracks = document.object().value("tracks").toObject();
+  if (tracks.isEmpty()) {
+    return;
+  }
+
+  applyTrackOverride(tracks, "menu", catalog.menuTrack);
+  applyTrackOverride(tracks, "gameplay", catalog.gameplayTrack);
+  applyTrackOverride(tracks, "replay", catalog.replayTrack);
+}
+
+auto loadBuiltInCatalog() -> ScoreCatalog {
   QFile file(":/audio/score_catalog.json");
   if (!file.open(QIODevice::ReadOnly)) {
     return {};
@@ -92,8 +149,15 @@ auto loadScoreCatalog() -> ScoreCatalog {
 }
 
 auto catalog() -> const ScoreCatalog& {
-  static const ScoreCatalog cached = loadScoreCatalog();
-  return cached;
+  static ScoreCatalogCache cache;
+  const auto overridePath = activeOverridePath();
+  if (!cache.initialized || cache.overridePath != overridePath) {
+    cache.catalog = loadBuiltInCatalog();
+    applyExternalOverrides(cache.catalog, overridePath);
+    cache.overridePath = overridePath;
+    cache.initialized = true;
+  }
+  return cache.catalog;
 }
 
 } // namespace

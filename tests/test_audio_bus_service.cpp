@@ -1,3 +1,6 @@
+#include <QFile>
+#include <QScopeGuard>
+#include <QTemporaryDir>
 #include <QtTest/QtTest>
 
 #include "audio/cue.h"
@@ -15,6 +18,7 @@ private slots:
   void testDispatchEventRoutesCallbacks();
   void testUiEventsRespectCooldownPolicy();
   void testConfirmOverridesRecentUiInteract();
+  void testExternalTrackOverrideLoadsFromEnvPath();
 };
 
 void TestAudioBusService::testCueTableCoversAllEvents() {
@@ -223,6 +227,39 @@ void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
   QCOMPARE(scoreCueIds.size(), 2);
   QCOMPARE(scoreCueIds.at(0), static_cast<int>(snakegb::audio::ScoreCueId::UiInteract));
   QCOMPARE(scoreCueIds.at(1), static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
+}
+
+void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
+  QTemporaryDir tempDir;
+  QVERIFY(tempDir.isValid());
+
+  const auto overridePath = tempDir.filePath("custom_tracks.json");
+  QFile overrideFile(overridePath);
+  QVERIFY(overrideFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+  overrideFile.write(R"json({
+    "tracks": {
+      "replay": [
+        {
+          "lead": "A5",
+          "bass": "A3",
+          "durationMs": 180,
+          "leadDuty": "wide",
+          "bassDuty": "quarter"
+        }
+      ]
+    }
+  })json");
+  overrideFile.close();
+
+  qputenv("SNAKEGB_SCORE_OVERRIDE_FILE", overridePath.toUtf8());
+  const auto restoreEnv = qScopeGuard([]() { qunsetenv("SNAKEGB_SCORE_OVERRIDE_FILE"); });
+
+  const auto replayTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Replay);
+  QCOMPARE(replayTrack.size(), 1U);
+  QCOMPARE(replayTrack.front().leadPitch, snakegb::audio::Pitch::A5);
+  QCOMPARE(replayTrack.front().bassPitch, snakegb::audio::Pitch::A3);
+  QCOMPARE(replayTrack.front().leadDuty, snakegb::audio::PulseDuty::Wide);
+  QCOMPARE(replayTrack.front().bassDuty, snakegb::audio::PulseDuty::Quarter);
 }
 
 QTEST_MAIN(TestAudioBusService)

@@ -384,6 +384,16 @@ Acceptance:
 - invalid files fail safely
 - custom music still respects mixer policy and volume groups
 
+Current status:
+
+- `Partial`
+- score-track loading now supports a controlled external override file for `menu`, `gameplay`,
+  and `replay`
+- the override path defaults to an app-data location and can be redirected with
+  `SNAKEGB_SCORE_OVERRIDE_FILE` for testing and manual iteration
+- invalid or missing override content falls back to the built-in resource catalog safely
+- there is still no end-user import UX, per-track metadata policy, or cue override support yet
+
 ### Phase 6: Advanced Audio Behavior
 
 Only after the earlier structural phases are stable.
