@@ -222,6 +222,31 @@ private slots:
     QVERIFY2(before != after, "Dynamic Pulse obstacles should change over time");
   }
 
+  void testPausedDynamicPulseFreezesObstacles() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+
+    game.handleSelect();
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+
+    game.handleStart();
+    QCOMPARE(game.state(), AppState::Playing);
+
+    game.handleStart();
+    QCOMPARE(game.state(), AppState::Paused);
+
+    const QVariantList before = game.obstacles();
+    const int tickBefore = game.currentTick();
+    for (int i = 0; i < 12; ++i) {
+      game.forceUpdate();
+    }
+    const QVariantList after = game.obstacles();
+    QCOMPARE(before, after);
+    QCOMPARE(game.currentTick(), tickBefore);
+  }
+
   void testDeleteSaveResetsLevelToClassicAndNewRunUsesClassic() {
     EngineAdapter game;
     game.requestStateChange(AppState::StartMenu);

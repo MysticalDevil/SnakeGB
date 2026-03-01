@@ -19,12 +19,14 @@ void EngineAdapter::updateReflectionFallback() {
 
 void EngineAdapter::update() {
   if (m_fsmState) {
-    const auto runtimeUpdate = m_sessionCore.beginRuntimeUpdate();
-    if (runtimeUpdate.buffExpired) {
-      deactivateBuff();
-    }
     dispatchStateCallback([](GameState& state) -> void { state.update(); });
-    applyPostTickTasks();
+    if (m_state == AppState::Playing || m_state == AppState::Replaying) {
+      const auto runtimeUpdate = m_sessionCore.beginRuntimeUpdate();
+      if (runtimeUpdate.buffExpired) {
+        deactivateBuff();
+      }
+      applyPostTickTasks();
+    }
   }
   updateReflectionFallback();
 }
