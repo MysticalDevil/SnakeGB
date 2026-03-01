@@ -17,6 +17,24 @@ Item {
     property bool startPressActive: false
     property bool saveClearConfirmPending: false
 
+    function showStatus(text) {
+        if (controller.showOsd) {
+            controller.showOsd(text)
+        }
+    }
+
+    function canConfirmSaveClear() {
+        return controller.saveClearConfirmPending &&
+            controller.currentState === AppState.StartMenu &&
+            controller.hasSave
+    }
+
+    function canPrimeSaveClear() {
+        return controller.currentState === AppState.StartMenu &&
+            controller.hasSave &&
+            controller.startPressActive
+    }
+
     function beforeDispatch(action) {
         if (controller.saveClearConfirmPending && action !== controller.actionMap.Primary) {
             cancelSaveClearConfirm(false)
@@ -57,9 +75,7 @@ Item {
     }
 
     function confirmSaveClear() {
-        if (!controller.saveClearConfirmPending ||
-                controller.currentState !== AppState.StartMenu ||
-                !controller.hasSave) {
+        if (!controller.canConfirmSaveClear()) {
             return false
         }
         controller.saveClearConfirmPending = false
@@ -68,9 +84,7 @@ Item {
             controller.dispatchUiAction("delete_save")
             controller.dispatchUiAction("feedback_heavy")
         }
-        if (controller.showOsd) {
-            controller.showOsd("SAVE CLEARED")
-        }
+        controller.showStatus("SAVE CLEARED")
         return true
     }
 
@@ -80,8 +94,8 @@ Item {
         }
         controller.saveClearConfirmPending = false
         saveClearConfirmTimer.stop()
-        if (showToast && controller.showOsd) {
-            controller.showOsd("SAVE CLEAR CANCELED")
+        if (showToast) {
+            controller.showStatus("SAVE CLEAR CANCELED")
         }
     }
 
@@ -93,15 +107,11 @@ Item {
             if (!controller.selectPressActive || controller.selectLongPressConsumed) {
                 return
             }
-            if (controller.currentState === AppState.StartMenu &&
-                    controller.hasSave &&
-                    controller.startPressActive) {
+            if (controller.canPrimeSaveClear()) {
                 controller.selectLongPressConsumed = true
                 controller.saveClearConfirmPending = true
                 saveClearConfirmTimer.restart()
-                if (controller.showOsd) {
-                    controller.showOsd("PRESS A TO CLEAR SAVE")
-                }
+                controller.showStatus("PRESS A TO CLEAR SAVE")
             }
         }
     }
