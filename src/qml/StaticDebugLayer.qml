@@ -14,6 +14,8 @@ Rectangle {
     property color gameInk: "white"
     property color gameSubInk: "gray"
     property color gameBorder: "gray"
+    property color gameObstacleFill: "dimgray"
+    property color gameObstaclePulse: "black"
     property var drawFoodSymbol
     property var drawPowerSymbol
     property var buffName
@@ -297,7 +299,8 @@ Rectangle {
                     width: previewBackdrop.cellWidth
                     height: previewBackdrop.cellHeight
                     radius: modelData.head ? 2 : 0
-                    color: modelData.head ? staticSceneLayer.gameInk : staticSceneLayer.gameSubInk
+                    color: modelData.head ? staticSceneLayer.gameInk
+                                          : Qt.darker(staticSceneLayer.gameSubInk, 1.04)
                 }
             }
 
@@ -309,9 +312,20 @@ Rectangle {
                     y: modelData.y * previewBackdrop.cellHeight
                     width: previewBackdrop.cellWidth
                     height: previewBackdrop.cellHeight
-                    color: staticSceneLayer.gameSubInk
+                    color: staticSceneLayer.gameObstacleFill
                     border.color: staticSceneLayer.gameBorder
                     border.width: 1
+
+                    Rectangle {
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        color: "transparent"
+                        border.color: Qt.rgba(staticSceneLayer.playBg.r,
+                                              staticSceneLayer.playBg.g,
+                                              staticSceneLayer.playBg.b,
+                                              0.28)
+                        border.width: 1
+                    }
                 }
             }
 

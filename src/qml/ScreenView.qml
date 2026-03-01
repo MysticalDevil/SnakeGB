@@ -62,24 +62,28 @@ Item {
 
     function drawFoodSymbol(ctx, w, h) {
         ctx.clearRect(0, 0, w, h)
+        const px = Math.max(1, Math.floor(Math.min(w, h) / 10))
+        const stroke = Math.max(1, px)
         ctx.strokeStyle = gameBorder
-        ctx.lineWidth = Math.max(1, w * 0.08)
+        ctx.lineWidth = stroke
         ctx.fillStyle = gameFoodCore
-        ctx.beginPath()
-        ctx.arc(w * 0.50, h * 0.56, Math.max(2, w * 0.30), 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = Qt.rgba(gameFoodHighlight.r, gameFoodHighlight.g, gameFoodHighlight.b, 0.45)
-        ctx.beginPath()
-        ctx.arc(w * 0.40, h * 0.42, Math.max(1.2, w * 0.12), 0, Math.PI * 2)
-        ctx.fill()
+        ctx.fillRect(w * 0.22, h * 0.32, w * 0.56, h * 0.48)
+        ctx.fillRect(w * 0.14, h * 0.42, w * 0.16, h * 0.24)
+        ctx.fillRect(w * 0.70, h * 0.42, w * 0.16, h * 0.24)
+        ctx.fillRect(w * 0.30, h * 0.24, w * 0.12, h * 0.10)
+        ctx.fillRect(w * 0.58, h * 0.24, w * 0.12, h * 0.10)
+        ctx.strokeRect(w * 0.22, h * 0.32, w * 0.56, h * 0.48)
+        ctx.strokeRect(w * 0.14, h * 0.42, w * 0.16, h * 0.24)
+        ctx.strokeRect(w * 0.70, h * 0.42, w * 0.16, h * 0.24)
+        ctx.fillStyle = gameFoodHighlight
+        ctx.fillRect(w * 0.28, h * 0.40, w * 0.18, h * 0.14)
+        ctx.fillRect(w * 0.54, h * 0.38, w * 0.14, h * 0.12)
         ctx.fillStyle = gameFoodStem
-        ctx.fillRect(w * 0.50, h * 0.12, Math.max(1, w * 0.08), Math.max(2, h * 0.22))
-        ctx.fillRect(w * 0.56, h * 0.16, Math.max(1, w * 0.12), Math.max(1, h * 0.05))
+        ctx.fillRect(w * 0.48, h * 0.10, Math.max(1, w * 0.10), Math.max(2, h * 0.18))
+        ctx.fillRect(w * 0.58, h * 0.14, Math.max(1, w * 0.14), Math.max(1, h * 0.08))
         ctx.fillStyle = gameFoodSpark
-        ctx.fillRect(w * 0.64, h * 0.22, Math.max(1, w * 0.14), 1)
-        ctx.fillRect(w * 0.22, h * 0.74, 1, 1)
-        ctx.fillRect(w * 0.72, h * 0.70, 1, 1)
+        ctx.fillRect(w * 0.22, h * 0.70, Math.max(1, px), Math.max(1, px))
+        ctx.fillRect(w * 0.74, h * 0.68, Math.max(1, px), Math.max(1, px))
     }
 
     function drawPowerSymbol(ctx, w, h, type, accent) {
@@ -183,6 +187,8 @@ Item {
     readonly property color gameFoodHighlight: menuColor("cardPrimary")
     readonly property color gameFoodStem: menuColor("borderPrimary")
     readonly property color gameFoodSpark: menuColor("secondaryInk")
+    readonly property color gameObstacleFill: Qt.darker(menuColor("borderSecondary"), 1.34)
+    readonly property color gameObstaclePulse: Qt.darker(menuColor("titleInk"), 1.08)
     readonly property int safeInsetLeft: 10
     readonly property int safeInsetRight: 12
     readonly property int safeInsetTop: 8
@@ -308,6 +314,8 @@ Item {
                     gameInk: root.gameInk
                     gameSubInk: root.gameSubInk
                     gameBorder: root.gameBorder
+                    gameObstacleFill: root.gameObstacleFill
+                    gameObstaclePulse: root.gameObstaclePulse
                     drawFoodSymbol: root.drawFoodSymbol
                     drawPowerSymbol: root.drawPowerSymbol
                     powerColor: root.powerColor
@@ -369,6 +377,8 @@ Item {
                     gameInk: root.gameInk
                     gameSubInk: root.gameSubInk
                     gameBorder: root.gameBorder
+                    gameObstacleFill: root.gameObstacleFill
+                    gameObstaclePulse: root.gameObstaclePulse
                     drawFoodSymbol: root.drawFoodSymbol
                     drawPowerSymbol: root.drawPowerSymbol
                     buffName: root.buffName

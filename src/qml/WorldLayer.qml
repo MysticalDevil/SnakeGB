@@ -26,6 +26,8 @@ Item {
     property color gameInk: "white"
     property color gameSubInk: "gray"
     property color gameBorder: "gray"
+    property color gameObstacleFill: "dimgray"
+    property color gameObstaclePulse: "black"
     property var drawFoodSymbol
     property var drawPowerSymbol
     property var powerColor
@@ -66,7 +68,7 @@ Item {
             height: gameWorld.cellH
             color: gameWorld.activeBuff === 6
                    ? (Math.floor(gameWorld.elapsed * 10) % 2 === 0 ? powerColor(6) : gameWorld.gameInk)
-                   : (index === 0 ? gameWorld.gameInk : Qt.darker(gameWorld.gameSubInk, 1.12))
+                   : (index === 0 ? gameWorld.gameInk : Qt.darker(gameWorld.gameSubInk, 1.04))
             radius: index === 0 ? 3 : 1
             border.color: index === 0 ? gameWorld.gameBorder : Qt.rgba(gameWorld.gameBorder.r,
                                                                          gameWorld.gameBorder.g,
@@ -131,9 +133,9 @@ Item {
             height: gameWorld.cellH
             color: gameWorld.currentLevelName === "Dynamic Pulse" || gameWorld.currentLevelName === "Crossfire" || gameWorld.currentLevelName === "Shifting Box"
                    ? ((Math.floor(gameWorld.elapsed * 8) % 2 === 0)
-                      ? Qt.darker(gameWorld.gameInk, 1.06)
-                      : Qt.darker(gameWorld.gameSubInk, 1.18))
-                   : Qt.darker(gameWorld.gameSubInk, 1.18)
+                      ? gameWorld.gameObstaclePulse
+                      : gameWorld.gameObstacleFill)
+                   : gameWorld.gameObstacleFill
             border.color: gameWorld.gameBorder
             border.width: 1
             radius: 1
