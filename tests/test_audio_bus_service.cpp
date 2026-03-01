@@ -9,6 +9,7 @@ private slots:
   void testPausedStates();
   void testStateChangePolicy();
   void testMusicTogglePolicy();
+  void testDispatchEventRoutesCallbacks();
 };
 
 void TestAudioBusService::testPausedStates() {
@@ -75,6 +76,46 @@ void TestAudioBusService::testMusicTogglePolicy() {
   audioBus.handleMusicToggle(false, 2);
   QCOMPARE(musicEnabled, 0);
   QCOMPARE(stopCount, 1);
+}
+
+void TestAudioBusService::testDispatchEventRoutesCallbacks() {
+  int score = -1;
+  int beepFrequency = 0;
+  int beepDuration = 0;
+  float beepPan = 0.0F;
+  int crashDuration = 0;
+
+  snakegb::services::AudioBus audioBus({
+    .setScore = [&](const int value) -> void { score = value; },
+    .playBeep = [&](const int frequencyHz, const int durationMs, const float pan) -> void {
+      beepFrequency = frequencyHz;
+      beepDuration = durationMs;
+      beepPan = pan;
+    },
+    .playCrash = [&](const int durationMs) -> void { crashDuration = durationMs; },
+  });
+
+  audioBus.dispatchEvent(snakegb::audio::Event::Food, {.score = 42, .pan = -0.25F});
+  QCOMPARE(score, 42);
+  QCOMPARE(beepFrequency, 880);
+  QCOMPARE(beepDuration, 100);
+  QCOMPARE(beepPan, -0.25F);
+
+  audioBus.dispatchEvent(snakegb::audio::Event::PowerUp);
+  QCOMPARE(beepFrequency, 1200);
+  QCOMPARE(beepDuration, 150);
+  QCOMPARE(beepPan, 0.0F);
+
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+  QCOMPARE(beepFrequency, 200);
+  QCOMPARE(beepDuration, 50);
+
+  audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
+  QCOMPARE(beepFrequency, 1046);
+  QCOMPARE(beepDuration, 140);
+
+  audioBus.dispatchEvent(snakegb::audio::Event::Crash);
+  QCOMPARE(crashDuration, 500);
 }
 
 QTEST_MAIN(TestAudioBusService)

@@ -94,22 +94,22 @@ void EngineAdapter::syncSnakeModelFromCore() {
 
 void EngineAdapter::setupAudioSignals() {
   connect(this, &EngineAdapter::foodEaten, this, [this](const float pan) -> void {
-    m_audioBus.playFood({.score = m_session.score, .pan = pan});
+    m_audioBus.dispatchEvent(snakegb::audio::Event::Food, {.score = m_session.score, .pan = pan});
     triggerHaptic(3);
   });
 
   connect(this, &EngineAdapter::powerUpEaten, this, [this]() -> void {
-    m_audioBus.playPowerUp();
+    m_audioBus.dispatchEvent(snakegb::audio::Event::PowerUp);
     triggerHaptic(6);
   });
 
   connect(this, &EngineAdapter::playerCrashed, this, [this]() -> void {
-    m_audioBus.playCrash();
+    m_audioBus.dispatchEvent(snakegb::audio::Event::Crash);
     triggerHaptic(12);
   });
 
   connect(this, &EngineAdapter::uiInteractTriggered, this, [this]() -> void {
-    m_audioBus.playUiInteract();
+    m_audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
     triggerHaptic(2);
   });
 
@@ -221,16 +221,25 @@ void EngineAdapter::triggerHaptic(const int magnitude) {
 #endif
 }
 
-void EngineAdapter::playEventSound(const int type, const float pan) {
-  qInfo().noquote() << "[AudioFlow][EngineAdapter] playEventSound type=" << type << " pan=" << pan;
-  if (type == 0) {
+void EngineAdapter::emitAudioEvent(const snakegb::audio::Event event, const float pan) {
+  qInfo().noquote() << "[AudioFlow][EngineAdapter] emitAudioEvent =" << static_cast<int>(event)
+                    << " pan=" << pan;
+  switch (event) {
+  case snakegb::audio::Event::Food:
     emit foodEaten(pan);
-  } else if (type == 1) {
+    break;
+  case snakegb::audio::Event::Crash:
     emit playerCrashed();
-  } else if (type == 2) {
+    break;
+  case snakegb::audio::Event::UiInteract:
     emit uiInteractTriggered();
-  } else if (type == 3) {
-    m_audioBus.playConfirm();
+    break;
+  case snakegb::audio::Event::Confirm:
+    m_audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
+    break;
+  case snakegb::audio::Event::PowerUp:
+    emit powerUpEaten();
+    break;
   }
 }
 

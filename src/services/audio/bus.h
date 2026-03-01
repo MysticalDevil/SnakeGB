@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "audio/event.h"
+
 namespace snakegb::services {
 
 enum class MusicCommand {
@@ -22,11 +24,6 @@ struct AudioCallbacks {
   std::function<void(int)> playCrash;
 };
 
-struct FoodAudioCue {
-  int score = 0;
-  float pan = 0.0F;
-};
-
 class AudioBus {
 public:
   AudioBus() = default;
@@ -43,11 +40,8 @@ public:
   void handleMusicToggle(bool musicEnabled, int state) const;
   void applyVolume(float value) const;
 
-  void playFood(const FoodAudioCue& cue) const;
-  void playPowerUp() const;
-  void playCrash() const;
-  void playUiInteract() const;
-  void playConfirm() const;
+  void dispatchEvent(snakegb::audio::Event event,
+                     const snakegb::audio::EventPayload& payload = {}) const;
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;

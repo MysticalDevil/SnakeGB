@@ -83,32 +83,33 @@ void AudioBus::applyVolume(const float value) const {
   emitIfSet(m_callbacks.setVolume, value);
 }
 
-void AudioBus::playFood(const FoodAudioCue& cue) const {
-  emitIfSet(m_callbacks.setScore, cue.score);
-  if (m_callbacks.playBeep) {
-    m_callbacks.playBeep(880, 100, cue.pan);
-  }
-}
-
-void AudioBus::playPowerUp() const {
-  if (m_callbacks.playBeep) {
-    m_callbacks.playBeep(1200, 150, 0.0F);
-  }
-}
-
-void AudioBus::playCrash() const {
-  emitIfSet(m_callbacks.playCrash, 500);
-}
-
-void AudioBus::playUiInteract() const {
-  if (m_callbacks.playBeep) {
-    m_callbacks.playBeep(200, 50, 0.0F);
-  }
-}
-
-void AudioBus::playConfirm() const {
-  if (m_callbacks.playBeep) {
-    m_callbacks.playBeep(1046, 140, 0.0F);
+void AudioBus::dispatchEvent(const snakegb::audio::Event event,
+                             const snakegb::audio::EventPayload& payload) const {
+  switch (event) {
+  case snakegb::audio::Event::Food:
+    emitIfSet(m_callbacks.setScore, payload.score);
+    if (m_callbacks.playBeep) {
+      m_callbacks.playBeep(880, 100, payload.pan);
+    }
+    break;
+  case snakegb::audio::Event::PowerUp:
+    if (m_callbacks.playBeep) {
+      m_callbacks.playBeep(1200, 150, 0.0F);
+    }
+    break;
+  case snakegb::audio::Event::Crash:
+    emitIfSet(m_callbacks.playCrash, 500);
+    break;
+  case snakegb::audio::Event::UiInteract:
+    if (m_callbacks.playBeep) {
+      m_callbacks.playBeep(200, 50, 0.0F);
+    }
+    break;
+  case snakegb::audio::Event::Confirm:
+    if (m_callbacks.playBeep) {
+      m_callbacks.playBeep(1046, 140, 0.0F);
+    }
+    break;
   }
 }
 

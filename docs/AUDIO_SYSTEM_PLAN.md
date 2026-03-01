@@ -283,6 +283,13 @@ Acceptance:
 - runtime code no longer chooses concrete clips at call sites
 - event routing is the single public playback intent surface
 
+Current status:
+
+- `Completed` for the initial event-surface milestone
+- `src/audio/event.h` exists and runtime/FSM playback intent is routed through typed events
+- `AudioBus` now consumes typed events through a single dispatch entry point
+- audible behavior is still mapped to the existing beep/crash callbacks, so no cue redesign has been mixed into this phase
+
 ### Phase 2: Bus Policy
 
 Extend `AudioBus` into a clearer mixer/policy layer.

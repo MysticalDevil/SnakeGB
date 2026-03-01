@@ -4,6 +4,7 @@
 #include <QVariantList>
 
 #include "app_state.h"
+#include "audio/event.h"
 #include "core/replay/types.h"
 #include "core/session/step_types.h"
 
@@ -54,7 +55,7 @@ public:
 
   // --- Side Effects ---
   virtual void triggerHaptic(int magnitude) = 0;
-  virtual void playEventSound(int type, float pan = 0.0f) = 0;
+  virtual void emitAudioEvent(snakegb::audio::Event event, float pan = 0.0f) = 0;
   virtual void updatePersistence() = 0;
   virtual void advancePlayingState() = 0;
   virtual void enterGameOverState() = 0;

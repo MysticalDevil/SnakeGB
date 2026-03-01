@@ -11,7 +11,7 @@ void SplashState::enter() {
 void SplashState::update() {
   m_frames++;
   if (m_frames > 110) {
-    m_context.playEventSound(3);
+    m_context.emitAudioEvent(snakegb::audio::Event::Confirm);
     m_context.requestStateChange(AppState::StartMenu);
   }
 }
@@ -41,7 +41,7 @@ void MenuState::handleInput(int dx, int dy) {
     if (m_context.hasReplay()) {
       m_context.startReplay();
     } else {
-      m_context.playEventSound(3);
+      m_context.emitAudioEvent(snakegb::audio::Event::Confirm);
       m_context.triggerHaptic(2);
     }
   } else if (dx < 0) {

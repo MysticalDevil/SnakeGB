@@ -144,7 +144,7 @@ public:
   void stopEngineTimer() override;
 
   void triggerHaptic(int magnitude) override;
-  void playEventSound(int type, float pan = 0.0f) override;
+  void emitAudioEvent(snakegb::audio::Event event, float pan = 0.0f) override;
   void updatePersistence() override;
   void advancePlayingState() override;
   void enterGameOverState() override;

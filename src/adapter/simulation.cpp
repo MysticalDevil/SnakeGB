@@ -28,7 +28,7 @@ auto runSessionStepDriver(IGameEngine& engine, const SessionStepDriverConfig& co
   if (result.collision) {
     if (config.emitCrashFeedbackOnCollision) {
       engine.triggerHaptic(8);
-      engine.playEventSound(1);
+      engine.emitAudioEvent(snakegb::audio::Event::Crash);
     }
     engine.requestStateChange(config.collisionTargetState);
     return false;

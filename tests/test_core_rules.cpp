@@ -102,7 +102,7 @@ public:
   }
   void triggerHaptic(int) override {
   }
-  void playEventSound(int, float) override {
+  void emitAudioEvent(snakegb::audio::Event, float) override {
   }
   void updatePersistence() override {
   }
