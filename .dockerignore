@@ -1,0 +1,11 @@
+.git
+.github
+build
+build-*
+cmake-build-*
+.env
+.env.*
+!.env.example
+*.apk
+*.aab
+*.apks

@@ -111,6 +111,27 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 - Local serving uses `./scripts/deploy.sh wasm-serve` with COOP/COEP headers so `SharedArrayBuffer` works in Chromium-based browsers.
 - `qtlogo.svg`/`favicon` are injected from project icon during packaging to keep wasm console/network logs clean.
 
+### Local GitHub CI/CD Simulation (Docker Compose)
+```bash
+# Put local secrets in .env (this file is git-ignored)
+# ANDROID_KEYSTORE_B64=...
+# ANDROID_KEYSTORE_PASS=...
+# ANDROID_KEY_PASS=...
+# ANDROID_KEY_ALIAS=nenoserpent
+
+# Simulate .github/workflows/cmake.yml
+docker compose --profile ci run --rm gh-ci
+
+# Simulate .github/workflows/cd.yml (current release + placeholders)
+docker compose --profile cd run --rm gh-cd
+
+# Simulate Android CD signing-secret preflight
+docker compose --profile cd run --rm gh-cd-android-preflight
+```
+
+- Compose uses `docker/ci/Dockerfile` and `scripts/ci/run_gh_sim.sh`.
+- The container mounts the current repo at `/workspace` and executes CMake presets directly.
+
 ## Controls
 - **Arrow Keys**: Move snake
 - **START (Enter / S)**: Play / Continue from save

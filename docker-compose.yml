@@ -1,0 +1,40 @@
+services:
+  gh-ci:
+    build:
+      context: .
+      dockerfile: docker/ci/Dockerfile
+    image: nenoserpent-gh-sim:local
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: ["ci"]
+    profiles: ["ci"]
+
+  gh-cd:
+    build:
+      context: .
+      dockerfile: docker/ci/Dockerfile
+    image: nenoserpent-gh-sim:local
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: ["cd"]
+    profiles: ["cd"]
+
+  gh-cd-android-preflight:
+    build:
+      context: .
+      dockerfile: docker/ci/Dockerfile
+    image: nenoserpent-gh-sim:local
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    env_file:
+      - .env
+    environment:
+      ANDROID_KEYSTORE_B64: ${ANDROID_KEYSTORE_B64}
+      ANDROID_KEYSTORE_PASS: ${ANDROID_KEYSTORE_PASS}
+      ANDROID_KEY_PASS: ${ANDROID_KEY_PASS}
+      ANDROID_KEY_ALIAS: ${ANDROID_KEY_ALIAS}
+    command: ["cd-android-preflight"]
+    profiles: ["cd"]
