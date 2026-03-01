@@ -79,49 +79,50 @@ Item {
 
         Item {
             id: batteryPanel
-            width: 28
-            height: 28
+            width: 24
+            height: 26
             anchors.left: parent.left
-            anchors.leftMargin: 11
+            anchors.leftMargin: 13
             anchors.top: screenSlot.top
-            anchors.topMargin: 152
+            anchors.topMargin: 126
 
             Column {
-                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 2
                 anchors.top: parent.top
-                spacing: 3
+                spacing: 2
 
                 Item {
-                    width: 12
-                    height: 12
+                    width: 10
+                    height: 10
 
                     Rectangle {
                         anchors.centerIn: parent
-                        width: 10
-                        height: 10
-                        radius: 5
-                        color: Qt.rgba(0, 0, 0, 0.14)
-                        border.color: Qt.rgba(1, 1, 1, 0.05)
+                        width: 8
+                        height: 8
+                        radius: 4
+                        color: Qt.rgba(0, 0, 0, 0.18)
+                        border.color: Qt.rgba(1, 1, 1, 0.04)
                         border.width: 1
                     }
 
                     Rectangle {
                         id: batteryLamp
                         anchors.centerIn: parent
-                        width: 8
-                        height: 8
-                        radius: 4
+                        width: 6
+                        height: 6
+                        radius: 3
                         color: "#c9484d"
-                        border.color: Qt.rgba(0, 0, 0, 0.22)
+                        border.color: Qt.rgba(0, 0, 0, 0.24)
                         border.width: 1
                         opacity: root.batteryBreathing ? 0.58 : 0.92
                         scale: root.batteryBreathing ? 0.92 : 1.0
 
                         Rectangle {
                             anchors.fill: parent
-                            anchors.margins: 2
+                            anchors.margins: 1
                             radius: 2
-                            color: Qt.rgba(1, 1, 1, 0.18)
+                            color: Qt.rgba(1, 1, 1, 0.12)
                         }
 
                         SequentialAnimation on opacity {
@@ -141,13 +142,14 @@ Item {
                 }
 
                 Text {
-                    width: batteryPanel.width
+                    width: batteryPanel.width + 6
                     text: "BATTERY"
                     color: Qt.lighter(theme.labelInk, 1.18)
-                    font.pixelSize: 5
+                    font.pixelSize: 4
                     font.bold: true
-                    opacity: 0.92
-                    horizontalAlignment: Text.AlignHCenter
+                    opacity: 0.94
+                    horizontalAlignment: Text.AlignLeft
+                    leftPadding: 0
                 }
             }
 
