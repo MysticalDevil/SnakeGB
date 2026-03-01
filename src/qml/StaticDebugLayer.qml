@@ -31,13 +31,17 @@ Rectangle {
 
     anchors.fill: parent
     visible: staticScene !== ""
-    color: (showGame || showReplay || showChoice) ? playBg : menuColor("cardPrimary")
+    color: (showGame || showReplay || showChoice || showOsdText || showOsdVolume)
+           ? playBg
+           : menuColor("cardPrimary")
     clip: true
 
     readonly property bool showBoot: staticScene === "boot"
     readonly property bool showGame: staticScene === "game"
     readonly property bool showReplay: staticScene === "replay"
     readonly property bool showChoice: staticScene === "choice"
+    readonly property bool showOsdText: staticScene === "osd_text"
+    readonly property bool showOsdVolume: staticScene === "osd_volume"
     readonly property color panelBg: menuColor("cardSecondary")
     readonly property color panelAccent: menuColor("actionCard")
     readonly property color panelBorder: menuColor("borderPrimary")
@@ -49,7 +53,12 @@ Rectangle {
     readonly property color bootMetaFill: Qt.rgba(panelBg.r, panelBg.g, panelBg.b, 0.88)
     readonly property string sceneBadgeText: showBoot ? "DEBUG BOOT"
                                                       : (showGame ? "DEBUG GAME"
-                                                                  : (showReplay ? "DEBUG REPLAY" : "DEBUG CHOICE"))
+                                                                  : (showReplay ? "DEBUG REPLAY"
+                                                                                : (showChoice
+                                                                                   ? "DEBUG CHOICE"
+                                                                                   : (showOsdText
+                                                                                      ? "DEBUG OSD"
+                                                                                      : "DEBUG VOL"))))
     readonly property color sceneBadgeFill: Qt.rgba(panelAccent.r, panelAccent.g, panelAccent.b, 0.88)
     readonly property color sceneBadgeInk: readableText ? readableText(sceneBadgeFill) : accentInk
     readonly property int layerHud: 60
@@ -65,6 +74,10 @@ Rectangle {
     readonly property string previewChoiceTitle: String(staticOption("choiceTitle", "LEVEL UP!"))
     readonly property string previewChoiceSubtitle: String(staticOption("choiceSubtitle", "CHOOSE 1 POWER"))
     readonly property string previewChoiceFooterHint: String(staticOption("choiceFooterHint", "START PICK   SELECT MENU"))
+    readonly property string previewOsdText: String(staticOption("osdText", "PALETTE 0"))
+    readonly property real previewOsdVolume: Math.max(
+                                               0.0,
+                                               Math.min(1.0, Number(staticOption("osdVolume", 0.6))))
     readonly property var previewChoiceTypes: {
         const raw = staticOption("choiceTypes", [7, 4, 1])
         if (!raw || raw.length === 0) {
@@ -241,7 +254,8 @@ Rectangle {
     Item {
         anchors.fill: parent
         id: scenePreview
-        visible: staticSceneLayer.showGame || staticSceneLayer.showReplay || staticSceneLayer.showChoice
+        visible: staticSceneLayer.showGame || staticSceneLayer.showReplay || staticSceneLayer.showChoice ||
+                 staticSceneLayer.showOsdText || staticSceneLayer.showOsdVolume
 
         Item {
             id: previewBackdrop
@@ -417,6 +431,26 @@ Rectangle {
             headerSubtitleText: staticSceneLayer.previewChoiceSubtitle
             footerHintText: staticSceneLayer.previewChoiceFooterHint
         }
+
+        OSDLayer {
+            id: staticOsdPreview
+            anchors.fill: parent
+            visible: staticSceneLayer.showOsdText || staticSceneLayer.showOsdVolume
+            pinned: true
+            bg: staticSceneLayer.panelAccent
+            ink: staticSceneLayer.accentInk
+            gameFont: staticSceneLayer.gameFont
+        }
     }
 
+    function refreshStaticOsd() {
+        if (showOsdText) {
+            staticOsdPreview.show(previewOsdText)
+        } else if (showOsdVolume) {
+            staticOsdPreview.showVolume(previewOsdVolume)
+        }
+    }
+
+    onStaticSceneChanged: refreshStaticOsd()
+    onStaticDebugOptionsChanged: refreshStaticOsd()
 }

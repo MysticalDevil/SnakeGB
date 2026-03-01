@@ -28,11 +28,15 @@ QtObject {
         DBG_STATIC_GAME: "game",
         DBG_STATIC_REPLAY: "replay",
         DBG_STATIC_CHOICE: "choice",
+        DBG_STATIC_OSD: "osd_text",
+        DBG_STATIC_VOL: "osd_volume",
         DBG_STATIC_OFF: "",
         STATIC_BOOT: "boot",
         STATIC_GAME: "game",
         STATIC_REPLAY: "replay",
         STATIC_CHOICE: "choice",
+        STATIC_OSD: "osd_text",
+        STATIC_VOL: "osd_volume",
         STATIC_OFF: ""
     })
     readonly property var injectedActionTokens: ({
@@ -140,6 +144,18 @@ QtObject {
         },
         FOOTERHINT: function(sceneName, options, value, helpers) {
             options.choiceFooterHint = helpers.decodeLabel(value)
+        },
+        OSD: function(sceneName, options, value, helpers) {
+            options.osdText = helpers.decodeLabel(value)
+        },
+        OSDTEXT: function(sceneName, options, value, helpers) {
+            options.osdText = helpers.decodeLabel(value)
+        },
+        VOLUME: function(sceneName, options, value, helpers) {
+            const volume = helpers.parseProgress(value)
+            if (volume !== null) {
+                options.osdVolume = volume
+            }
         },
         SNAKE: function(sceneName, options, value, helpers) {
             options.snakeSegments = helpers.parsePointList(value)

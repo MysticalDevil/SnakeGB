@@ -1,27 +1,15 @@
 import QtQuick
 import QtQuick.Controls
 
-Rectangle {
-    id: osdBox
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.verticalCenter: osdMode === "volume" ? undefined : parent.verticalCenter
-    anchors.bottom: osdMode === "volume" ? parent.bottom : undefined
-    anchors.bottomMargin: osdMode === "volume" ? 14 : 0
-    width: osdMode === "volume"
-           ? Math.max(92, volumeRow.implicitWidth + (volumePadding * 2))
-           : Math.max(88, osdLabel.implicitWidth + (textPadding * 2))
-    height: osdMode === "volume"
-            ? Math.max(24, volumeRow.implicitHeight + (volumePadding * 2))
-            : Math.max(24, osdLabel.implicitHeight + (textPadding * 2))
-    radius: osdMode === "volume" ? 5 : 4
-    color: Qt.rgba(bg.r, bg.g, bg.b, 0.8)
-    visible: false
+Item {
+    id: osdLayer
 
     property color bg
     property color ink
     property string gameFont
     property string osdMode: "text"
     property real volumeValue: 1.0
+    property bool pinned: false
     readonly property int textPadding: 9
     readonly property int volumePadding: 6
 
@@ -39,53 +27,68 @@ Rectangle {
         osdTimer.restart()
     }
 
-    Text {
-        id: osdLabel
-        anchors.centerIn: parent
-        visible: osdBox.osdMode === "text"
-        color: ink
-        font.family: gameFont
-        font.bold: true
-        font.pixelSize: 9
-    }
-
-    Row {
-        id: volumeRow
-        anchors.fill: parent
-        anchors.margins: volumePadding
-        spacing: 5
-        visible: osdBox.osdMode === "volume"
-        layoutDirection: Qt.LeftToRight
+    Rectangle {
+        id: osdBox
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: osdLayer.osdMode === "volume" ? undefined : parent.verticalCenter
+        anchors.bottom: osdLayer.osdMode === "volume" ? parent.bottom : undefined
+        anchors.bottomMargin: osdLayer.osdMode === "volume" ? 14 : 0
+        width: osdLayer.osdMode === "volume"
+               ? Math.max(92, volumeRow.implicitWidth + (osdLayer.volumePadding * 2))
+               : Math.max(88, osdLabel.implicitWidth + (osdLayer.textPadding * 2))
+        height: osdLayer.osdMode === "volume"
+                ? Math.max(24, volumeRow.implicitHeight + (osdLayer.volumePadding * 2))
+                : Math.max(24, osdLabel.implicitHeight + (osdLayer.textPadding * 2))
+        radius: osdLayer.osdMode === "volume" ? 5 : 4
+        color: Qt.rgba(osdLayer.bg.r, osdLayer.bg.g, osdLayer.bg.b, 0.8)
+        visible: false
 
         Text {
-            anchors.verticalCenter: parent.verticalCenter
-            color: osdBox.ink
-            font.family: osdBox.gameFont
+            id: osdLabel
+            anchors.centerIn: parent
+            visible: osdLayer.osdMode === "text"
+            color: osdLayer.ink
+            font.family: osdLayer.gameFont
             font.bold: true
-            font.pixelSize: 8
-            text: "VOL"
+            font.pixelSize: 9
         }
 
         Row {
-            anchors.verticalCenter: parent.verticalCenter
-            height: 10
-            spacing: 2
+            id: volumeRow
+            anchors.centerIn: parent
+            spacing: 5
+            visible: osdLayer.osdMode === "volume"
 
-            Repeater {
-                model: 10
-                delegate: Rectangle {
-                    readonly property int activeStep: Math.round(osdBox.volumeValue * 9)
-                    width: 5
-                    height: 8
-                    radius: 1
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: index <= activeStep
-                           ? osdBox.ink
-                           : Qt.rgba(osdBox.ink.r, osdBox.ink.g, osdBox.ink.b, 0.18)
-                    border.color: index <= activeStep
-                                  ? Qt.rgba(osdBox.bg.r, osdBox.bg.g, osdBox.bg.b, 0.18)
-                                  : Qt.rgba(osdBox.ink.r, osdBox.ink.g, osdBox.ink.b, 0.22)
-                    border.width: 1
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                color: osdLayer.ink
+                font.family: osdLayer.gameFont
+                font.bold: true
+                font.pixelSize: 8
+                text: "VOL"
+            }
+
+            Row {
+                anchors.verticalCenter: parent.verticalCenter
+                height: 10
+                spacing: 2
+
+                Repeater {
+                    model: 10
+                    delegate: Rectangle {
+                        readonly property int activeStep: Math.round(osdLayer.volumeValue * 9)
+                        width: 5
+                        height: 8
+                        radius: 1
+                        anchors.verticalCenter: parent.verticalCenter
+                        color: index <= activeStep
+                               ? osdLayer.ink
+                               : Qt.rgba(osdLayer.ink.r, osdLayer.ink.g, osdLayer.ink.b, 0.18)
+                        border.color: index <= activeStep
+                                      ? Qt.rgba(osdLayer.bg.r, osdLayer.bg.g, osdLayer.bg.b, 0.18)
+                                      : Qt.rgba(osdLayer.ink.r, osdLayer.ink.g, osdLayer.ink.b, 0.22)
+                        border.width: 1
+                    }
                 }
             }
         }
@@ -93,7 +96,12 @@ Rectangle {
 
     Timer {
         id: osdTimer
-        interval: osdBox.osdMode === "volume" ? 850 : 1500
-        onTriggered: osdBox.visible = false
+        interval: osdLayer.osdMode === "volume" ? 850 : 1500
+        running: false
+        onTriggered: {
+            if (!osdLayer.pinned) {
+                osdBox.visible = false
+            }
+        }
     }
 }
