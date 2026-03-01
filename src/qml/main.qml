@@ -117,6 +117,7 @@ Window {
                 anchors.fill: parent
                 bridge: shellBridge
                 commandController: uiCommandController
+                inputController: uiInputController
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
                 volume: audioSettingsViewModel.volume
@@ -138,12 +139,5 @@ Window {
                 }
             }
         }
-    }
-
-    Item {
-        focus: true
-        Keys.onPressed: (event) => uiInputController.handleKeyPressed(event)
-        
-        Keys.onReleased: (event) => uiInputController.handleKeyReleased(event)
     }
 }

@@ -10,6 +10,7 @@ Item {
     property real volume: 1.0
     property var bridge: null
     property var commandController: null
+    property var inputController: null
     property real shellCornerRadius: 13
     property real shellLowerRightRadius: 72
     readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
@@ -292,6 +293,23 @@ Item {
         onVolumeRequested: {
             if (shell.bridge) {
                 shell.bridge.volumeRequested(value, withHaptic)
+            }
+        }
+    }
+
+    Item {
+        anchors.fill: parent
+        focus: true
+
+        Keys.onPressed: (event) => {
+            if (shell.inputController) {
+                shell.inputController.handleKeyPressed(event)
+            }
+        }
+
+        Keys.onReleased: (event) => {
+            if (shell.inputController) {
+                shell.inputController.handleKeyReleased(event)
             }
         }
     }
