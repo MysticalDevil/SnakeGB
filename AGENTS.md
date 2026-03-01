@@ -27,15 +27,15 @@ cd build/debug && ctest --output-on-failure
 - Default build directories live under `build/<profile>`.
 - Android deploy (Qt + SDK/NDK environment required):
 ```bash
-CMAKE_BUILD_TYPE=Debug ./scripts/deploy/android.sh
+CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 ```
 - Palette screenshot matrix (Wayland, current input semantics):
 ```bash
-./scripts/ui/palette/matrix.sh /tmp/snakegb_palette_matrix
+./scripts/ui.sh palette-matrix /tmp/snakegb_palette_matrix
 ```
 - Focused palette capture for menu/game/replay/choice:
 ```bash
-PALETTE_STEPS=0 ./scripts/ui/palette/focus.sh /tmp/snakegb_palette_focus
+PALETTE_STEPS=0 ./scripts/ui.sh palette-focus /tmp/snakegb_palette_focus
 ```
 - Release notes live in `CHANGELOG.md`.
 - Optional Makefile shortcuts (recommended for consistent build dirs under `build/`):
@@ -72,9 +72,9 @@ make clean
 ## Testing Guidelines
 - Framework: `Qt6::Test` via `engine-adapter-tests` target and `ctest` (`EngineAdapterTest`).
 - Add tests in `tests/test_*.cpp`; keep test names descriptive by behavior (for example, `test_portalWrap_keepsHeadInsideBounds`).
-- For UI/input regressions, use scripts such as `scripts/ui/self_check.sh` and `scripts/input/semantics/matrix_wayland.sh` when relevant.
-- For palette/readability verification, use `scripts/ui/palette/matrix.sh` (captures 5 palette variants for menu/page/icon-lab flows).
-- UI capture scripts must be run serially. Do not start `scripts/ui/nav/capture.sh`, `scripts/ui/palette/focus.sh`, `scripts/ui/palette/matrix.sh`, or `scripts/ui/palette/review.sh` in parallel.
+- For UI/input regressions, use scripts such as `scripts/ui.sh self-check` and `scripts/input.sh semantics-matrix` when relevant.
+- For palette/readability verification, use `scripts/ui.sh palette-matrix` (captures 5 palette variants for menu/page/icon-lab flows).
+- UI capture scripts must be run serially. Do not start `scripts/ui.sh nav-capture`, `scripts/ui.sh palette-focus`, `scripts/ui.sh palette-matrix`, or `scripts/ui.sh palette-review` in parallel.
 - `scripts/ui/nav/capture.sh` owns the global capture lock; if you need multiple captures, queue them in one shell loop or run them one-by-one.
 - Shared script helpers live under `scripts/lib/`:
   - `script_common.sh` for generic shell helpers
@@ -84,17 +84,17 @@ make clean
   - `ui_nav_targets.sh` now declares target plans as explicit step arrays plus optional post-wait overrides; it should not call transport helpers directly.
   - Detailed script structure and maintenance rules live in `docs/SCRIPT_AUTOMATION.md`.
 - Current injectable UI debug entry points:
-  - `scripts/ui/nav/capture.sh dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
-  - `scripts/ui/nav/capture.sh dbg-static-{boot,game,replay,choice} ...` with `DBG_STATIC_PARAMS=...` to inject static scene content.
-  - `scripts/ui/nav/capture.sh dbg-screen-only ...` launches a screen-only window via `--ui-mode=screen`.
-  - `scripts/ui/nav/capture.sh dbg-shell-only ...` launches a shell-only window via `--ui-mode=shell`.
-  - `scripts/ui/nav/debug.sh <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
+  - `scripts/ui.sh nav-capture dbg-choice ...` with `DBG_CHOICE_TYPES=7,4,1` to seed choice previews.
+  - `scripts/ui.sh nav-capture dbg-static-{boot,game,replay,choice} ...` with `DBG_STATIC_PARAMS=...` to inject static scene content.
+  - `scripts/ui.sh nav-capture dbg-screen-only ...` launches a screen-only window via `--ui-mode=screen`.
+  - `scripts/ui.sh nav-capture dbg-shell-only ...` launches a shell-only window via `--ui-mode=shell`.
+  - `scripts/ui.sh nav-debug <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
   - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/snakegb_ui_input.txt`.
   - Detailed parameter formats and supported scenes live in `docs/UI_DEBUG_INJECTION.md`.
 - Enforce this validation order for C++ changes: `clang-format` first, then `clang-tidy`, then build,
   then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
-- Prefer `scripts/dev/clang_tidy.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
+- Prefer `scripts/dev.sh clang-tidy <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
 - Build uses `ccache` automatically when available (`SNAKEGB_USE_CCACHE=ON` in CMake).
 
 ## Commit & Pull Request Guidelines

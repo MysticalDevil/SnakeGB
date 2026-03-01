@@ -15,8 +15,8 @@ help:
 	@echo "  test      Run ctest from $(DEBUG_DIR)"
 	@echo "  tidy      Run cached clang-tidy on changed files (uses $(DEBUG_DIR))"
 	@echo "  fmt       Run clang-format on changed C/C++ files"
-	@echo "  android   Run scripts/deploy/android.sh with BUILD_DIR=$(ANDROID_DIR)"
-	@echo "  wasm      Run scripts/deploy/wasm.sh with BUILD_DIR=$(WASM_DIR)"
+	@echo "  android   Run scripts/deploy.sh android with BUILD_DIR=$(ANDROID_DIR)"
+	@echo "  wasm      Run scripts/deploy.sh wasm with BUILD_DIR=$(WASM_DIR)"
 	@echo "  clean     Remove $(BUILD_ROOT)"
 
 debug:
@@ -35,7 +35,7 @@ test:
 	cd $(DEBUG_DIR) && ctest --output-on-failure
 
 tidy:
-	./scripts/dev/clang_tidy.sh $(DEBUG_DIR)
+	./scripts/dev.sh clang-tidy $(DEBUG_DIR)
 
 fmt:
 	@files="$$(git diff --name-only -- '*.cpp' '*.cc' '*.cxx' '*.h' '*.hpp')"; \
@@ -46,10 +46,10 @@ fmt:
 	fi
 
 android:
-	BUILD_DIR=$(ANDROID_DIR) ./scripts/deploy/android.sh
+	BUILD_DIR=$(ANDROID_DIR) ./scripts/deploy.sh android
 
 wasm:
-	BUILD_DIR=$(WASM_DIR) ./scripts/deploy/wasm.sh
+	BUILD_DIR=$(WASM_DIR) ./scripts/deploy.sh wasm
 
 clean:
 	rm -rf $(BUILD_ROOT)

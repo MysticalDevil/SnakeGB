@@ -77,10 +77,10 @@ zig build test
 ### Android 构建与部署
 ```bash
 # Debug 构建（有日志）
-CMAKE_BUILD_TYPE=Debug ./scripts/deploy/android.sh
+CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 
 # Release 构建（无日志）
-CMAKE_BUILD_TYPE=Release ./scripts/deploy/android.sh
+CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 ```
 
 ## 操作控制
@@ -100,7 +100,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy/android.sh
 
 ## 输入架构说明
 - 架构重构路线图：`docs/ARCHITECTURE_REFACTOR_PLAN.md`
-- 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `scripts/input/inject.sh` 发送按键 token
+- 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token
 
 ## 授权
 本项目采用 [GNU GPL v3](LICENSE) 协议授权。

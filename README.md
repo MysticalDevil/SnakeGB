@@ -80,10 +80,10 @@ zig build test
 ### Build and Deploy (Android)
 ```bash
 # Debug build (logs enabled)
-CMAKE_BUILD_TYPE=Debug ./scripts/deploy/android.sh
+CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 
 # Release build (logs disabled)
-CMAKE_BUILD_TYPE=Release ./scripts/deploy/android.sh
+CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 ```
 
 ### Build and Deploy (WebAssembly)
@@ -92,11 +92,11 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy/android.sh
 export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
 # Build, package to /tmp/snakegb-wasm-dist, and serve locally on :8080
-./scripts/deploy/wasm.sh
+./scripts/deploy.sh wasm
 ```
 
 - Set `SERVE=0` to only build/package without starting a web server.
-- Local serving uses `scripts/deploy/wasm_serve.py` with COOP/COEP headers so `SharedArrayBuffer` works in Chromium-based browsers.
+- Local serving uses `./scripts/deploy.sh wasm-serve` with COOP/COEP headers so `SharedArrayBuffer` works in Chromium-based browsers.
 - `qtlogo.svg`/`favicon` are injected from project icon during packaging to keep wasm console/network logs clean.
 
 ## Controls
@@ -116,7 +116,7 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
 ## Input Architecture Notes
 - Architecture refactor roadmap: `docs/ARCHITECTURE_REFACTOR_PLAN.md`
-- Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `scripts/input/inject.sh`
+- Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).

@@ -4,7 +4,18 @@ Last updated: 2026-02-28
 
 ## Purpose
 
-This document describes the shared script helper layers used by UI capture, palette review, and input semantics automation.
+This document describes the centralized script entry points and the shared helper layers used by UI capture, palette review, and input semantics automation.
+
+## Public Entry Points
+
+Top-level script entry points are intentionally small and centralized:
+
+- `scripts/ui.sh`
+- `scripts/input.sh`
+- `scripts/deploy.sh`
+- `scripts/dev.sh`
+
+Old single-purpose wrapper names have been removed. Use these entry points for manual runs, docs, and automation examples.
 
 ## Helper Layers
 
@@ -35,10 +46,7 @@ It does not know whether input will be sent by runtime input file, Hyprland shor
 
 ### `scripts/lib/ui_nav_runtime.sh`
 
-Shared runtime helpers for:
-
-- `scripts/ui/nav/capture.sh`
-- `scripts/ui/nav/debug.sh`
+Shared runtime helpers for the `scripts/ui.sh nav-*` entry points.
 
 Responsibilities:
 
@@ -59,10 +67,7 @@ Caller-facing outputs:
 
 ### `scripts/lib/input_matrix_common.sh`
 
-Shared runtime helpers for:
-
-- `scripts/input/semantics/matrix_wayland.sh`
-- `scripts/input/semantics/cases_wayland.sh`
+Shared runtime helpers for the `scripts/input.sh semantics-*` entry points.
 
 Responsibilities:
 
@@ -82,30 +87,25 @@ Shared palette capture wrapper helpers:
 - `capture_batch_validate_output <png> [min-bytes]`
 - `capture_batch_run_capture <capture-script> <target> <output> <palette-step> <isolated-config> <post-nav-wait> [palette-token]`
 
-This layer is used by:
-
-- `scripts/ui/palette/focus.sh`
-- `scripts/ui/palette/matrix.sh`
-- `scripts/ui/palette/single.sh`
-- `scripts/ui/palette/debug_matrix.sh`
+This layer is used by the `scripts/ui.sh palette-*` entry points.
 
 ## High-Level Entry Points
 
 ### UI navigation and capture
 
-- `scripts/ui/nav/capture.sh <target> <out.png>`
-- `scripts/ui/nav/debug.sh <target>`
+- `scripts/ui.sh nav-capture <target> <out.png>`
+- `scripts/ui.sh nav-debug <target>`
 
 Both share target routing via `scripts/lib/ui_nav_targets.sh`.
 That file now builds explicit target plans (`UI_NAV_TARGET_STEPS`, `UI_NAV_TARGET_POST_WAIT_OVERRIDE`) instead of calling token helpers directly.
 
 ### Palette review
 
-- `scripts/ui/palette/focus.sh <out-dir>`
-- `scripts/ui/palette/matrix.sh <out-dir>`
-- `scripts/ui/palette/single.sh <palette-step> <out-dir> [targets]`
-- `scripts/ui/palette/debug_matrix.sh <out-dir>`
-- `scripts/ui/palette/review.sh <out-dir>`
+- `scripts/ui.sh palette-focus <out-dir>`
+- `scripts/ui.sh palette-matrix <out-dir>`
+- `scripts/ui.sh palette-single <palette-step> <out-dir> [targets]`
+- `scripts/ui.sh palette-debug-matrix <out-dir>`
+- `scripts/ui.sh palette-review <out-dir>`
 
 `scripts/ui/palette/review.sh` delegates HTML generation to:
 
@@ -116,9 +116,9 @@ Large inline HTML should not be reintroduced there.
 
 ### Input semantics
 
-- `scripts/input/semantics/smoke.sh`
-- `scripts/input/semantics/matrix_wayland.sh`
-- `scripts/input/semantics/cases_wayland.sh`
+- `scripts/input.sh semantics-smoke`
+- `scripts/input.sh semantics-matrix`
+- `scripts/input.sh semantics-cases`
 
 ## Maintenance Rules
 
@@ -135,12 +135,12 @@ When modifying script helpers, run the smallest relevant validation set first:
 
 ```bash
 shellcheck -P SCRIPTDIR -x <touched scripts>
-./scripts/ui/nav/capture.sh menu /tmp/script_smoke.png
-FOCUS_TARGETS=menu MATRIX_TARGETS=menu PALETTES=0 ./scripts/ui/palette/review.sh /tmp/script_review_smoke
+./scripts/ui.sh nav-capture menu /tmp/script_smoke.png
+FOCUS_TARGETS=menu MATRIX_TARGETS=menu PALETTES=0 ./scripts/ui.sh palette-review /tmp/script_review_smoke
 ```
 
 For input semantics helper changes, also run:
 
 ```bash
-./scripts/input/semantics/smoke.sh
+./scripts/input.sh semantics-smoke
 ```

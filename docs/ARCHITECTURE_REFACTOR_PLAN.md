@@ -394,6 +394,6 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   and `src/core/replay/timeline.cpp`.
 - Verification passed:
   - `ctest --output-on-failure` (EngineAdapterTest + CoreRulesTest)
-  - `./scripts/input/semantics/matrix_wayland.sh` (input semantics compatibility matrix)
+  - `./scripts/input.sh semantics-matrix` (input semantics compatibility matrix)
 - Added `AdapterTest` (`tests/test_ui_action_parser.cpp`) to validate parser behavior for known/unknown/indexed
   actions in headless CI.
