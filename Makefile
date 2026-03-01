@@ -20,19 +20,19 @@ help:
 	@echo "  clean     Remove $(BUILD_ROOT)"
 
 debug:
-	cmake -S . -B $(DEBUG_DIR) -G Ninja -DCMAKE_BUILD_TYPE=Debug
-	cmake --build $(DEBUG_DIR) --parallel
+	cmake --preset debug
+	cmake --build --preset debug
 
 release:
-	cmake -S . -B $(RELEASE_DIR) -G Ninja -DCMAKE_BUILD_TYPE=Release
-	cmake --build $(RELEASE_DIR) --parallel
+	cmake --preset release
+	cmake --build --preset release
 
 dev:
-	cmake -S . -B $(DEV_DIR) -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
-	cmake --build $(DEV_DIR) --parallel
+	cmake --preset dev
+	cmake --build --preset dev
 
 test:
-	cd $(DEBUG_DIR) && ctest --output-on-failure
+	ctest --preset debug
 
 tidy:
 	./scripts/dev.sh clang-tidy $(DEBUG_DIR)

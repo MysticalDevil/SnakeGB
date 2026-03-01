@@ -6,6 +6,12 @@ NenoSerpent 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平�
 
 构建要求：**CMake 4.x**。
 
+推荐使用 CMake 4.x Preset 工作流：
+
+```bash
+cmake --workflow --preset debug-workflow
+```
+
 ## 核心特性 (v2.0.0)
 
 - **GB 风格开机链路**：Logo 下落弹跳、开机提示音、进入主界面后延迟播放 BGM。
@@ -43,14 +49,14 @@ NenoSerpent 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平�
 
 ### 编译并运行 (桌面端)
 ```bash
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/debug --parallel
+cmake --preset debug
+cmake --build --preset debug
 ./build/debug/NenoSerpent
 ```
 
 ```bash
-cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/release --parallel
+cmake --preset release
+cmake --build --preset release
 ./build/release/NenoSerpent
 ```
 

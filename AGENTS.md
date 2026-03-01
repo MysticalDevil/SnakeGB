@@ -10,20 +10,24 @@
 
 ## Build, Test, and Development Commands
 - Requires CMake 4.x.
+- Preset-first workflow:
+```bash
+cmake --workflow --preset debug-workflow
+```
 - Debug desktop build/run:
 ```bash
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/debug --parallel
+cmake --preset debug
+cmake --build --preset debug
 ./build/debug/NenoSerpent
 ```
 - Release build:
 ```bash
-cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/release --parallel
+cmake --preset release
+cmake --build --preset release
 ```
 - Run tests from an existing build directory:
 ```bash
-cd build/debug && ctest --output-on-failure
+ctest --preset debug
 ```
 - Default build directories live under `build/<profile>`.
 - Android deploy (Qt + SDK/NDK environment required):

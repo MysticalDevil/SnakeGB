@@ -6,6 +6,12 @@ NenoSerpent is a high-quality, cross-platform GameBoy-style Snake game built wit
 
 Build requirement: **CMake 4.x**.
 
+Preset-first workflow (recommended on CMake 4.x):
+
+```bash
+cmake --workflow --preset debug-workflow
+```
+
 ## Core Features (v2.0.0)
 
 - **GameBoy Boot Flow**: Boot bounce animation + boot beep + delayed BGM handoff to menu.
@@ -46,14 +52,14 @@ Release notes live in `CHANGELOG.md`.
 
 ### Build and Run (Desktop)
 ```bash
-cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/debug --parallel
+cmake --preset debug
+cmake --build --preset debug
 ./build/debug/NenoSerpent
 ```
 
 ```bash
-cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build/release --parallel
+cmake --preset release
+cmake --build --preset release
 ./build/release/NenoSerpent
 ```
 

@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 4.0...4.1)
+if(POLICY CMP0168)
+    cmake_policy(SET CMP0168 NEW)
+endif()
 
 project(NenoSerpent VERSION 2.0.0 LANGUAGES CXX)
 
@@ -27,6 +30,12 @@ add_library(nenoserpent_project_options INTERFACE)
 target_compile_features(nenoserpent_project_options INTERFACE cxx_std_23)
 set_target_properties(nenoserpent_project_options PROPERTIES EXPORT_NAME project_options)
 
+add_library(nenoserpent_project_warnings INTERFACE)
+target_compile_options(nenoserpent_project_warnings INTERFACE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:-Wall;-Wextra;-Wpedantic>
+)
+
 function(nenoserpent_enable_ccache)
     if(NOT NENOSERPENT_USE_CCACHE)
         return()
@@ -49,6 +58,7 @@ function(nenoserpent_apply_project_options)
     foreach(target_name IN LISTS ARGN)
         if(TARGET "${target_name}")
             target_link_libraries("${target_name}" PRIVATE nenoserpent_project_options)
+            target_link_libraries("${target_name}" PRIVATE nenoserpent_project_warnings)
         endif()
     endforeach()
 endfunction()
@@ -153,10 +163,11 @@ if(NENOSERPENT_OPTIMIZE_SIZE)
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         foreach(target_name IN ITEMS nenoserpent_core nenoserpent_fsm nenoserpent_adapter NenoSerpent)
             if(TARGET ${target_name})
-                target_compile_options(${target_name} PRIVATE -ffunction-sections -fdata-sections)
-                if(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
-                    target_compile_options(${target_name} PRIVATE -Oz)
-                endif()
+                target_compile_options(${target_name} PRIVATE
+                    -ffunction-sections
+                    -fdata-sections
+                    $<$<CONFIG:MinSizeRel>:-Oz>
+                )
             endif()
         endforeach()
         target_link_options(NenoSerpent PRIVATE -Wl,--gc-sections)
