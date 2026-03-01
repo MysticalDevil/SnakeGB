@@ -98,6 +98,12 @@ This layer is used by the `scripts/ui.sh palette-*` entry points.
 
 Both share target routing via `scripts/lib/ui_nav_targets.sh`.
 That file now builds explicit target plans (`UI_NAV_TARGET_STEPS`, `UI_NAV_TARGET_POST_WAIT_OVERRIDE`) instead of calling token helpers directly.
+Target definitions are split by domain under `scripts/lib/ui_nav_targets/`:
+
+- `nav.sh`
+- `debug.sh`
+- `static.sh`
+- `common.sh`
 
 ### Palette review
 
