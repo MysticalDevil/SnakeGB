@@ -49,8 +49,14 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
 
   const auto menuTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Menu);
   QCOMPARE(menuTrack.size(), 32U);
-  QCOMPARE(menuTrack.front().leadFrequencyHz, snakegb::audio::note::E5);
-  QCOMPARE(menuTrack.back().bassFrequencyHz, snakegb::audio::note::C3);
+  QCOMPARE(menuTrack.front().leadPitch, snakegb::audio::Pitch::E5);
+  QCOMPARE(menuTrack.back().bassPitch, snakegb::audio::Pitch::C3);
+  QCOMPARE(menuTrack.front().leadDuty, snakegb::audio::PulseDuty::Quarter);
+
+  const auto gameplayTrack =
+    snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Gameplay);
+  QCOMPARE(gameplayTrack.front().leadPitch, snakegb::audio::Pitch::A4);
+  QCOMPARE(gameplayTrack.front().leadDuty, snakegb::audio::PulseDuty::Half);
 }
 
 void TestAudioBusService::testPausedStates() {

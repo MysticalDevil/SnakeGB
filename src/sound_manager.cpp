@@ -173,15 +173,24 @@ auto SoundManager::playNextNote() -> void {
   if (std::cmp_greater_equal(m_noteIndex, trackSteps.size()))
     m_noteIndex = 0;
 
-  const auto [leadFreq, bassFreq, duration] = trackSteps[static_cast<std::size_t>(m_noteIndex)];
+  const auto [leadPitch, bassPitch, duration, leadDuty, bassDuty] =
+    trackSteps[static_cast<std::size_t>(m_noteIndex)];
   m_noteIndex++;
+
+  const auto leadFreq = snakegb::audio::pitchFrequencyHz(leadPitch);
+  const auto bassFreq = snakegb::audio::pitchFrequencyHz(bassPitch);
 
   double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
   int scaledDuration = static_cast<int>(duration * tempoScale);
 
   if (leadFreq > 0 && m_bgmLeadSink != nullptr) {
     QByteArray leadData;
-    generateSquareWave(leadFreq, scaledDuration - 5, leadData, Lead_Amplitude, 0.25, 0.2f);
+    generateSquareWave(leadFreq,
+                       scaledDuration - 5,
+                       leadData,
+                       Lead_Amplitude,
+                       snakegb::audio::dutyCycle(leadDuty),
+                       0.2f);
     if (m_isPaused)
       applyLowPassFilter(leadData);
     else
@@ -195,7 +204,12 @@ auto SoundManager::playNextNote() -> void {
 
   if (bassFreq > 0 && m_bgmBassSink != nullptr) {
     QByteArray bassData;
-    generateSquareWave(bassFreq, scaledDuration - 5, bassData, Bass_Amplitude, 0.5, -0.2f);
+    generateSquareWave(bassFreq,
+                       scaledDuration - 5,
+                       bassData,
+                       Bass_Amplitude,
+                       snakegb::audio::dutyCycle(bassDuty),
+                       -0.2f);
     if (m_isPaused)
       applyLowPassFilter(bassData);
     m_bgmBassSink->stop();

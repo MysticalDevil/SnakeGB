@@ -1,32 +1,10 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <span>
 
 namespace snakegb::audio {
-
-namespace note {
-inline constexpr int C3 = 131;
-inline constexpr int D3 = 147;
-inline constexpr int E3 = 165;
-inline constexpr int F3 = 175;
-inline constexpr int G3 = 196;
-inline constexpr int A3 = 220;
-inline constexpr int B3 = 247;
-inline constexpr int C4 = 262;
-inline constexpr int D4 = 294;
-inline constexpr int E4 = 330;
-inline constexpr int F4 = 349;
-inline constexpr int G4 = 392;
-inline constexpr int A4 = 440;
-inline constexpr int B4 = 494;
-inline constexpr int C5 = 523;
-inline constexpr int D5 = 587;
-inline constexpr int E5 = 659;
-inline constexpr int F5 = 698;
-inline constexpr int G5 = 784;
-inline constexpr int A5 = 880;
-} // namespace note
 
 enum class ScoreCueId {
   UiInteract,
@@ -38,6 +16,37 @@ enum class ScoreTrackId {
   Gameplay,
 };
 
+enum class PulseDuty : int {
+  Narrow = 0,
+  Quarter = 1,
+  Half = 2,
+  Wide = 3,
+};
+
+enum class Pitch : int {
+  Rest = -1,
+  C3 = 48,
+  D3 = 50,
+  E3 = 52,
+  F3 = 53,
+  G3 = 55,
+  A3 = 57,
+  B3 = 59,
+  C4 = 60,
+  D4 = 62,
+  E4 = 64,
+  F4 = 65,
+  G4 = 67,
+  A4 = 69,
+  B4 = 71,
+  C5 = 72,
+  D5 = 74,
+  E5 = 76,
+  F5 = 77,
+  G5 = 79,
+  A5 = 81,
+};
+
 struct ScoreStep {
   int frequencyHz = 0;
   int durationMs = 0;
@@ -46,10 +55,35 @@ struct ScoreStep {
 };
 
 struct ScoreTrackStep {
-  int leadFrequencyHz = 0;
-  int bassFrequencyHz = 0;
+  Pitch leadPitch = Pitch::Rest;
+  Pitch bassPitch = Pitch::Rest;
   int durationMs = 0;
+  PulseDuty leadDuty = PulseDuty::Quarter;
+  PulseDuty bassDuty = PulseDuty::Half;
 };
+
+[[nodiscard]] inline auto dutyCycle(const PulseDuty duty) -> double {
+  switch (duty) {
+  case PulseDuty::Narrow:
+    return 0.125;
+  case PulseDuty::Quarter:
+    return 0.25;
+  case PulseDuty::Half:
+    return 0.5;
+  case PulseDuty::Wide:
+    return 0.75;
+  }
+  return 0.5;
+}
+
+[[nodiscard]] inline auto pitchFrequencyHz(const Pitch pitch) -> int {
+  if (pitch == Pitch::Rest) {
+    return 0;
+  }
+  const auto midiNote = static_cast<int>(pitch);
+  const auto semitoneOffset = static_cast<double>(midiNote - 69) / 12.0;
+  return static_cast<int>(std::lround(440.0 * std::exp2(semitoneOffset)));
+}
 
 inline constexpr std::array<ScoreStep, 2> UiInteractCueSteps{{
   {.frequencyHz = 262, .durationMs = 22, .duty = 0.5, .amplitude = 18},
@@ -63,70 +97,70 @@ inline constexpr std::array<ScoreStep, 3> ConfirmCueSteps{{
 }};
 
 inline constexpr std::array<ScoreTrackStep, 32> MenuTrackSteps{{
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::A3, .durationMs = 360},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::A5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::G3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::A3, .durationMs = 360},
 
-  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::G3, .durationMs = 180},
-  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 360},
+  {.leadPitch = Pitch::A5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::G3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::G3, .durationMs = 180},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C3, .durationMs = 360},
 
-  {.leadFrequencyHz = note::G4, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::F5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::G3, .durationMs = 360},
+  {.leadPitch = Pitch::G4, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::F5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::G3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::G3, .durationMs = 360},
 
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
-  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
-  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 180},
-  {.leadFrequencyHz = note::G4, .bassFrequencyHz = note::C3, .durationMs = 420},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::A5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::F3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::G3, .durationMs = 180},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::A3, .durationMs = 180},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C3, .durationMs = 180},
+  {.leadPitch = Pitch::G4, .bassPitch = Pitch::C3, .durationMs = 420},
 }};
 
 inline constexpr std::array<ScoreTrackStep, 26> GameplayTrackSteps{{
-  {.leadFrequencyHz = 440, .bassFrequencyHz = 220, .durationMs = 300},
-  {.leadFrequencyHz = 494, .bassFrequencyHz = 247, .durationMs = 300},
-  {.leadFrequencyHz = 523, .bassFrequencyHz = 261, .durationMs = 300},
-  {.leadFrequencyHz = 587, .bassFrequencyHz = 293, .durationMs = 300},
-  {.leadFrequencyHz = 659, .bassFrequencyHz = 329, .durationMs = 600},
-  {.leadFrequencyHz = 587, .bassFrequencyHz = 293, .durationMs = 600},
-  {.leadFrequencyHz = 523, .bassFrequencyHz = 261, .durationMs = 300},
-  {.leadFrequencyHz = 494, .bassFrequencyHz = 247, .durationMs = 300},
-  {.leadFrequencyHz = 440, .bassFrequencyHz = 220, .durationMs = 600},
-  {.leadFrequencyHz = 0, .bassFrequencyHz = 0, .durationMs = 300},
-  {.leadFrequencyHz = 330, .bassFrequencyHz = 165, .durationMs = 300},
-  {.leadFrequencyHz = 392, .bassFrequencyHz = 196, .durationMs = 300},
-  {.leadFrequencyHz = 440, .bassFrequencyHz = 220, .durationMs = 600},
-  {.leadFrequencyHz = 392, .bassFrequencyHz = 196, .durationMs = 300},
-  {.leadFrequencyHz = 330, .bassFrequencyHz = 165, .durationMs = 300},
-  {.leadFrequencyHz = 293, .bassFrequencyHz = 146, .durationMs = 600},
-  {.leadFrequencyHz = 440, .bassFrequencyHz = 220, .durationMs = 300},
-  {.leadFrequencyHz = 494, .bassFrequencyHz = 247, .durationMs = 300},
-  {.leadFrequencyHz = 523, .bassFrequencyHz = 261, .durationMs = 300},
-  {.leadFrequencyHz = 587, .bassFrequencyHz = 293, .durationMs = 300},
-  {.leadFrequencyHz = 659, .bassFrequencyHz = 329, .durationMs = 600},
-  {.leadFrequencyHz = 784, .bassFrequencyHz = 392, .durationMs = 600},
-  {.leadFrequencyHz = 880, .bassFrequencyHz = 440, .durationMs = 600},
-  {.leadFrequencyHz = 784, .bassFrequencyHz = 392, .durationMs = 300},
-  {.leadFrequencyHz = 659, .bassFrequencyHz = 329, .durationMs = 300},
-  {.leadFrequencyHz = 587, .bassFrequencyHz = 293, .durationMs = 600},
+  {.leadPitch = Pitch::A4, .bassPitch = Pitch::A3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::B4, .bassPitch = Pitch::B3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C4, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::D3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::E3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::D3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C4, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::B4, .bassPitch = Pitch::B3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::A4, .bassPitch = Pitch::A3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::Rest, .bassPitch = Pitch::Rest, .durationMs = 300},
+  {.leadPitch = Pitch::E4, .bassPitch = Pitch::E3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::G4, .bassPitch = Pitch::G3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::A4, .bassPitch = Pitch::A3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::G4, .bassPitch = Pitch::G3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::E4, .bassPitch = Pitch::E3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::D4, .bassPitch = Pitch::D3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::A4, .bassPitch = Pitch::A3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::B4, .bassPitch = Pitch::B3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::C5, .bassPitch = Pitch::C4, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::D3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::E3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::G3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::A5, .bassPitch = Pitch::A3, .durationMs = 600, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::G5, .bassPitch = Pitch::G3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::E5, .bassPitch = Pitch::E3, .durationMs = 300, .leadDuty = PulseDuty::Half},
+  {.leadPitch = Pitch::D5, .bassPitch = Pitch::D3, .durationMs = 600, .leadDuty = PulseDuty::Half},
 }};
 
 [[nodiscard]] inline auto scoreCueSteps(const ScoreCueId cueId) -> std::span<const ScoreStep> {

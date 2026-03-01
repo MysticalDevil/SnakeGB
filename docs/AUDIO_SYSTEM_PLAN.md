@@ -362,6 +362,7 @@ Current status:
 - `SoundManager` can render a minimal in-memory score sequence for score cues
 - menu/game music routing now selects score-backed tracks by track id
 - the first longer classic chiptune-style menu BGM has replaced the earlier minimal placeholder loop
+- score-backed tracks now use note/duration/duty data instead of inlined raw frequency pairs
 - full score resource files and additional track expansion remain the next step inside this phase
 
 ### Phase 5: User BGM Import
