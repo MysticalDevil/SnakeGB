@@ -9,6 +9,7 @@ Item {
     property string shellThemeName: "Teal"
     property real volume: 1.0
     property var bridge: null
+    property var commandController: null
     property real shellCornerRadius: 13
     property real shellLowerRightRadius: 72
     readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
@@ -179,6 +180,7 @@ Item {
                 GBButton {
                     id: bBtnUI
                     text: "B"
+                    commandController: shell.commandController
                     pressedExternally: shell.bridge ? shell.bridge.secondaryPressed : false
                     onClicked: {
                         if (shell.bridge) {
@@ -190,6 +192,7 @@ Item {
                 GBButton {
                     id: aBtnUI
                     text: "A"
+                    commandController: shell.commandController
                     pressedExternally: shell.bridge ? shell.bridge.primaryPressed : false
                     onClicked: {
                         if (shell.bridge) {

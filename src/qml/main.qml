@@ -18,7 +18,7 @@ Window {
     readonly property color p2: themeViewModel.palette[2]
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
-    property var engineAdapterRef: engineAdapter
+    property var commandControllerRef: uiCommandController
 
     property real elapsed: 0.0
     property bool iconDebugMode: false
@@ -55,13 +55,13 @@ Window {
 
     function handleDirection(dx, dy) {
         if (dy < 0) {
-            engineAdapter.dispatchUiAction(inputAction.NavUp)
+            uiCommandController.dispatch(inputAction.NavUp)
         } else if (dy > 0) {
-            engineAdapter.dispatchUiAction(inputAction.NavDown)
+            uiCommandController.dispatch(inputAction.NavDown)
         } else if (dx < 0) {
-            engineAdapter.dispatchUiAction(inputAction.NavLeft)
+            uiCommandController.dispatch(inputAction.NavLeft)
         } else if (dx > 0) {
-            engineAdapter.dispatchUiAction(inputAction.NavRight)
+            uiCommandController.dispatch(inputAction.NavRight)
         }
         setDpadPressed(dx, dy)
     }
@@ -83,12 +83,12 @@ Window {
     }
 
     function dispatchRuntimeAction(action) {
-        engineAdapter.dispatchUiAction(action)
+        uiCommandController.dispatch(action)
     }
 
     UiActionRouter {
         id: uiActionRouter
-        engineAdapter: engineAdapterRef
+        commandController: commandControllerRef
         currentState: window.currentState
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
@@ -112,7 +112,7 @@ Window {
 
     DebugTokenRouter {
         id: debugTokenRouter
-        engineAdapter: engineAdapterRef
+        commandController: commandControllerRef
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
@@ -195,7 +195,7 @@ Window {
             return
         }
         if (token === "PALETTE" || token === "NEXT_PALETTE") {
-            engineAdapter.dispatchUiAction("next_palette")
+            uiCommandController.dispatch("next_palette")
             return
         }
         if (token === "MUSIC") {
@@ -229,7 +229,7 @@ Window {
         if (handleEasterInput("B")) {
             return
         }
-        engineAdapter.dispatchUiAction(inputAction.Secondary)
+        uiCommandController.dispatch(inputAction.Secondary)
     }
 
     function handleAButton() {
@@ -239,14 +239,14 @@ Window {
         if (handleEasterInput("A")) {
             return
         }
-        engineAdapter.dispatchUiAction(inputAction.Primary)
+        uiCommandController.dispatch(inputAction.Primary)
     }
 
     function exitIconLabToMenu() {
         iconDebugMode = false
         konamiIndex = 0
         clearDpadVisuals()
-        engineAdapter.dispatchUiAction("state_start_menu")
+        uiCommandController.dispatch("state_start_menu")
         screen.showOSD("ICON LAB OFF")
     }
 
@@ -260,7 +260,7 @@ Window {
                 iconDebugMode = !iconDebugMode
                 screen.showOSD(iconDebugMode ? "ICON LAB ON" : "ICON LAB OFF")
                 if (!iconDebugMode) {
-                    engineAdapter.dispatchUiAction("state_start_menu")
+                    uiCommandController.dispatch("state_start_menu")
                 }
                 return "toggle"
             }
@@ -293,7 +293,7 @@ Window {
         const status = feedEasterInput(token)
         if (iconDebugMode) {
             if (status === "toggle") {
-                engineAdapter.dispatchUiAction("state_start_menu")
+                uiCommandController.dispatch("state_start_menu")
             }
             return true
         }
@@ -313,7 +313,7 @@ Window {
         if (iconDebugMode) {
             return
         }
-        engineAdapter.dispatchUiAction(inputAction.Start)
+        uiCommandController.dispatch(inputAction.Start)
     }
 
     function cancelSaveClearConfirm(showToast) {
@@ -325,23 +325,18 @@ Window {
             exitIconLabToMenu()
             return
         }
-        engineAdapter.dispatchUiAction(inputAction.Back)
+        uiCommandController.dispatch(inputAction.Back)
     }
 
     Connections {
-        target: engineAdapter
+        target: uiCommandController
         function onPaletteChanged() { 
             if (window.currentState === AppState.Splash) return
             screen.showOSD(themeViewModel.paletteName)
         }
-        function onShellColorChanged() { 
+        function onShellChanged() { 
             if (window.currentState !== AppState.Splash) {
                 screen.triggerPowerCycle()
-            }
-        }
-        function onStateChanged() {
-            if (window.currentState !== AppState.StartMenu) {
-                cancelSaveClearConfirm(false)
             }
         }
         function onAchievementEarned(title) { 
@@ -349,6 +344,15 @@ Window {
         }
         function onEventPrompt(text) {
             screen.showOSD(`>> ${text} <<`)
+        }
+    }
+
+    Connections {
+        target: sessionRenderViewModel
+        function onStateChanged() {
+            if (window.currentState !== AppState.StartMenu) {
+                cancelSaveClearConfirm(false)
+            }
         }
     }
 
@@ -388,6 +392,7 @@ Window {
                 id: shell
                 anchors.fill: parent
                 bridge: shellBridge
+                commandController: commandControllerRef
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
                 volume: audioSettingsViewModel.volume
@@ -395,7 +400,7 @@ Window {
                 ScreenView {
                     id: screen
                     anchors.fill: parent
-                    engineAdapter: engineAdapterRef
+                    commandController: commandControllerRef
                     p0: window.p0
                     p1: window.p1
                     p2: window.p2
@@ -427,14 +432,14 @@ Window {
         function onStartReleased() { inputPressController.onStartReleased() }
         function onStartTriggered() { dispatchAction(inputAction.Start) }
         function onShellColorToggleTriggered() {
-            engineAdapter.dispatchUiAction("feedback_ui")
-            engineAdapter.dispatchUiAction("toggle_shell_color")
+            uiCommandController.dispatch("feedback_ui")
+            uiCommandController.dispatch("toggle_shell_color")
         }
         function onVolumeRequested(value, withHaptic) {
             audioSettingsViewModel.volume = value
             screen.showVolumeOSD(value)
             if (withHaptic) {
-                engineAdapter.dispatchUiAction("feedback_light")
+                uiCommandController.dispatch("feedback_light")
             }
         }
     }

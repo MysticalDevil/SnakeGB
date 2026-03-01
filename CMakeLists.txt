@@ -199,6 +199,22 @@ target_link_libraries(adapter-ui-dispatch-tests PRIVATE Qt6::Test Qt6::Core snak
 add_test(NAME AdapterUiDispatchTest COMMAND adapter-ui-dispatch-tests)
 set_tests_properties(AdapterUiDispatchTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(adapter-ui-command-tests
+    tests/test_ui_command_controller.cpp
+)
+target_include_directories(adapter-ui-command-tests PRIVATE src)
+target_link_libraries(adapter-ui-command-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui Qt6::Qml snakegb_adapter)
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(adapter-ui-command-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(adapter-ui-command-tests PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+endif()
+if(TARGET Qt6::Sensors)
+    target_link_libraries(adapter-ui-command-tests PRIVATE Qt6::Sensors)
+    target_compile_definitions(adapter-ui-command-tests PRIVATE SNAKEGB_HAS_SENSORS)
+endif()
+add_test(NAME AdapterUiCommandTest COMMAND adapter-ui-command-tests)
+set_tests_properties(AdapterUiCommandTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-semantics-tests
     tests/test_input_semantics_adapter.cpp
 )

@@ -4,6 +4,7 @@ import QtQuick.Controls
 Item {
     id: root
     property string text: ""
+    property var commandController: null
     property bool pressedExternally: false
     signal clicked
 
@@ -86,7 +87,9 @@ Item {
         id: mouseArea
         anchors.fill: parent
         onClicked: {
-            engineAdapter.dispatchUiAction("feedback_ui")
+            if (root.commandController) {
+                root.commandController.dispatch("feedback_ui")
+            }
             root.clicked()
         }
     }

@@ -4,7 +4,7 @@ import SnakeGB 1.0
 QtObject {
     id: router
 
-    property var engineAdapter
+    property var commandController
     property int currentState: AppState.Splash
     property var actionMap: ({})
     property bool iconDebugMode: false
@@ -90,11 +90,11 @@ QtObject {
             return true
         }
         if (action === router.actionMap.ToggleShellColor) {
-            router.engineAdapter.dispatchUiAction("toggle_shell_color")
+            router.commandController.dispatch("toggle_shell_color")
             return true
         }
         if (action === router.actionMap.ToggleMusic) {
-            router.engineAdapter.dispatchUiAction("toggle_music")
+            router.commandController.dispatch("toggle_music")
             return true
         }
         if (action === router.actionMap.Escape) {
@@ -107,7 +107,7 @@ QtObject {
                     router.setStaticScene("")
                 }
             } else {
-                router.engineAdapter.dispatchUiAction("quit")
+                router.commandController.dispatch("quit")
             }
             return true
         }
@@ -208,11 +208,11 @@ QtObject {
             return true
         }
         if (action === router.actionMap.SelectShort) {
-            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
+            router.commandController.dispatch(router.actionMap.Back)
             return true
         }
         if (action === router.actionMap.Back) {
-            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
+            router.commandController.dispatch(router.actionMap.Back)
             return true
         }
         return false
@@ -221,7 +221,7 @@ QtObject {
     function routePageLayer(action) {
         if (routeDirection(action)) return true
         if (action === router.actionMap.Secondary || action === router.actionMap.Back) {
-            router.engineAdapter.dispatchUiAction(router.actionMap.Back)
+            router.commandController.dispatch(router.actionMap.Back)
             return true
         }
         if (action === router.actionMap.Primary) return true

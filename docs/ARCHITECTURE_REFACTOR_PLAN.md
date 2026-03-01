@@ -261,6 +261,8 @@ state, not the desired end state.
   - interactive paths are action-routed.
   - runtime render-facing, selection-facing, status-facing, theme-facing, and audio-facing QML state now route
     through dedicated view models.
+  - QML command dispatch now routes through a dedicated `UiCommandController` instead of direct
+    `EngineAdapter` object access.
   - `EngineAdapter` no longer exposes QML properties directly; it remains as an action/state bridge for C++ and
     QML command dispatch.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.

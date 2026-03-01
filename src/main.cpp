@@ -14,6 +14,7 @@
 #include "app_state.h"
 #include "adapter/view_models/audio.h"
 #include "adapter/engine_adapter.h"
+#include "adapter/ui/controller.h"
 #include "adapter/view_models/render.h"
 #include "adapter/view_models/selection.h"
 #include "adapter/view_models/status.h"
@@ -66,6 +67,7 @@ auto main(int argc, char *argv[]) -> int {
 #endif
 
     EngineAdapter engineAdapter;
+    UiCommandController uiCommandController(&engineAdapter);
     AudioSettingsViewModel audioSettingsViewModel(&engineAdapter);
     SelectionViewModel selectionViewModel(&engineAdapter);
     SessionRenderViewModel sessionRenderViewModel(&engineAdapter);
@@ -89,7 +91,7 @@ auto main(int argc, char *argv[]) -> int {
                                          "AppState is an enum container and cannot be instantiated");
     qmlRegisterUncreatableType<PowerUpId>("SnakeGB", 1, 0, "PowerUpId",
                                           "PowerUpId is an enum container and cannot be instantiated");
-    engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
+    engine.rootContext()->setContextProperty("uiCommandController", &uiCommandController);
     engine.rootContext()->setContextProperty("audioSettingsViewModel", &audioSettingsViewModel);
     engine.rootContext()->setContextProperty("selectionViewModel", &selectionViewModel);
     engine.rootContext()->setContextProperty("sessionRenderViewModel", &sessionRenderViewModel);

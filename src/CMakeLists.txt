@@ -45,6 +45,7 @@ add_library(snakegb_adapter
     adapter/lifecycle.cpp
     adapter/view_model.cpp
     adapter/ui/action.cpp
+    adapter/ui/controller.cpp
     adapter/input/semantics.cpp
     adapter/achievement/runtime.cpp
     adapter/ghost/store.cpp

@@ -9,7 +9,7 @@ import "LayerScale.js" as LayerScale
 
 Item {
     id: root
-    property var engineAdapter
+    property var commandController
     property var sessionRender: sessionRenderViewModel
     property color p0
     property color p1
@@ -319,7 +319,7 @@ Item {
                     fruitLibraryModel: selectionViewModel.fruitLibrary
                     libraryIndex: selectionViewModel.libraryIndex
                     setLibraryIndex: function(index) {
-                        root.engineAdapter.dispatchUiAction(`set_library_index:${index}`)
+                        root.commandController.dispatch(`set_library_index:${index}`)
                     }
                     gameFont: root.gameFont
                     powerColor: root.powerColor
@@ -342,7 +342,7 @@ Item {
                     unlockedCount: selectionViewModel.achievements.length
                     unlockedAchievementIds: selectionViewModel.achievements
                     setMedalIndex: function(index) {
-                        root.engineAdapter.dispatchUiAction(`set_medal_index:${index}`)
+                        root.commandController.dispatch(`set_medal_index:${index}`)
                     }
                     gameFont: root.gameFont
                     visible: sessionRender.state === AppState.MedalRoom
@@ -498,5 +498,5 @@ Item {
 
     function showOSD(t) { osd.show(t) }
     function showVolumeOSD(value) { osd.showVolume(value) }
-    function triggerPowerCycle() { engineAdapter.dispatchUiAction("state_splash") }
+    function triggerPowerCycle() { commandController.dispatch("state_splash") }
 }
