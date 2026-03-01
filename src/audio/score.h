@@ -5,6 +5,29 @@
 
 namespace snakegb::audio {
 
+namespace note {
+inline constexpr int C3 = 131;
+inline constexpr int D3 = 147;
+inline constexpr int E3 = 165;
+inline constexpr int F3 = 175;
+inline constexpr int G3 = 196;
+inline constexpr int A3 = 220;
+inline constexpr int B3 = 247;
+inline constexpr int C4 = 262;
+inline constexpr int D4 = 294;
+inline constexpr int E4 = 330;
+inline constexpr int F4 = 349;
+inline constexpr int G4 = 392;
+inline constexpr int A4 = 440;
+inline constexpr int B4 = 494;
+inline constexpr int C5 = 523;
+inline constexpr int D5 = 587;
+inline constexpr int E5 = 659;
+inline constexpr int F5 = 698;
+inline constexpr int G5 = 784;
+inline constexpr int A5 = 880;
+} // namespace note
+
 enum class ScoreCueId {
   UiInteract,
   Confirm,
@@ -39,15 +62,42 @@ inline constexpr std::array<ScoreStep, 3> ConfirmCueSteps{{
   {.frequencyHz = 1567, .durationMs = 70, .duty = 0.25, .amplitude = 26},
 }};
 
-inline constexpr std::array<ScoreTrackStep, 8> MenuTrackSteps{{
-  {.leadFrequencyHz = 523, .bassFrequencyHz = 262, .durationMs = 260},
-  {.leadFrequencyHz = 659, .bassFrequencyHz = 330, .durationMs = 260},
-  {.leadFrequencyHz = 784, .bassFrequencyHz = 392, .durationMs = 420},
-  {.leadFrequencyHz = 659, .bassFrequencyHz = 330, .durationMs = 260},
-  {.leadFrequencyHz = 523, .bassFrequencyHz = 262, .durationMs = 260},
-  {.leadFrequencyHz = 392, .bassFrequencyHz = 196, .durationMs = 420},
-  {.leadFrequencyHz = 440, .bassFrequencyHz = 220, .durationMs = 260},
-  {.leadFrequencyHz = 494, .bassFrequencyHz = 247, .durationMs = 420},
+inline constexpr std::array<ScoreTrackStep, 32> MenuTrackSteps{{
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::A3, .durationMs = 360},
+
+  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::G3, .durationMs = 180},
+  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 360},
+
+  {.leadFrequencyHz = note::G4, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::F5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::G3, .durationMs = 360},
+
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::A5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::G5, .bassFrequencyHz = note::F3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::D5, .bassFrequencyHz = note::G3, .durationMs = 180},
+  {.leadFrequencyHz = note::E5, .bassFrequencyHz = note::A3, .durationMs = 180},
+  {.leadFrequencyHz = note::C5, .bassFrequencyHz = note::C3, .durationMs = 180},
+  {.leadFrequencyHz = note::G4, .bassFrequencyHz = note::C3, .durationMs = 420},
 }};
 
 inline constexpr std::array<ScoreTrackStep, 26> GameplayTrackSteps{{

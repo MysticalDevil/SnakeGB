@@ -46,6 +46,11 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
   QVERIFY(crashCue.has_value());
   QCOMPARE(crashCue->kind, snakegb::audio::CueKind::Crash);
   QCOMPARE(crashCue->durationMs, 500);
+
+  const auto menuTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Menu);
+  QCOMPARE(menuTrack.size(), 32U);
+  QCOMPARE(menuTrack.front().leadFrequencyHz, snakegb::audio::note::E5);
+  QCOMPARE(menuTrack.back().bassFrequencyHz, snakegb::audio::note::C3);
 }
 
 void TestAudioBusService::testPausedStates() {

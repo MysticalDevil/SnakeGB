@@ -360,7 +360,9 @@ Current status:
 - short confirmation and UI interaction cues now route through score-based cue ids instead of raw
   beep parameters
 - `SoundManager` can render a minimal in-memory score sequence for score cues
-- full score resource files and expanded BGM routing remain the next step inside this phase
+- menu/game music routing now selects score-backed tracks by track id
+- the first longer classic chiptune-style menu BGM has replaced the earlier minimal placeholder loop
+- full score resource files and additional track expansion remain the next step inside this phase
 
 ### Phase 5: User BGM Import
 
