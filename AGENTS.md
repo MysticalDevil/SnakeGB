@@ -66,8 +66,9 @@ make clean
   - Top-level screen `z` ordering must be assigned in `ScreenView.qml` via shared named layer tokens; leaf pages should not hardcode root-level `z` values.
   - Inside a component, `z` is only for local draw order and should use named local properties instead of bare numbers.
   - Debug takeover layers (`IconLab`, `StaticDebug`) must suppress lower-priority overlays/HUD so only one top-level mode owns the screen at a time.
-  - `OSDLayer` should remain topmost above CRT/screen treatment layers.
+- `OSDLayer` should remain topmost above CRT/screen treatment layers.
 - For ongoing decoupling work, follow `docs/ARCHITECTURE_REFACTOR_PLAN.md` phase checkpoints and acceptance KPIs.
+- For audio-system upgrade work, follow `docs/AUDIO_SYSTEM_PLAN.md`.
 
 ## Testing Guidelines
 - Framework: `Qt6::Test` via `engine-adapter-tests` target and `ctest` (`EngineAdapterTest`).
