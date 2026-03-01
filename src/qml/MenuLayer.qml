@@ -23,158 +23,132 @@ Rectangle {
     color: cardPrimary
     visible: active
 
-    Column {
-        width: parent.width - 24
+    Rectangle {
+        id: titleBlock
+        width: parent.width - 28
+        anchors.top: parent.top
+        anchors.topMargin: 18
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 7
+        height: 48
+        radius: 4
+        color: Qt.rgba(menuLayer.cardSecondary.r, menuLayer.cardSecondary.g, menuLayer.cardSecondary.b, 0.84)
+        border.color: Qt.rgba(menuLayer.borderPrimary.r, menuLayer.borderPrimary.g, menuLayer.borderPrimary.b, 0.72)
+        border.width: 1
 
-        Rectangle {
-            width: parent.width
-            height: 44
-            radius: 4
-            color: Qt.rgba(menuLayer.cardSecondary.r, menuLayer.cardSecondary.g, menuLayer.cardSecondary.b, 0.88)
-            border.color: menuLayer.borderPrimary
-            border.width: 1
+        Column {
+            anchors.centerIn: parent
+            spacing: 2
 
-            Column {
-                anchors.centerIn: parent
-                spacing: 1
-                Text {
-                    text: "S N A K E"
-                    font.family: gameFont
-                    font.pixelSize: 24
-                    color: menuLayer.titleInk
-                    font.bold: true
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
-                Text {
-                    text: sessionStatus.hasSave ? "CONTINUE READY" : "NEW RUN READY"
-                    font.family: gameFont
-                    font.pixelSize: 8
-                    color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
-                    font.bold: true
-                    anchors.horizontalCenter: parent.horizontalCenter
-                }
+            Text {
+                text: "S N A K E"
+                font.family: gameFont
+                font.pixelSize: 26
+                color: menuLayer.titleInk
+                font.bold: true
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+
+            Text {
+                text: sessionStatus.hasSave ? "CONTINUE READY" : "NEW RUN READY"
+                font.family: gameFont
+                font.pixelSize: 8
+                color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.74)
+                font.bold: true
+                anchors.horizontalCenter: parent.horizontalCenter
             }
         }
+    }
+
+    Column {
+        id: centerStack
+        width: parent.width - 44
+        anchors.top: titleBlock.bottom
+        anchors.topMargin: 24
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 0
 
         Rectangle {
-            width: parent.width
-            height: 30
-            radius: 3
-            color: menuLayer.cardSecondary
-            border.color: menuLayer.borderSecondary
-            border.width: 1
-
-            Row {
-                anchors.centerIn: parent
-                spacing: 16
-                Text {
-                    text: `HI ${highScore}`
-                    font.family: gameFont
-                    font.pixelSize: 11
-                    font.bold: true
-                    color: menuLayer.secondaryInk
-                }
-                Text {
-                    text: `LEVEL ${sessionStatus.currentLevelName}`
-                    font.family: gameFont
-                    font.pixelSize: 11
-                    font.bold: true
-                    color: menuLayer.secondaryInk
-                }
-            }
-        }
-
-        Item {
-            width: parent.width
-            height: 34
-            Rectangle {
-                anchors.centerIn: parent
-                width: 170
-                height: 30
-                radius: 3
-                color: menuLayer.actionCard
-                border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.74)
-                border.width: 1
-                Text {
-                    text: sessionStatus.hasSave ? "START  CONTINUE" : "START  NEW GAME"
-                    color: menuLayer.actionInk
-                    font.family: gameFont
-                    font.pixelSize: 11
-                    font.bold: true
-                    anchors.centerIn: parent
-                    opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
-                }
-            }
-        }
-
-        Item { width: 1; height: 3 }
-
-        Rectangle {
-            width: parent.width - 12
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: 176
             height: 36
+            anchors.horizontalCenter: parent.horizontalCenter
             radius: 4
-            color: Qt.rgba(menuLayer.cardSecondary.r, menuLayer.cardSecondary.g, menuLayer.cardSecondary.b, 0.90)
-            border.color: menuLayer.borderPrimary
+            color: menuLayer.actionCard
+            border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.72)
             border.width: 1
 
-            Column {
-                anchors.fill: parent
-                anchors.margins: 6
-                spacing: 1
-                readonly property real cellWidth: (width - 10) / 2
-
-                Row {
-                    width: parent.width
-                    spacing: 10
-
-                    Text {
-                        width: parent.parent.cellWidth
-                        text: "UP MEDALS"
-                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                        font.family: gameFont
-                        font.pixelSize: 9
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                    Text {
-                        width: parent.parent.cellWidth
-                        text: "DOWN REPLAY"
-                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                        font.family: gameFont
-                        font.pixelSize: 9
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                }
-
-                Row {
-                    width: parent.width
-                    spacing: 10
-
-                    Text {
-                        width: parent.parent.cellWidth
-                        text: "LEFT CATALOG"
-                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                        font.family: gameFont
-                        font.pixelSize: 9
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                    Text {
-                        width: parent.parent.cellWidth
-                        text: "SELECT LEVEL"
-                        color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.95)
-                        font.family: gameFont
-                        font.pixelSize: 9
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                    }
-                }
+            Text {
+                text: sessionStatus.hasSave ? "START  CONTINUE" : "START  NEW GAME"
+                color: menuLayer.actionInk
+                font.family: gameFont
+                font.pixelSize: 13
+                font.bold: true
+                anchors.centerIn: parent
+                opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
             }
+        }
+    }
+
+    Column {
+        id: hintColumn
+        anchors.left: parent.left
+        anchors.leftMargin: 16
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 16
+        spacing: 1
+
+        Text {
+            text: "UP MEDALS"
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+        }
+        Text {
+            text: "DOWN REPLAY"
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+        }
+        Text {
+            text: "LEFT CATALOG"
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+        }
+        Text {
+            text: "SELECT LEVEL"
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.68)
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+        }
+    }
+
+    Column {
+        id: statusColumn
+        anchors.right: parent.right
+        anchors.rightMargin: 16
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 16
+        spacing: 1
+
+        Text {
+            anchors.right: parent.right
+            text: `HI ${highScore}`
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.64)
+        }
+        Text {
+            anchors.right: parent.right
+            text: `LEVEL ${sessionStatus.currentLevelName}`
+            font.family: gameFont
+            font.pixelSize: 8
+            font.bold: true
+            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.64)
         }
     }
 }
