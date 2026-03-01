@@ -11,12 +11,12 @@ Item {
     property var bridge: null
     property var commandController: null
     property var inputController: null
+    property Component screenContentComponent
+    readonly property Item screenItem: screenBorder.screenItem
     property real shellCornerRadius: 13
     property real shellLowerRightRadius: 72
     readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
     readonly property real lowerDeckTop: screenBorder.bottom + 28
-
-    default property alias screenContent: screenBorder.content
 
     Behavior on shellColor {
         ColorAnimation { duration: 300 }
@@ -37,6 +37,7 @@ Item {
         anchors.topMargin: 26
         anchors.horizontalCenter: parent.horizontalCenter
         theme: shell.shellTheme
+        screenContentComponent: shell.screenContentComponent
     }
 
     // --- Branding / Color Toggle ---

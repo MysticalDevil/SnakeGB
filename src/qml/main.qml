@@ -18,6 +18,8 @@ Window {
     readonly property color p2: themeViewModel.palette[2]
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
+    readonly property var themeViewModelRef: themeViewModel
+    readonly property var screenRef: shell.screenItem
     property real elapsed: 0.0
     readonly property int currentState: sessionRenderViewModel.state
     readonly property var inputAction: ({
@@ -55,7 +57,11 @@ Window {
         actionMap: window.inputAction
         iconDebugMode: uiRuntimeState.iconDebugMode
         staticDebugScene: uiRuntimeState.staticDebugScene
-        moveIconLabSelection: screen.iconLabMove
+        moveIconLabSelection: function(dx, dy) {
+            if (window.screenRef) {
+                window.screenRef.iconLabMove(dx, dy)
+            }
+        }
     }
 
     UiDebugController {
@@ -67,7 +73,11 @@ Window {
         iconDebugMode: uiRuntimeState.iconDebugMode
         staticDebugScene: uiRuntimeState.staticDebugScene
         staticDebugOptions: uiRuntimeState.staticDebugOptions
-        showOsd: screen.showOSD
+        showOsd: function(text) {
+            if (window.screenRef) {
+                window.screenRef.showOSD(text)
+            }
+        }
         inputController: uiInputController
         clearDirectionVisuals: uiInputController.clearDirectionVisuals
         stateOwner: uiRuntimeState
@@ -80,7 +90,11 @@ Window {
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
         commandController: uiCommandController
-        showOsd: screen.showOSD
+        showOsd: function(text) {
+            if (window.screenRef) {
+                window.screenRef.showOSD(text)
+            }
+        }
     }
 
     UiInputController {
@@ -92,7 +106,11 @@ Window {
         shellBridge: shellBridge
         sessionRenderViewModel: sessionRenderViewModel
         audioSettingsViewModel: audioSettingsViewModel
-        showVolumeOsd: screen.showVolumeOSD
+        showVolumeOsd: function(value) {
+            if (window.screenRef) {
+                window.screenRef.showVolumeOSD(value)
+            }
+        }
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
     }
@@ -122,21 +140,21 @@ Window {
                 shellColor: themeViewModel.shellColor
                 shellThemeName: themeViewModel.shellName
                 volume: audioSettingsViewModel.volume
-                
-                ScreenView {
-                    id: screen
-                    anchors.fill: parent
-                    commandController: uiCommandController
-                    themeViewModel: themeViewModel
-                    p0: window.p0
-                    p1: window.p1
-                    p2: window.p2
-                    p3: window.p3
-                    gameFont: window.gameFont
-                    elapsed: window.elapsed
-                    iconDebugMode: uiRuntimeState.iconDebugMode
-                    staticDebugScene: uiRuntimeState.staticDebugScene
-                    staticDebugOptions: uiRuntimeState.staticDebugOptions
+
+                screenContentComponent: Component {
+                    ScreenView {
+                        commandController: uiCommandController
+                        themeViewModel: window.themeViewModelRef
+                        p0: window.p0
+                        p1: window.p1
+                        p2: window.p2
+                        p3: window.p3
+                        gameFont: window.gameFont
+                        elapsed: window.elapsed
+                        iconDebugMode: uiRuntimeState.iconDebugMode
+                        staticDebugScene: uiRuntimeState.staticDebugScene
+                        staticDebugOptions: uiRuntimeState.staticDebugOptions
+                    }
                 }
             }
         }

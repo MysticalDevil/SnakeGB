@@ -3,7 +3,8 @@ import QtQuick
 Item {
     id: root
     property var theme
-    default property alias content: screenSlot.data
+    property Component screenContentComponent
+    readonly property Item screenItem: screenLoader.item
     property bool batteryBreathing: false
 
     width: 300
@@ -41,6 +42,12 @@ Item {
             anchors.centerIn: parent
             width: 236
             height: 212
+
+            Loader {
+                id: screenLoader
+                anchors.fill: parent
+                sourceComponent: root.screenContentComponent
+            }
         }
 
         Text {
