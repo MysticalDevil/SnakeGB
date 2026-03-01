@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QVariantList>
 
+#include "adapter/haptics/controller.h"
 #include "adapter/ui/action.h"
 #include "app_state.h"
 #include "core/replay/types.h"
@@ -388,7 +389,7 @@ private:
   int m_replayChoiceHistoryIndex = 0;
   qint64 m_sessionStartTime = 0;
   qint64 m_lastUiInteractAudioMs = 0;
-  qint64 m_lastHapticMs = 0;
+  nenoserpent::adapter::haptics::Controller m_haptics;
   QPointF m_reflectionOffset = {0.0, 0.0};
   QJSEngine m_jsEngine;
   QString m_currentScript;

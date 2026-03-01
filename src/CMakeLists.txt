@@ -11,6 +11,11 @@ add_library(nenoserpent_core
 )
 target_include_directories(nenoserpent_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(nenoserpent_core PRIVATE Qt6::Core)
+target_compile_definitions(nenoserpent_core PRIVATE
+    $<$<CONFIG:Debug>:NENOSERPENT_BUILD_DEBUG>
+    $<$<CONFIG:RelWithDebInfo>:NENOSERPENT_BUILD_DEV>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:NENOSERPENT_BUILD_RELEASE>
+)
 
 add_library(nenoserpent_fsm
     fsm/state_factory.cpp
@@ -27,6 +32,8 @@ add_library(nenoserpent_adapter
     audio/score.cpp
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
+    adapter/haptics/controller.h
+    adapter/haptics/controller.cpp
     adapter/view_models/audio.h
     adapter/view_models/audio.cpp
     adapter/view_models/theme.h
