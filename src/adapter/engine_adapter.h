@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QVariantList>
 
+#include "adapter/ui/action.h"
 #include "app_state.h"
 #include "core/replay/types.h"
 #include "core/session/core.h"
@@ -192,6 +193,7 @@ public:
 
   // --- QML API ---
   Q_INVOKABLE void dispatchUiAction(const QString& action);
+  void dispatchUiAction(const snakegb::adapter::UiAction& action);
   Q_INVOKABLE void move(int dx, int dy);
   Q_INVOKABLE void startGame() {
     restart();

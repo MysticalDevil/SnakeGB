@@ -10,8 +10,12 @@ using namespace Qt::StringLiterals;
 
 void EngineAdapter::dispatchUiAction(const QString& action) {
   const snakegb::adapter::UiAction uiAction = snakegb::adapter::parseUiAction(action);
+  dispatchUiAction(uiAction);
+}
+
+void EngineAdapter::dispatchUiAction(const snakegb::adapter::UiAction& action) {
   snakegb::adapter::dispatchUiAction(
-    uiAction,
+    action,
     {
       .onMove = [this](const int dx, const int dy) -> void { move(dx, dy); },
       .onStart = [this]() -> void { handleStart(); },
