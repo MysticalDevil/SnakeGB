@@ -119,9 +119,12 @@ if(TARGET Qt6::Sensors)
     target_compile_definitions(SnakeGB PRIVATE SNAKEGB_HAS_SENSORS)
 endif()
 
-# Keep verbose logs in Debug, silence non-critical logs in release-like builds.
+# Keep verbose logs in Debug, compact logs in RelWithDebInfo, and silence release-like builds.
 target_compile_definitions(SnakeGB PRIVATE
-    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>,$<CONFIG:RelWithDebInfo>>:
+    $<$<CONFIG:Debug>:SNAKEGB_BUILD_DEBUG>
+    $<$<CONFIG:RelWithDebInfo>:SNAKEGB_BUILD_DEV>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:SNAKEGB_BUILD_RELEASE>
+    $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:
         QT_NO_DEBUG_OUTPUT;QT_NO_INFO_OUTPUT;QT_NO_WARNING_OUTPUT>
 )
 

@@ -14,6 +14,9 @@ QtObject {
     property var screen
     property bool iconDebugMode: false
     property var actionMap: ({})
+    readonly property string logMode: typeof appLogMode === "string" ? appLogMode : "release"
+    readonly property bool logButtons: logMode === "debug" || logMode === "dev"
+    readonly property bool detailedButtonLogs: logMode === "debug"
     readonly property var directionActionByAxis: ({
         up: "NavUp",
         down: "NavDown",
@@ -55,8 +58,38 @@ QtObject {
     })
 
     function dispatchAction(action) {
+        controller.logAction("dispatch", action)
         controller.inputPressController.beforeDispatch(action)
         controller.actionRouter.route(action)
+    }
+
+    function logInput(source, message) {
+        if (!controller.logButtons) {
+            return
+        }
+        console.log(`[Input][${source}] ${message}`)
+    }
+
+    function logButton(source, name, phase, detail) {
+        if (!controller.logButtons) {
+            return
+        }
+        if (controller.detailedButtonLogs) {
+            const suffix = detail ? ` ${detail}` : ""
+            controller.logInput(source, `${name} ${phase}${suffix}`)
+            return
+        }
+        if (phase === "press" || phase === "release") {
+            const suffix = detail ? ` ${detail}` : ""
+            controller.logInput(source, `${name}${suffix}`)
+        }
+    }
+
+    function logAction(source, action) {
+        if (!controller.detailedButtonLogs) {
+            return
+        }
+        controller.logButton(source, "action", "dispatch", action)
     }
 
     function setDpadPressed(dx, dy) {
@@ -86,12 +119,14 @@ QtObject {
     function handleDirection(dx, dy) {
         const action = controller.actionForDirection(dx, dy)
         if (action !== "") {
+            controller.logButton("shell", "dpad", "press", `${dx},${dy} -> ${action}`)
             controller.commandController.dispatch(action)
         }
         controller.setDpadPressed(dx, dy)
     }
 
     function handlePrimaryAction() {
+        controller.logButton("shell", "primary", "press")
         if (controller.inputPressController.confirmSaveClear()) {
             return
         }
@@ -102,6 +137,7 @@ QtObject {
     }
 
     function handleSecondaryAction() {
+        controller.logButton("shell", "secondary", "press")
         if (controller.debugController.handleEasterInput("B")) {
             return
         }
@@ -109,6 +145,7 @@ QtObject {
     }
 
     function handleStartAction() {
+        controller.logButton("shell", "start", "dispatch")
         if (controller.iconDebugMode) {
             return
         }
@@ -116,10 +153,12 @@ QtObject {
     }
 
     function handleSelectShortAction() {
+        controller.logButton("shell", "select", "dispatch", "short")
         controller.inputPressController.triggerSelectShort()
     }
 
     function handleBackAction() {
+        controller.logButton("shell", "back", "dispatch")
         if (controller.iconDebugMode) {
             controller.debugController.exitIconLab()
             return
@@ -134,25 +173,30 @@ QtObject {
     function handleShellBridgeDirection(dx, dy) {
         const action = controller.actionForDirection(dx, dy)
         if (action !== "") {
+            controller.logButton("shell", "dpad", "press", `${dx},${dy} -> ${action}`)
             controller.dispatchAction(action)
         }
     }
 
     function handlePressedDispatch(actionKey) {
+        controller.logButton("keyboard", "key", "dispatch", actionKey)
         controller.dispatchAction(controller.actionMap[actionKey])
     }
 
     function handlePrimaryPressed() {
+        controller.logButton("keyboard", "primary", "press")
         controller.shellBridge.primaryPressed = true
         controller.dispatchAction(controller.actionMap.Primary)
     }
 
     function handleSecondaryPressed() {
+        controller.logButton("keyboard", "secondary", "press")
         controller.shellBridge.secondaryPressed = true
         controller.dispatchAction(controller.actionMap.Secondary)
     }
 
     function handleStartPressed() {
+        controller.logButton("keyboard", "start", "press")
         controller.shellBridge.startHeld = true
         controller.inputPressController.onStartPressed()
         controller.dispatchAction(controller.actionMap.Start)
@@ -162,17 +206,20 @@ QtObject {
         if (controller.inputPressController.selectKeyDown) {
             return
         }
+        controller.logButton("keyboard", "select", "press")
         controller.inputPressController.selectKeyDown = true
         controller.shellBridge.selectHeld = true
         controller.inputPressController.onSelectPressed()
     }
 
     function handleStartReleased() {
+        controller.logButton("keyboard", "start", "release")
         controller.shellBridge.startHeld = false
         controller.inputPressController.onStartReleased()
     }
 
     function handleSelectReleased() {
+        controller.logButton("keyboard", "select", "release")
         controller.inputPressController.selectKeyDown = false
         controller.shellBridge.selectHeld = false
         controller.inputPressController.onSelectReleased()
@@ -218,11 +265,13 @@ QtObject {
     }
 
     function handleShellColorToggle() {
+        controller.logButton("shell", "shell-color", "dispatch")
         controller.commandController.dispatch("feedback_ui")
         controller.commandController.dispatch("toggle_shell_color")
     }
 
     function handleVolumeRequested(value, withHaptic) {
+        controller.logButton("shell", "volume", "dispatch", `${Math.round(value * 100)}%`)
         controller.audioSettingsViewModel.volume = value
         if (controller.screen) {
             controller.screen.showVolumeOSD(value)
@@ -236,6 +285,10 @@ QtObject {
         if (event.isAutoRepeat) {
             return
         }
+        controller.logButton("keyboard",
+                             Qt.keyToString(event.key),
+                             "press",
+                             controller.detailedButtonLogs ? "raw" : "")
         controller.applyKeyAction(controller.pressedKeyActions[event.key])
     }
 
@@ -243,6 +296,10 @@ QtObject {
         if (event.isAutoRepeat) {
             return
         }
+        controller.logButton("keyboard",
+                             Qt.keyToString(event.key),
+                             "release",
+                             controller.detailedButtonLogs ? "raw" : "")
         controller.clearDirectionVisuals()
         controller.applyKeyAction(controller.releasedKeyActions[event.key])
     }

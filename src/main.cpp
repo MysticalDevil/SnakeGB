@@ -57,6 +57,12 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
   QGuiApplication app(argc, argv);
+  QString appLogMode = "release";
+#if defined(SNAKEGB_BUILD_DEBUG)
+  appLogMode = "debug";
+#elif defined(SNAKEGB_BUILD_DEV)
+  appLogMode = "dev";
+#endif
   QString uiMode = "full";
   const QStringList arguments = QCoreApplication::arguments();
   for (const QString& argument : arguments) {
@@ -75,7 +81,7 @@ auto main(int argc, char* argv[]) -> int {
   QGuiApplication::setApplicationVersion("1.4.6");
 
 #ifndef QT_NO_INFO_OUTPUT
-  qInfo().noquote() << "[BuildMode] Debug logging enabled";
+  qInfo().noquote() << "[BuildMode]" << appLogMode << "logging enabled";
 #endif
 
   EngineAdapter engineAdapter;
@@ -123,6 +129,7 @@ auto main(int argc, char* argv[]) -> int {
   engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);
   engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);
   engine.rootContext()->setContextProperty("appUiMode", uiMode);
+  engine.rootContext()->setContextProperty("appLogMode", appLogMode);
 
   using namespace Qt::StringLiterals;
   const QUrl url(u"qrc:/src/qml/main.qml"_s);

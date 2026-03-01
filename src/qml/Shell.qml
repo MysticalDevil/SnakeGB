@@ -288,9 +288,25 @@ Item {
         }
     }
 
-    Item {
+    FocusScope {
+        id: keyFocusScope
         anchors.fill: parent
         focus: true
+        activeFocusOnTab: true
+
+        Component.onCompleted: forceActiveFocus()
+        onVisibleChanged: {
+            if (visible) {
+                forceActiveFocus()
+            }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton
+            hoverEnabled: true
+            onPressed: keyFocusScope.forceActiveFocus()
+        }
 
         Keys.onPressed: (event) => {
             if (shell.inputController) {
