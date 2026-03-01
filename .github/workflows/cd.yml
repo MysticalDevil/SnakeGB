@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Setup CMake 4.x
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
 
       - name: Install System Dependencies
         run: |
@@ -41,12 +45,10 @@ jobs:
 
       - name: Configure Release
         run: |
-          cmake -S . -B build/release -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cmake --preset release
 
       - name: Build Release
-        run: cmake --build build/release --parallel $(nproc)
+        run: cmake --build --preset release
 
       - name: Package Linux (AppImage placeholder)
         run: |

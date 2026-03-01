@@ -9,11 +9,14 @@ on:
 
 jobs:
   build:
-    # Use 24.04 for better C++23 support
     runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v4
+    - name: Setup CMake 4.x
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: "4.1.0"
 
     - name: Install System Dependencies
       run: |
@@ -48,14 +51,12 @@ jobs:
       run: |
         export CC=gcc
         export CXX=g++
-        cmake -S . -B build/debug -G Ninja \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        cmake --preset debug
 
     - name: Build
-      run: cmake --build build/debug --parallel $(nproc)
+      run: cmake --build --preset debug
 
     - name: Run Tests
       run: |
         export QT_QPA_PLATFORM=offscreen
-        cd build/debug && xvfb-run ctest --output-on-failure
+        xvfb-run ctest --preset debug --output-on-failure
