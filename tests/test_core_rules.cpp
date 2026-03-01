@@ -80,8 +80,8 @@ public:
   [[nodiscard]] auto hasReplay() const -> bool override {
     return !inputFrames.isEmpty();
   }
-  auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig&)
-    -> snakegb::core::SessionAdvanceResult override {
+  auto advanceSessionStep(const nenoserpent::core::SessionAdvanceConfig&)
+    -> nenoserpent::core::SessionAdvanceResult override {
     return {};
   }
   void restart() override {
@@ -102,7 +102,7 @@ public:
   }
   void triggerHaptic(int) override {
   }
-  void emitAudioEvent(snakegb::audio::Event, float) override {
+  void emitAudioEvent(nenoserpent::audio::Event, float) override {
   }
   void updatePersistence() override {
   }
@@ -150,7 +150,7 @@ public:
 
 void TestCoreRules::testCollectFreeSpotsRespectsPredicate() {
   const QList<QPoint> freeSpots =
-    snakegb::core::collectFreeSpots(3, 2, [](const QPoint& point) -> bool {
+    nenoserpent::core::collectFreeSpots(3, 2, [](const QPoint& point) -> bool {
       return point == QPoint(0, 0) || point == QPoint(2, 1);
     });
 
@@ -161,7 +161,7 @@ void TestCoreRules::testCollectFreeSpotsRespectsPredicate() {
 
 void TestCoreRules::testPickRandomFreeSpotUsesProvidedIndexAndHandlesEdgeCases() {
   QPoint picked;
-  const bool ok = snakegb::core::pickRandomFreeSpot(
+  const bool ok = nenoserpent::core::pickRandomFreeSpot(
     3,
     2,
     [](const QPoint& point) -> bool { return point == QPoint(0, 0) || point == QPoint(2, 1); },
@@ -175,18 +175,18 @@ void TestCoreRules::testPickRandomFreeSpotUsesProvidedIndexAndHandlesEdgeCases()
   QVERIFY(ok);
   QCOMPARE(picked, QPoint(1, 1));
 
-  const bool badIndex = snakegb::core::pickRandomFreeSpot(
+  const bool badIndex = nenoserpent::core::pickRandomFreeSpot(
     2, 1, [](const QPoint&) -> bool { return false; }, [](int) -> int { return 99; }, picked);
   QVERIFY(!badIndex);
 
-  const bool noFreeSpot = snakegb::core::pickRandomFreeSpot(
+  const bool noFreeSpot = nenoserpent::core::pickRandomFreeSpot(
     2, 2, [](const QPoint&) -> bool { return true; }, [](int) -> int { return 0; }, picked);
   QVERIFY(!noFreeSpot);
 }
 
 void TestCoreRules::testMagnetCandidateSpotsPrioritizesXAxisWhenDistanceIsGreater() {
   const QList<QPoint> candidates =
-    snakegb::core::magnetCandidateSpots(QPoint(1, 1), QPoint(9, 2), 20, 20);
+    nenoserpent::core::magnetCandidateSpots(QPoint(1, 1), QPoint(9, 2), 20, 20);
   QVERIFY(!candidates.isEmpty());
   QCOMPARE(candidates.first(), QPoint(2, 1));
 }
@@ -195,14 +195,14 @@ void TestCoreRules::testProbeCollisionRespectsGhostFlag() {
   const QList<QPoint> obstacles{QPoint(3, 3)};
   const std::deque<QPoint> snakeBody{QPoint(5, 5), QPoint(4, 5)};
 
-  const snakegb::core::CollisionProbe obstacleHit =
-    snakegb::core::probeCollision(QPoint(3, 3), obstacles, snakeBody, false);
+  const nenoserpent::core::CollisionProbe obstacleHit =
+    nenoserpent::core::probeCollision(QPoint(3, 3), obstacles, snakeBody, false);
   QVERIFY(obstacleHit.hitsObstacle);
   QCOMPARE(obstacleHit.obstacleIndex, 0);
   QVERIFY(!obstacleHit.hitsBody);
 
-  const snakegb::core::CollisionProbe ghostBodyProbe =
-    snakegb::core::probeCollision(QPoint(4, 5), obstacles, snakeBody, true);
+  const nenoserpent::core::CollisionProbe ghostBodyProbe =
+    nenoserpent::core::probeCollision(QPoint(4, 5), obstacles, snakeBody, true);
   QVERIFY(!ghostBodyProbe.hitsBody);
 }
 
@@ -210,38 +210,38 @@ void TestCoreRules::testCollisionOutcomeMatchesPortalLaserAndShieldSemantics() {
   const QList<QPoint> obstacles{QPoint(3, 3)};
   const std::deque<QPoint> snakeBody{QPoint(5, 5), QPoint(4, 5)};
 
-  const snakegb::core::CollisionOutcome portalOutcome = snakegb::core::collisionOutcomeForHead(
+  const nenoserpent::core::CollisionOutcome portalOutcome = nenoserpent::core::collisionOutcomeForHead(
     QPoint(3, 3), 20, 20, obstacles, snakeBody, false, true, false, false);
   QVERIFY(!portalOutcome.collision);
   QVERIFY(!portalOutcome.consumeLaser);
   QVERIFY(!portalOutcome.consumeShield);
 
-  const snakegb::core::CollisionOutcome laserOutcome = snakegb::core::collisionOutcomeForHead(
+  const nenoserpent::core::CollisionOutcome laserOutcome = nenoserpent::core::collisionOutcomeForHead(
     QPoint(3, 3), 20, 20, obstacles, snakeBody, false, false, true, false);
   QVERIFY(!laserOutcome.collision);
   QVERIFY(laserOutcome.consumeLaser);
   QCOMPARE(laserOutcome.obstacleIndex, 0);
 
-  const snakegb::core::CollisionOutcome shieldOutcome = snakegb::core::collisionOutcomeForHead(
+  const nenoserpent::core::CollisionOutcome shieldOutcome = nenoserpent::core::collisionOutcomeForHead(
     QPoint(4, 5), 20, 20, obstacles, snakeBody, false, false, false, true);
   QVERIFY(!shieldOutcome.collision);
   QVERIFY(shieldOutcome.consumeShield);
   QVERIFY(!shieldOutcome.consumeLaser);
 
-  const snakegb::core::CollisionOutcome crashOutcome = snakegb::core::collisionOutcomeForHead(
+  const nenoserpent::core::CollisionOutcome crashOutcome = nenoserpent::core::collisionOutcomeForHead(
     QPoint(4, 5), 20, 20, obstacles, snakeBody, false, false, false, false);
   QVERIFY(crashOutcome.collision);
 }
 
 void TestCoreRules::testTickIntervalForScoreUsesSpeedFloor() {
-  QCOMPARE(snakegb::core::tickIntervalForScore(0), 200);
-  QCOMPARE(snakegb::core::tickIntervalForScore(25), 160);
-  QCOMPARE(snakegb::core::tickIntervalForScore(200), 60);
+  QCOMPARE(nenoserpent::core::tickIntervalForScore(0), 200);
+  QCOMPARE(nenoserpent::core::tickIntervalForScore(25), 160);
+  QCOMPARE(nenoserpent::core::tickIntervalForScore(200), 60);
 }
 
 void TestCoreRules::testPickRoguelikeChoicesIsBoundedAndDeterministic() {
-  const QList<snakegb::core::ChoiceSpec> pickA = snakegb::core::pickRoguelikeChoices(1234U, 3);
-  const QList<snakegb::core::ChoiceSpec> pickB = snakegb::core::pickRoguelikeChoices(1234U, 3);
+  const QList<nenoserpent::core::ChoiceSpec> pickA = nenoserpent::core::pickRoguelikeChoices(1234U, 3);
+  const QList<nenoserpent::core::ChoiceSpec> pickB = nenoserpent::core::pickRoguelikeChoices(1234U, 3);
   QCOMPARE(pickA.size(), 3);
   QCOMPARE(pickA.size(), pickB.size());
   for (int i = 0; i < pickA.size(); ++i) {
@@ -249,32 +249,32 @@ void TestCoreRules::testPickRoguelikeChoicesIsBoundedAndDeterministic() {
     QCOMPARE(pickA[i].name, pickB[i].name);
   }
 
-  const QList<snakegb::core::ChoiceSpec> bounded = snakegb::core::pickRoguelikeChoices(99U, 99);
+  const QList<nenoserpent::core::ChoiceSpec> bounded = nenoserpent::core::pickRoguelikeChoices(99U, 99);
   QCOMPARE(bounded.size(), 9);
 }
 
 void TestCoreRules::testDynamicLevelFallbackProducesObstacles() {
-  const auto dynamicPulse = snakegb::core::dynamicObstaclesForLevel(u"Dynamic Pulse", 10);
+  const auto dynamicPulse = nenoserpent::core::dynamicObstaclesForLevel(u"Dynamic Pulse", 10);
   QVERIFY(dynamicPulse.has_value());
   QVERIFY(!dynamicPulse->isEmpty());
 
-  const auto dynamicPulseSoon = snakegb::core::dynamicObstaclesForLevel(u"Dynamic Pulse", 11);
+  const auto dynamicPulseSoon = nenoserpent::core::dynamicObstaclesForLevel(u"Dynamic Pulse", 11);
   QVERIFY(dynamicPulseSoon.has_value());
   QCOMPARE(dynamicPulse.value(), dynamicPulseSoon.value());
 
-  const auto crossfire = snakegb::core::dynamicObstaclesForLevel(u"Crossfire", 20);
-  const auto crossfireSoon = snakegb::core::dynamicObstaclesForLevel(u"Crossfire", 21);
+  const auto crossfire = nenoserpent::core::dynamicObstaclesForLevel(u"Crossfire", 20);
+  const auto crossfireSoon = nenoserpent::core::dynamicObstaclesForLevel(u"Crossfire", 21);
   QVERIFY(crossfire.has_value());
   QVERIFY(crossfireSoon.has_value());
   QCOMPARE(crossfire.value(), crossfireSoon.value());
 
-  const auto shiftingBox = snakegb::core::dynamicObstaclesForLevel(u"Shifting Box", 28);
-  const auto shiftingBoxSoon = snakegb::core::dynamicObstaclesForLevel(u"Shifting Box", 29);
+  const auto shiftingBox = nenoserpent::core::dynamicObstaclesForLevel(u"Shifting Box", 28);
+  const auto shiftingBoxSoon = nenoserpent::core::dynamicObstaclesForLevel(u"Shifting Box", 29);
   QVERIFY(shiftingBox.has_value());
   QVERIFY(shiftingBoxSoon.has_value());
   QCOMPARE(shiftingBox.value(), shiftingBoxSoon.value());
 
-  const auto unknown = snakegb::core::dynamicObstaclesForLevel(u"Classic", 10);
+  const auto unknown = nenoserpent::core::dynamicObstaclesForLevel(u"Classic", 10);
   QVERIFY(!unknown.has_value());
 }
 
@@ -283,7 +283,7 @@ void TestCoreRules::testWallsFromJsonArrayParsesCoordinates() {
   wallsJson.append(QJsonObject{{"x", 1}, {"y", 2}});
   wallsJson.append(QJsonObject{{"x", 8}, {"y", 9}});
 
-  const QList<QPoint> walls = snakegb::core::wallsFromJsonArray(wallsJson);
+  const QList<QPoint> walls = nenoserpent::core::wallsFromJsonArray(wallsJson);
   QCOMPARE(walls.size(), 2);
   QCOMPARE(walls[0], QPoint(1, 2));
   QCOMPARE(walls[1], QPoint(8, 9));
@@ -297,13 +297,13 @@ void TestCoreRules::testResolvedLevelDataFromJsonMapsIndexAndFields() {
     {"script", ""},
     {"walls", QJsonArray{QJsonObject{{"x", 3}, {"y", 4}}, QJsonObject{{"x", 5}, {"y", 6}}}}});
 
-  const auto resolvedScript = snakegb::core::resolvedLevelDataFromJson(levels, 0);
+  const auto resolvedScript = nenoserpent::core::resolvedLevelDataFromJson(levels, 0);
   QVERIFY(resolvedScript.has_value());
   QCOMPARE(resolvedScript->name, QString("L0"));
   QVERIFY(!resolvedScript->script.isEmpty());
   QVERIFY(resolvedScript->walls.isEmpty());
 
-  const auto resolvedWalls = snakegb::core::resolvedLevelDataFromJson(levels, 3);
+  const auto resolvedWalls = nenoserpent::core::resolvedLevelDataFromJson(levels, 3);
   QVERIFY(resolvedWalls.has_value());
   QCOMPARE(resolvedWalls->name, QString("L1"));
   QVERIFY(resolvedWalls->script.isEmpty());
@@ -311,7 +311,7 @@ void TestCoreRules::testResolvedLevelDataFromJsonMapsIndexAndFields() {
   QCOMPARE(resolvedWalls->walls[0], QPoint(3, 4));
   QCOMPARE(resolvedWalls->walls[1], QPoint(5, 6));
 
-  const auto empty = snakegb::core::resolvedLevelDataFromJson(QJsonArray{}, 0);
+  const auto empty = nenoserpent::core::resolvedLevelDataFromJson(QJsonArray{}, 0);
   QVERIFY(!empty.has_value());
 }
 
@@ -320,14 +320,14 @@ void TestCoreRules::testResolvedLevelDataFromJsonBytesParsesDocumentEnvelope() {
                           {"script", ""},
                           {"walls", QJsonArray{QJsonObject{{"x", 11}, {"y", 12}}}}};
   const QJsonDocument document(QJsonObject{{"levels", QJsonArray{level}}});
-  const auto resolved = snakegb::core::resolvedLevelDataFromJsonBytes(document.toJson(), 0);
+  const auto resolved = nenoserpent::core::resolvedLevelDataFromJsonBytes(document.toJson(), 0);
   QVERIFY(resolved.has_value());
   QCOMPARE(resolved->name, QString("BytesLevel"));
   QCOMPARE(resolved->walls.size(), 1);
   QCOMPARE(resolved->walls.first(), QPoint(11, 12));
 
   const auto invalid =
-    snakegb::core::resolvedLevelDataFromJsonBytes(QByteArrayLiteral("not-json"), 0);
+    nenoserpent::core::resolvedLevelDataFromJsonBytes(QByteArrayLiteral("not-json"), 0);
   QVERIFY(!invalid.has_value());
 }
 
@@ -336,43 +336,43 @@ void TestCoreRules::testLevelCountFromJsonBytesUsesFallbackOnInvalidData() {
                                          QJsonArray{QJsonObject{{"name", "A"}},
                                                     QJsonObject{{"name", "B"}},
                                                     QJsonObject{{"name", "C"}}}}});
-  QCOMPARE(snakegb::core::levelCountFromJsonBytes(valid.toJson(), 6), 3);
-  QCOMPARE(snakegb::core::levelCountFromJsonBytes(QByteArrayLiteral("x"), 6), 6);
-  QCOMPARE(snakegb::core::levelCountFromJsonBytes(QJsonDocument(QJsonObject{}).toJson(), 6), 6);
+  QCOMPARE(nenoserpent::core::levelCountFromJsonBytes(valid.toJson(), 6), 3);
+  QCOMPARE(nenoserpent::core::levelCountFromJsonBytes(QByteArrayLiteral("x"), 6), 6);
+  QCOMPARE(nenoserpent::core::levelCountFromJsonBytes(QJsonDocument(QJsonObject{}).toJson(), 6), 6);
 }
 
 void TestCoreRules::testBuffRuntimeRules() {
-  QCOMPARE(snakegb::core::foodPointsForBuff(snakegb::core::BuffId::None), 1);
-  QCOMPARE(snakegb::core::foodPointsForBuff(snakegb::core::BuffId::Double), 2);
-  QCOMPARE(snakegb::core::foodPointsForBuff(snakegb::core::BuffId::Rich), 3);
+  QCOMPARE(nenoserpent::core::foodPointsForBuff(nenoserpent::core::BuffId::None), 1);
+  QCOMPARE(nenoserpent::core::foodPointsForBuff(nenoserpent::core::BuffId::Double), 2);
+  QCOMPARE(nenoserpent::core::foodPointsForBuff(nenoserpent::core::BuffId::Rich), 3);
 
-  QCOMPARE(snakegb::core::buffDurationTicks(snakegb::core::BuffId::Rich, 40), 20);
-  QCOMPARE(snakegb::core::buffDurationTicks(snakegb::core::BuffId::Ghost, 40), 40);
+  QCOMPARE(nenoserpent::core::buffDurationTicks(nenoserpent::core::BuffId::Rich, 40), 20);
+  QCOMPARE(nenoserpent::core::buffDurationTicks(nenoserpent::core::BuffId::Ghost, 40), 40);
 
-  QCOMPARE(snakegb::core::miniShrinkTargetLength(10), 5);
-  QCOMPARE(snakegb::core::miniShrinkTargetLength(5), 3);
-  QCOMPARE(snakegb::core::miniShrinkTargetLength(2), 3);
+  QCOMPARE(nenoserpent::core::miniShrinkTargetLength(10), 5);
+  QCOMPARE(nenoserpent::core::miniShrinkTargetLength(5), 3);
+  QCOMPARE(nenoserpent::core::miniShrinkTargetLength(2), 3);
 }
 
 void TestCoreRules::testTickBuffCountdown() {
   int ticks = 0;
-  QVERIFY(!snakegb::core::tickBuffCountdown(ticks));
+  QVERIFY(!nenoserpent::core::tickBuffCountdown(ticks));
   QCOMPARE(ticks, 0);
 
   ticks = 2;
-  QVERIFY(!snakegb::core::tickBuffCountdown(ticks));
+  QVERIFY(!nenoserpent::core::tickBuffCountdown(ticks));
   QCOMPARE(ticks, 1);
-  QVERIFY(snakegb::core::tickBuffCountdown(ticks));
+  QVERIFY(nenoserpent::core::tickBuffCountdown(ticks));
   QCOMPARE(ticks, 0);
 }
 
 void TestCoreRules::testWeightedRandomBuffIdUsesWeightsAndFallback() {
-  QCOMPARE(snakegb::core::weightedRandomBuffId([](int) -> int { return 0; }),
-           snakegb::core::BuffId::Ghost);
-  QCOMPARE(snakegb::core::weightedRandomBuffId([](int) -> int { return 22; }),
-           snakegb::core::BuffId::Mini);
-  QCOMPARE(snakegb::core::weightedRandomBuffId([](int) -> int { return 99; }),
-           snakegb::core::BuffId::Ghost);
+  QCOMPARE(nenoserpent::core::weightedRandomBuffId([](int) -> int { return 0; }),
+           nenoserpent::core::BuffId::Ghost);
+  QCOMPARE(nenoserpent::core::weightedRandomBuffId([](int) -> int { return 22; }),
+           nenoserpent::core::BuffId::Mini);
+  QCOMPARE(nenoserpent::core::weightedRandomBuffId([](int) -> int { return 99; }),
+           nenoserpent::core::BuffId::Ghost);
 }
 
 void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
@@ -384,7 +384,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   int choiceIndex = 0;
 
   engine.tick = 0;
-  snakegb::core::applyReplayInputsForTick(
+  nenoserpent::core::applyReplayInputsForTick(
     engine.inputFrames, engine.tick, inputIndex, [&engine](const QPoint& direction) {
       engine.setDirection(direction);
     });
@@ -392,7 +392,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(inputIndex, 0);
 
   engine.tick = 1;
-  snakegb::core::applyReplayInputsForTick(
+  nenoserpent::core::applyReplayInputsForTick(
     engine.inputFrames, engine.tick, inputIndex, [&engine](const QPoint& direction) {
       engine.setDirection(direction);
     });
@@ -401,7 +401,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(inputIndex, 1);
 
   engine.tick = 3;
-  snakegb::core::applyReplayInputsForTick(
+  nenoserpent::core::applyReplayInputsForTick(
     engine.inputFrames, engine.tick, inputIndex, [&engine](const QPoint& direction) {
       engine.setDirection(direction);
     });
@@ -410,7 +410,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(inputIndex, 3);
 
   engine.tick = 7;
-  snakegb::core::applyReplayInputsForTick(
+  nenoserpent::core::applyReplayInputsForTick(
     engine.inputFrames, engine.tick, inputIndex, [&engine](const QPoint& direction) {
       engine.setDirection(direction);
     });
@@ -418,7 +418,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(inputIndex, 4);
 
   engine.tick = 2;
-  snakegb::core::applyReplayChoiceForTick(
+  nenoserpent::core::applyReplayChoiceForTick(
     engine.choiceFrames, engine.tick, choiceIndex, [&engine](const int index) {
       engine.selectChoice(index);
     });
@@ -426,7 +426,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(engine.selectedChoices.first(), 4);
   QCOMPARE(choiceIndex, 1);
 
-  snakegb::core::applyReplayChoiceForTick(
+  nenoserpent::core::applyReplayChoiceForTick(
     engine.choiceFrames, engine.tick, choiceIndex, [&engine](const int index) {
       engine.selectChoice(index);
     });
@@ -435,7 +435,7 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(choiceIndex, 2);
 
   engine.tick = 4;
-  snakegb::core::applyReplayChoiceForTick(
+  nenoserpent::core::applyReplayChoiceForTick(
     engine.choiceFrames, engine.tick, choiceIndex, [&engine](const int index) {
       engine.selectChoice(index);
     });

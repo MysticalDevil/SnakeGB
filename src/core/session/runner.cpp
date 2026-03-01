@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 namespace {
 constexpr int ChoiceBuffDurationTicks = 80;
@@ -194,4 +194,4 @@ void SessionRunner::applyConsumptionEffects(const SessionAdvanceResult& result,
   }
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

@@ -7,7 +7,7 @@
 
 #include "core/replay/types.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 struct GhostSnapshot {
   QList<QPoint> recording;
@@ -24,4 +24,4 @@ struct GhostSnapshot {
 [[nodiscard]] auto loadGhostSnapshot(GhostSnapshot& snapshot) -> bool;
 [[nodiscard]] auto saveGhostSnapshot(const GhostSnapshot& snapshot) -> bool;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

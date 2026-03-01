@@ -10,7 +10,7 @@
 #include "core/game/rules.h"
 #include "core/session/state.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct FoodConsumptionResult {
   bool ate = false;
@@ -84,4 +84,4 @@ auto applyMagnetAttraction(const QPoint& head,
                            const std::function<bool(const QPoint&)>& isOccupied)
   -> MagnetAttractionResult;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

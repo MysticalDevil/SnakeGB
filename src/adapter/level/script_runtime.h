@@ -5,7 +5,7 @@
 #include <QPoint>
 #include <QStringView>
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 [[nodiscard]] auto
 tryApplyOnTickScript(QJSEngine& engine, int gameTickCounter, QList<QPoint>& obstacles) -> bool;
@@ -17,4 +17,4 @@ tryApplyOnTickScript(QJSEngine& engine, int gameTickCounter, QList<QPoint>& obst
                                         int gameTickCounter,
                                         QList<QPoint>& obstacles) -> bool;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

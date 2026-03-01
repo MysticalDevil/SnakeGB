@@ -1,4 +1,4 @@
-add_library(snakegb_core
+add_library(nenoserpent_core
     core/game/rules.cpp
     core/buff/runtime.cpp
     core/session/core.cpp
@@ -9,17 +9,17 @@ add_library(snakegb_core
     core/achievement/rules.cpp
     core/choice/runtime.cpp
 )
-target_include_directories(snakegb_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(snakegb_core PRIVATE Qt6::Core)
+target_include_directories(nenoserpent_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(nenoserpent_core PRIVATE Qt6::Core)
 
-add_library(snakegb_fsm
+add_library(nenoserpent_fsm
     fsm/state_factory.cpp
     fsm/states.cpp
 )
-target_include_directories(snakegb_fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(snakegb_fsm PRIVATE snakegb_core Qt6::Core)
+target_include_directories(nenoserpent_fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(nenoserpent_fsm PRIVATE nenoserpent_core Qt6::Core)
 
-add_library(snakegb_adapter
+add_library(nenoserpent_adapter
     app_state.h
     audio/cue.h
     audio/event.h
@@ -72,20 +72,20 @@ add_library(snakegb_adapter
     profile_manager.cpp
     profile_manager.h
 )
-target_include_directories(snakegb_adapter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(snakegb_adapter PRIVATE snakegb_fsm snakegb_core
+target_include_directories(nenoserpent_adapter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(nenoserpent_adapter PRIVATE nenoserpent_fsm nenoserpent_core
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
     Qt6::Quick
 )
-qt_add_resources(snakegb_adapter "audio_score_res"
+qt_add_resources(nenoserpent_adapter "audio_score_res"
     PREFIX "/"
     FILES
         "audio/score_catalog.json"
 )
 
-add_executable(SnakeGB
+add_executable(NenoSerpent
     main.cpp
     power_up_id.h
     input_injection_pipe.cpp
@@ -93,13 +93,13 @@ add_executable(SnakeGB
     sound_manager.cpp
     sound_manager.h
 )
-target_link_libraries(SnakeGB PRIVATE snakegb_adapter)
+target_link_libraries(NenoSerpent PRIVATE nenoserpent_adapter)
 
 if(TARGET Qt6::Multimedia)
-    target_link_libraries(snakegb_adapter PRIVATE Qt6::Multimedia)
-    target_compile_definitions(snakegb_adapter PRIVATE SNAKEGB_HAS_MULTIMEDIA)
+    target_link_libraries(nenoserpent_adapter PRIVATE Qt6::Multimedia)
+    target_compile_definitions(nenoserpent_adapter PRIVATE NENOSERPENT_HAS_MULTIMEDIA)
 endif()
 if(TARGET Qt6::Sensors)
-    target_link_libraries(snakegb_adapter PRIVATE Qt6::Sensors)
-    target_compile_definitions(snakegb_adapter PRIVATE SNAKEGB_HAS_SENSORS)
+    target_link_libraries(nenoserpent_adapter PRIVATE Qt6::Sensors)
+    target_compile_definitions(nenoserpent_adapter PRIVATE NENOSERPENT_HAS_SENSORS)
 endif()

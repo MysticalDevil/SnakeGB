@@ -1,6 +1,6 @@
 #include "core/achievement/rules.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 auto unlockedAchievementTitles(int score, int tickIntervalMs, bool timerActive) -> QStringList {
   QStringList unlocked;
@@ -13,4 +13,4 @@ auto unlockedAchievementTitles(int score, int tickIntervalMs, bool timerActive) 
   return unlocked;
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

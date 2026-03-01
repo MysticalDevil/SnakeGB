@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import SnakeGB 1.0
+import NenoSerpent 1.0
 
 Window {
     id: window
@@ -17,7 +17,7 @@ Window {
     width: screenOnlyUiMode ? Math.round(screenBaseWidth * screenOnlyScale) : shellBaseWidth
     height: screenOnlyUiMode ? Math.round(screenBaseHeight * screenOnlyScale) : shellBaseHeight
     visible: true
-    title: qsTr("Snake GB Edition")
+    title: qsTr("NenoSerpent")
     color: "#1a1a1a"
 
     readonly property color p0: themeViewModel.palette[0]

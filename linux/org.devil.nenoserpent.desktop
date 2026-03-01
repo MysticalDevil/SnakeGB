@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=SnakeGB
+Name=NenoSerpent
 GenericName=Retro Snake Game
 Comment=Snake game in a Game Boy style shell
-Exec=SnakeGB
-Icon=snakegb
+Exec=NenoSerpent
+Icon=nenoserpent
 Terminal=false
 Categories=Game;ArcadeGame;Qt;
 Keywords=snake;gameboy;retro;arcade;

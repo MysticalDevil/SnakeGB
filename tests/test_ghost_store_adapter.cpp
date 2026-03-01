@@ -18,19 +18,19 @@ private slots:
 void TestGhostStoreAdapter::testSaveAndLoadRoundTrip() {
   QTemporaryDir temporaryDir;
   QVERIFY(temporaryDir.isValid());
-  const QString filePath = snakegb::adapter::ghostFilePathForDirectory(temporaryDir.path());
+  const QString filePath = nenoserpent::adapter::ghostFilePathForDirectory(temporaryDir.path());
 
-  const snakegb::adapter::GhostSnapshot input{
+  const nenoserpent::adapter::GhostSnapshot input{
     .recording = {QPoint(1, 2), QPoint(3, 4)},
     .randomSeed = 42U,
     .inputHistory = {{.frame = 2, .dx = 1, .dy = 0}, {.frame = 5, .dx = 0, .dy = -1}},
     .levelIndex = 3,
     .choiceHistory = {{.frame = 8, .index = 1}},
   };
-  QVERIFY(snakegb::adapter::saveGhostSnapshotToFile(filePath, input));
+  QVERIFY(nenoserpent::adapter::saveGhostSnapshotToFile(filePath, input));
 
-  snakegb::adapter::GhostSnapshot output;
-  QVERIFY(snakegb::adapter::loadGhostSnapshotFromFile(filePath, output));
+  nenoserpent::adapter::GhostSnapshot output;
+  QVERIFY(nenoserpent::adapter::loadGhostSnapshotFromFile(filePath, output));
   QCOMPARE(output.recording, input.recording);
   QCOMPARE(output.randomSeed, input.randomSeed);
   QCOMPARE(output.inputHistory.size(), input.inputHistory.size());
@@ -43,7 +43,7 @@ void TestGhostStoreAdapter::testSaveAndLoadRoundTrip() {
 void TestGhostStoreAdapter::testLoadLegacyV2WithoutChoiceHistory() {
   QTemporaryDir temporaryDir;
   QVERIFY(temporaryDir.isValid());
-  const QString filePath = snakegb::adapter::ghostFilePathForDirectory(temporaryDir.path());
+  const QString filePath = nenoserpent::adapter::ghostFilePathForDirectory(temporaryDir.path());
 
   QFile file(filePath);
   QVERIFY(file.open(QIODevice::WriteOnly));
@@ -56,8 +56,8 @@ void TestGhostStoreAdapter::testLoadLegacyV2WithoutChoiceHistory() {
   out << legacyMagic << recording << randomSeed << inputHistory << levelIndex;
   file.close();
 
-  snakegb::adapter::GhostSnapshot output;
-  QVERIFY(snakegb::adapter::loadGhostSnapshotFromFile(filePath, output));
+  nenoserpent::adapter::GhostSnapshot output;
+  QVERIFY(nenoserpent::adapter::loadGhostSnapshotFromFile(filePath, output));
   QCOMPARE(output.recording, recording);
   QCOMPARE(output.randomSeed, randomSeed);
   QCOMPARE(output.inputHistory.size(), 1);

@@ -3,7 +3,7 @@
 #include <QList>
 #include <QString>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct ChoiceSpec {
   int type = 0;
@@ -13,4 +13,4 @@ struct ChoiceSpec {
 
 [[nodiscard]] auto pickRoguelikeChoices(uint seed, int count = 3) -> QList<ChoiceSpec>;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

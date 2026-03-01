@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <functional>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 enum class BuffId : int {
   None = 0,
@@ -25,4 +25,4 @@ auto miniShrinkTargetLength(std::size_t currentLength, std::size_t minimumLength
 auto weightedRandomBuffId(const std::function<int(int)>& pickBounded) -> BuffId;
 auto tickBuffCountdown(int& remainingTicks) -> bool;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

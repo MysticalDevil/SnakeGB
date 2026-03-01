@@ -3,22 +3,22 @@
 #include "adapter/profile/bridge.h"
 #include "core/achievement/rules.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto unlockAchievements(ProfileManager* profile,
                         const int score,
                         const int tickIntervalMs,
                         const bool timerActive) -> QStringList {
   const QStringList unlockedTitles =
-    snakegb::core::unlockedAchievementTitles(score, tickIntervalMs, timerActive);
+    nenoserpent::core::unlockedAchievementTitles(score, tickIntervalMs, timerActive);
   QStringList newlyUnlocked;
   newlyUnlocked.reserve(unlockedTitles.size());
   for (const QString& title : unlockedTitles) {
-    if (snakegb::adapter::unlockMedal(profile, title)) {
+    if (nenoserpent::adapter::unlockMedal(profile, title)) {
       newlyUnlocked.append(title);
     }
   }
   return newlyUnlocked;
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

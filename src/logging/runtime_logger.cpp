@@ -9,21 +9,21 @@ RuntimeLogger::RuntimeLogger(QObject* parent)
 }
 
 void RuntimeLogger::inputSummary(const QString& message) {
-  qCInfo(snakegbInputLog).noquote() << message;
+  qCInfo(nenoserpentInputLog).noquote() << message;
 }
 
 void RuntimeLogger::inputDebug(const QString& message) {
-  qCDebug(snakegbInputLog).noquote() << message;
+  qCDebug(nenoserpentInputLog).noquote() << message;
 }
 
 void RuntimeLogger::routingSummary(const QString& message) {
-  qCInfo(snakegbInputLog).noquote() << message;
+  qCInfo(nenoserpentInputLog).noquote() << message;
 }
 
 void RuntimeLogger::routingDebug(const QString& message) {
-  qCDebug(snakegbInputLog).noquote() << message;
+  qCDebug(nenoserpentInputLog).noquote() << message;
 }
 
 void RuntimeLogger::injectWarning(const QString& message) {
-  qCWarning(snakegbInjectLog).noquote() << message;
+  qCWarning(nenoserpentInjectLog).noquote() << message;
 }

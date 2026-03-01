@@ -1,6 +1,6 @@
 #include "core/replay/timeline.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 void applyReplayInputsForTick(const QList<ReplayFrame>& inputFrames,
                               const int currentTick,
@@ -37,4 +37,4 @@ void applyReplayChoiceForTick(const QList<ChoiceRecord>& choiceFrames,
   }
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

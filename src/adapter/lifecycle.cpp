@@ -11,7 +11,7 @@ constexpr int InitialInterval = 200;
 
 void EngineAdapter::restart() {
   resetTransientRuntimeState();
-  m_sessionCore.applyMetaAction(snakegb::core::MetaAction::resetReplayRuntime());
+  m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::resetReplayRuntime());
   resetReplayRuntimeTracking();
 
   m_randomSeed = static_cast<uint>(QDateTime::currentMSecsSinceEpoch());
@@ -19,7 +19,7 @@ void EngineAdapter::restart() {
 
   loadLevelData(m_levelIndex);
   m_sessionCore.applyMetaAction(
-    snakegb::core::MetaAction::bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
+    nenoserpent::core::MetaAction::bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
   syncSnakeModelFromCore();
   clearSavedState();
 
@@ -40,12 +40,12 @@ void EngineAdapter::startReplay() {
   }
 
   resetTransientRuntimeState();
-  m_sessionCore.applyMetaAction(snakegb::core::MetaAction::resetReplayRuntime());
+  m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::resetReplayRuntime());
   resetReplayRuntimeTracking();
 
   loadLevelData(m_bestLevelIndex);
   m_sessionCore.applyMetaAction(
-    snakegb::core::MetaAction::bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
+    nenoserpent::core::MetaAction::bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
   syncSnakeModelFromCore();
   m_rng.seed(m_bestRandomSeed);
   m_timer->setInterval(InitialInterval);
@@ -55,7 +55,7 @@ void EngineAdapter::startReplay() {
   emit scoreChanged();
   emit foodChanged();
   emit ghostChanged();
-  if (auto nextState = snakegb::fsm::createStateFor(*this, AppState::Replaying); nextState) {
+  if (auto nextState = nenoserpent::fsm::createStateFor(*this, AppState::Replaying); nextState) {
     changeState(std::move(nextState));
   }
 }
@@ -70,7 +70,7 @@ void EngineAdapter::debugSeedReplayBuffPreview() {
   stopEngineTimer();
   resetTransientRuntimeState();
   loadLevelData(m_levelIndex);
-  m_sessionCore.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+  m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::seedPreviewState({
     .obstacles = m_session.obstacles,
     .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
     .food = QPoint(12, 7),
@@ -105,7 +105,7 @@ void EngineAdapter::togglePause() {
 
 void EngineAdapter::lazyInitState() {
   if (!m_fsmState) {
-    if (auto nextState = snakegb::fsm::createStateFor(*this, AppState::Splash); nextState) {
+    if (auto nextState = nenoserpent::fsm::createStateFor(*this, AppState::Splash); nextState) {
       changeState(std::move(nextState));
     }
   }

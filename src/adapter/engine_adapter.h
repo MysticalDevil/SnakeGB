@@ -18,7 +18,7 @@
 #include "services/audio/bus.h"
 #include "services/level/repository.h"
 #include "services/save/repository.h"
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
 #include <QAccelerometer>
 #endif
 #include <deque>
@@ -130,8 +130,8 @@ public:
   [[nodiscard]] auto hasSave() const -> bool override;
   [[nodiscard]] auto hasReplay() const noexcept -> bool override;
 
-  auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig& config)
-    -> snakegb::core::SessionAdvanceResult override;
+  auto advanceSessionStep(const nenoserpent::core::SessionAdvanceConfig& config)
+    -> nenoserpent::core::SessionAdvanceResult override;
 
   void restart() override;
   void startReplay() override;
@@ -144,7 +144,7 @@ public:
   void stopEngineTimer() override;
 
   void triggerHaptic(int magnitude) override;
-  void emitAudioEvent(snakegb::audio::Event event, float pan = 0.0f) override;
+  void emitAudioEvent(nenoserpent::audio::Event event, float pan = 0.0f) override;
   void updatePersistence() override;
   void advancePlayingState() override;
   void enterGameOverState() override;
@@ -193,7 +193,7 @@ public:
 
   // --- QML API ---
   Q_INVOKABLE void dispatchUiAction(const QString& action);
-  void dispatchUiAction(const snakegb::adapter::UiAction& action);
+  void dispatchUiAction(const nenoserpent::adapter::UiAction& action);
   Q_INVOKABLE void move(int dx, int dy);
   Q_INVOKABLE void startGame() {
     restart();
@@ -335,11 +335,11 @@ private:
   void updateReflectionFallback();
   void dispatchStateCallback(const std::function<void(GameState&)>& callback);
   void applyPendingStateChangeIfNeeded();
-  void applyCollisionMitigationEffects(const snakegb::core::SessionAdvanceResult& result);
+  void applyCollisionMitigationEffects(const nenoserpent::core::SessionAdvanceResult& result);
   void applyChoiceTransition();
   void applyFoodConsumptionEffects(float pan, bool triggerChoice, bool spawnPowerUp);
-  void applyPowerUpConsumptionEffects(const snakegb::core::SessionAdvanceResult& result);
-  void applyMovementEffects(const snakegb::core::SessionAdvanceResult& result);
+  void applyPowerUpConsumptionEffects(const nenoserpent::core::SessionAdvanceResult& result);
+  void applyMovementEffects(const nenoserpent::core::SessionAdvanceResult& result);
   void deactivateBuff();
   void changeState(std::unique_ptr<GameState> newState);
   void spawnFood();
@@ -355,12 +355,12 @@ private:
   void checkAchievements();
   void runLevelScript();
   static auto isOutOfBounds(const QPoint& p) noexcept -> bool;
-  [[nodiscard]] auto saveRepository() const -> snakegb::services::SaveRepository;
+  [[nodiscard]] auto saveRepository() const -> nenoserpent::services::SaveRepository;
 
   SnakeModel m_snakeModel;
   QRandomGenerator m_rng;
-  snakegb::core::SessionCore m_sessionCore;
-  snakegb::core::SessionState& m_session;
+  nenoserpent::core::SessionCore m_sessionCore;
+  nenoserpent::core::SessionState& m_session;
   AppState::Value m_state = AppState::Splash;
   bool m_choicePending = false;
   int m_choiceIndex = 0;
@@ -387,11 +387,11 @@ private:
   QPointF m_reflectionOffset = {0.0, 0.0};
   QJSEngine m_jsEngine;
   QString m_currentScript;
-  snakegb::services::AudioBus m_audioBus;
-  snakegb::services::LevelRepository m_levelRepository;
+  nenoserpent::services::AudioBus m_audioBus;
+  nenoserpent::services::LevelRepository m_levelRepository;
 
   std::unique_ptr<QTimer> m_timer;
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
   std::unique_ptr<QAccelerometer> m_accelerometer;
 #endif
   std::unique_ptr<ProfileManager> m_profileManager;

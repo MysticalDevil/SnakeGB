@@ -12,7 +12,7 @@ source "${PROJECT_ROOT}/scripts/lib/build_paths.sh"
 QT_CMAKE_BIN="${QT_CMAKE_BIN:-${QT_WASM_PREFIX}/bin/qt-cmake}"
 BUILD_DIR="${BUILD_DIR:-$(resolve_build_dir wasm)}"
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:-Release}"
-DIST_DIR="${DIST_DIR:-/tmp/snakegb-wasm-dist}"
+DIST_DIR="${DIST_DIR:-/tmp/neno-serpent-wasm-dist}"
 WASM_SHIMS_DIR="${WASM_SHIMS_DIR:-${PROJECT_ROOT}/cmake/wasm-shims}"
 EMSDK_ROOT="${EMSDK_ROOT:-${HOME}/qt-toolchains/emsdk}"
 SERVE="${SERVE:-1}"
@@ -52,17 +52,17 @@ echo "[info] WASM_SHIMS_DIR=${WASM_SHIMS_DIR}"
     -G Ninja \
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
     -DCMAKE_MODULE_PATH="${WASM_SHIMS_DIR}" \
-    -DSNAKEGB_OPTIMIZE_SIZE=ON
+    -DNENOSERPENT_OPTIMIZE_SIZE=ON
 
-cmake --build "${BUILD_DIR}" --target SnakeGB --parallel
+cmake --build "${BUILD_DIR}" --target NenoSerpent --parallel
 
 mkdir -p "${DIST_DIR}"
-cp -f "${BUILD_DIR}/SnakeGB."{html,js,wasm} "${DIST_DIR}/"
+cp -f "${BUILD_DIR}/NenoSerpent."{html,js,wasm} "${DIST_DIR}/"
 if [[ -f "${BUILD_DIR}/qtloader.js" ]]; then
     cp -f "${BUILD_DIR}/qtloader.js" "${DIST_DIR}/"
 fi
-if [[ -f "${BUILD_DIR}/SnakeGB.data" ]]; then
-    cp -f "${BUILD_DIR}/SnakeGB.data" "${DIST_DIR}/"
+if [[ -f "${BUILD_DIR}/NenoSerpent.data" ]]; then
+    cp -f "${BUILD_DIR}/NenoSerpent.data" "${DIST_DIR}/"
 fi
 # Ensure spinner/logo and browser favicon resolve in local static hosting.
 cp -f "${PROJECT_ROOT}/src/qml/icon.svg" "${DIST_DIR}/icon.svg"
@@ -70,15 +70,15 @@ cp -f "${PROJECT_ROOT}/src/qml/icon.svg" "${DIST_DIR}/qtlogo.svg"
 cp -f "${PROJECT_ROOT}/src/qml/icon.svg" "${DIST_DIR}/favicon.ico"
 
 # Inject explicit favicon to prevent browser default /favicon.ico 404 lookups.
-if ! rg -q 'rel="icon"' "${DIST_DIR}/SnakeGB.html"; then
-    sed -i '/<title>SnakeGB<\/title>/a \    <link rel="icon" type="image/svg+xml" href="icon.svg">' "${DIST_DIR}/SnakeGB.html"
+if ! rg -q 'rel="icon"' "${DIST_DIR}/NenoSerpent.html"; then
+    sed -i '/<title>NenoSerpent<\/title>/a \    <link rel="icon" type="image/svg+xml" href="icon.svg">' "${DIST_DIR}/NenoSerpent.html"
 fi
 
 echo "[info] WASM package copied to: ${DIST_DIR}"
-echo "[info] Entry: ${DIST_DIR}/SnakeGB.html"
+echo "[info] Entry: ${DIST_DIR}/NenoSerpent.html"
 
 if [[ "${SERVE}" == "1" ]]; then
-    echo "[info] Starting local web server at http://127.0.0.1:${PORT}/SnakeGB.html"
+    echo "[info] Starting local web server at http://127.0.0.1:${PORT}/NenoSerpent.html"
     echo "[info] Press Ctrl+C to stop"
     exec python3 "${PROJECT_ROOT}/scripts/deploy/wasm_serve.py" --host 127.0.0.1 --port "${PORT}" --dir "${DIST_DIR}"
 fi

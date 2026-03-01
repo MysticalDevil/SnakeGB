@@ -6,14 +6,14 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
-APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
+APP_BIN="${APP_BIN:-${BUILD_DIR}/NenoSerpent}"
 ITERATIONS="${ITERATIONS:-5}"
 WAIT_SECONDS="${WAIT_SECONDS:-14}"
 BOOT_SETTLE_SECONDS="${BOOT_SETTLE_SECONDS:-4.0}"
 STEP_DELAY="${STEP_DELAY:-0.28}"
-WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
+WINDOW_CLASS="${WINDOW_CLASS:-devil.org.NenoSerpent}"
 WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
-LOG_DIR="${LOG_DIR:-/tmp/snakegb_konami_hypr_probe}"
+LOG_DIR="${LOG_DIR:-/tmp/nenoserpent_konami_hypr_probe}"
 
 mkdir -p "${LOG_DIR}"
 
@@ -126,7 +126,7 @@ run_case() {
   local iter="$3"
   local start_menu_count
 
-  CFG_TMP="$(mktemp -d /tmp/snakegb_konami_hypr_cfg.XXXXXX)"
+  CFG_TMP="$(mktemp -d /tmp/nenoserpent_konami_hypr_cfg.XXXXXX)"
   RUN_LOG="${LOG_DIR}/${case_name}_${iter}.log"
 
   XDG_CONFIG_HOME="${CFG_TMP}" "${APP_BIN}" >"${RUN_LOG}" 2>&1 &

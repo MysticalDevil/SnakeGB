@@ -2,7 +2,7 @@
 
 #include <QPoint>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct SessionAdvanceConfig {
   int boardWidth = 20;
@@ -35,4 +35,4 @@ struct SessionAdvanceResult {
   float magnetFoodPan = 0.0F;
 };
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

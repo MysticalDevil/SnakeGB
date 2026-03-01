@@ -29,7 +29,7 @@ private slots:
 };
 
 void TestSessionCore::testEnqueueDirectionRejectsReverseAndConsumesInOrder() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setDirection(QPoint(0, -1));
 
   QVERIFY(core.enqueueDirection(QPoint(1, 0)));
@@ -47,7 +47,7 @@ void TestSessionCore::testEnqueueDirectionRejectsReverseAndConsumesInOrder() {
 }
 
 void TestSessionCore::testResetMethodsClearTransientAndReplayRuntime() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   auto& state = core.state();
   state.direction = {1, 0};
   state.activeBuff = 4;
@@ -74,7 +74,7 @@ void TestSessionCore::testResetMethodsClearTransientAndReplayRuntime() {
 }
 
 void TestSessionCore::testSnapshotRoundTripRestoresStateAndBody() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   auto& state = core.state();
   state.food = {7, 8};
   state.direction = {1, 0};
@@ -86,7 +86,7 @@ void TestSessionCore::testSnapshotRoundTripRestoresStateAndBody() {
   const auto snapshot = core.snapshot(body);
   QCOMPARE(snapshot.body, body);
 
-  snakegb::core::SessionCore restored;
+  nenoserpent::core::SessionCore restored;
   restored.restoreSnapshot(snapshot);
 
   QCOMPARE(restored.state().food, QPoint(7, 8));
@@ -97,7 +97,7 @@ void TestSessionCore::testSnapshotRoundTripRestoresStateAndBody() {
 }
 
 void TestSessionCore::testBodyOwnershipAndMovement() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
 
   QCOMPARE(core.headPosition(), QPoint(10, 10));
@@ -113,10 +113,10 @@ void TestSessionCore::testBodyOwnershipAndMovement() {
 }
 
 void TestSessionCore::testCollisionConsumesLaserObstacleAndShield() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(5, 5), QPoint(4, 5), QPoint(3, 5)});
   core.state().obstacles = {QPoint(6, 5)};
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Laser);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Laser);
 
   const auto laserOutcome = core.checkCollision(QPoint(6, 5), 20, 18);
   QVERIFY(!laserOutcome.collision);
@@ -132,11 +132,11 @@ void TestSessionCore::testCollisionConsumesLaserObstacleAndShield() {
 }
 
 void TestSessionCore::testFoodAndPowerUpConsumptionMutateSessionState() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)});
   core.state().food = QPoint(11, 10);
   core.state().powerUpPos = QPoint(12, 10);
-  core.state().powerUpType = static_cast<int>(snakegb::core::BuffId::Mini);
+  core.state().powerUpType = static_cast<int>(nenoserpent::core::BuffId::Mini);
   core.state().score = 9;
 
   const auto foodResult = core.consumeFood(QPoint(11, 10), 20, 18, [](int) { return 0; });
@@ -151,7 +151,7 @@ void TestSessionCore::testFoodAndPowerUpConsumptionMutateSessionState() {
 }
 
 void TestSessionCore::testSpawnMagnetAndBuffCountdownMutateCoreState() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
   core.state().obstacles = {QPoint(3, 3)};
 
@@ -166,15 +166,15 @@ void TestSessionCore::testSpawnMagnetAndBuffCountdownMutateCoreState() {
     return 0;
   }));
   QCOMPARE(core.state().powerUpPos, QPoint(0, 1));
-  QCOMPARE(core.state().powerUpType, static_cast<int>(snakegb::core::BuffId::Ghost));
+  QCOMPARE(core.state().powerUpType, static_cast<int>(nenoserpent::core::BuffId::Ghost));
 
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Magnet);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Magnet);
   core.state().food = QPoint(12, 10);
   const auto magnetResult = core.applyMagnetAttraction(20, 18);
   QVERIFY(magnetResult.moved);
   QCOMPARE(core.state().food, magnetResult.newFood);
 
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield);
   core.state().buffTicksRemaining = 2;
   core.state().buffTicksTotal = 8;
   core.state().shieldActive = true;
@@ -183,10 +183,10 @@ void TestSessionCore::testSpawnMagnetAndBuffCountdownMutateCoreState() {
 }
 
 void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)});
   core.setDirection(QPoint(1, 0));
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Magnet);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Magnet);
   core.state().food = QPoint(12, 10);
 
   const auto result = core.advanceSessionStep(
@@ -209,28 +209,28 @@ void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate()
 }
 
 void TestSessionCore::testApplyChoiceSelectionMutatesCoreBuffState() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.setBody({QPoint(10, 10), QPoint(10, 11), QPoint(10, 12), QPoint(10, 13)});
   core.state().score = 18;
   core.state().lastRoguelikeChoiceScore = -1000;
 
   const auto result =
-    core.applyChoiceSelection(static_cast<int>(snakegb::core::BuffId::Mini), 80, false);
+    core.applyChoiceSelection(static_cast<int>(nenoserpent::core::BuffId::Mini), 80, false);
 
   QVERIFY(result.ate);
   QVERIFY(result.miniApplied);
   QCOMPARE(core.state().lastRoguelikeChoiceScore, 18);
-  QCOMPARE(core.state().activeBuff, static_cast<int>(snakegb::core::BuffId::None));
+  QCOMPARE(core.state().activeBuff, static_cast<int>(nenoserpent::core::BuffId::None));
   QCOMPARE(core.state().buffTicksRemaining, 80);
   QCOMPARE(core.state().buffTicksTotal, 80);
   QCOMPARE(core.body().size(), std::size_t(3));
 }
 
 void TestSessionCore::testBootstrapForLevelResetsSessionAndBuildsBody() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().score = 99;
   core.state().food = QPoint(7, 7);
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield);
   core.state().tickCounter = 12;
   QVERIFY(core.enqueueDirection(QPoint(1, 0)));
 
@@ -251,7 +251,7 @@ void TestSessionCore::testBootstrapForLevelResetsSessionAndBuildsBody() {
 }
 
 void TestSessionCore::testBootstrapForLevelPreservesAliasedObstacleInput() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().obstacles = {QPoint(2, 2), QPoint(3, 2)};
 
   const QList<QPoint>& aliasedObstacles = core.state().obstacles;
@@ -261,7 +261,7 @@ void TestSessionCore::testBootstrapForLevelPreservesAliasedObstacleInput() {
 }
 
 void TestSessionCore::testSeedPreviewStateOverwritesSessionWithPreviewState() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().lastRoguelikeChoiceScore = 88;
   QVERIFY(core.enqueueDirection(QPoint(1, 0)));
 
@@ -274,7 +274,7 @@ void TestSessionCore::testSeedPreviewStateOverwritesSessionWithPreviewState() {
     .powerUpType = 0,
     .score = 42,
     .tickCounter = 64,
-    .activeBuff = static_cast<int>(snakegb::core::BuffId::Shield),
+    .activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield),
     .buffTicksRemaining = 92,
     .buffTicksTotal = 120,
     .shieldActive = true,
@@ -285,7 +285,7 @@ void TestSessionCore::testSeedPreviewStateOverwritesSessionWithPreviewState() {
   QCOMPARE(core.state().food, QPoint(12, 7));
   QCOMPARE(core.state().direction, QPoint(0, -1));
   QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(1, 1), QPoint(2, 1)}));
-  QCOMPARE(core.state().activeBuff, static_cast<int>(snakegb::core::BuffId::Shield));
+  QCOMPARE(core.state().activeBuff, static_cast<int>(nenoserpent::core::BuffId::Shield));
   QCOMPARE(core.state().buffTicksRemaining, 92);
   QCOMPARE(core.state().buffTicksTotal, 120);
   QVERIFY(core.state().shieldActive);
@@ -295,7 +295,7 @@ void TestSessionCore::testSeedPreviewStateOverwritesSessionWithPreviewState() {
 }
 
 void TestSessionCore::testApplyReplayTimelineConsumesMatchingFrames() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().tickCounter = 12;
   core.setDirection(QPoint(0, -1));
 
@@ -327,18 +327,18 @@ void TestSessionCore::testApplyReplayTimelineConsumesMatchingFrames() {
 }
 
 void TestSessionCore::testCurrentTickIntervalTracksScoreAndSlowBuff() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().score = 25;
   QCOMPARE(core.currentTickIntervalMs(), 160);
 
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Slow);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Slow);
   QCOMPARE(core.currentTickIntervalMs(), 250);
 }
 
 void TestSessionCore::testRuntimeUpdateHooksExpireBuffAndAdvanceTick() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
   core.state().tickCounter = 7;
-  core.state().activeBuff = static_cast<int>(snakegb::core::BuffId::Shield);
+  core.state().activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield);
   core.state().buffTicksRemaining = 1;
   core.state().buffTicksTotal = 8;
   core.state().shieldActive = true;
@@ -355,14 +355,14 @@ void TestSessionCore::testRuntimeUpdateHooksExpireBuffAndAdvanceTick() {
 }
 
 void TestSessionCore::testRestorePersistedSessionClearsTransientRuntimeButKeepsPersistedFields() {
-  snakegb::core::SessionCore core;
-  const snakegb::core::StateSnapshot snapshot{
+  nenoserpent::core::SessionCore core;
+  const nenoserpent::core::StateSnapshot snapshot{
     .state =
       {
         .food = QPoint(4, 6),
         .powerUpPos = QPoint(8, 9),
-        .powerUpType = static_cast<int>(snakegb::core::BuffId::Laser),
-        .activeBuff = static_cast<int>(snakegb::core::BuffId::Shield),
+        .powerUpType = static_cast<int>(nenoserpent::core::BuffId::Laser),
+        .activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield),
         .buffTicksRemaining = 11,
         .buffTicksTotal = 18,
         .shieldActive = true,
@@ -393,14 +393,14 @@ void TestSessionCore::testRestorePersistedSessionClearsTransientRuntimeButKeepsP
 }
 
 void TestSessionCore::testMetaActionFacadeRoutesBootstrapAndPreviewSeeding() {
-  snakegb::core::SessionCore core;
+  nenoserpent::core::SessionCore core;
 
-  core.applyMetaAction(snakegb::core::MetaAction::bootstrapForLevel({QPoint(2, 2)}, 20, 18));
+  core.applyMetaAction(nenoserpent::core::MetaAction::bootstrapForLevel({QPoint(2, 2)}, 20, 18));
   QCOMPARE(core.state().obstacles, QList<QPoint>({QPoint(2, 2)}));
   QCOMPARE(core.state().direction, QPoint(0, -1));
   QCOMPARE(core.body().size(), std::size_t(3));
 
-  core.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+  core.applyMetaAction(nenoserpent::core::MetaAction::seedPreviewState({
     .obstacles = {QPoint(4, 4)},
     .body = {{10, 10}, {9, 10}, {8, 10}},
     .food = QPoint(11, 10),
@@ -415,15 +415,15 @@ void TestSessionCore::testMetaActionFacadeRoutesBootstrapAndPreviewSeeding() {
 }
 
 void TestSessionCore::testTickFacadeWrapsRuntimeReplayAndStepAdvancement() {
-  snakegb::core::SessionCore core;
-  core.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+  nenoserpent::core::SessionCore core;
+  core.applyMetaAction(nenoserpent::core::MetaAction::seedPreviewState({
     .obstacles = {},
     .body = {{10, 10}, {9, 10}, {8, 10}},
     .food = QPoint(11, 10),
     .direction = QPoint(1, 0),
     .score = 19,
     .tickCounter = 5,
-    .activeBuff = static_cast<int>(snakegb::core::BuffId::Shield),
+    .activeBuff = static_cast<int>(nenoserpent::core::BuffId::Shield),
     .buffTicksRemaining = 2,
     .buffTicksTotal = 8,
   }));

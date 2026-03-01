@@ -13,7 +13,7 @@ private slots:
 };
 
 void TestSessionRunner::testRunnerCanAdvanceHeadlessSessionAndEnterChoice() {
-  snakegb::core::SessionRunner runner;
+  nenoserpent::core::SessionRunner runner;
   runner.seedPreviewState(
     {
       .obstacles = {},
@@ -24,24 +24,24 @@ void TestSessionRunner::testRunnerCanAdvanceHeadlessSessionAndEnterChoice() {
       .powerUpType = 0,
       .score = 19,
     },
-    snakegb::core::SessionMode::Playing,
+    nenoserpent::core::SessionMode::Playing,
     1234U);
 
   const auto tickResult = runner.tick();
   QVERIFY(tickResult.enteredChoice);
-  QCOMPARE(runner.mode(), snakegb::core::SessionMode::ChoiceSelection);
+  QCOMPARE(runner.mode(), nenoserpent::core::SessionMode::ChoiceSelection);
   QCOMPARE(runner.core().state().score, 20);
   QCOMPARE(runner.choices().size(), 3);
   QCOMPARE(runner.recording().size(), 0);
 
   QVERIFY(runner.selectChoice(1));
-  QCOMPARE(runner.mode(), snakegb::core::SessionMode::Playing);
+  QCOMPARE(runner.mode(), nenoserpent::core::SessionMode::Playing);
   QCOMPARE(runner.choiceHistory().size(), 1);
   QCOMPARE(runner.choiceHistory().front().frame, 1);
 }
 
 void TestSessionRunner::testRunnerCanReplayRecordedTimelineHeadlessly() {
-  const snakegb::core::PreviewSeed seed{
+  const nenoserpent::core::PreviewSeed seed{
     .obstacles = {},
     .body = {{10, 10}, {9, 10}, {8, 10}},
     .food = QPoint(11, 10),
@@ -52,8 +52,8 @@ void TestSessionRunner::testRunnerCanReplayRecordedTimelineHeadlessly() {
     .tickCounter = 0,
   };
 
-  snakegb::core::SessionRunner liveRunner;
-  liveRunner.seedPreviewState(seed, snakegb::core::SessionMode::Playing, 77U);
+  nenoserpent::core::SessionRunner liveRunner;
+  liveRunner.seedPreviewState(seed, nenoserpent::core::SessionMode::Playing, 77U);
 
   auto tickOne = liveRunner.tick();
   QVERIFY(tickOne.advanced);
@@ -68,8 +68,8 @@ void TestSessionRunner::testRunnerCanReplayRecordedTimelineHeadlessly() {
   const auto expectedSnapshot = liveRunner.core().snapshot({});
   const auto expectedRecording = liveRunner.recording();
 
-  snakegb::core::SessionRunner replayRunner;
-  replayRunner.seedPreviewState(seed, snakegb::core::SessionMode::Replaying, 77U);
+  nenoserpent::core::SessionRunner replayRunner;
+  replayRunner.seedPreviewState(seed, nenoserpent::core::SessionMode::Replaying, 77U);
   replayRunner.setReplayTimeline(liveRunner.inputHistory(), liveRunner.choiceHistory());
 
   auto replayTickOne = replayRunner.tick();

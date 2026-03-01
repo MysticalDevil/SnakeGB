@@ -8,7 +8,7 @@
 #include "core/replay/types.h"
 #include "core/session/core.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 enum class SessionMode {
   Idle,
@@ -93,4 +93,4 @@ private:
   int m_replayChoiceHistoryIndex = 0;
 };
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

@@ -12,40 +12,40 @@ private slots:
 };
 
 void TestUiActionParser::testKnownActionsMapToExpectedKinds() {
-  using snakegb::adapter::FeedbackUiAction;
-  using snakegb::adapter::NavAction;
-  using snakegb::adapter::PrimaryAction;
-  using snakegb::adapter::StartAction;
-  using snakegb::adapter::ToggleMusicAction;
+  using nenoserpent::adapter::FeedbackUiAction;
+  using nenoserpent::adapter::NavAction;
+  using nenoserpent::adapter::PrimaryAction;
+  using nenoserpent::adapter::StartAction;
+  using nenoserpent::adapter::ToggleMusicAction;
 
-  QCOMPARE(std::get<NavAction>(snakegb::adapter::parseUiAction("nav_up")).dy, -1);
-  QVERIFY(std::holds_alternative<PrimaryAction>(snakegb::adapter::parseUiAction("primary")));
-  QVERIFY(std::holds_alternative<StartAction>(snakegb::adapter::parseUiAction("start")));
+  QCOMPARE(std::get<NavAction>(nenoserpent::adapter::parseUiAction("nav_up")).dy, -1);
+  QVERIFY(std::holds_alternative<PrimaryAction>(nenoserpent::adapter::parseUiAction("primary")));
+  QVERIFY(std::holds_alternative<StartAction>(nenoserpent::adapter::parseUiAction("start")));
   QVERIFY(
-    std::holds_alternative<ToggleMusicAction>(snakegb::adapter::parseUiAction("toggle_music")));
-  QVERIFY(std::holds_alternative<FeedbackUiAction>(snakegb::adapter::parseUiAction("feedback_ui")));
+    std::holds_alternative<ToggleMusicAction>(nenoserpent::adapter::parseUiAction("toggle_music")));
+  QVERIFY(std::holds_alternative<FeedbackUiAction>(nenoserpent::adapter::parseUiAction("feedback_ui")));
 }
 
 void TestUiActionParser::testIndexedActionsParsePayload() {
-  using snakegb::adapter::SetLibraryIndexAction;
-  using snakegb::adapter::SetMedalIndexAction;
+  using nenoserpent::adapter::SetLibraryIndexAction;
+  using nenoserpent::adapter::SetMedalIndexAction;
 
-  const auto libraryAction = snakegb::adapter::parseUiAction("set_library_index:7");
+  const auto libraryAction = nenoserpent::adapter::parseUiAction("set_library_index:7");
   QCOMPARE(std::get<SetLibraryIndexAction>(libraryAction).value, 7);
 
-  const auto medalAction = snakegb::adapter::parseUiAction("set_medal_index:3");
+  const auto medalAction = nenoserpent::adapter::parseUiAction("set_medal_index:3");
   QCOMPARE(std::get<SetMedalIndexAction>(medalAction).value, 3);
 }
 
 void TestUiActionParser::testUnknownAndInvalidActionsFallbackToUnknown() {
-  using snakegb::adapter::UnknownAction;
+  using nenoserpent::adapter::UnknownAction;
 
   QVERIFY(
-    std::holds_alternative<UnknownAction>(snakegb::adapter::parseUiAction("not_a_real_action")));
+    std::holds_alternative<UnknownAction>(nenoserpent::adapter::parseUiAction("not_a_real_action")));
   QVERIFY(std::holds_alternative<UnknownAction>(
-    snakegb::adapter::parseUiAction("set_library_index:abc")));
+    nenoserpent::adapter::parseUiAction("set_library_index:abc")));
   QVERIFY(
-    std::holds_alternative<UnknownAction>(snakegb::adapter::parseUiAction("set_medal_index:bad")));
+    std::holds_alternative<UnknownAction>(nenoserpent::adapter::parseUiAction("set_medal_index:bad")));
 }
 
 QTEST_MAIN(TestUiActionParser)

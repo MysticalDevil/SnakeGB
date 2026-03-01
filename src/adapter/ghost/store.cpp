@@ -7,7 +7,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 namespace {
 constexpr quint32 GhostFileMagicV2 = 0x534E4B02;
 constexpr quint32 GhostFileMagicV4 = 0x534E4B04;
@@ -66,4 +66,4 @@ auto saveGhostSnapshot(const GhostSnapshot& snapshot) -> bool {
   return saveGhostSnapshotToFile(ghostFilePathForDirectory(appDataDirectory), snapshot);
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

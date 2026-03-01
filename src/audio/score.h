@@ -5,7 +5,7 @@
 #include <QStringView>
 #include <QVector>
 
-namespace snakegb::audio {
+namespace nenoserpent::audio {
 
 enum class ScoreCueId {
   UiInteract,
@@ -73,4 +73,4 @@ struct ScoreTrackStep {
 [[nodiscard]] auto scoreCueSteps(ScoreCueId cueId) -> std::span<const ScoreStep>;
 [[nodiscard]] auto scoreTrackSteps(ScoreTrackId trackId) -> std::span<const ScoreTrackStep>;
 
-} // namespace snakegb::audio
+} // namespace nenoserpent::audio

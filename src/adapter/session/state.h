@@ -9,7 +9,7 @@
 
 #include "core/session/snapshot.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 struct SessionSnapshot {
   int score = 0;
@@ -21,8 +21,8 @@ struct SessionSnapshot {
 
 [[nodiscard]] auto decodeSessionSnapshot(const QVariantMap& data) -> std::optional<SessionSnapshot>;
 [[nodiscard]] auto toCoreStateSnapshot(const SessionSnapshot& snapshot)
-  -> snakegb::core::StateSnapshot;
-[[nodiscard]] auto fromCoreStateSnapshot(const snakegb::core::StateSnapshot& snapshot)
+  -> nenoserpent::core::StateSnapshot;
+[[nodiscard]] auto fromCoreStateSnapshot(const nenoserpent::core::StateSnapshot& snapshot)
   -> SessionSnapshot;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

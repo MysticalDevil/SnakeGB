@@ -42,8 +42,8 @@ DBG_STATIC_PARAMS='TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1' ./scripts/ui.sh nav-d
 After launch, more tokens can be injected by writing to the runtime input file:
 
 ```bash
-printf 'DBG_STATIC_REPLAY:BUFF=4,SCORE=42\n' >> /tmp/snakegb_ui_input.txt
-printf 'DBG_CHOICE:7,4,1\n' >> /tmp/snakegb_ui_input.txt
+printf 'DBG_STATIC_REPLAY:BUFF=4,SCORE=42\n' >> /tmp/nenoserpent_ui_input.txt
+printf 'DBG_CHOICE:7,4,1\n' >> /tmp/nenoserpent_ui_input.txt
 ```
 
 ## Supported Script Targets

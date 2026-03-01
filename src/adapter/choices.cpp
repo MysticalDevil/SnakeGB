@@ -10,8 +10,8 @@ using namespace Qt::StringLiterals;
 namespace {
 constexpr int BuffDurationTicks = 40;
 
-auto choiceSpecForType(const int type) -> std::optional<snakegb::core::ChoiceSpec> {
-  using snakegb::core::ChoiceSpec;
+auto choiceSpecForType(const int type) -> std::optional<nenoserpent::core::ChoiceSpec> {
+  using nenoserpent::core::ChoiceSpec;
   switch (type) {
   case PowerUpId::Ghost:
     return ChoiceSpec{
@@ -44,8 +44,8 @@ auto choiceSpecForType(const int type) -> std::optional<snakegb::core::ChoiceSpe
   }
 }
 
-auto buildDebugChoiceSpecs(const QVariantList& types) -> QList<snakegb::core::ChoiceSpec> {
-  QList<snakegb::core::ChoiceSpec> result;
+auto buildDebugChoiceSpecs(const QVariantList& types) -> QList<nenoserpent::core::ChoiceSpec> {
+  QList<nenoserpent::core::ChoiceSpec> result;
   QList<int> seenTypes;
 
   for (const QVariant& entry : types) {
@@ -81,9 +81,9 @@ auto buildDebugChoiceSpecs(const QVariantList& types) -> QList<snakegb::core::Ch
 } // namespace
 
 void EngineAdapter::generateChoices() {
-  const QList<snakegb::core::ChoiceSpec> allChoices =
-    snakegb::core::pickRoguelikeChoices(m_rng.generate(), 3);
-  m_choices = snakegb::adapter::buildChoiceModel(allChoices);
+  const QList<nenoserpent::core::ChoiceSpec> allChoices =
+    nenoserpent::core::pickRoguelikeChoices(m_rng.generate(), 3);
+  m_choices = nenoserpent::adapter::buildChoiceModel(allChoices);
   emit choicesChanged();
 }
 
@@ -91,7 +91,7 @@ void EngineAdapter::debugSeedChoicePreview(const QVariantList& types) {
   stopEngineTimer();
   resetTransientRuntimeState();
   loadLevelData(m_levelIndex);
-  m_sessionCore.applyMetaAction(snakegb::core::MetaAction::seedPreviewState({
+  m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::seedPreviewState({
     .obstacles = m_session.obstacles,
     .body = {{10, 4}, {10, 5}, {10, 6}, {10, 7}},
     .food = QPoint(12, 7),
@@ -102,7 +102,7 @@ void EngineAdapter::debugSeedChoicePreview(const QVariantList& types) {
     .tickCounter = 64,
   }));
   syncSnakeModelFromCore();
-  m_choices = snakegb::adapter::buildChoiceModel(buildDebugChoiceSpecs(types));
+  m_choices = nenoserpent::adapter::buildChoiceModel(buildDebugChoiceSpecs(types));
   m_choiceIndex = 0;
 
   emit scoreChanged();
@@ -125,12 +125,12 @@ void EngineAdapter::selectChoice(const int index) {
     m_currentChoiceHistory.append({.frame = m_sessionCore.tickCounter(), .index = index});
   }
 
-  const auto type = snakegb::adapter::choiceTypeAt(m_choices, index);
+  const auto type = nenoserpent::adapter::choiceTypeAt(m_choices, index);
   if (!type.has_value()) {
     return;
   }
   const auto result = m_sessionCore.selectChoice(type.value(), BuffDurationTicks * 2, false);
-  snakegb::adapter::discoverFruit(m_profileManager.get(), type.value());
+  nenoserpent::adapter::discoverFruit(m_profileManager.get(), type.value());
   if (result.miniApplied) {
     syncSnakeModelFromCore();
     emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);

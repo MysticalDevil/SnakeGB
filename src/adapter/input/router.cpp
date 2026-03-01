@@ -10,12 +10,12 @@
 using namespace Qt::StringLiterals;
 
 void EngineAdapter::dispatchUiAction(const QString& action) {
-  const snakegb::adapter::UiAction uiAction = snakegb::adapter::parseUiAction(action);
+  const nenoserpent::adapter::UiAction uiAction = nenoserpent::adapter::parseUiAction(action);
   dispatchUiAction(uiAction);
 }
 
-void EngineAdapter::dispatchUiAction(const snakegb::adapter::UiAction& action) {
-  snakegb::adapter::dispatchUiAction(
+void EngineAdapter::dispatchUiAction(const nenoserpent::adapter::UiAction& action) {
+  nenoserpent::adapter::dispatchUiAction(
     action,
     {
       .onMove = [this](const int dx, const int dy) -> void { move(dx, dy); },
@@ -23,14 +23,14 @@ void EngineAdapter::dispatchUiAction(const snakegb::adapter::UiAction& action) {
       .onSecondary = [this]() -> void { handleBAction(); },
       .onSelect = [this]() -> void { handleSelect(); },
       .onBack = [this]() -> void {
-        switch (snakegb::adapter::resolveBackActionForState(static_cast<int>(m_state))) {
-        case snakegb::adapter::BackAction::QuitToMenu:
+        switch (nenoserpent::adapter::resolveBackActionForState(static_cast<int>(m_state))) {
+        case nenoserpent::adapter::BackAction::QuitToMenu:
           quitToMenu();
           break;
-        case snakegb::adapter::BackAction::QuitApplication:
+        case nenoserpent::adapter::BackAction::QuitApplication:
           quit();
           break;
-        case snakegb::adapter::BackAction::None:
+        case nenoserpent::adapter::BackAction::None:
           break;
         }
       },
@@ -62,8 +62,8 @@ void EngineAdapter::nextPalette() {
   if (!m_profileManager) {
     return;
   }
-  const int nextIdx = (snakegb::adapter::paletteIndex(m_profileManager.get()) + 1) % 5;
-  snakegb::adapter::setPaletteIndex(m_profileManager.get(), nextIdx);
+  const int nextIdx = (nenoserpent::adapter::paletteIndex(m_profileManager.get()) + 1) % 5;
+  nenoserpent::adapter::setPaletteIndex(m_profileManager.get(), nextIdx);
   emit paletteChanged();
   emit uiInteractTriggered();
 }
@@ -72,8 +72,8 @@ void EngineAdapter::nextShellColor() {
   if (!m_profileManager) {
     return;
   }
-  const int nextIdx = (snakegb::adapter::shellIndex(m_profileManager.get()) + 1) % 7;
-  snakegb::adapter::setShellIndex(m_profileManager.get(), nextIdx);
+  const int nextIdx = (nenoserpent::adapter::shellIndex(m_profileManager.get()) + 1) % 7;
+  nenoserpent::adapter::setShellIndex(m_profileManager.get(), nextIdx);
   emit shellColorChanged();
   emit uiInteractTriggered();
 }
@@ -100,14 +100,14 @@ void EngineAdapter::quitToMenu() {
 
 void EngineAdapter::toggleMusic() {
   m_musicEnabled = !m_musicEnabled;
-  qCInfo(snakegbAudioLog).noquote() << "toggleMusic ->" << m_musicEnabled;
+  qCInfo(nenoserpentAudioLog).noquote() << "toggleMusic ->" << m_musicEnabled;
   m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state), m_bgmVariant);
   emit musicEnabledChanged();
 }
 
 void EngineAdapter::cycleBgm() {
   m_bgmVariant = (m_bgmVariant + 1) % 2;
-  qCInfo(snakegbAudioLog).noquote() << "cycleBgm -> variant" << m_bgmVariant;
+  qCInfo(nenoserpentAudioLog).noquote() << "cycleBgm -> variant" << m_bgmVariant;
 
   emit eventPrompt(m_bgmVariant == 0 ? u"BGM A"_s : u"BGM B"_s);
 
@@ -146,7 +146,7 @@ void EngineAdapter::deleteSave() {
   clearSavedState();
   // Clearing save should also reset level selection to default.
   m_levelIndex = 0;
-  snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
+  nenoserpent::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
   loadLevelData(m_levelIndex);
   emit levelChanged();
 }

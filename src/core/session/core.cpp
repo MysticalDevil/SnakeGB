@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 auto MetaAction::resetTransientRuntime() -> MetaAction {
   return {.kind = Kind::ResetTransientRuntime};
@@ -185,7 +185,7 @@ auto SessionCore::selectChoice(const int powerUpType,
 
 auto SessionCore::tickBuffCountdown() -> bool {
   if (m_state.activeBuff == static_cast<int>(BuffId::None) ||
-      !snakegb::core::tickBuffCountdown(m_state.buffTicksRemaining)) {
+      !nenoserpent::core::tickBuffCountdown(m_state.buffTicksRemaining)) {
     return false;
   }
 
@@ -238,7 +238,7 @@ auto SessionCore::applyMagnetAttraction(const int boardWidth, const int boardHei
     return {};
   }
 
-  auto result = snakegb::core::applyMagnetAttraction(
+  auto result = nenoserpent::core::applyMagnetAttraction(
     headPosition(), boardWidth, boardHeight, m_state, [this](const QPoint& pos) {
       return isOccupied(pos);
     });
@@ -500,4 +500,4 @@ auto SessionCore::isOccupied(const QPoint& point) const -> bool {
     m_state.obstacles, [&point](const QPoint& obstaclePoint) { return obstaclePoint == point; });
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

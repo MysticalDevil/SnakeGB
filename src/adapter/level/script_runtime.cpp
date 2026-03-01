@@ -4,7 +4,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto tryApplyOnTickScript(QJSEngine& engine, const int gameTickCounter, QList<QPoint>& obstacles)
   -> bool {
@@ -33,7 +33,7 @@ auto tryApplyOnTickScript(QJSEngine& engine, const int gameTickCounter, QList<QP
 auto applyDynamicLevelFallback(const QStringView levelName,
                                const int gameTickCounter,
                                QList<QPoint>& obstacles) -> bool {
-  const auto dynamicObstacles = snakegb::core::dynamicObstaclesForLevel(levelName, gameTickCounter);
+  const auto dynamicObstacles = nenoserpent::core::dynamicObstaclesForLevel(levelName, gameTickCounter);
   if (!dynamicObstacles.has_value()) {
     return false;
   }
@@ -45,10 +45,10 @@ auto applyLevelScriptStep(QJSEngine& engine,
                           const QStringView levelName,
                           const int gameTickCounter,
                           QList<QPoint>& obstacles) -> bool {
-  if (snakegb::adapter::tryApplyOnTickScript(engine, gameTickCounter, obstacles)) {
+  if (nenoserpent::adapter::tryApplyOnTickScript(engine, gameTickCounter, obstacles)) {
     return true;
   }
-  return snakegb::adapter::applyDynamicLevelFallback(levelName, gameTickCounter, obstacles);
+  return nenoserpent::adapter::applyDynamicLevelFallback(levelName, gameTickCounter, obstacles);
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

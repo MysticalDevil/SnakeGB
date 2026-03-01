@@ -16,7 +16,7 @@ void TestLevelScriptRuntimeAdapter::testTryApplyOnTickScriptParsesObstacleArray(
   engine.evaluate(QStringLiteral("function onTick(t){ return [{x:t,y:1},{x:2,y:t+1}]; }"));
 
   QList<QPoint> obstacles;
-  QVERIFY(snakegb::adapter::tryApplyOnTickScript(engine, 7, obstacles));
+  QVERIFY(nenoserpent::adapter::tryApplyOnTickScript(engine, 7, obstacles));
   QCOMPARE(obstacles.size(), 2);
   QCOMPARE(obstacles[0], QPoint(7, 1));
   QCOMPARE(obstacles[1], QPoint(2, 8));
@@ -25,21 +25,21 @@ void TestLevelScriptRuntimeAdapter::testTryApplyOnTickScriptParsesObstacleArray(
 void TestLevelScriptRuntimeAdapter::testTryApplyOnTickScriptRejectsMissingOrInvalidOnTick() {
   QJSEngine engineNoTick;
   QList<QPoint> obstacles;
-  QVERIFY(!snakegb::adapter::tryApplyOnTickScript(engineNoTick, 1, obstacles));
+  QVERIFY(!nenoserpent::adapter::tryApplyOnTickScript(engineNoTick, 1, obstacles));
 
   QJSEngine engineInvalid;
   engineInvalid.evaluate(QStringLiteral("function onTick(t){ return 42; }"));
-  QVERIFY(!snakegb::adapter::tryApplyOnTickScript(engineInvalid, 1, obstacles));
+  QVERIFY(!nenoserpent::adapter::tryApplyOnTickScript(engineInvalid, 1, obstacles));
 }
 
 void TestLevelScriptRuntimeAdapter::testApplyDynamicLevelFallbackDelegatesToCoreDynamicLevels() {
   QList<QPoint> obstacles;
   QVERIFY(
-    snakegb::adapter::applyDynamicLevelFallback(QStringLiteral("Dynamic Pulse"), 10, obstacles));
+    nenoserpent::adapter::applyDynamicLevelFallback(QStringLiteral("Dynamic Pulse"), 10, obstacles));
   QVERIFY(!obstacles.isEmpty());
 
   obstacles.clear();
-  QVERIFY(!snakegb::adapter::applyDynamicLevelFallback(QStringLiteral("Classic"), 10, obstacles));
+  QVERIFY(!nenoserpent::adapter::applyDynamicLevelFallback(QStringLiteral("Classic"), 10, obstacles));
   QVERIFY(obstacles.isEmpty());
 }
 

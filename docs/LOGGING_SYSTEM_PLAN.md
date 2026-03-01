@@ -1,10 +1,10 @@
-# SnakeGB Logging System Plan
+# NenoSerpent Logging System Plan
 
 Last updated: 2026-03-01
 
 ## Purpose
 
-This document defines the next logging cleanup for SnakeGB.
+This document defines the next logging cleanup for NenoSerpent.
 
 The current runtime logs are useful for debugging, but they are still too ad hoc:
 
@@ -107,12 +107,12 @@ Introduce shared `QLoggingCategory` channels.
 
 Minimum category set:
 
-- `snakegb.state`
-- `snakegb.audio`
-- `snakegb.input`
-- `snakegb.inject`
-- `snakegb.level`
-- `snakegb.replay`
+- `NenoSerpent.state`
+- `NenoSerpent.audio`
+- `NenoSerpent.input`
+- `NenoSerpent.inject`
+- `NenoSerpent.level`
+- `NenoSerpent.replay`
 
 Rules:
 

@@ -1,5 +1,5 @@
 import QtQuick
-import SnakeGB 1.0
+import NenoSerpent 1.0
 
 Item {
     id: gameWorld

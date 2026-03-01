@@ -9,7 +9,7 @@ HTML_RENDER_SCRIPT="${HTML_RENDER_SCRIPT:-${ROOT_DIR}/scripts/ui/palette/render_
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/script_common.sh"
 
-OUT_DIR="${1:-/tmp/snakegb_palette_review}"
+OUT_DIR="${1:-/tmp/nenoserpent_palette_review}"
 HTML_OUT="${HTML_OUT:-${OUT_DIR}/index.html}"
 FOCUS_TARGETS="${FOCUS_TARGETS:-menu,game,dbg-replay-buff,dbg-choice}"
 MATRIX_TARGETS="${MATRIX_TARGETS:-menu,achievements,catalog,icons}"
@@ -32,7 +32,7 @@ for palette in "${PALETTE_LIST[@]}"; do
 
   focus_inputs=()
   for target in "${FOCUS_LIST[@]}"; do
-    focus_inputs+=("${OUT_DIR}/focus/snakegb_${target}_p${palette}.png")
+    focus_inputs+=("${OUT_DIR}/focus/nenoserpent_${target}_p${palette}.png")
   done
   montage -font "${MONTAGE_FONT}" "${focus_inputs[@]}" -tile 2x -geometry +8+8 "${OUT_DIR}/sheets/focus_p${palette}.png"
 done

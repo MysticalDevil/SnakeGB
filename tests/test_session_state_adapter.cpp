@@ -24,9 +24,9 @@ void TestSessionStateAdapter::testDecodeSessionSnapshotFromVariantMap() {
   data.insert(u"obstacles"_s, QVariantList{QPoint(1, 1), QPoint(2, 2)});
   data.insert(u"body"_s, QVariantList{QPoint(5, 5), QPoint(5, 6)});
 
-  const auto snapshot = snakegb::adapter::decodeSessionSnapshot(data);
+  const auto snapshot = nenoserpent::adapter::decodeSessionSnapshot(data);
   QVERIFY(snapshot.has_value());
-  const auto decoded = snapshot.value_or(snakegb::adapter::SessionSnapshot{});
+  const auto decoded = snapshot.value_or(nenoserpent::adapter::SessionSnapshot{});
   QCOMPARE(decoded.score, 12);
   QCOMPARE(decoded.food, QPoint(3, 4));
   QCOMPARE(decoded.direction, QPoint(0, -1));
@@ -41,12 +41,12 @@ void TestSessionStateAdapter::testDecodeSessionSnapshotRejectsEmptyBody() {
   data.insert(u"dir"_s, QPoint(1, 0));
   data.insert(u"body"_s, QVariantList{});
 
-  const auto snapshot = snakegb::adapter::decodeSessionSnapshot(data);
+  const auto snapshot = nenoserpent::adapter::decodeSessionSnapshot(data);
   QVERIFY(!snapshot.has_value());
 }
 
 void TestSessionStateAdapter::testConvertSessionSnapshotToCoreStateSnapshot() {
-  const snakegb::adapter::SessionSnapshot snapshot{
+  const nenoserpent::adapter::SessionSnapshot snapshot{
     .score = 12,
     .food = QPoint(3, 4),
     .direction = QPoint(0, -1),
@@ -54,7 +54,7 @@ void TestSessionStateAdapter::testConvertSessionSnapshotToCoreStateSnapshot() {
     .body = {QPoint(5, 5), QPoint(5, 6)},
   };
 
-  const auto coreSnapshot = snakegb::adapter::toCoreStateSnapshot(snapshot);
+  const auto coreSnapshot = nenoserpent::adapter::toCoreStateSnapshot(snapshot);
   QCOMPARE(coreSnapshot.state.score, 12);
   QCOMPARE(coreSnapshot.state.food, QPoint(3, 4));
   QCOMPARE(coreSnapshot.state.direction, QPoint(0, -1));
@@ -63,7 +63,7 @@ void TestSessionStateAdapter::testConvertSessionSnapshotToCoreStateSnapshot() {
 }
 
 void TestSessionStateAdapter::testConvertCoreStateSnapshotToSessionSnapshot() {
-  const snakegb::core::StateSnapshot snapshot{
+  const nenoserpent::core::StateSnapshot snapshot{
     .state =
       {
         .food = QPoint(4, 6),
@@ -74,7 +74,7 @@ void TestSessionStateAdapter::testConvertCoreStateSnapshotToSessionSnapshot() {
     .body = {QPoint(6, 6), QPoint(5, 6), QPoint(4, 6)},
   };
 
-  const auto persisted = snakegb::adapter::fromCoreStateSnapshot(snapshot);
+  const auto persisted = nenoserpent::adapter::fromCoreStateSnapshot(snapshot);
   QCOMPARE(persisted.score, 27);
   QCOMPARE(persisted.food, QPoint(4, 6));
   QCOMPARE(persisted.direction, QPoint(1, 0));

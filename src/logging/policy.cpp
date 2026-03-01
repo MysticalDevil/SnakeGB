@@ -5,25 +5,25 @@
 
 namespace {
 auto releaseRules() -> QString {
-  return QStringLiteral("snakegb.*.debug=false\n"
-                        "snakegb.*.info=false\n"
-                        "snakegb.*.warning=false\n");
+  return QStringLiteral("NenoSerpent.*.debug=false\n"
+                        "NenoSerpent.*.info=false\n"
+                        "NenoSerpent.*.warning=false\n");
 }
 
 auto devRules() -> QString {
-  return QStringLiteral("snakegb.*.debug=false\n"
-                        "snakegb.*.info=true\n"
-                        "snakegb.*.warning=true\n");
+  return QStringLiteral("NenoSerpent.*.debug=false\n"
+                        "NenoSerpent.*.info=true\n"
+                        "NenoSerpent.*.warning=true\n");
 }
 
 auto debugRules() -> QString {
-  return QStringLiteral("snakegb.*.debug=true\n"
-                        "snakegb.*.info=true\n"
-                        "snakegb.*.warning=true\n");
+  return QStringLiteral("NenoSerpent.*.debug=true\n"
+                        "NenoSerpent.*.info=true\n"
+                        "NenoSerpent.*.warning=true\n");
 }
 } // namespace
 
-namespace snakegb::logging {
+namespace nenoserpent::logging {
 auto applyLoggingPolicy(const LogMode mode) -> void {
   switch (mode) {
   case LogMode::Release:
@@ -49,4 +49,4 @@ auto logModeName(const LogMode mode) -> const char* {
   }
   return "release";
 }
-} // namespace snakegb::logging
+} // namespace nenoserpent::logging

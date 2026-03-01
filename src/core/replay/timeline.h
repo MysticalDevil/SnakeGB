@@ -7,7 +7,7 @@
 
 #include "core/replay/types.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 void applyReplayInputsForTick(const QList<ReplayFrame>& inputFrames,
                               int currentTick,
@@ -19,4 +19,4 @@ void applyReplayChoiceForTick(const QList<ChoiceRecord>& choiceFrames,
                               int& choiceHistoryIndex,
                               const std::function<void(int)>& applyChoice);
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

@@ -18,7 +18,7 @@ IFS=',' read -r -a MATRIX_LIST <<<"${MATRIX_TARGETS}"
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SnakeGB Palette Review</title>
+  <title>NenoSerpent Palette Review</title>
   <style>
     :root { color-scheme: light; }
     body { margin: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif; background: #e7ead8; color: #22301d; }
@@ -33,7 +33,7 @@ IFS=',' read -r -a MATRIX_LIST <<<"${MATRIX_TARGETS}"
 </head>
 <body>
   <main>
-    <h1>SnakeGB Palette Review</h1>
+    <h1>NenoSerpent Palette Review</h1>
 EOF
   printf '    <p>Focus targets: %s | Matrix targets: %s | Palettes: %s</p>\n' \
     "${FOCUS_TARGETS}" "${MATRIX_TARGETS}" "${PALETTES}"

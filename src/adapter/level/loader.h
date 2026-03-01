@@ -6,10 +6,10 @@
 
 #include "core/level/runtime.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 [[nodiscard]] auto loadResolvedLevelFromResource(QStringView resourcePath, int levelIndex)
-  -> std::optional<snakegb::core::ResolvedLevelData>;
+  -> std::optional<nenoserpent::core::ResolvedLevelData>;
 [[nodiscard]] auto readLevelCountFromResource(QStringView resourcePath, int fallbackCount) -> int;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

@@ -4,7 +4,7 @@
 #include <array>
 #include <utility>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 auto foodPointsForBuff(BuffId activeBuff) -> int {
   if (activeBuff == BuffId::Double) {
@@ -63,4 +63,4 @@ auto tickBuffCountdown(int& remainingTicks) -> bool {
   return remainingTicks <= 0;
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

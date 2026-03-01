@@ -2,7 +2,7 @@
 
 #include "profile_manager.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto paletteIndex(const ProfileManager* profile) -> int {
   return profile != nullptr ? profile->paletteIndex() : 0;
@@ -102,7 +102,7 @@ void saveSession(ProfileManager* profile,
   }
 }
 
-void saveSession(ProfileManager* profile, const snakegb::core::StateSnapshot& snapshot) {
+void saveSession(ProfileManager* profile, const nenoserpent::core::StateSnapshot& snapshot) {
   const auto persisted = fromCoreStateSnapshot(snapshot);
   saveSession(profile,
               persisted.score,
@@ -129,4 +129,4 @@ auto loadSessionSnapshot(ProfileManager* profile) -> std::optional<SessionSnapsh
   return decodeSessionSnapshot(profile->loadSession());
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

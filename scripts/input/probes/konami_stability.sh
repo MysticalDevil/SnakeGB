@@ -6,11 +6,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
-APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
+APP_BIN="${APP_BIN:-${BUILD_DIR}/NenoSerpent}"
 ITERATIONS="${ITERATIONS:-5}"
 BOOT_WAIT="${BOOT_WAIT:-3.8}"
 STEP_DELAY="${STEP_DELAY:-0.20}"
-LOG_DIR="${LOG_DIR:-/tmp/snakegb_konami_probe}"
+LOG_DIR="${LOG_DIR:-/tmp/nenoserpent_konami_probe}"
 
 mkdir -p "${LOG_DIR}"
 
@@ -61,12 +61,12 @@ run_case() {
   local with_konami="$2"
   local iter="$3"
   local cfg_dir input_file log_file
-  cfg_dir="$(mktemp -d /tmp/snakegb_konami_cfg.XXXXXX)"
-  input_file="/tmp/snakegb_konami_input_${case_name}_${iter}.txt"
+  cfg_dir="$(mktemp -d /tmp/nenoserpent_konami_cfg.XXXXXX)"
+  input_file="/tmp/nenoserpent_konami_input_${case_name}_${iter}.txt"
   log_file="${LOG_DIR}/${case_name}_${iter}.log"
   : > "${input_file}"
 
-  XDG_CONFIG_HOME="${cfg_dir}" SNAKEGB_INPUT_FILE="${input_file}" "${APP_BIN}" >"${log_file}" 2>&1 &
+  XDG_CONFIG_HOME="${cfg_dir}" NENOSERPENT_INPUT_FILE="${input_file}" "${APP_BIN}" >"${log_file}" 2>&1 &
   local app_pid=$!
 
   cleanup() {

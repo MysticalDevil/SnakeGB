@@ -9,7 +9,7 @@
 #include <QString>
 #include <QStringView>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct FallbackLevelData {
   QString name;
@@ -30,4 +30,4 @@ auto resolvedLevelDataFromJsonBytes(const QByteArray& levelsJsonBytes, int level
   -> std::optional<ResolvedLevelData>;
 auto levelCountFromJsonBytes(const QByteArray& levelsJsonBytes, int fallbackCount) -> int;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

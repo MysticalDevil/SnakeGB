@@ -5,7 +5,7 @@
 #include <QByteArray>
 #include <QObject>
 #include <QTimer>
-#ifdef SNAKEGB_HAS_MULTIMEDIA
+#ifdef NENOSERPENT_HAS_MULTIMEDIA
 #include <QAudioFormat>
 #include <QAudioSink>
 #include <QBuffer>
@@ -50,7 +50,7 @@ private slots:
   void playNextNote();
 
 private:
-#ifdef SNAKEGB_HAS_MULTIMEDIA
+#ifdef NENOSERPENT_HAS_MULTIMEDIA
   // Updated: generate functions now output Stereo (L/R interleaved)
   void generateSquareWave(int frequencyHz,
                           int durationMs,
@@ -86,9 +86,9 @@ private:
   float m_musicDuckScale = 1.0f;
   int m_noteIndex = 0;
   int m_currentScore = 0;
-  snakegb::audio::ScoreTrackId m_currentTrackId = snakegb::audio::ScoreTrackId::Menu;
+  nenoserpent::audio::ScoreTrackId m_currentTrackId = nenoserpent::audio::ScoreTrackId::Menu;
 
-#ifdef SNAKEGB_HAS_MULTIMEDIA
+#ifdef NENOSERPENT_HAS_MULTIMEDIA
   // Filter state
   double m_lpfAlpha = 0.15;
   double m_lastLeadSample = 128.0;

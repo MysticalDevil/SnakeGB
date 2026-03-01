@@ -47,7 +47,7 @@ ui_nav_setup_isolated_config() {
 
   UI_NAV_CFG_TMP=""
   if [[ "${enabled}" == "1" ]]; then
-    ui_window_setup_isolated_config "/tmp/snakegb_ui_cfg"
+    ui_window_setup_isolated_config "/tmp/nenoserpent_ui_cfg"
     UI_NAV_CFG_TMP="${UI_WINDOW_CFG_TMP}"
   fi
 }
@@ -99,7 +99,7 @@ ui_nav_launch_and_locate() {
       echo "[info] Launching ${app_bin}"
     fi
     rm -f "${input_file}" >/dev/null 2>&1 || true
-    SNAKEGB_INPUT_FILE="${input_file}" "${app_bin}" "${app_args[@]}" >"${runtime_log}" 2>&1 &
+    NENOSERPENT_INPUT_FILE="${input_file}" "${app_bin}" "${app_args[@]}" >"${runtime_log}" 2>&1 &
     UI_NAV_APP_PID=$!
 
     if ui_nav_find_window_for_pid "${UI_NAV_APP_PID}" "${wait_seconds}"; then

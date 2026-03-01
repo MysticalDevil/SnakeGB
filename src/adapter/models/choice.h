@@ -7,10 +7,10 @@
 
 #include "core/choice/runtime.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
-[[nodiscard]] auto buildChoiceModel(const QList<snakegb::core::ChoiceSpec>& choices)
+[[nodiscard]] auto buildChoiceModel(const QList<nenoserpent::core::ChoiceSpec>& choices)
   -> QVariantList;
 [[nodiscard]] auto choiceTypeAt(const QVariantList& choices, int index) -> std::optional<int>;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

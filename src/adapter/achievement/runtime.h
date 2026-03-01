@@ -4,9 +4,9 @@
 
 class ProfileManager;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto unlockAchievements(ProfileManager* profile, int score, int tickIntervalMs, bool timerActive)
   -> QStringList;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

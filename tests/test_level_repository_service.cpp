@@ -29,10 +29,10 @@ void TestLevelRepositoryService::testReadLevelCount() {
   QVERIFY(file.write(doc.toJson()) > 0);
   file.close();
 
-  const snakegb::services::LevelRepository repository(filePath, 6);
+  const nenoserpent::services::LevelRepository repository(filePath, 6);
   QCOMPARE(repository.levelCount(), 2);
 
-  const snakegb::services::LevelRepository missingRepository(QStringLiteral("/path/not/found.json"),
+  const nenoserpent::services::LevelRepository missingRepository(QStringLiteral("/path/not/found.json"),
                                                              6);
   QCOMPARE(missingRepository.levelCount(), 6);
 }
@@ -54,7 +54,7 @@ void TestLevelRepositoryService::testLoadResolvedLevel() {
   QVERIFY(file.write(doc.toJson()) > 0);
   file.close();
 
-  const snakegb::services::LevelRepository repository(filePath, 6);
+  const nenoserpent::services::LevelRepository repository(filePath, 6);
   const auto scripted = repository.loadResolvedLevel(0);
   QVERIFY(scripted.has_value());
   QCOMPARE(scripted->name, QString("Scripted"));
@@ -68,7 +68,7 @@ void TestLevelRepositoryService::testLoadResolvedLevel() {
   QCOMPARE(wrapped->walls.size(), 1);
   QCOMPARE(wrapped->walls.first(), QPoint(7, 8));
 
-  const snakegb::services::LevelRepository missingRepository(QStringLiteral("/path/not/found.json"),
+  const nenoserpent::services::LevelRepository missingRepository(QStringLiteral("/path/not/found.json"),
                                                              6);
   QVERIFY(!missingRepository.loadResolvedLevel(0).has_value());
 }

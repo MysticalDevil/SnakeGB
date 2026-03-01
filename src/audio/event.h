@@ -1,6 +1,6 @@
 #pragma once
 
-namespace snakegb::audio {
+namespace nenoserpent::audio {
 
 enum class Event {
   Food,
@@ -15,4 +15,4 @@ struct EventPayload {
   float pan = 0.0F;
 };
 
-} // namespace snakegb::audio
+} // namespace nenoserpent::audio

@@ -9,8 +9,8 @@ source "${ROOT_DIR}/scripts/lib/ui_nav_runtime.sh"
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/ui_nav_targets.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
-APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
-WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
+APP_BIN="${APP_BIN:-${BUILD_DIR}/NenoSerpent}"
+WINDOW_CLASS="${WINDOW_CLASS:-devil.org.NenoSerpent}"
 WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
 WAIT_SECONDS="${WAIT_SECONDS:-14}"
 BOOT_SETTLE_SECONDS="${BOOT_SETTLE_SECONDS:-4.2}"
@@ -24,10 +24,10 @@ POST_TOKENS="${POST_TOKENS:-}"
 NO_SCREENSHOT="${NO_SCREENSHOT:-0}"
 HOLD_OPEN="${HOLD_OPEN:-0}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
-INPUT_FILE="${INPUT_FILE:-/tmp/snakegb_ui_input.txt}"
-CAPTURE_LOCK_FILE="${CAPTURE_LOCK_FILE:-/tmp/snakegb_ui_nav_capture.lock}"
+INPUT_FILE="${INPUT_FILE:-/tmp/nenoserpent_ui_input.txt}"
+CAPTURE_LOCK_FILE="${CAPTURE_LOCK_FILE:-/tmp/nenoserpent_ui_nav_capture.lock}"
 TARGET="${1:-menu}"
-OUT_PNG="${2:-/tmp/snakegb_ui_nav_${TARGET}.png}"
+OUT_PNG="${2:-/tmp/nenoserpent_ui_nav_${TARGET}.png}"
 
 ui_nav_need_cmd cmake
 ui_nav_need_cmd flock
@@ -47,7 +47,7 @@ cleanup() {
 trap cleanup EXIT
 
 if ! ui_nav_launch_and_locate "${APP_BIN}" "${INPUT_FILE}" "${WAIT_SECONDS}" \
-  /tmp/snakegb_ui_nav_runtime.log; then
+  /tmp/nenoserpent_ui_nav_runtime.log; then
   echo "[error] Could not find game window."
   exit 2
 fi
@@ -77,7 +77,7 @@ send_token_list "${POST_TOKENS}"
 sleep "${UI_NAV_TARGET_POST_WAIT_OVERRIDE:-${POST_NAV_WAIT}}"
 if ! kill -0 "${UI_NAV_APP_PID}" >/dev/null 2>&1; then
   echo "[error] App exited before screenshot. Recent log:"
-  tail -n 80 /tmp/snakegb_ui_nav_runtime.log || true
+  tail -n 80 /tmp/nenoserpent_ui_nav_runtime.log || true
   exit 5
 fi
 
@@ -88,7 +88,7 @@ if [[ "${HOLD_OPEN}" == "1" ]]; then
 [ok] Window: ${UI_NAV_WINDOW_ADDR}
 [ok] Geometry: ${UI_NAV_GEOM}
 [ok] Input file: ${INPUT_FILE}
-[ok] Runtime log: /tmp/snakegb_ui_nav_runtime.log
+[ok] Runtime log: /tmp/nenoserpent_ui_nav_runtime.log
 [hint] Send more tokens with:
        printf 'START\n' >> ${INPUT_FILE}
 [hint] Close the app normally, or press Ctrl+C in this terminal.

@@ -8,7 +8,7 @@
 
 class ProfileManager;
 
-namespace snakegb::services {
+namespace nenoserpent::services {
 
 class SaveRepository {
 public:
@@ -16,16 +16,16 @@ public:
 
   [[nodiscard]] auto hasSession() const -> bool;
   [[nodiscard]] auto loadSessionSnapshot() const
-    -> std::optional<snakegb::adapter::SessionSnapshot>;
-  void saveSession(const snakegb::core::StateSnapshot& snapshot) const;
+    -> std::optional<nenoserpent::adapter::SessionSnapshot>;
+  void saveSession(const nenoserpent::core::StateSnapshot& snapshot) const;
   void clearSession() const;
 
-  [[nodiscard]] auto loadGhostSnapshot(snakegb::adapter::GhostSnapshot& snapshot) const -> bool;
-  [[nodiscard]] auto saveGhostSnapshot(const snakegb::adapter::GhostSnapshot& snapshot) const
+  [[nodiscard]] auto loadGhostSnapshot(nenoserpent::adapter::GhostSnapshot& snapshot) const -> bool;
+  [[nodiscard]] auto saveGhostSnapshot(const nenoserpent::adapter::GhostSnapshot& snapshot) const
     -> bool;
 
 private:
   ProfileManager* m_profile = nullptr;
 };
 
-} // namespace snakegb::services
+} // namespace nenoserpent::services

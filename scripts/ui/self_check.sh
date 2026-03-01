@@ -6,9 +6,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
-APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
-OUT_PNG="${1:-/tmp/snakegb_ui_check.png}"
-WINDOW_CLASS="${WINDOW_CLASS:-devil.org.SnakeGB}"
+APP_BIN="${APP_BIN:-${BUILD_DIR}/NenoSerpent}"
+OUT_PNG="${1:-/tmp/nenoserpent_ui_check.png}"
+WINDOW_CLASS="${WINDOW_CLASS:-devil.org.NenoSerpent}"
 WINDOW_TITLE="${WINDOW_TITLE:-Snake GB Edition}"
 WAIT_SECONDS="${WAIT_SECONDS:-12}"
 
@@ -38,7 +38,7 @@ if [[ ! -x "${APP_BIN}" ]]; then
 fi
 
 echo "[info] Launching ${APP_BIN}"
-"${APP_BIN}" >/tmp/snakegb_ui_check_runtime.log 2>&1 &
+"${APP_BIN}" >/tmp/nenoserpent_ui_check_runtime.log 2>&1 &
 APP_PID=$!
 cleanup() {
   kill "${APP_PID}" >/dev/null 2>&1 || true

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 enum class BackAction {
   None = 0,
@@ -10,4 +10,4 @@ enum class BackAction {
 
 [[nodiscard]] auto resolveBackActionForState(int state) -> BackAction;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

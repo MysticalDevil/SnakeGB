@@ -2,7 +2,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 namespace {
 
 auto createFruitEntry(const int type,
@@ -77,4 +77,4 @@ auto buildMedalLibraryModel() -> QVariantList {
   return result;
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

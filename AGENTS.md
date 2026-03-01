@@ -13,7 +13,7 @@
 ```bash
 cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --parallel
-./build/debug/SnakeGB
+./build/debug/NenoSerpent
 ```
 - Release build:
 ```bash
@@ -31,11 +31,11 @@ CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 ```
 - Palette screenshot matrix (Wayland, current input semantics):
 ```bash
-./scripts/ui.sh palette-matrix /tmp/snakegb_palette_matrix
+./scripts/ui.sh palette-matrix /tmp/nenoserpent_palette_matrix
 ```
 - Focused palette capture for menu/game/replay/choice:
 ```bash
-PALETTE_STEPS=0 ./scripts/ui.sh palette-focus /tmp/snakegb_palette_focus
+PALETTE_STEPS=0 ./scripts/ui.sh palette-focus /tmp/nenoserpent_palette_focus
 ```
 - Release notes live in `CHANGELOG.md`.
 - Optional Makefile shortcuts (recommended for consistent build dirs under `build/`):
@@ -91,13 +91,13 @@ make clean
   - `scripts/ui.sh nav-capture dbg-screen-only ...` launches a screen-only window via `--ui-mode=screen`.
   - `scripts/ui.sh nav-capture dbg-shell-only ...` launches a shell-only window via `--ui-mode=shell`.
   - `scripts/ui.sh nav-debug <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
-  - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/snakegb_ui_input.txt`.
+  - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/nenoserpent_ui_input.txt`.
   - Detailed parameter formats and supported scenes live in `docs/UI_DEBUG_INJECTION.md`.
 - Enforce this validation order for C++ changes: `clang-format` first, then `clang-tidy`, then build,
   then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/dev.sh clang-tidy <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
-- Build uses `ccache` automatically when available (`SNAKEGB_USE_CCACHE=ON` in CMake).
+- Build uses `ccache` automatically when available (`NENOSERPENT_USE_CCACHE=ON` in CMake).
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commit style seen in history: `feat(ui): ...`, `fix(runtime+ui): ...`, `refactor(input): ...`, `docs(arch): ...`.

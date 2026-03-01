@@ -3,7 +3,7 @@
 #include "game_engine_interface.h"
 #include "states.h"
 
-namespace snakegb::fsm {
+namespace nenoserpent::fsm {
 
 auto createStateFor(IGameEngine& engine, int state) -> std::unique_ptr<GameState> {
   switch (state) {
@@ -30,4 +30,4 @@ auto createStateFor(IGameEngine& engine, int state) -> std::unique_ptr<GameState
   }
 }
 
-} // namespace snakegb::fsm
+} // namespace nenoserpent::fsm

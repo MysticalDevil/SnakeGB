@@ -5,8 +5,8 @@
 
 using namespace Qt::StringLiterals;
 
-auto EngineAdapter::saveRepository() const -> snakegb::services::SaveRepository {
-  return snakegb::services::SaveRepository(m_profileManager.get());
+auto EngineAdapter::saveRepository() const -> nenoserpent::services::SaveRepository {
+  return nenoserpent::services::SaveRepository(m_profileManager.get());
 }
 
 void EngineAdapter::loadLastSession() {
@@ -16,8 +16,8 @@ void EngineAdapter::loadLastSession() {
   }
 
   resetReplayRuntimeTracking();
-  m_sessionCore.applyMetaAction(snakegb::core::MetaAction::restorePersistedSession(
-    snakegb::adapter::toCoreStateSnapshot(*snapshot)));
+  m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::restorePersistedSession(
+    nenoserpent::adapter::toCoreStateSnapshot(*snapshot)));
   syncSnakeModelFromCore();
 
   for (const auto& p : snapshot->body) {
@@ -36,7 +36,7 @@ void EngineAdapter::loadLastSession() {
 
 void EngineAdapter::updatePersistence() {
   updateHighScore();
-  snakegb::adapter::incrementCrashes(m_profileManager.get());
+  nenoserpent::adapter::incrementCrashes(m_profileManager.get());
   clearSavedState();
 }
 
@@ -46,10 +46,10 @@ void EngineAdapter::enterGameOverState() {
 }
 
 void EngineAdapter::lazyInit() {
-  m_levelIndex = snakegb::adapter::levelIndex(m_profileManager.get());
-  m_audioBus.applyVolume(snakegb::adapter::volume(m_profileManager.get()));
+  m_levelIndex = nenoserpent::adapter::levelIndex(m_profileManager.get());
+  m_audioBus.applyVolume(nenoserpent::adapter::volume(m_profileManager.get()));
 
-  snakegb::adapter::GhostSnapshot snapshot;
+  nenoserpent::adapter::GhostSnapshot snapshot;
   if (saveRepository().loadGhostSnapshot(snapshot)) {
     m_bestRecording = snapshot.recording;
     m_bestRandomSeed = snapshot.randomSeed;
@@ -65,15 +65,15 @@ void EngineAdapter::lazyInit() {
 }
 
 void EngineAdapter::updateHighScore() {
-  if (m_session.score > snakegb::adapter::highScore(m_profileManager.get())) {
-    snakegb::adapter::updateHighScore(m_profileManager.get(), m_session.score);
+  if (m_session.score > nenoserpent::adapter::highScore(m_profileManager.get())) {
+    nenoserpent::adapter::updateHighScore(m_profileManager.get(), m_session.score);
     m_bestInputHistory = m_currentInputHistory;
     m_bestRecording = m_currentRecording;
     m_bestChoiceHistory = m_currentChoiceHistory;
     m_bestRandomSeed = m_randomSeed;
     m_bestLevelIndex = m_levelIndex;
 
-    const snakegb::adapter::GhostSnapshot ghostSnapshot{
+    const nenoserpent::adapter::GhostSnapshot ghostSnapshot{
       .recording = m_bestRecording,
       .randomSeed = m_bestRandomSeed,
       .inputHistory = m_bestInputHistory,
@@ -82,7 +82,7 @@ void EngineAdapter::updateHighScore() {
     };
     const bool savedGhost = saveRepository().saveGhostSnapshot(ghostSnapshot);
     if (!savedGhost) {
-      qCWarning(snakegbReplayLog).noquote() << "failed to persist ghost snapshot";
+      qCWarning(nenoserpentReplayLog).noquote() << "failed to persist ghost snapshot";
     }
     emit highScoreChanged();
   }

@@ -27,21 +27,21 @@ InputInjectionPipe::InputInjectionPipe(QObject* parent)
     : QObject(parent) {
 #if !defined(Q_OS_UNIX)
   Q_UNUSED(parent);
-  m_pipePath = qEnvironmentVariable("SNAKEGB_INPUT_PIPE").trimmed();
-  m_filePath = qEnvironmentVariable("SNAKEGB_INPUT_FILE").trimmed();
+  m_pipePath = qEnvironmentVariable("NENOSERPENT_INPUT_PIPE").trimmed();
+  m_filePath = qEnvironmentVariable("NENOSERPENT_INPUT_FILE").trimmed();
   if (!m_pipePath.isEmpty() || !m_filePath.isEmpty()) {
-    qCWarning(snakegbInjectLog).noquote()
+    qCWarning(nenoserpentInjectLog).noquote()
       << "injection endpoints are not supported on this platform";
   }
   return;
 #else
-  m_filePath = qEnvironmentVariable("SNAKEGB_INPUT_FILE").trimmed();
-  m_pipePath = qEnvironmentVariable("SNAKEGB_INPUT_PIPE").trimmed();
+  m_filePath = qEnvironmentVariable("NENOSERPENT_INPUT_FILE").trimmed();
+  m_pipePath = qEnvironmentVariable("NENOSERPENT_INPUT_PIPE").trimmed();
 
   if (!m_filePath.isEmpty()) {
     QFile file(m_filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-      qCWarning(snakegbInjectLog).noquote() << "open input file failed:" << m_filePath;
+      qCWarning(nenoserpentInjectLog).noquote() << "open input file failed:" << m_filePath;
       return;
     }
     file.close();
@@ -49,21 +49,21 @@ InputInjectionPipe::InputInjectionPipe(QObject* parent)
   } else if (!m_pipePath.isEmpty()) {
     const QFileInfo info(m_pipePath);
     if (info.exists() && !info.isWritable()) {
-      qCWarning(snakegbInjectLog).noquote() << "pipe path exists but not writable:" << m_pipePath;
+      qCWarning(nenoserpentInjectLog).noquote() << "pipe path exists but not writable:" << m_pipePath;
       return;
     }
 
     if (mkfifo(m_pipePath.toLocal8Bit().constData(), kPipeMode) == 0) {
       m_createdPipe = true;
     } else if (errno != EEXIST) {
-      qCWarning(snakegbInjectLog).noquote()
+      qCWarning(nenoserpentInjectLog).noquote()
         << "mkfifo failed:" << m_pipePath << "errno=" << errno << std::strerror(errno);
       return;
     }
 
     m_fd = open(m_pipePath.toLocal8Bit().constData(), O_RDONLY | O_NONBLOCK);
     if (m_fd < 0) {
-      qCWarning(snakegbInjectLog).noquote()
+      qCWarning(nenoserpentInjectLog).noquote()
         << "open fifo(read) failed:" << m_pipePath << "errno=" << errno << std::strerror(errno);
       if (m_createdPipe) {
         unlink(m_pipePath.toLocal8Bit().constData());
@@ -73,7 +73,7 @@ InputInjectionPipe::InputInjectionPipe(QObject* parent)
 
     m_keepAliveWriterFd = open(m_pipePath.toLocal8Bit().constData(), O_WRONLY | O_NONBLOCK);
     if (m_keepAliveWriterFd < 0) {
-      qCWarning(snakegbInjectLog).noquote() << "open fifo(write keepalive) failed:" << m_pipePath
+      qCWarning(nenoserpentInjectLog).noquote() << "open fifo(write keepalive) failed:" << m_pipePath
                                             << "errno=" << errno << std::strerror(errno);
       close(m_fd);
       m_fd = -1;
@@ -90,7 +90,7 @@ InputInjectionPipe::InputInjectionPipe(QObject* parent)
   m_enabled = true;
   m_running.store(true);
   m_readerThread = std::thread([this]() { readerLoop(); });
-  qCInfo(snakegbInjectLog).noquote() << "enabled on" << activePath();
+  qCInfo(nenoserpentInjectLog).noquote() << "enabled on" << activePath();
 #endif
 }
 
@@ -166,7 +166,7 @@ void InputInjectionPipe::readerLoop() {
     } else if (n == 0 || errno == EAGAIN || errno == EWOULDBLOCK) {
       QThread::msleep(20);
     } else {
-      qCWarning(snakegbInjectLog).noquote() << "read error errno=" << errno << std::strerror(errno);
+      qCWarning(nenoserpentInjectLog).noquote() << "read error errno=" << errno << std::strerror(errno);
       break;
     }
   }

@@ -12,7 +12,7 @@
 #include "core/session/snapshot.h"
 #include "core/session/step_types.h"
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct PreviewSeed {
   QList<QPoint> obstacles;
@@ -161,4 +161,4 @@ private:
   std::deque<QPoint> m_inputQueue;
 };
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

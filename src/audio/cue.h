@@ -6,7 +6,7 @@
 #include "audio/event.h"
 #include "audio/score.h"
 
-namespace snakegb::audio {
+namespace nenoserpent::audio {
 
 enum class CueKind {
   Beep,
@@ -44,4 +44,4 @@ inline constexpr std::array<CueSpec, 5> CueTable{{
   return std::nullopt;
 }
 
-} // namespace snakegb::audio
+} // namespace nenoserpent::audio

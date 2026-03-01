@@ -53,7 +53,7 @@ void silenceStderrForRelease() {
 
 auto main(int argc, char* argv[]) -> int {
 #if defined(QT_NO_DEBUG_OUTPUT) && defined(QT_NO_INFO_OUTPUT) && defined(QT_NO_WARNING_OUTPUT)
-  const bool keepStderr = qEnvironmentVariableIntValue("SNAKEGB_KEEP_STDERR") == 1;
+  const bool keepStderr = qEnvironmentVariableIntValue("NENOSERPENT_KEEP_STDERR") == 1;
   if (!keepStderr) {
     silenceStderrForRelease();
     qInstallMessageHandler(releaseLogFilter);
@@ -61,9 +61,9 @@ auto main(int argc, char* argv[]) -> int {
 #endif
 
   QGuiApplication app(argc, argv);
-  const snakegb::logging::LogMode logMode = snakegb::logging::detectBuildLogMode();
-  snakegb::logging::applyLoggingPolicy(logMode);
-  const QString appLogMode = QString::fromLatin1(snakegb::logging::logModeName(logMode));
+  const nenoserpent::logging::LogMode logMode = nenoserpent::logging::detectBuildLogMode();
+  nenoserpent::logging::applyLoggingPolicy(logMode);
+  const QString appLogMode = QString::fromLatin1(nenoserpent::logging::logModeName(logMode));
   QString uiMode = "full";
   const QStringList arguments = QCoreApplication::arguments();
   for (const QString& argument : arguments) {
@@ -75,13 +75,13 @@ auto main(int argc, char* argv[]) -> int {
     }
   }
 
-  QCoreApplication::setOrganizationName("DevilOrg");
-  QCoreApplication::setOrganizationDomain("org.devil");
-  QCoreApplication::setApplicationName("SnakeGB");
-  QGuiApplication::setApplicationDisplayName("Snake GameBoy Edition");
+  QCoreApplication::setOrganizationName("devil");
+  QCoreApplication::setOrganizationDomain("org.devil.nenoserpent");
+  QCoreApplication::setApplicationName("nenoserpent");
+  QGuiApplication::setApplicationDisplayName("NenoSerpent");
   QGuiApplication::setApplicationVersion("1.4.6");
 
-  qCInfo(snakegbStateLog).noquote() << "build mode" << appLogMode << "logging enabled";
+  qCInfo(nenoserpentStateLog).noquote() << "build mode" << appLogMode << "logging enabled";
 
   EngineAdapter engineAdapter;
   UiCommandController uiCommandController(&engineAdapter);
@@ -120,9 +120,9 @@ auto main(int argc, char* argv[]) -> int {
 
   QQmlApplicationEngine engine;
   qmlRegisterUncreatableType<AppState>(
-    "SnakeGB", 1, 0, "AppState", "AppState is an enum container and cannot be instantiated");
+    "NenoSerpent", 1, 0, "AppState", "AppState is an enum container and cannot be instantiated");
   qmlRegisterUncreatableType<PowerUpId>(
-    "SnakeGB", 1, 0, "PowerUpId", "PowerUpId is an enum container and cannot be instantiated");
+    "NenoSerpent", 1, 0, "PowerUpId", "PowerUpId is an enum container and cannot be instantiated");
   engine.rootContext()->setContextProperty("uiCommandController", &uiCommandController);
   engine.rootContext()->setContextProperty("audioSettingsViewModel", &audioSettingsViewModel);
   engine.rootContext()->setContextProperty("selectionViewModel", &selectionViewModel);

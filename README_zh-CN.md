@@ -1,8 +1,8 @@
-# SnakeGB - 复古 GameBoy 风格贪吃蛇 (v1.4.0)
+# NenoSerpent - 复古 GameBoy 风格贪吃蛇 (v1.4.0)
 
 [English](README.md)
 
-SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 GameBoy 风格贪吃蛇游戏。它以现代工程标准忠实还原了经典复古掌机的操作体验，并提供触觉与音频反馈。
+NenoSerpent 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 GameBoy 风格贪吃蛇游戏。它以现代工程标准忠实还原了经典复古掌机的操作体验，并提供触觉与音频反馈。
 
 ## 核心特性 (v1.4.0)
 
@@ -43,13 +43,13 @@ SnakeGB 是一款基于 **Qt 6** 和 **C++23** 构建的高质量、跨平台 Ga
 ```bash
 cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --parallel
-./build/debug/SnakeGB
+./build/debug/NenoSerpent
 ```
 
 ```bash
 cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release --parallel
-./build/release/SnakeGB
+./build/release/NenoSerpent
 ```
 
 - `Debug`: 保留详细运行日志。
@@ -104,7 +104,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 - 日志指南：`docs/LOGGING_GUIDE.md`
 - 音频编写指南：`docs/AUDIO_AUTHORING.md`
 - 关卡编写指南：`docs/LEVEL_AUTHORING.md`
-- 运行时自动化注入：建议使用 `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue`（或 `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token
+- 运行时自动化注入：建议使用 `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue`（或 `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`），并用 `./scripts/input.sh inject ...` 发送按键 token
 
 ## 授权
 本项目采用 [GNU GPL v3](LICENSE) 协议授权。

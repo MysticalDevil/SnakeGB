@@ -11,7 +11,7 @@ source "${ROOT_DIR}/scripts/lib/script_common.sh"
 source "${ROOT_DIR}/scripts/lib/capture_batch.sh"
 
 PALETTE_STEP="${1:-0}"
-OUT_DIR="${2:-/tmp/snakegb_palette_single}"
+OUT_DIR="${2:-/tmp/nenoserpent_palette_single}"
 TARGETS_CSV="${3:-${TARGETS:-splash,menu,dbg-static-game,game,replay,dbg-choice,dbg-static-replay,dbg-catalog,dbg-achievements}}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"
 POST_NAV_WAIT="${POST_NAV_WAIT:-1.8}"

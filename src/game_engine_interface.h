@@ -38,8 +38,8 @@ public:
   [[nodiscard]] virtual auto hasReplay() const -> bool = 0;
 
   // --- Logic & Physics ---
-  virtual auto advanceSessionStep(const snakegb::core::SessionAdvanceConfig& config)
-    -> snakegb::core::SessionAdvanceResult = 0;
+  virtual auto advanceSessionStep(const nenoserpent::core::SessionAdvanceConfig& config)
+    -> nenoserpent::core::SessionAdvanceResult = 0;
 
   // --- Game Actions ---
   virtual void restart() = 0;
@@ -55,7 +55,7 @@ public:
 
   // --- Side Effects ---
   virtual void triggerHaptic(int magnitude) = 0;
-  virtual void emitAudioEvent(snakegb::audio::Event event, float pan = 0.0f) = 0;
+  virtual void emitAudioEvent(nenoserpent::audio::Event event, float pan = 0.0f) = 0;
   virtual void updatePersistence() = 0;
   virtual void advancePlayingState() = 0;
   virtual void enterGameOverState() = 0;

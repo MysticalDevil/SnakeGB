@@ -5,35 +5,35 @@ namespace {
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto buildPowerUpResult(const int powerUpType,
                         const int baseDurationTicks,
-                        const bool halfDurationForRich) -> snakegb::core::PowerUpConsumptionResult {
-  snakegb::core::PowerUpConsumptionResult result;
+                        const bool halfDurationForRich) -> nenoserpent::core::PowerUpConsumptionResult {
+  nenoserpent::core::PowerUpConsumptionResult result;
   const int acquired = powerUpType;
-  if (acquired == static_cast<int>(snakegb::core::BuffId::Shield)) {
+  if (acquired == static_cast<int>(nenoserpent::core::BuffId::Shield)) {
     result.shieldActivated = true;
   }
 
-  if (acquired == static_cast<int>(snakegb::core::BuffId::Mini)) {
+  if (acquired == static_cast<int>(nenoserpent::core::BuffId::Mini)) {
     result.miniApplied = true;
-    result.activeBuffAfter = static_cast<int>(snakegb::core::BuffId::None);
+    result.activeBuffAfter = static_cast<int>(nenoserpent::core::BuffId::None);
   } else {
     result.activeBuffAfter = acquired;
   }
 
-  const snakegb::core::BuffId durationBuff =
-    halfDurationForRich ? static_cast<snakegb::core::BuffId>(result.activeBuffAfter)
-                        : static_cast<snakegb::core::BuffId>(acquired);
+  const nenoserpent::core::BuffId durationBuff =
+    halfDurationForRich ? static_cast<nenoserpent::core::BuffId>(result.activeBuffAfter)
+                        : static_cast<nenoserpent::core::BuffId>(acquired);
   const int duration = halfDurationForRich
-                         ? snakegb::core::buffDurationTicks(durationBuff, baseDurationTicks)
+                         ? nenoserpent::core::buffDurationTicks(durationBuff, baseDurationTicks)
                          : baseDurationTicks;
   result.buffTicksRemaining = duration;
   result.buffTicksTotal = duration;
-  result.slowMode = (acquired == static_cast<int>(snakegb::core::BuffId::Slow));
+  result.slowMode = (acquired == static_cast<int>(nenoserpent::core::BuffId::Slow));
   return result;
 }
 
 } // namespace
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
 auto planFoodConsumption(const QPoint& head,
@@ -178,4 +178,4 @@ auto applyMagnetAttraction(const QPoint& head,
     state.food, head, boardWidth, boardHeight, isOccupied, state.powerUpPos);
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

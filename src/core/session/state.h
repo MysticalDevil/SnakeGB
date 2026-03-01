@@ -3,7 +3,7 @@
 #include <QList>
 #include <QPoint>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct SessionState {
   QPoint food = {0, 0};
@@ -20,4 +20,4 @@ struct SessionState {
   int lastRoguelikeChoiceScore = -1000;
 };
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

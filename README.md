@@ -1,8 +1,8 @@
-# SnakeGB - Retro GameBoy Style Snake Game (v1.4.0)
+# NenoSerpent - Retro GameBoy Style Snake Game (v1.4.0)
 
 [中文版](README_zh-CN.md)
 
-SnakeGB is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience with modern engineering standards and premium haptic/audio feedback.
+NenoSerpent is a high-quality, cross-platform GameBoy-style Snake game built with **Qt 6** and **C++23**. It faithfully simulates the classic retro handheld experience with modern engineering standards and premium haptic/audio feedback.
 
 ## Core Features (v1.4.0)
 
@@ -46,13 +46,13 @@ Release notes live in `CHANGELOG.md`.
 ```bash
 cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/debug --parallel
-./build/debug/SnakeGB
+./build/debug/NenoSerpent
 ```
 
 ```bash
 cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release --parallel
-./build/release/SnakeGB
+./build/release/NenoSerpent
 ```
 
 - `Debug`: detailed runtime logs enabled.
@@ -92,7 +92,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Qt WASM toolchain root (example path)
 export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
-# Build, package to /tmp/snakegb-wasm-dist, and serve locally on :8080
+# Build, package to /tmp/neno-serpent-wasm-dist, and serve locally on :8080
 ./scripts/deploy.sh wasm
 ```
 
@@ -120,7 +120,7 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 - Logging guide: `docs/LOGGING_GUIDE.md`
 - Audio authoring guide: `docs/AUDIO_AUTHORING.md`
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
-- Runtime automation injection: set `SNAKEGB_INPUT_FILE=/tmp/snakegb-input.queue` (recommended) or `SNAKEGB_INPUT_PIPE=/tmp/snakegb-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
+- Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).

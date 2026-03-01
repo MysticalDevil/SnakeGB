@@ -2,7 +2,7 @@
 
 #include "game_engine_interface.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto resolveBackActionForState(const int state) -> BackAction {
   switch (state) {
@@ -20,4 +20,4 @@ auto resolveBackActionForState(const int state) -> BackAction {
   }
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

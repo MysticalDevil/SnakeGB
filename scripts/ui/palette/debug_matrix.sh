@@ -9,7 +9,7 @@ source "${ROOT_DIR}/scripts/lib/script_common.sh"
 # shellcheck source=lib/capture_batch.sh
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/capture_batch.sh"
-OUT_DIR="${1:-/tmp/snakegb_debug_palette_matrix}"
+OUT_DIR="${1:-/tmp/nenoserpent_debug_palette_matrix}"
 TARGETS_CSV="${TARGETS:-splash,menu,dbg-catalog,dbg-achievements,dbg-icons,pause,dbg-gameover,dbg-replay,dbg-choice}"
 PALETTES_CSV="${PALETTES:-0,1,2,3,4}"
 ISOLATED_CONFIG="${ISOLATED_CONFIG:-1}"

@@ -49,7 +49,7 @@ void TestUiCommandController::testCycleBgmForwardsVariantSwitch() {
   QCOMPARE(promptSpy.takeFirst().at(0).toString(), QString("BGM B"));
   QCOMPARE(musicSpy.count(), 1);
   QCOMPARE(musicSpy.takeFirst().at(0).toInt(),
-           static_cast<int>(snakegb::audio::ScoreTrackId::MenuAlt));
+           static_cast<int>(nenoserpent::audio::ScoreTrackId::MenuAlt));
 }
 
 void TestUiCommandController::testSeedChoicePreviewForwardsDebugSeed() {

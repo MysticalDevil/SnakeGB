@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#ifdef SNAKEGB_HAS_MULTIMEDIA
+#ifdef NENOSERPENT_HAS_MULTIMEDIA
 
 #include <utility>
 
@@ -91,21 +91,21 @@ void SoundManager::applyMusicVolumes() {
 }
 
 auto SoundManager::setPaused(bool paused) -> void {
-  qCInfo(snakegbAudioLog).noquote() << "setPaused =" << paused;
+  qCInfo(nenoserpentAudioLog).noquote() << "setPaused =" << paused;
   m_isPaused = paused;
   if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive())
     startMusic(static_cast<int>(m_currentTrackId));
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
-  qCInfo(snakegbAudioLog).noquote() << "setMusicEnabled =" << enabled;
+  qCInfo(nenoserpentAudioLog).noquote() << "setMusicEnabled =" << enabled;
   m_musicEnabled = enabled;
   if (!m_musicEnabled)
     stopMusic();
 }
 
 auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float pan) -> void {
-  qCDebug(snakegbAudioLog).noquote()
+  qCDebug(nenoserpentAudioLog).noquote()
     << "playBeep f=" << frequencyHz << "ms=" << durationMs << "pan=" << pan;
   if (m_sfxSink == nullptr)
     return;
@@ -119,12 +119,12 @@ auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float p
 }
 
 auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
-  qCDebug(snakegbAudioLog).noquote() << "playScoreCue id=" << cueId << "pan=" << pan;
+  qCDebug(nenoserpentAudioLog).noquote() << "playScoreCue id=" << cueId << "pan=" << pan;
   if (m_sfxSink == nullptr) {
     return;
   }
 
-  const auto steps = snakegb::audio::scoreCueSteps(static_cast<snakegb::audio::ScoreCueId>(cueId));
+  const auto steps = nenoserpent::audio::scoreCueSteps(static_cast<nenoserpent::audio::ScoreCueId>(cueId));
   if (steps.empty()) {
     return;
   }
@@ -143,7 +143,7 @@ auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
-  qCDebug(snakegbAudioLog).noquote() << "playCrash ms=" << durationMs;
+  qCDebug(nenoserpentAudioLog).noquote() << "playCrash ms=" << durationMs;
   if (m_sfxSink == nullptr)
     return;
   QByteArray data;
@@ -156,18 +156,18 @@ auto SoundManager::playCrash(const int durationMs) -> void {
 }
 
 auto SoundManager::startMusic(const int trackId) -> void {
-  qCInfo(snakegbAudioLog).noquote()
+  qCInfo(nenoserpentAudioLog).noquote()
     << "startMusic"
     << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused << ", track=" << trackId << ")";
   if (!m_musicEnabled || m_bgmLeadSink == nullptr)
     return;
-  m_currentTrackId = static_cast<snakegb::audio::ScoreTrackId>(trackId);
+  m_currentTrackId = static_cast<nenoserpent::audio::ScoreTrackId>(trackId);
   m_noteIndex = 0;
   playNextNote();
 }
 
 auto SoundManager::stopMusic() -> void {
-  qCInfo(snakegbAudioLog).noquote() << "stopMusic";
+  qCInfo(nenoserpentAudioLog).noquote() << "stopMusic";
   m_musicTimer.stop();
   if (m_bgmLeadSink != nullptr)
     m_bgmLeadSink->stop();
@@ -188,7 +188,7 @@ auto SoundManager::duckMusic(const float scale, const int durationMs) -> void {
 auto SoundManager::playNextNote() -> void {
   if (m_bgmLeadSink == nullptr || !m_musicEnabled)
     return;
-  const auto trackSteps = snakegb::audio::scoreTrackSteps(m_currentTrackId);
+  const auto trackSteps = nenoserpent::audio::scoreTrackSteps(m_currentTrackId);
   if (trackSteps.empty())
     return;
   if (std::cmp_greater_equal(m_noteIndex, trackSteps.size()))
@@ -198,8 +198,8 @@ auto SoundManager::playNextNote() -> void {
     trackSteps[static_cast<std::size_t>(m_noteIndex)];
   m_noteIndex++;
 
-  const auto leadFreq = snakegb::audio::pitchFrequencyHz(leadPitch);
-  const auto bassFreq = snakegb::audio::pitchFrequencyHz(bassPitch);
+  const auto leadFreq = nenoserpent::audio::pitchFrequencyHz(leadPitch);
+  const auto bassFreq = nenoserpent::audio::pitchFrequencyHz(bassPitch);
 
   double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
   int scaledDuration = static_cast<int>(duration * tempoScale);
@@ -210,7 +210,7 @@ auto SoundManager::playNextNote() -> void {
                        scaledDuration - 5,
                        leadData,
                        Lead_Amplitude,
-                       snakegb::audio::dutyCycle(leadDuty),
+                       nenoserpent::audio::dutyCycle(leadDuty),
                        0.2f);
     if (m_isPaused)
       applyLowPassFilter(leadData);
@@ -229,7 +229,7 @@ auto SoundManager::playNextNote() -> void {
                        scaledDuration - 5,
                        bassData,
                        Bass_Amplitude,
-                       snakegb::audio::dutyCycle(bassDuty),
+                       nenoserpent::audio::dutyCycle(bassDuty),
                        -0.2f);
     if (m_isPaused)
       applyLowPassFilter(bassData);

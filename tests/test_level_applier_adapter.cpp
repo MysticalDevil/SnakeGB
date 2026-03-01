@@ -11,13 +11,13 @@ private slots:
 };
 
 void TestLevelApplierAdapter::testApplyStaticLevelUsesWalls() {
-  snakegb::core::ResolvedLevelData resolved{
+  nenoserpent::core::ResolvedLevelData resolved{
     .name = QStringLiteral("Static"), .script = QString(), .walls = {QPoint(1, 2), QPoint(3, 4)}};
   QString levelName;
   QString script;
   QList<QPoint> obstacles;
 
-  const bool ok = snakegb::adapter::applyResolvedLevelData(
+  const bool ok = nenoserpent::adapter::applyResolvedLevelData(
     resolved, levelName, script, obstacles, [](const QString&) -> bool { return false; });
 
   QVERIFY(ok);
@@ -27,7 +27,7 @@ void TestLevelApplierAdapter::testApplyStaticLevelUsesWalls() {
 }
 
 void TestLevelApplierAdapter::testApplyScriptedLevelRequiresScriptSuccessAndObstacles() {
-  snakegb::core::ResolvedLevelData resolved{.name = QStringLiteral("Scripted"),
+  nenoserpent::core::ResolvedLevelData resolved{.name = QStringLiteral("Scripted"),
                                             .script =
                                               QStringLiteral("function onTick(t){return [];}"),
                                             .walls = {}};
@@ -35,15 +35,15 @@ void TestLevelApplierAdapter::testApplyScriptedLevelRequiresScriptSuccessAndObst
   QString script;
   QList<QPoint> obstacles;
 
-  const bool failedEval = snakegb::adapter::applyResolvedLevelData(
+  const bool failedEval = nenoserpent::adapter::applyResolvedLevelData(
     resolved, levelName, script, obstacles, [](const QString&) -> bool { return false; });
   QVERIFY(!failedEval);
 
-  const bool emptyResult = snakegb::adapter::applyResolvedLevelData(
+  const bool emptyResult = nenoserpent::adapter::applyResolvedLevelData(
     resolved, levelName, script, obstacles, [](const QString&) -> bool { return true; });
   QVERIFY(!emptyResult);
 
-  const bool ok = snakegb::adapter::applyResolvedLevelData(
+  const bool ok = nenoserpent::adapter::applyResolvedLevelData(
     resolved, levelName, script, obstacles, [&obstacles](const QString&) -> bool {
       obstacles = {QPoint(7, 8)};
       return true;

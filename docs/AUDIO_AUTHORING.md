@@ -1,6 +1,6 @@
 # Audio Authoring Guide
 
-This document defines the current authoring contract for SnakeGB audio content.
+This document defines the current authoring contract for NenoSerpent audio content.
 
 It covers:
 
@@ -147,12 +147,12 @@ Default location:
 
 Override path for testing/manual iteration:
 
-- env var `SNAKEGB_SCORE_OVERRIDE_FILE`
+- env var `NENOSERPENT_SCORE_OVERRIDE_FILE`
 
 Example:
 
 ```bash
-SNAKEGB_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/SnakeGB
+NENOSERPENT_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/NenoSerpent
 ```
 
 Override file shape:
@@ -209,8 +209,8 @@ cd build/dev && ctest --output-on-failure
 Useful manual checks:
 
 ```bash
-./build/dev/SnakeGB
-SNAKEGB_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/SnakeGB
+./build/dev/NenoSerpent
+NENOSERPENT_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/NenoSerpent
 ```
 
 ## Current Limits

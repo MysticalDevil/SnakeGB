@@ -10,7 +10,7 @@
 #include <QJsonObject>
 #include <QStandardPaths>
 
-namespace snakegb::audio {
+namespace nenoserpent::audio {
 namespace {
 
 struct ScoreCatalog {
@@ -95,7 +95,7 @@ auto defaultOverridePath() -> QString {
 }
 
 auto activeOverridePath() -> QString {
-  auto envPath = qEnvironmentVariable("SNAKEGB_SCORE_OVERRIDE_FILE").trimmed();
+  auto envPath = qEnvironmentVariable("NENOSERPENT_SCORE_OVERRIDE_FILE").trimmed();
   if (!envPath.isEmpty()) {
     return envPath;
   }
@@ -255,4 +255,4 @@ auto scoreTrackSteps(const ScoreTrackId trackId) -> std::span<const ScoreTrackSt
   return {};
 }
 
-} // namespace snakegb::audio
+} // namespace nenoserpent::audio

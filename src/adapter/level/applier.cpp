@@ -1,8 +1,8 @@
 #include "adapter/level/applier.h"
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
-auto applyResolvedLevelData(const snakegb::core::ResolvedLevelData& resolvedLevel,
+auto applyResolvedLevelData(const nenoserpent::core::ResolvedLevelData& resolvedLevel,
                             QString& currentLevelName,
                             QString& currentScript,
                             QList<QPoint>& obstacles,
@@ -23,4 +23,4 @@ auto applyResolvedLevelData(const snakegb::core::ResolvedLevelData& resolvedLeve
   return !obstacles.isEmpty();
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

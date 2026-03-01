@@ -1,6 +1,6 @@
 # Level Authoring Guide
 
-This document defines the current level authoring contract for SnakeGB.
+This document defines the current level authoring contract for NenoSerpent.
 
 It covers:
 
@@ -204,7 +204,7 @@ cd build/dev && ctest --output-on-failure
 Useful manual checks:
 
 ```bash
-./build/dev/SnakeGB
+./build/dev/NenoSerpent
 ./scripts/ui.sh nav-debug game
 ./scripts/ui.sh nav-capture dbg-static-game /tmp/level_preview.png
 ```

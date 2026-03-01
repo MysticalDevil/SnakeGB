@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 auto roguelikeChoiceChancePercent(const RoguelikeChoiceContext& ctx) -> int {
   if (ctx.newScore < 8) {
@@ -214,4 +214,4 @@ auto collisionOutcomeForHead(const QPoint& head,
   return outcome;
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

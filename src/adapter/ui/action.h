@@ -5,7 +5,7 @@
 
 #include <QString>
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 struct UnknownAction {};
 struct NavAction {
@@ -80,4 +80,4 @@ struct UiActionDispatchCallbacks {
 [[nodiscard]] auto parseUiAction(const QString& action) -> UiAction;
 auto dispatchUiAction(const UiAction& action, const UiActionDispatchCallbacks& callbacks) -> void;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

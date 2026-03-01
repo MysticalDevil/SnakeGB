@@ -13,16 +13,16 @@ public:
   }
 
   enum Value {
-    None = static_cast<int>(snakegb::core::BuffId::None),
-    Ghost = static_cast<int>(snakegb::core::BuffId::Ghost),
-    Slow = static_cast<int>(snakegb::core::BuffId::Slow),
-    Magnet = static_cast<int>(snakegb::core::BuffId::Magnet),
-    Shield = static_cast<int>(snakegb::core::BuffId::Shield),
-    Portal = static_cast<int>(snakegb::core::BuffId::Portal),
-    Double = static_cast<int>(snakegb::core::BuffId::Double),
-    Rich = static_cast<int>(snakegb::core::BuffId::Rich),
-    Laser = static_cast<int>(snakegb::core::BuffId::Laser),
-    Mini = static_cast<int>(snakegb::core::BuffId::Mini)
+    None = static_cast<int>(nenoserpent::core::BuffId::None),
+    Ghost = static_cast<int>(nenoserpent::core::BuffId::Ghost),
+    Slow = static_cast<int>(nenoserpent::core::BuffId::Slow),
+    Magnet = static_cast<int>(nenoserpent::core::BuffId::Magnet),
+    Shield = static_cast<int>(nenoserpent::core::BuffId::Shield),
+    Portal = static_cast<int>(nenoserpent::core::BuffId::Portal),
+    Double = static_cast<int>(nenoserpent::core::BuffId::Double),
+    Rich = static_cast<int>(nenoserpent::core::BuffId::Rich),
+    Laser = static_cast<int>(nenoserpent::core::BuffId::Laser),
+    Mini = static_cast<int>(nenoserpent::core::BuffId::Mini)
   };
   Q_ENUM(Value)
 };

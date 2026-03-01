@@ -3,8 +3,8 @@
 #include <QString>
 #include <QStringList>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 auto unlockedAchievementTitles(int score, int tickIntervalMs, bool timerActive) -> QStringList;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

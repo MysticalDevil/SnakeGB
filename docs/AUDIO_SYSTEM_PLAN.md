@@ -4,7 +4,7 @@ Last updated: 2026-03-01
 
 ## Purpose
 
-This document defines the next-stage audio architecture for SnakeGB.
+This document defines the next-stage audio architecture for NenoSerpent.
 
 The current audio path is functional but still too coupled to individual call sites.
 Playback intent, bus policy, and asset selection are not yet modeled as first-class concepts.
@@ -390,7 +390,7 @@ Current status:
 - score-track loading now supports a controlled external override file for `menu`, `menu_alt`,
   `gameplay`, `gameplay_alt`, `replay`, and `replay_alt`
 - the override path defaults to an app-data location and can be redirected with
-  `SNAKEGB_SCORE_OVERRIDE_FILE` for testing and manual iteration
+  `NENOSERPENT_SCORE_OVERRIDE_FILE` for testing and manual iteration
 - invalid or missing override content falls back to the built-in resource catalog safely
 - the shell speaker now cycles the active built-in BGM variant (`A/B`) for the current music slot
 - there is still no end-user import UX, per-track metadata policy, or cue override support yet

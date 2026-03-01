@@ -12,7 +12,7 @@
 
 class ProfileManager;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 [[nodiscard]] auto paletteIndex(const ProfileManager* profile) -> int;
 void setPaletteIndex(ProfileManager* profile, int index);
@@ -43,9 +43,9 @@ void saveSession(ProfileManager* profile,
                  const QList<QPoint>& obstacles,
                  QPoint food,
                  QPoint direction);
-void saveSession(ProfileManager* profile, const snakegb::core::StateSnapshot& snapshot);
+void saveSession(ProfileManager* profile, const nenoserpent::core::StateSnapshot& snapshot);
 void clearSession(ProfileManager* profile);
 [[nodiscard]] auto loadSession(ProfileManager* profile) -> QVariantMap;
 [[nodiscard]] auto loadSessionSnapshot(ProfileManager* profile) -> std::optional<SessionSnapshot>;
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

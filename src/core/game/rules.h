@@ -6,7 +6,7 @@
 #include <QList>
 #include <QPoint>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 struct RoguelikeChoiceContext {
   int previousScore = 0;
@@ -59,4 +59,4 @@ auto collisionOutcomeForHead(const QPoint& head,
                              bool laserActive,
                              bool shieldActive) -> CollisionOutcome;
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

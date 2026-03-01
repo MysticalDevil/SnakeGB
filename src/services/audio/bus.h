@@ -8,7 +8,7 @@
 #include "audio/cue.h"
 #include "audio/event.h"
 
-namespace snakegb::services {
+namespace nenoserpent::services {
 
 enum class AudioGroup {
   Music,
@@ -24,7 +24,7 @@ enum class MusicCommand {
 };
 
 struct AudioCallbacks {
-  std::function<void(snakegb::audio::ScoreTrackId)> startMusic;
+  std::function<void(nenoserpent::audio::ScoreTrackId)> startMusic;
   std::function<void()> stopMusic;
   std::function<void(bool)> setPaused;
   std::function<void(bool)> setMusicEnabled;
@@ -32,7 +32,7 @@ struct AudioCallbacks {
   std::function<void(float)> setVolume;
   std::function<void(int)> setScore;
   std::function<void(int, int, float)> playBeep;
-  std::function<void(snakegb::audio::ScoreCueId, float)> playScoreCue;
+  std::function<void(nenoserpent::audio::ScoreCueId, float)> playScoreCue;
   std::function<void(int)> playCrash;
 };
 
@@ -53,31 +53,31 @@ public:
   void handleMusicToggle(bool musicEnabled, int state, int bgmVariant) const;
   void applyVolume(float value) const;
 
-  void dispatchEvent(snakegb::audio::Event event, const snakegb::audio::EventPayload& payload = {});
+  void dispatchEvent(nenoserpent::audio::Event event, const nenoserpent::audio::EventPayload& payload = {});
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
   [[nodiscard]] static auto musicTrackForState(int state, int bgmVariant)
-    -> snakegb::audio::ScoreTrackId;
-  [[nodiscard]] static auto eventGroup(snakegb::audio::Event event) -> AudioGroup;
-  [[nodiscard]] static auto eventCooldownMs(snakegb::audio::Event event) -> int;
-  [[nodiscard]] static auto eventPriority(snakegb::audio::Event event) -> int;
-  [[nodiscard]] static auto duckingForEvent(snakegb::audio::Event event)
+    -> nenoserpent::audio::ScoreTrackId;
+  [[nodiscard]] static auto eventGroup(nenoserpent::audio::Event event) -> AudioGroup;
+  [[nodiscard]] static auto eventCooldownMs(nenoserpent::audio::Event event) -> int;
+  [[nodiscard]] static auto eventPriority(nenoserpent::audio::Event event) -> int;
+  [[nodiscard]] static auto duckingForEvent(nenoserpent::audio::Event event)
     -> std::optional<std::pair<float, int>>;
 
 private:
   struct RecentUiEvent {
-    snakegb::audio::Event event;
+    nenoserpent::audio::Event event;
     std::chrono::steady_clock::time_point timestamp;
     int priority = 0;
   };
 
-  [[nodiscard]] auto shouldDispatchEvent(snakegb::audio::Event event,
+  [[nodiscard]] auto shouldDispatchEvent(nenoserpent::audio::Event event,
                                          std::chrono::steady_clock::time_point now) -> bool;
-  void rememberDispatch(snakegb::audio::Event event, std::chrono::steady_clock::time_point now);
-  [[nodiscard]] auto lastEventTime(snakegb::audio::Event event)
+  void rememberDispatch(nenoserpent::audio::Event event, std::chrono::steady_clock::time_point now);
+  [[nodiscard]] auto lastEventTime(nenoserpent::audio::Event event)
     -> std::chrono::steady_clock::time_point&;
-  [[nodiscard]] auto lastEventTime(snakegb::audio::Event event) const
+  [[nodiscard]] auto lastEventTime(nenoserpent::audio::Event event) const
     -> const std::chrono::steady_clock::time_point&;
 
   AudioCallbacks m_callbacks;
@@ -85,4 +85,4 @@ private:
   std::optional<RecentUiEvent> m_recentUiEvent;
 };
 
-} // namespace snakegb::services
+} // namespace nenoserpent::services

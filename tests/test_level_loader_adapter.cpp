@@ -28,8 +28,8 @@ void TestLevelLoaderAdapter::testReadLevelCountFromResource() {
   QVERIFY(file.write(doc.toJson()) > 0);
   file.close();
 
-  QCOMPARE(snakegb::adapter::readLevelCountFromResource(filePath, 6), 2);
-  QCOMPARE(snakegb::adapter::readLevelCountFromResource(QStringLiteral("/path/not/found.json"), 6),
+  QCOMPARE(nenoserpent::adapter::readLevelCountFromResource(filePath, 6), 2);
+  QCOMPARE(nenoserpent::adapter::readLevelCountFromResource(QStringLiteral("/path/not/found.json"), 6),
            6);
 }
 
@@ -49,13 +49,13 @@ void TestLevelLoaderAdapter::testLoadResolvedLevelFromResource() {
   QVERIFY(file.write(doc.toJson()) > 0);
   file.close();
 
-  const auto scripted = snakegb::adapter::loadResolvedLevelFromResource(filePath, 0);
+  const auto scripted = nenoserpent::adapter::loadResolvedLevelFromResource(filePath, 0);
   QVERIFY(scripted.has_value());
   QCOMPARE(scripted->name, QString("Scripted"));
   QVERIFY(!scripted->script.isEmpty());
   QVERIFY(scripted->walls.isEmpty());
 
-  const auto wrapped = snakegb::adapter::loadResolvedLevelFromResource(filePath, 3);
+  const auto wrapped = nenoserpent::adapter::loadResolvedLevelFromResource(filePath, 3);
   QVERIFY(wrapped.has_value());
   QCOMPARE(wrapped->name, QString("Static"));
   QVERIFY(wrapped->script.isEmpty());
@@ -63,7 +63,7 @@ void TestLevelLoaderAdapter::testLoadResolvedLevelFromResource() {
   QCOMPARE(wrapped->walls.first(), QPoint(7, 8));
 
   const auto missing =
-    snakegb::adapter::loadResolvedLevelFromResource(QStringLiteral("/path/not/found.json"), 0);
+    nenoserpent::adapter::loadResolvedLevelFromResource(QStringLiteral("/path/not/found.json"), 0);
   QVERIFY(!missing.has_value());
 }
 

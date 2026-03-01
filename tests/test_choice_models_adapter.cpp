@@ -13,12 +13,12 @@ private slots:
 };
 
 void TestChoiceModelsAdapter::testBuildChoiceModelMapsAllFields() {
-  const QList<snakegb::core::ChoiceSpec> choices = {
+  const QList<nenoserpent::core::ChoiceSpec> choices = {
     {.type = 2, .name = u"Slow"_s, .description = u"Slows game speed"_s},
     {.type = 8, .name = u"Laser"_s, .description = u"Break one wall on hit"_s},
   };
 
-  const QVariantList model = snakegb::adapter::buildChoiceModel(choices);
+  const QVariantList model = nenoserpent::adapter::buildChoiceModel(choices);
   QCOMPARE(model.size(), 2);
 
   const QVariantMap first = model[0].toMap();
@@ -34,14 +34,14 @@ void TestChoiceModelsAdapter::testChoiceTypeAtValidAndInvalidRows() {
   model.append(valid);
   model.append(QVariantMap{{u"name"_s, u"bad"_s}});
 
-  const auto validType = snakegb::adapter::choiceTypeAt(model, 0);
+  const auto validType = nenoserpent::adapter::choiceTypeAt(model, 0);
   QVERIFY(validType.has_value());
   QCOMPARE(validType.value(), 6);
 
-  const auto invalidShape = snakegb::adapter::choiceTypeAt(model, 1);
+  const auto invalidShape = nenoserpent::adapter::choiceTypeAt(model, 1);
   QVERIFY(!invalidShape.has_value());
 
-  const auto invalidIndex = snakegb::adapter::choiceTypeAt(model, 8);
+  const auto invalidIndex = nenoserpent::adapter::choiceTypeAt(model, 8);
   QVERIFY(!invalidIndex.has_value());
 }
 

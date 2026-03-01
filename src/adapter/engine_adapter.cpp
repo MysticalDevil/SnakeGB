@@ -6,7 +6,7 @@
 #include "fsm/state_factory.h"
 #include "logging/categories.h"
 #include "profile_manager.h"
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
 #include <QAccelerometer>
 #endif
 #ifdef Q_OS_ANDROID
@@ -48,14 +48,14 @@ EngineAdapter::EngineAdapter(QObject* parent)
       m_rng(QRandomGenerator::securelySeeded()),
       m_session(m_sessionCore.state()),
       m_timer(std::make_unique<QTimer>()),
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
       m_accelerometer(std::make_unique<QAccelerometer>()),
 #endif
       m_profileManager(std::make_unique<ProfileManager>()),
       m_inputQueue(m_sessionCore.inputQueue()),
       m_fsmState(nullptr) {
   m_audioBus.setCallbacks({
-    .startMusic = [this](const snakegb::audio::ScoreTrackId trackId) -> void {
+    .startMusic = [this](const nenoserpent::audio::ScoreTrackId trackId) -> void {
       emit audioStartMusic(static_cast<int>(trackId));
     },
     .stopMusic = [this]() -> void { emit audioStopMusic(); },
@@ -69,7 +69,7 @@ EngineAdapter::EngineAdapter(QObject* parent)
     .playBeep = [this](const int frequencyHz, const int durationMs, const float pan) -> void {
       emit audioPlayBeep(frequencyHz, durationMs, pan);
     },
-    .playScoreCue = [this](const snakegb::audio::ScoreCueId cueId, const float pan) -> void {
+    .playScoreCue = [this](const nenoserpent::audio::ScoreCueId cueId, const float pan) -> void {
       emit audioPlayScoreCue(static_cast<int>(cueId), pan);
     },
     .playCrash = [this](const int durationMs) -> void { emit audioPlayCrash(durationMs); },
@@ -86,7 +86,7 @@ EngineAdapter::EngineAdapter(QObject* parent)
 }
 
 EngineAdapter::~EngineAdapter() {
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
   if (m_accelerometer) {
     m_accelerometer->stop();
   }
@@ -103,27 +103,27 @@ void EngineAdapter::syncSnakeModelFromCore() {
 
 void EngineAdapter::setupAudioSignals() {
   connect(this, &EngineAdapter::foodEaten, this, [this](const float pan) -> void {
-    m_audioBus.dispatchEvent(snakegb::audio::Event::Food, {.score = m_session.score, .pan = pan});
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::Food, {.score = m_session.score, .pan = pan});
     triggerHaptic(3);
   });
 
   connect(this, &EngineAdapter::powerUpEaten, this, [this]() -> void {
-    m_audioBus.dispatchEvent(snakegb::audio::Event::PowerUp);
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::PowerUp);
     triggerHaptic(6);
   });
 
   connect(this, &EngineAdapter::playerCrashed, this, [this]() -> void {
-    m_audioBus.dispatchEvent(snakegb::audio::Event::Crash);
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::Crash);
     triggerHaptic(12);
   });
 
   connect(this, &EngineAdapter::uiInteractTriggered, this, [this]() -> void {
-    m_audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::UiInteract);
     triggerHaptic(2);
   });
 
   connect(this, &EngineAdapter::stateChanged, this, [this]() -> void {
-    qCInfo(snakegbAudioLog).noquote()
+    qCInfo(nenoserpentAudioLog).noquote()
       << "stateChanged ->" << stateName(m_state) << "(musicEnabled=" << m_musicEnabled << ")";
     const int token = m_audioStateToken;
     m_audioBus.handleStateChanged(
@@ -133,7 +133,7 @@ void EngineAdapter::setupAudioSignals() {
       [this, token](const int delayMs, const std::function<void()>& callback) -> void {
         QTimer::singleShot(delayMs, this, [this, token, callback]() -> void {
           if (token != m_audioStateToken) {
-            qCDebug(snakegbAudioLog).noquote() << "menu BGM deferred start canceled by token";
+            qCDebug(nenoserpentAudioLog).noquote() << "menu BGM deferred start canceled by token";
             return;
           }
           if (callback) {
@@ -145,7 +145,7 @@ void EngineAdapter::setupAudioSignals() {
 }
 
 void EngineAdapter::setupSensorRuntime() {
-#ifdef SNAKEGB_HAS_SENSORS
+#ifdef NENOSERPENT_HAS_SENSORS
   if (!m_accelerometer) {
     return;
   }
@@ -167,7 +167,7 @@ void EngineAdapter::setupSensorRuntime() {
     if (!m_accelerometer) {
       return;
     }
-    qCInfo(snakegbStateLog).noquote()
+    qCInfo(nenoserpentStateLog).noquote()
       << "accelerometer connected=" << m_accelerometer->isConnectedToBackend()
       << "active=" << m_accelerometer->isActive();
   });
@@ -179,7 +179,7 @@ void EngineAdapter::setupSensorRuntime() {
 void EngineAdapter::setInternalState(const int s) {
   const auto next = static_cast<AppState::Value>(s);
   if (m_state != next) {
-    qCInfo(snakegbStateLog).noquote()
+    qCInfo(nenoserpentStateLog).noquote()
       << "setInternalState:" << stateName(m_state) << "->" << stateName(next);
     m_state = next;
     m_audioStateToken++;
@@ -190,14 +190,14 @@ void EngineAdapter::setInternalState(const int s) {
 
 void EngineAdapter::requestStateChange(const int newState) {
   if (m_stateCallbackInProgress) {
-    qCDebug(snakegbStateLog).noquote()
+    qCDebug(nenoserpentStateLog).noquote()
       << "defer requestStateChange to" << stateName(newState) << "(inside callback)";
     m_pendingStateChange = newState;
     return;
   }
-  qCInfo(snakegbStateLog).noquote() << "requestStateChange ->" << stateName(newState);
+  qCInfo(nenoserpentStateLog).noquote() << "requestStateChange ->" << stateName(newState);
 
-  if (auto nextState = snakegb::fsm::createStateFor(*this, newState); nextState) {
+  if (auto nextState = nenoserpent::fsm::createStateFor(*this, newState); nextState) {
     changeState(std::move(nextState));
   }
 }
@@ -230,23 +230,23 @@ void EngineAdapter::triggerHaptic(const int magnitude) {
 #endif
 }
 
-void EngineAdapter::emitAudioEvent(const snakegb::audio::Event event, const float pan) {
-  qCDebug(snakegbAudioLog).noquote()
+void EngineAdapter::emitAudioEvent(const nenoserpent::audio::Event event, const float pan) {
+  qCDebug(nenoserpentAudioLog).noquote()
     << "emitAudioEvent =" << static_cast<int>(event) << " pan=" << pan;
   switch (event) {
-  case snakegb::audio::Event::Food:
+  case nenoserpent::audio::Event::Food:
     emit foodEaten(pan);
     break;
-  case snakegb::audio::Event::Crash:
+  case nenoserpent::audio::Event::Crash:
     emit playerCrashed();
     break;
-  case snakegb::audio::Event::UiInteract:
+  case nenoserpent::audio::Event::UiInteract:
     emit uiInteractTriggered();
     break;
-  case snakegb::audio::Event::Confirm:
-    m_audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
+  case nenoserpent::audio::Event::Confirm:
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::Confirm);
     break;
-  case snakegb::audio::Event::PowerUp:
+  case nenoserpent::audio::Event::PowerUp:
     emit powerUpEaten();
     break;
   }

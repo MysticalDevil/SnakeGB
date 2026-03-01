@@ -11,23 +11,23 @@ private slots:
 };
 
 void TestInputSemanticsAdapter::testBackActionByState() {
-  using snakegb::adapter::BackAction;
+  using nenoserpent::adapter::BackAction;
 
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::StartMenu),
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::StartMenu),
            BackAction::QuitApplication);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Paused), BackAction::QuitToMenu);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::GameOver), BackAction::QuitToMenu);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Replaying),
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::Paused), BackAction::QuitToMenu);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::GameOver), BackAction::QuitToMenu);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::Replaying),
            BackAction::QuitToMenu);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::ChoiceSelection),
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::ChoiceSelection),
            BackAction::QuitToMenu);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Library), BackAction::QuitToMenu);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::MedalRoom),
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::Library), BackAction::QuitToMenu);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::MedalRoom),
            BackAction::QuitToMenu);
 
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Splash), BackAction::None);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(AppState::Playing), BackAction::None);
-  QCOMPARE(snakegb::adapter::resolveBackActionForState(-1), BackAction::None);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::Splash), BackAction::None);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(AppState::Playing), BackAction::None);
+  QCOMPARE(nenoserpent::adapter::resolveBackActionForState(-1), BackAction::None);
 }
 
 QTEST_MAIN(TestInputSemanticsAdapter)

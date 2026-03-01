@@ -28,7 +28,7 @@ auto runSessionStepDriver(IGameEngine& engine, const SessionStepDriverConfig& co
   if (result.collision) {
     if (config.emitCrashFeedbackOnCollision) {
       engine.triggerHaptic(8);
-      engine.emitAudioEvent(snakegb::audio::Event::Crash);
+      engine.emitAudioEvent(nenoserpent::audio::Event::Crash);
     }
     engine.requestStateChange(config.collisionTargetState);
     return false;
@@ -40,8 +40,8 @@ auto runSessionStepDriver(IGameEngine& engine, const SessionStepDriverConfig& co
 
 } // namespace
 
-auto EngineAdapter::advanceSessionStep(const snakegb::core::SessionAdvanceConfig& config)
-  -> snakegb::core::SessionAdvanceResult {
+auto EngineAdapter::advanceSessionStep(const nenoserpent::core::SessionAdvanceConfig& config)
+  -> nenoserpent::core::SessionAdvanceResult {
   const auto result = m_sessionCore.advanceSessionStep(
     config, [this](const int bound) { return m_rng.bounded(bound); });
 
@@ -96,7 +96,7 @@ void EngineAdapter::advanceReplayState() {
 }
 
 void EngineAdapter::applyCollisionMitigationEffects(
-  const snakegb::core::SessionAdvanceResult& result) {
+  const nenoserpent::core::SessionAdvanceResult& result) {
   if (result.consumeLaser && result.obstacleIndex >= 0 &&
       result.obstacleIndex < m_session.obstacles.size()) {
     emit obstaclesChanged();
@@ -135,8 +135,8 @@ void EngineAdapter::applyFoodConsumptionEffects(const float pan,
 }
 
 void EngineAdapter::applyPowerUpConsumptionEffects(
-  const snakegb::core::SessionAdvanceResult& result) {
-  snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
+  const nenoserpent::core::SessionAdvanceResult& result) {
+  nenoserpent::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
   if (result.miniApplied) {
     syncSnakeModelFromCore();
     emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
@@ -150,7 +150,7 @@ void EngineAdapter::applyPowerUpConsumptionEffects(
   emit powerUpChanged();
 }
 
-void EngineAdapter::applyMovementEffects(const snakegb::core::SessionAdvanceResult& result) {
+void EngineAdapter::applyMovementEffects(const nenoserpent::core::SessionAdvanceResult& result) {
   syncSnakeModelFromCore();
   m_currentRecording.append(m_sessionCore.headPosition());
 

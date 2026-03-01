@@ -1,21 +1,21 @@
-# SnakeGB Logging Guide
+# NenoSerpent Logging Guide
 
 Last updated: 2026-03-01
 
 ## Build Modes
 
-- `release`: runtime logs are silent for `snakegb.*` categories.
+- `release`: runtime logs are silent for `NenoSerpent.*` categories.
 - `dev` (`RelWithDebInfo`): summary logs only.
 - `debug`: summary + detailed traces.
 
 ## Category Map
 
-- `snakegb.state`: app/session state transitions, lifecycle summaries.
-- `snakegb.audio`: music mode/track transitions and detailed cue traces.
-- `snakegb.input`: routed input summaries and detailed routing traces.
-- `snakegb.inject`: runtime input injection setup/failures and unknown tokens.
-- `snakegb.level`: level loading/fallback events.
-- `snakegb.replay`: replay save/load anomalies and replay diagnostics.
+- `NenoSerpent.state`: app/session state transitions, lifecycle summaries.
+- `NenoSerpent.audio`: music mode/track transitions and detailed cue traces.
+- `NenoSerpent.input`: routed input summaries and detailed routing traces.
+- `NenoSerpent.inject`: runtime input injection setup/failures and unknown tokens.
+- `NenoSerpent.level`: level loading/fallback events.
+- `NenoSerpent.replay`: replay save/load anomalies and replay diagnostics.
 
 ## Severity Usage
 
@@ -44,5 +44,5 @@ Current migration scope:
 Use `QT_LOGGING_RULES` to override defaults temporarily:
 
 ```bash
-QT_LOGGING_RULES="snakegb.input.debug=true;snakegb.audio.debug=true" ./build/debug/SnakeGB
+QT_LOGGING_RULES="NenoSerpent.input.debug=true;NenoSerpent.audio.debug=true" ./build/debug/NenoSerpent
 ```

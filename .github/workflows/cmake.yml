@@ -1,4 +1,4 @@
-name: SnakeGB CMake CI
+name: NenoSerpent CMake CI
 
 on:
   push:

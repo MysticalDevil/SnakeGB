@@ -1,4 +1,4 @@
-# SnakeGB 长期演进蓝图 (Roadmap)
+# NenoSerpent 长期演进蓝图 (Roadmap)
 
 ## 🎮 冒险与深度 (Adventure Update)
 - [ ] **Boss 战机制**

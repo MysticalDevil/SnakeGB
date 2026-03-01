@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import SnakeGB 1.0
+import NenoSerpent 1.0
 import "ThemeCatalog.js" as ThemeCatalog
 import "ScreenThemeTokens.js" as ScreenThemeTokens
 import "PowerMeta.js" as PowerMeta

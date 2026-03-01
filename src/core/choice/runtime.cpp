@@ -6,7 +6,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 namespace {
 constexpr int BuffGhost = 1;
 constexpr int BuffSlow = 2;
@@ -47,4 +47,4 @@ auto pickRoguelikeChoices(const uint seed, const int count) -> QList<ChoiceSpec>
   return picked;
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

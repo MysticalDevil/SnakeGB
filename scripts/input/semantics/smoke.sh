@@ -6,9 +6,9 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 # shellcheck disable=SC1091
 source "${ROOT_DIR}/scripts/lib/build_paths.sh"
 BUILD_DIR="$(resolve_build_dir dev)"
-APP_BIN="${APP_BIN:-${BUILD_DIR}/SnakeGB}"
-INPUT_FILE="${INPUT_FILE:-/tmp/snakegb-input.queue}"
-LOG_FILE="${LOG_FILE:-/tmp/snakegb_input_semantics_smoke.log}"
+APP_BIN="${APP_BIN:-${BUILD_DIR}/NenoSerpent}"
+INPUT_FILE="${INPUT_FILE:-/tmp/nenoserpent-input.queue}"
+LOG_FILE="${LOG_FILE:-/tmp/nenoserpent_input_semantics_smoke.log}"
 RUN_QPA="${RUN_QPA:-offscreen}"
 
 echo "[info] Building ${BUILD_DIR}"
@@ -23,8 +23,8 @@ rm -f "${INPUT_FILE}"
 
 echo "[info] Launching app with input file: ${INPUT_FILE} (QPA=${RUN_QPA})"
 QT_QPA_PLATFORM="${RUN_QPA}" \
-SNAKEGB_KEEP_STDERR=1 \
-SNAKEGB_INPUT_FILE="${INPUT_FILE}" \
+NENOSERPENT_KEEP_STDERR=1 \
+NENOSERPENT_INPUT_FILE="${INPUT_FILE}" \
 "${APP_BIN}" >"${LOG_FILE}" 2>&1 &
 APP_PID=$!
 

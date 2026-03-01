@@ -1,4 +1,4 @@
-name: SnakeGB CD
+name: NenoSerpent CD
 
 on:
   workflow_dispatch:
@@ -51,14 +51,14 @@ jobs:
       - name: Package Linux (AppImage placeholder)
         run: |
           mkdir -p dist/linux
-          cp -f build/release/SnakeGB dist/linux/
-          cp -f linux/org.devil.snakegb.desktop dist/linux/ || true
-          cp -f src/qml/icon.svg dist/linux/snakegb.svg || true
+          cp -f build/release/NenoSerpent dist/linux/
+          cp -f linux/org.devil.nenoserpent.desktop dist/linux/ || true
+          cp -f src/qml/icon.svg dist/linux/nenoserpent.svg || true
 
       - name: Upload Linux Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: snakegb-linux
+          name: neno-serpent-linux
           path: dist/linux
 
       - name: Build WASM (placeholder)
@@ -68,7 +68,7 @@ jobs:
       - name: Upload WASM Placeholder
         uses: actions/upload-artifact@v4
         with:
-          name: snakegb-wasm-placeholder
+          name: neno-serpent-wasm-placeholder
           path: dist/wasm-placeholder.txt
 
       - name: Build Android (placeholder)
@@ -78,5 +78,5 @@ jobs:
       - name: Upload Android Placeholder
         uses: actions/upload-artifact@v4
         with:
-          name: snakegb-android-placeholder
+          name: neno-serpent-android-placeholder
           path: dist/android-placeholder.txt

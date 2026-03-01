@@ -13,7 +13,7 @@ private slots:
 };
 
 void TestLibraryModelsAdapter::testBuildFruitLibraryModelMasksUndiscoveredEntries() {
-  const QVariantList model = snakegb::adapter::buildFruitLibraryModel(QList<int>{1, 3});
+  const QVariantList model = nenoserpent::adapter::buildFruitLibraryModel(QList<int>{1, 3});
   QCOMPARE(model.size(), 9);
 
   const QVariantMap ghost = model[0].toMap();
@@ -26,7 +26,7 @@ void TestLibraryModelsAdapter::testBuildFruitLibraryModelMasksUndiscoveredEntrie
 }
 
 void TestLibraryModelsAdapter::testBuildMedalLibraryModelIncludesKnownRows() {
-  const QVariantList model = snakegb::adapter::buildMedalLibraryModel();
+  const QVariantList model = nenoserpent::adapter::buildMedalLibraryModel();
   QCOMPARE(model.size(), 7);
   const QVariantMap first = model[0].toMap();
   QCOMPARE(first.value(u"id"_s).toString(), QStringLiteral("Gold Medal (50 Pts)"));

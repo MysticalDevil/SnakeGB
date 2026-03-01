@@ -7,7 +7,7 @@
 using namespace Qt::StringLiterals;
 
 auto EngineAdapter::highScore() const -> int {
-  return snakegb::adapter::highScore(m_profileManager.get());
+  return nenoserpent::adapter::highScore(m_profileManager.get());
 }
 
 auto EngineAdapter::palette() const -> QVariantList {
@@ -19,7 +19,7 @@ auto EngineAdapter::palette() const -> QVariantList {
     {u"#08272d"_s, u"#184c53"_s, u"#67c1c8"_s, u"#dcfbff"_s}  // Neon Ice
   };
   const qsizetype idx =
-    static_cast<qsizetype>(snakegb::adapter::paletteIndex(m_profileManager.get())) % sets.size();
+    static_cast<qsizetype>(nenoserpent::adapter::paletteIndex(m_profileManager.get())) % sets.size();
   return sets[idx];
 }
 
@@ -27,7 +27,7 @@ auto EngineAdapter::paletteName() const -> QString {
   static const QStringList names = {
     u"Original DMG"_s, u"Pocket B&W"_s, u"Sunset Glow"_s, u"Pixel Heat"_s, u"Neon Ice"_s};
   const qsizetype idx =
-    static_cast<qsizetype>(snakegb::adapter::paletteIndex(m_profileManager.get())) % names.size();
+    static_cast<qsizetype>(nenoserpent::adapter::paletteIndex(m_profileManager.get())) % names.size();
   return names[idx];
 }
 
@@ -48,7 +48,7 @@ auto EngineAdapter::shellColor() const -> QColor {
                                        QColor(u"#f59e0b"_s),
                                        QColor(u"#4b5563"_s)};
   const qsizetype idx =
-    static_cast<qsizetype>(snakegb::adapter::shellIndex(m_profileManager.get())) % colors.size();
+    static_cast<qsizetype>(nenoserpent::adapter::shellIndex(m_profileManager.get())) % colors.size();
   return colors[idx];
 }
 
@@ -61,7 +61,7 @@ auto EngineAdapter::shellName() const -> QString {
                                     u"Sunburst"_s,
                                     u"Graphite"_s};
   const qsizetype idx =
-    static_cast<qsizetype>(snakegb::adapter::shellIndex(m_profileManager.get())) % names.size();
+    static_cast<qsizetype>(nenoserpent::adapter::shellIndex(m_profileManager.get())) % names.size();
   return names[idx];
 }
 
@@ -84,7 +84,7 @@ auto EngineAdapter::musicEnabled() const noexcept -> bool {
 
 auto EngineAdapter::achievements() const -> QVariantList {
   QVariantList list;
-  for (const auto& medal : snakegb::adapter::unlockedMedals(m_profileManager.get())) {
+  for (const auto& medal : nenoserpent::adapter::unlockedMedals(m_profileManager.get())) {
     list.append(medal);
   }
   return list;
@@ -92,7 +92,7 @@ auto EngineAdapter::achievements() const -> QVariantList {
 
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 auto EngineAdapter::medalLibrary() const -> QVariantList {
-  return snakegb::adapter::buildMedalLibraryModel();
+  return nenoserpent::adapter::buildMedalLibraryModel();
 }
 
 auto EngineAdapter::coverage() const noexcept -> float {
@@ -100,16 +100,16 @@ auto EngineAdapter::coverage() const noexcept -> float {
 }
 
 auto EngineAdapter::volume() const -> float {
-  return snakegb::adapter::volume(m_profileManager.get());
+  return nenoserpent::adapter::volume(m_profileManager.get());
 }
 
 void EngineAdapter::setVolume(float value) {
-  snakegb::adapter::setVolume(m_profileManager.get(), value);
+  nenoserpent::adapter::setVolume(m_profileManager.get(), value);
   m_audioBus.applyVolume(value);
   emit volumeChanged();
 }
 
 auto EngineAdapter::fruitLibrary() const -> QVariantList {
-  const QList<int> discovered = snakegb::adapter::discoveredFruits(m_profileManager.get());
-  return snakegb::adapter::buildFruitLibraryModel(discovered);
+  const QList<int> discovered = nenoserpent::adapter::discoveredFruits(m_profileManager.get());
+  return nenoserpent::adapter::buildFruitLibraryModel(discovered);
 }

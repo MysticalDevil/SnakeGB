@@ -37,5 +37,5 @@ void EngineAdapter::nextLevel() {
     clearSavedState();
   }
   emit levelChanged();
-  snakegb::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
+  nenoserpent::adapter::setLevelIndex(m_profileManager.get(), m_levelIndex);
 }

@@ -6,7 +6,7 @@
 
 #include "core/level/runtime.h"
 
-namespace snakegb::services {
+namespace nenoserpent::services {
 
 class LevelRepository {
 public:
@@ -14,7 +14,7 @@ public:
                            int fallbackCount = 6);
 
   [[nodiscard]] auto loadResolvedLevel(int levelIndex) const
-    -> std::optional<snakegb::core::ResolvedLevelData>;
+    -> std::optional<nenoserpent::core::ResolvedLevelData>;
   [[nodiscard]] auto levelCount() const -> int;
 
 private:
@@ -22,4 +22,4 @@ private:
   int m_fallbackCount = 6;
 };
 
-} // namespace snakegb::services
+} // namespace nenoserpent::services

@@ -4,9 +4,9 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
-auto buildChoiceModel(const QList<snakegb::core::ChoiceSpec>& choices) -> QVariantList {
+auto buildChoiceModel(const QList<nenoserpent::core::ChoiceSpec>& choices) -> QVariantList {
   QVariantList model;
   model.reserve(choices.size());
   for (const auto& choice : choices) {
@@ -35,4 +35,4 @@ auto choiceTypeAt(const QVariantList& choices, const int index) -> std::optional
   return type;
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

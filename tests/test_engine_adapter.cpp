@@ -30,7 +30,7 @@ private:
 
     const QString appDataDirectory =
       QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QFile::remove(snakegb::adapter::ghostFilePathForDirectory(appDataDirectory));
+    QFile::remove(nenoserpent::adapter::ghostFilePathForDirectory(appDataDirectory));
     QDir appDataDir(appDataDirectory);
     if (appDataDir.exists()) {
       appDataDir.removeRecursively();
@@ -109,7 +109,7 @@ private:
 private slots:
   void initTestCase() {
     QStandardPaths::setTestModeEnabled(true);
-    QCoreApplication::setOrganizationName("SnakeGBTests");
+    QCoreApplication::setOrganizationName("NenoSerpentTests");
     QCoreApplication::setApplicationName("EngineAdapterTest");
     clearPersistentState();
   }

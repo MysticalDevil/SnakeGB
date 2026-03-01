@@ -2,7 +2,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 auto decodeSessionSnapshot(const QVariantMap& data) -> std::optional<SessionSnapshot> {
   SessionSnapshot snapshot;
@@ -26,7 +26,7 @@ auto decodeSessionSnapshot(const QVariantMap& data) -> std::optional<SessionSnap
   return snapshot;
 }
 
-auto toCoreStateSnapshot(const SessionSnapshot& snapshot) -> snakegb::core::StateSnapshot {
+auto toCoreStateSnapshot(const SessionSnapshot& snapshot) -> nenoserpent::core::StateSnapshot {
   return {
     .state =
       {
@@ -39,7 +39,7 @@ auto toCoreStateSnapshot(const SessionSnapshot& snapshot) -> snakegb::core::Stat
   };
 }
 
-auto fromCoreStateSnapshot(const snakegb::core::StateSnapshot& snapshot) -> SessionSnapshot {
+auto fromCoreStateSnapshot(const nenoserpent::core::StateSnapshot& snapshot) -> SessionSnapshot {
   return {
     .score = snapshot.state.score,
     .food = snapshot.state.food,
@@ -49,4 +49,4 @@ auto fromCoreStateSnapshot(const snakegb::core::StateSnapshot& snapshot) -> Sess
   };
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

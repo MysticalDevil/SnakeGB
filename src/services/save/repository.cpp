@@ -2,7 +2,7 @@
 
 #include "profile_manager.h"
 
-namespace snakegb::services {
+namespace nenoserpent::services {
 
 SaveRepository::SaveRepository(ProfileManager* profile)
     : m_profile(profile) {
@@ -13,19 +13,19 @@ auto SaveRepository::hasSession() const -> bool {
 }
 
 auto SaveRepository::loadSessionSnapshot() const
-  -> std::optional<snakegb::adapter::SessionSnapshot> {
+  -> std::optional<nenoserpent::adapter::SessionSnapshot> {
   if (!hasSession()) {
     return std::nullopt;
   }
-  return snakegb::adapter::decodeSessionSnapshot(m_profile->loadSession());
+  return nenoserpent::adapter::decodeSessionSnapshot(m_profile->loadSession());
 }
 
-void SaveRepository::saveSession(const snakegb::core::StateSnapshot& snapshot) const {
+void SaveRepository::saveSession(const nenoserpent::core::StateSnapshot& snapshot) const {
   if (m_profile == nullptr) {
     return;
   }
 
-  const auto persisted = snakegb::adapter::fromCoreStateSnapshot(snapshot);
+  const auto persisted = nenoserpent::adapter::fromCoreStateSnapshot(snapshot);
   m_profile->saveSession(
     persisted.score, persisted.body, persisted.obstacles, persisted.food, persisted.direction);
 }
@@ -36,13 +36,13 @@ void SaveRepository::clearSession() const {
   }
 }
 
-auto SaveRepository::loadGhostSnapshot(snakegb::adapter::GhostSnapshot& snapshot) const -> bool {
-  return snakegb::adapter::loadGhostSnapshot(snapshot);
+auto SaveRepository::loadGhostSnapshot(nenoserpent::adapter::GhostSnapshot& snapshot) const -> bool {
+  return nenoserpent::adapter::loadGhostSnapshot(snapshot);
 }
 
-auto SaveRepository::saveGhostSnapshot(const snakegb::adapter::GhostSnapshot& snapshot) const
+auto SaveRepository::saveGhostSnapshot(const nenoserpent::adapter::GhostSnapshot& snapshot) const
   -> bool {
-  return snakegb::adapter::saveGhostSnapshot(snapshot);
+  return nenoserpent::adapter::saveGhostSnapshot(snapshot);
 }
 
-} // namespace snakegb::services
+} // namespace nenoserpent::services

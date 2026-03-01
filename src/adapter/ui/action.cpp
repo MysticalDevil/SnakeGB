@@ -7,7 +7,7 @@
 
 using namespace Qt::StringLiterals;
 
-namespace snakegb::adapter {
+namespace nenoserpent::adapter {
 
 namespace {
 template <class... Ts> struct Overloaded : Ts... {
@@ -168,4 +168,4 @@ auto dispatchUiAction(const UiAction& action, const UiActionDispatchCallbacks& c
              action);
 }
 
-} // namespace snakegb::adapter
+} // namespace nenoserpent::adapter

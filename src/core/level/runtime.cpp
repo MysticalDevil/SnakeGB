@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-namespace snakegb::core {
+namespace nenoserpent::core {
 
 namespace {
 
@@ -223,4 +223,4 @@ auto levelCountFromJsonBytes(const QByteArray& levelsJsonBytes, const int fallba
   return static_cast<int>(levels.size());
 }
 
-} // namespace snakegb::core
+} // namespace nenoserpent::core

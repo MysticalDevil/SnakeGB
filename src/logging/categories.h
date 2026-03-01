@@ -2,9 +2,9 @@
 
 #include <QLoggingCategory>
 
-Q_DECLARE_LOGGING_CATEGORY(snakegbStateLog)
-Q_DECLARE_LOGGING_CATEGORY(snakegbAudioLog)
-Q_DECLARE_LOGGING_CATEGORY(snakegbInputLog)
-Q_DECLARE_LOGGING_CATEGORY(snakegbInjectLog)
-Q_DECLARE_LOGGING_CATEGORY(snakegbLevelLog)
-Q_DECLARE_LOGGING_CATEGORY(snakegbReplayLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentStateLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentAudioLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentInputLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentInjectLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentLevelLog)
+Q_DECLARE_LOGGING_CATEGORY(nenoserpentReplayLog)
