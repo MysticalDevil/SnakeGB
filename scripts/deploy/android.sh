@@ -20,6 +20,11 @@ QT_HOST_INFO_DIR="${QT_HOST_INFO_DIR:-}"
 APP_ID="${APP_ID:-org.devil.nenoserpent}"
 INSTALL_TO_DEVICE="${INSTALL_TO_DEVICE:-1}"
 LAUNCH_AFTER_INSTALL="${LAUNCH_AFTER_INSTALL:-1}"
+GRADLE_TIMEOUT_SECS="${GRADLE_TIMEOUT_SECS:-0}"
+
+log_phase() {
+  echo "[phase] $*"
+}
 
 ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT:-}"
 if [[ -z "${ANDROID_NDK_ROOT}" ]]; then
@@ -87,6 +92,7 @@ echo "[info] ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}"
 echo "[info] ANDROID_NDK_ROOT=${ANDROID_NDK_ROOT}"
 echo "[info] JAVA_HOME=${JAVA_HOME:-<not set>}"
 
+log_phase "configure (qt-cmake)"
 "${QT_CMAKE_BIN}" \
   -S "${PROJECT_ROOT}" \
   -B "${BUILD_DIR}" \
@@ -100,8 +106,10 @@ echo "[info] JAVA_HOME=${JAVA_HOME:-<not set>}"
   -DQt6HostInfo_DIR="${QT_HOST_INFO_DIR}" \
   -DNENOSERPENT_OPTIMIZE_SIZE=ON
 
+log_phase "build native target"
 # Build native target first so updated QML/resources are definitely linked.
 cmake --build "${BUILD_DIR}" --target NenoSerpent --parallel
+log_phase "build apk target"
 # Keep compatibility with existing Qt-generated packaging entry.
 cmake --build "${BUILD_DIR}" --target apk --parallel
 
@@ -112,6 +120,7 @@ if [[ ! -d "${ANDROID_BUILD_DIR}" ]]; then
 fi
 
 if [[ -d "${PROJECT_ROOT}/android/res" ]]; then
+  log_phase "overlay android resources"
   mkdir -p "${ANDROID_BUILD_DIR}/res"
   # Overlay project resources only. Do not wipe Qt-generated values/arrays.
   cp -r "${PROJECT_ROOT}/android/res/." "${ANDROID_BUILD_DIR}/res/"
@@ -135,7 +144,13 @@ case "${build_type_lc}" in
     ;;
 esac
 
-"${ANDROID_BUILD_DIR}/gradlew" --no-daemon -p "${ANDROID_BUILD_DIR}" "${gradle_task}"
+log_phase "gradle ${gradle_task}"
+gradle_cmd=("${ANDROID_BUILD_DIR}/gradlew" --no-daemon --console=plain -p "${ANDROID_BUILD_DIR}" "${gradle_task}")
+if [[ "${GRADLE_TIMEOUT_SECS}" =~ ^[0-9]+$ ]] && [[ "${GRADLE_TIMEOUT_SECS}" -gt 0 ]]; then
+  timeout --preserve-status "${GRADLE_TIMEOUT_SECS}" "${gradle_cmd[@]}"
+else
+  "${gradle_cmd[@]}"
+fi
 apk_roots=(
   "${BUILD_DIR}/android-build/build/outputs/apk"
   "${BUILD_DIR}/src/android-build/build/outputs/apk"
@@ -227,8 +242,10 @@ if [[ ! -f "${DEBUG_KEYSTORE_PATH}" ]]; then
 fi
 
 if [[ -n "${SIGNED_INPUT_APK}" ]]; then
+  log_phase "reuse signed apk from gradle output"
   SIGNED_APK="${SIGNED_APK:-${SIGNED_INPUT_APK}}"
 else
+  log_phase "zipalign + apksigner"
   ALIGNED_APK="${ALIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}-aligned.apk}"
   SIGNED_APK="${SIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}.apk}"
   "${ZIPALIGN_BIN}" -f 4 "${UNSIGNED_APK}" "${ALIGNED_APK}"
@@ -245,6 +262,7 @@ fi
 echo "[info] Signed APK: ${SIGNED_APK}"
 
 if [[ "${INSTALL_TO_DEVICE}" == "1" ]]; then
+  log_phase "install to device"
   if [[ ! -x "${ADB_BIN}" ]]; then
     echo "[error] adb not found: ${ADB_BIN}"
     exit 1

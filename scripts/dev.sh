@@ -7,6 +7,7 @@ usage() {
   cat <<'EOF'
 Usage:
   ./scripts/dev.sh clang-tidy <build-dir> [files...]
+  ./scripts/dev.sh android-icons
 EOF
 }
 
@@ -20,6 +21,9 @@ shift
 case "${subcommand}" in
   clang-tidy)
     exec "${ROOT_DIR}/dev/clang_tidy.sh" "$@"
+    ;;
+  android-icons)
+    exec "${ROOT_DIR}/dev/android_icons.sh" "$@"
     ;;
   *)
     usage

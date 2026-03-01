@@ -93,6 +93,9 @@ CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 
 # Release build (logs disabled)
 CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
+
+# Generate Android launcher mipmaps + Play Store 512x512 icon
+./scripts/dev.sh android-icons
 ```
 
 ### Build and Deploy (WebAssembly)

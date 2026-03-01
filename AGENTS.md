@@ -127,6 +127,7 @@ make clean
   then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/dev.sh clang-tidy <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
+- Generate Android launcher icons (mipmap + Play Store 512x512) with `scripts/dev.sh android-icons` after icon updates.
 - Build uses `ccache` automatically when available (`NENOSERPENT_USE_CCACHE=ON` in CMake).
 
 ## Commit & Pull Request Guidelines

@@ -4,22 +4,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Snake kept in round safe zone -->
-    <path android:fillColor="#0B5429" android:pathData="M30,61h10v10h-10z" />
-    <path android:fillColor="#0B5429" android:pathData="M41,61h10v10h-10z" />
-    <path android:fillColor="#0B5429" android:pathData="M52,61h10v10h-10z" />
-    <path android:fillColor="#0B5429" android:pathData="M63,61h10v10h-10z" />
-    <path android:fillColor="#0B5429" android:pathData="M63,50h10v10h-10z" />
-    <path android:fillColor="#0B5429" android:pathData="M63,39h10v10h-10z" />
-    <path android:fillColor="#09431F" android:pathData="M63,28h10v10h-10z" />
-
-    <!-- Eye -->
-    <path android:fillColor="#D7EEA8" android:pathData="M67,31h2v2h-2z" />
-
-    <!-- Apple -->
-    <path android:fillColor="#8A1126" android:pathData="M33,33h10v10h-10z" />
-    <path android:fillColor="#4E7C20" android:pathData="M37,29h2v4h-2z" />
-
-    <!-- Refined top sheen -->
-    <path android:fillColor="#08FFFFFF" android:pathData="M22,24q16,-6 32,-6q16,0 32,6v2q-16,-5 -32,-5q-16,0 -32,5z" />
+    <path
+        android:fillColor="#A7C96B"
+        android:pathData="M30,30h8v8h-8zM40,30h8v8h-8zM50,30h8v8h-8zM60,30h8v8h-8zM70,30h8v8h-8zM70,40h8v8h-8zM70,50h8v8h-8zM70,60h8v8h-8zM70,70h8v8h-8zM60,70h8v8h-8zM50,70h8v8h-8zM40,70h8v8h-8zM30,70h8v8h-8zM30,60h8v8h-8zM30,40h8v8h-8z" />
+    <path
+        android:fillColor="#ECF6D6"
+        android:pathData="M30,50h8v8h-8z" />
+    <path
+        android:fillColor="#24351B"
+        android:pathData="M35,52h1v1h-1zM35,55h1v1h-1z" />
+    <path
+        android:fillColor="#E26052"
+        android:pathData="M50,50h8v8h-8z" />
+    <path
+        android:fillColor="#5B8A3B"
+        android:pathData="M53,46h2v4h-2z" />
 </vector>
