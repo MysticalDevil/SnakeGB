@@ -76,14 +76,26 @@ Rectangle {
             border.color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.72)
             border.width: 1
 
-            Text {
-                text: sessionStatus.hasSave ? "START  CONTINUE" : "START  NEW GAME"
-                color: menuLayer.actionInk
-                font.family: gameFont
-                font.pixelSize: 15
-                font.bold: true
+            Row {
                 anchors.centerIn: parent
-                opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
+                spacing: 8
+
+                Text {
+                    text: "START"
+                    color: Qt.rgba(menuLayer.actionInk.r, menuLayer.actionInk.g, menuLayer.actionInk.b, 0.68)
+                    font.family: gameFont
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+
+                Text {
+                    text: sessionStatus.hasSave ? "CONTINUE" : "NEW GAME"
+                    color: menuLayer.actionInk
+                    font.family: gameFont
+                    font.pixelSize: 15
+                    font.bold: true
+                    opacity: (Math.floor(elapsed * 4) % 2 === 0) ? 1.0 : 0.86
+                }
             }
         }
     }
@@ -96,33 +108,33 @@ Rectangle {
         anchors.bottomMargin: 16
         spacing: 1
 
-        Text {
-            text: "UP MEDALS"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
-        }
-        Text {
-            text: "DOWN REPLAY"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
-        }
-        Text {
-            text: "LEFT CATALOG"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
-        }
-        Text {
-            text: "SELECT LEVEL"
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.52)
-            font.family: gameFont
-            font.pixelSize: 7
-            font.bold: true
+        Repeater {
+            model: [
+                { key: "UP", value: "MEDALS" },
+                { key: "DOWN", value: "REPLAY" },
+                { key: "LEFT", value: "CATALOG" },
+                { key: "SELECT", value: "LEVEL" }
+            ]
+
+            delegate: Row {
+                spacing: 4
+
+                Text {
+                    text: modelData.key
+                    color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.44)
+                    font.family: gameFont
+                    font.pixelSize: 6
+                    font.bold: true
+                }
+
+                Text {
+                    text: modelData.value
+                    color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.58)
+                    font.family: gameFont
+                    font.pixelSize: 7
+                    font.bold: true
+                }
+            }
         }
     }
 
@@ -134,21 +146,34 @@ Rectangle {
         anchors.bottomMargin: 16
         spacing: 1
 
-        Text {
-            anchors.right: parent.right
-            text: `HI ${highScore}`
-            font.family: gameFont
-            font.pixelSize: 10
-            font.bold: true
-            color: Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.78)
-        }
-        Text {
-            anchors.right: parent.right
-            text: `LEVEL ${sessionStatus.currentLevelName}`
-            font.family: gameFont
-            font.pixelSize: 9
-            font.bold: true
-            color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.72)
+        Repeater {
+            model: [
+                { label: "HI", value: `${highScore}` },
+                { label: "LEVEL", value: `${sessionStatus.currentLevelName}` }
+            ]
+
+            delegate: Row {
+                anchors.right: parent ? parent.right : undefined
+                spacing: 4
+
+                Text {
+                    text: modelData.label
+                    font.family: gameFont
+                    font.pixelSize: 7
+                    font.bold: true
+                    color: Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.5)
+                }
+
+                Text {
+                    text: modelData.value
+                    font.family: gameFont
+                    font.pixelSize: index === 0 ? 10 : 9
+                    font.bold: true
+                    color: index === 0
+                           ? Qt.rgba(menuLayer.titleInk.r, menuLayer.titleInk.g, menuLayer.titleInk.b, 0.82)
+                           : Qt.rgba(menuLayer.secondaryInk.r, menuLayer.secondaryInk.g, menuLayer.secondaryInk.b, 0.78)
+                }
+            }
         }
     }
 }
