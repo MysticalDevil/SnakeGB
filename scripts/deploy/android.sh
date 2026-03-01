@@ -113,9 +113,22 @@ log_phase "build apk target"
 # Keep compatibility with existing Qt-generated packaging entry.
 cmake --build "${BUILD_DIR}" --target apk --parallel
 
-ANDROID_BUILD_DIR="${BUILD_DIR}/src/android-build"
-if [[ ! -d "${ANDROID_BUILD_DIR}" ]]; then
-  echo "[error] Android build dir not found: ${ANDROID_BUILD_DIR}"
+android_build_candidates=(
+  "${BUILD_DIR}/src/android-build"
+  "${BUILD_DIR}/android-build"
+)
+ANDROID_BUILD_DIR=""
+for candidate in "${android_build_candidates[@]}"; do
+  if [[ -d "${candidate}" ]]; then
+    ANDROID_BUILD_DIR="${candidate}"
+    break
+  fi
+done
+if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
+  echo "[error] Android build dir not found. checked:"
+  for candidate in "${android_build_candidates[@]}"; do
+    echo "  - ${candidate}"
+  done
   exit 1
 fi
 
