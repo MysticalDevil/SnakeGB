@@ -24,7 +24,7 @@ void EngineAdapter::loadLastSession() {
     m_currentRecording.append(p);
   }
 
-  m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+  m_timer->setInterval(gameplayTickIntervalMs());
   m_timer->start();
 
   emit scoreChanged();

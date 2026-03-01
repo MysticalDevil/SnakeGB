@@ -5,10 +5,6 @@
 #include "fsm/state_factory.h"
 #include "power_up_id.h"
 
-namespace {
-constexpr int InitialInterval = 200;
-} // namespace
-
 void EngineAdapter::restart() {
   resetTransientRuntimeState();
   m_sessionCore.applyMetaAction(nenoserpent::core::MetaAction::resetReplayRuntime());
@@ -23,7 +19,7 @@ void EngineAdapter::restart() {
   syncSnakeModelFromCore();
   clearSavedState();
 
-  m_timer->setInterval(InitialInterval);
+  m_timer->setInterval(initialGameplayIntervalMs());
   m_timer->start();
   spawnFood();
 
@@ -48,7 +44,7 @@ void EngineAdapter::startReplay() {
     nenoserpent::core::MetaAction::bootstrapForLevel(m_session.obstacles, BOARD_WIDTH, BOARD_HEIGHT));
   syncSnakeModelFromCore();
   m_rng.seed(m_bestRandomSeed);
-  m_timer->setInterval(InitialInterval);
+  m_timer->setInterval(initialGameplayIntervalMs());
   m_timer->start();
   spawnFood();
 

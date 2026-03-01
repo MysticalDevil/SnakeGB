@@ -138,7 +138,7 @@ void EngineAdapter::selectChoice(const int index) {
 
   emit buffChanged();
   if (m_state == AppState::Replaying) {
-    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+    m_timer->setInterval(gameplayTickIntervalMs());
     return;
   }
 
@@ -146,7 +146,7 @@ void EngineAdapter::selectChoice(const int index) {
 
   QTimer::singleShot(500, this, [this]() -> void {
     if (m_state == AppState::Playing) {
-      m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+      m_timer->setInterval(gameplayTickIntervalMs());
     }
   });
 

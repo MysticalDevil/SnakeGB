@@ -16,7 +16,7 @@
 #include "logging/categories.h"
 
 namespace {
-constexpr int SampleRate = 44100;
+constexpr int SampleRate = 48000;
 constexpr int DefaultAmplitude = 32;
 constexpr int Lead_Amplitude = 12;
 constexpr int Bass_Amplitude = 8;
@@ -25,6 +25,11 @@ constexpr int AttackMs = 5;
 constexpr int CenterVal = 128;
 constexpr int DeferMs = 100;
 constexpr int ReverbDelayMs = 150;
+#ifdef Q_OS_ANDROID
+constexpr bool LowLoadAudioMode = true;
+#else
+constexpr bool LowLoadAudioMode = false;
+#endif
 } // namespace
 
 SoundManager::SoundManager(QObject* parent)
@@ -55,8 +60,10 @@ void SoundManager::initAudioAsync() {
     m_sfxSink = new QAudioSink(device, m_format, this); // NOLINT(cppcoreguidelines-owning-memory)
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     m_bgmLeadSink = new QAudioSink(device, m_format, this);
-    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-    m_bgmBassSink = new QAudioSink(device, m_format, this);
+    if (!LowLoadAudioMode) {
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+      m_bgmBassSink = new QAudioSink(device, m_format, this);
+    }
     m_sfxSink->setVolume(m_volume);
     applyMusicVolumes();
   }
@@ -202,6 +209,9 @@ auto SoundManager::playNextNote() -> void {
   const auto bassFreq = nenoserpent::audio::pitchFrequencyHz(bassPitch);
 
   double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
+  if (LowLoadAudioMode) {
+    tempoScale *= 1.35;
+  }
   int scaledDuration = static_cast<int>(duration * tempoScale);
 
   if (leadFreq > 0 && m_bgmLeadSink != nullptr) {
@@ -214,7 +224,7 @@ auto SoundManager::playNextNote() -> void {
                        0.2f);
     if (m_isPaused)
       applyLowPassFilter(leadData);
-    else
+    else if (!LowLoadAudioMode)
       applyReverb(leadData);
     m_bgmLeadSink->stop();
     m_bgmLeadBuffer.close();
@@ -223,7 +233,7 @@ auto SoundManager::playNextNote() -> void {
       m_bgmLeadSink->start(&m_bgmLeadBuffer);
   }
 
-  if (bassFreq > 0 && m_bgmBassSink != nullptr) {
+  if (!LowLoadAudioMode && bassFreq > 0 && m_bgmBassSink != nullptr) {
     QByteArray bassData;
     generateSquareWave(bassFreq,
                        scaledDuration - 5,

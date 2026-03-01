@@ -24,16 +24,18 @@ enum class MusicCommand {
 };
 
 struct AudioCallbacks {
-  std::function<void(nenoserpent::audio::ScoreTrackId)> startMusic;
-  std::function<void()> stopMusic;
-  std::function<void(bool)> setPaused;
-  std::function<void(bool)> setMusicEnabled;
-  std::function<void(float, int)> duckMusic;
-  std::function<void(float)> setVolume;
-  std::function<void(int)> setScore;
-  std::function<void(int, int, float)> playBeep;
-  std::function<void(nenoserpent::audio::ScoreCueId, float)> playScoreCue;
-  std::function<void(int)> playCrash;
+  std::function<void(nenoserpent::audio::ScoreTrackId)> startMusic =
+    [](nenoserpent::audio::ScoreTrackId) {};
+  std::function<void()> stopMusic = []() {};
+  std::function<void(bool)> setPaused = [](bool) {};
+  std::function<void(bool)> setMusicEnabled = [](bool) {};
+  std::function<void(float, int)> duckMusic = [](float, int) {};
+  std::function<void(float)> setVolume = [](float) {};
+  std::function<void(int)> setScore = [](int) {};
+  std::function<void(int, int, float)> playBeep = [](int, int, float) {};
+  std::function<void(nenoserpent::audio::ScoreCueId, float)> playScoreCue =
+    [](nenoserpent::audio::ScoreCueId, float) {};
+  std::function<void(int)> playCrash = [](int) {};
 };
 
 class AudioBus {
@@ -53,7 +55,8 @@ public:
   void handleMusicToggle(bool musicEnabled, int state, int bgmVariant) const;
   void applyVolume(float value) const;
 
-  void dispatchEvent(nenoserpent::audio::Event event, const nenoserpent::audio::EventPayload& payload = {});
+  void dispatchEvent(nenoserpent::audio::Event event,
+                     const nenoserpent::audio::EventPayload& payload = {});
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;

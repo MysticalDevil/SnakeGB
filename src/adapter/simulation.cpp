@@ -121,7 +121,7 @@ void EngineAdapter::applyFoodConsumptionEffects(const float pan,
                                                 const bool triggerChoice,
                                                 const bool spawnPowerUpAfterFood) {
   emit foodEaten(pan);
-  m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+  m_timer->setInterval(gameplayTickIntervalMs());
   emit scoreChanged();
   spawnFood();
 
@@ -143,7 +143,7 @@ void EngineAdapter::applyPowerUpConsumptionEffects(
   }
 
   emit powerUpEaten();
-  m_timer->setInterval(result.slowMode ? 250 : m_sessionCore.currentTickIntervalMs());
+  m_timer->setInterval(result.slowMode ? 250 : gameplayTickIntervalMs());
 
   triggerHaptic(5);
   emit buffChanged();
@@ -176,6 +176,6 @@ void EngineAdapter::applyPostTickTasks() {
 }
 
 void EngineAdapter::deactivateBuff() {
-  m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+  m_timer->setInterval(gameplayTickIntervalMs());
   emit buffChanged();
 }

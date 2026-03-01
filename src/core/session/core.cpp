@@ -5,11 +5,25 @@
 namespace nenoserpent::core {
 
 auto MetaAction::resetTransientRuntime() -> MetaAction {
-  return {.kind = Kind::ResetTransientRuntime};
+  return {
+    .kind = Kind::ResetTransientRuntime,
+    .obstacles = {},
+    .snapshot = {},
+    .previewSeed = {},
+    .boardWidth = 0,
+    .boardHeight = 0,
+  };
 }
 
 auto MetaAction::resetReplayRuntime() -> MetaAction {
-  return {.kind = Kind::ResetReplayRuntime};
+  return {
+    .kind = Kind::ResetReplayRuntime,
+    .obstacles = {},
+    .snapshot = {},
+    .previewSeed = {},
+    .boardWidth = 0,
+    .boardHeight = 0,
+  };
 }
 
 auto MetaAction::bootstrapForLevel(QList<QPoint> obstacles,
@@ -18,6 +32,8 @@ auto MetaAction::bootstrapForLevel(QList<QPoint> obstacles,
   return {
     .kind = Kind::BootstrapForLevel,
     .obstacles = std::move(obstacles),
+    .snapshot = {},
+    .previewSeed = {},
     .boardWidth = boardWidth,
     .boardHeight = boardHeight,
   };
@@ -26,21 +42,33 @@ auto MetaAction::bootstrapForLevel(QList<QPoint> obstacles,
 auto MetaAction::restorePersistedSession(const StateSnapshot& snapshot) -> MetaAction {
   return {
     .kind = Kind::RestorePersistedSession,
+    .obstacles = {},
     .snapshot = snapshot,
+    .previewSeed = {},
+    .boardWidth = 0,
+    .boardHeight = 0,
   };
 }
 
 auto MetaAction::seedPreviewState(const PreviewSeed& seed) -> MetaAction {
   return {
     .kind = Kind::SeedPreviewState,
+    .obstacles = {},
+    .snapshot = {},
     .previewSeed = seed,
+    .boardWidth = 0,
+    .boardHeight = 0,
   };
 }
 
 auto MetaAction::restoreSnapshot(const StateSnapshot& snapshot) -> MetaAction {
   return {
     .kind = Kind::RestoreSnapshot,
+    .obstacles = {},
     .snapshot = snapshot,
+    .previewSeed = {},
+    .boardWidth = 0,
+    .boardHeight = 0,
   };
 }
 

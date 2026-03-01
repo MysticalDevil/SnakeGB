@@ -6,7 +6,6 @@ namespace nenoserpent::core {
 
 namespace {
 constexpr int ChoiceBuffDurationTicks = 80;
-constexpr int PowerUpBuffDurationTicks = 40;
 } // namespace
 
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)

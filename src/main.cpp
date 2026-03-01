@@ -29,6 +29,7 @@
 #include "sound_manager.h"
 
 namespace {
+#if defined(QT_NO_DEBUG_OUTPUT) && defined(QT_NO_INFO_OUTPUT) && defined(QT_NO_WARNING_OUTPUT)
 auto releaseLogFilter(QtMsgType type, const QMessageLogContext& logContext, const QString& msg)
   -> void {
   Q_UNUSED(logContext);
@@ -49,6 +50,7 @@ void silenceStderrForRelease() {
   }
 #endif
 }
+#endif
 } // namespace
 
 auto main(int argc, char* argv[]) -> int {

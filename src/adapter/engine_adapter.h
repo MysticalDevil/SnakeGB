@@ -38,6 +38,7 @@ public:
   }
   [[nodiscard]] auto rowCount(const QModelIndex& parent = QModelIndex()) const noexcept
     -> int override {
+    Q_UNUSED(parent);
     return static_cast<int>(m_body.size());
   }
   [[nodiscard]] auto data(const QModelIndex& index, int role = Qt::DisplayRole) const
@@ -333,6 +334,8 @@ private:
   void applyReplayTimelineForCurrentTick(int& inputHistoryIndex, int& choiceHistoryIndex);
   void applyPostTickTasks();
   void updateReflectionFallback();
+  [[nodiscard]] auto initialGameplayIntervalMs() const -> int;
+  [[nodiscard]] auto gameplayTickIntervalMs() const -> int;
   void dispatchStateCallback(const std::function<void(GameState&)>& callback);
   void applyPendingStateChangeIfNeeded();
   void applyCollisionMitigationEffects(const nenoserpent::core::SessionAdvanceResult& result);
@@ -384,6 +387,8 @@ private:
   int m_replayInputHistoryIndex = 0;
   int m_replayChoiceHistoryIndex = 0;
   qint64 m_sessionStartTime = 0;
+  qint64 m_lastUiInteractAudioMs = 0;
+  qint64 m_lastHapticMs = 0;
   QPointF m_reflectionOffset = {0.0, 0.0};
   QJSEngine m_jsEngine;
   QString m_currentScript;

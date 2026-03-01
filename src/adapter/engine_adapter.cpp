@@ -1,5 +1,6 @@
 #include "adapter/engine_adapter.h"
 
+#include <QDateTime>
 #include <QDebug>
 
 #include "fsm/game_state.h"
@@ -40,6 +41,40 @@ auto stateName(const int state) -> const char* {
     return "Unknown";
   }
 }
+
+#ifdef Q_OS_ANDROID
+auto hapticDurationMs(const int magnitude) -> jlong {
+  const int clamped = std::clamp(magnitude, 1, 12);
+  if (clamped <= 2) {
+    return 8;
+  }
+  if (clamped <= 4) {
+    return 12;
+  }
+  if (clamped <= 7) {
+    return 16;
+  }
+  if (clamped <= 10) {
+    return 22;
+  }
+  return 28;
+}
+
+auto hapticAmplitude(const int magnitude) -> jint {
+  const int clamped = std::clamp(magnitude, 1, 12);
+  return std::clamp(28 + clamped * 17, 40, 255);
+}
+
+auto minHapticIntervalMs(const int magnitude) -> qint64 {
+  if (magnitude <= 2) {
+    return 28;
+  }
+  if (magnitude <= 5) {
+    return 22;
+  }
+  return 14;
+}
+#endif
 } // namespace
 
 EngineAdapter::EngineAdapter(QObject* parent)
@@ -53,6 +88,8 @@ EngineAdapter::EngineAdapter(QObject* parent)
       m_profileManager(std::make_unique<ProfileManager>()),
       m_inputQueue(m_sessionCore.inputQueue()),
       m_fsmState(nullptr) {
+  m_timer->setTimerType(Qt::PreciseTimer);
+
   m_audioBus.setCallbacks({
     .startMusic = [this](const nenoserpent::audio::ScoreTrackId trackId) -> void {
       emit audioStartMusic(static_cast<int>(trackId));
@@ -102,7 +139,8 @@ void EngineAdapter::syncSnakeModelFromCore() {
 
 void EngineAdapter::setupAudioSignals() {
   connect(this, &EngineAdapter::foodEaten, this, [this](const float pan) -> void {
-    m_audioBus.dispatchEvent(nenoserpent::audio::Event::Food, {.score = m_session.score, .pan = pan});
+    m_audioBus.dispatchEvent(nenoserpent::audio::Event::Food,
+                             {.score = m_session.score, .pan = pan});
     triggerHaptic(3);
   });
 
@@ -117,6 +155,14 @@ void EngineAdapter::setupAudioSignals() {
   });
 
   connect(this, &EngineAdapter::uiInteractTriggered, this, [this]() -> void {
+#ifdef Q_OS_ANDROID
+    constexpr qint64 MinAudioEventIntervalMs = 80;
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    if (nowMs - m_lastUiInteractAudioMs < MinAudioEventIntervalMs) {
+      return;
+    }
+    m_lastUiInteractAudioMs = nowMs;
+#endif
     m_audioBus.dispatchEvent(nenoserpent::audio::Event::UiInteract);
     triggerHaptic(2);
   });
@@ -203,9 +249,28 @@ void EngineAdapter::requestStateChange(const int newState) {
 
 void EngineAdapter::startEngineTimer(const int intervalMs) {
   if (intervalMs > 0) {
-    m_timer->setInterval(intervalMs);
+    m_timer->setInterval(std::max(30, intervalMs));
+  } else {
+    m_timer->setInterval(gameplayTickIntervalMs());
   }
   m_timer->start();
+}
+
+auto EngineAdapter::initialGameplayIntervalMs() const -> int {
+#ifdef Q_OS_ANDROID
+  return 140;
+#else
+  return 200;
+#endif
+}
+
+auto EngineAdapter::gameplayTickIntervalMs() const -> int {
+  const int interval = m_sessionCore.currentTickIntervalMs();
+#ifdef Q_OS_ANDROID
+  return std::max(50, interval);
+#else
+  return interval;
+#endif
 }
 
 void EngineAdapter::stopEngineTimer() {
@@ -215,6 +280,13 @@ void EngineAdapter::stopEngineTimer() {
 void EngineAdapter::triggerHaptic(const int magnitude) {
   emit requestFeedback(magnitude);
 #ifdef Q_OS_ANDROID
+  const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+  if (const qint64 elapsedMs = nowMs - m_lastHapticMs;
+      elapsedMs >= 0 && elapsedMs < minHapticIntervalMs(magnitude)) {
+    return;
+  }
+  m_lastHapticMs = nowMs;
+
   QJniObject context = QJniObject::callStaticObjectMethod(
     "org/qtproject/qt/android/QtNative", "activity", "()Landroid/app/Activity;");
   if (!context.isValid()) {
@@ -227,8 +299,23 @@ void EngineAdapter::triggerHaptic(const int magnitude) {
                                "(Ljava/lang/String;)Ljava/lang/Object;",
                                QJniObject::fromString("vibrator").object<jstring>());
     if (vibrator.isValid()) {
-      const jlong duration = static_cast<jlong>(magnitude * 12);
-      vibrator.callMethod<void>("vibrate", "(J)V", duration);
+      const auto hasVibrator = vibrator.callMethod<jboolean>("hasVibrator", "()Z");
+      if (!hasVibrator) {
+        return;
+      }
+
+      const jlong duration = hapticDurationMs(magnitude);
+      const jint amplitude = hapticAmplitude(magnitude);
+      QJniObject effect = QJniObject::callStaticObjectMethod("android/os/VibrationEffect",
+                                                             "createOneShot",
+                                                             "(JI)Landroid/os/VibrationEffect;",
+                                                             duration,
+                                                             amplitude);
+      if (effect.isValid()) {
+        vibrator.callMethod<void>("vibrate", "(Landroid/os/VibrationEffect;)V", effect.object());
+      } else {
+        vibrator.callMethod<void>("vibrate", "(J)V", duration);
+      }
     }
   }
 #endif
