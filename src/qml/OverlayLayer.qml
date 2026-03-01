@@ -30,8 +30,8 @@ Item {
     readonly property color modalInnerBorder: Qt.rgba(1, 1, 1, 0.08)
     readonly property color modalTitleInk: readableText ? readableText(modalPanelFill) : menuColor("titleInk")
     readonly property color modalSecondaryInk: readableSecondaryText ? readableSecondaryText(modalPanelFill) : menuColor("secondaryInk")
-    readonly property color modalMetaInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.90)
-    readonly property color modalHintInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.84)
+    readonly property color modalMetaInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.96)
+    readonly property color modalHintInk: Qt.rgba(modalSecondaryInk.r, modalSecondaryInk.g, modalSecondaryInk.b, 0.68)
     readonly property color modalCardFill: Qt.lighter(modalPanelFill, 1.04)
     readonly property color modalCardFillSelected: Qt.lighter(modalPanelFill, 1.10)
     readonly property color modalCardTitleInk: readableText ? readableText(modalCardFill) : menuColor("titleInk")
@@ -67,10 +67,10 @@ Item {
             gameFont: overlays.gameFont
             titleColor: overlays.modalTitleInk
             hintColor: overlays.modalHintInk
-            titleSize: 20
-            hintSize: 9
-            hintBold: true
-            lineSpacing: 4
+            titleSize: 22
+            hintSize: 7
+            hintBold: false
+            lineSpacing: 6
         }
     }
 
@@ -96,12 +96,12 @@ Item {
             titleColor: overlays.modalTitleInk
             bodyColor: overlays.modalMetaInk
             hintColor: overlays.modalHintInk
-            titleSize: 20
-            bodySize: 10
-            bodyBold: false
-            hintSize: 9
-            hintBold: true
-            lineSpacing: 4
+            titleSize: 22
+            bodySize: 12
+            bodyBold: true
+            hintSize: 7
+            hintBold: false
+            lineSpacing: 6
         }
     }
 
