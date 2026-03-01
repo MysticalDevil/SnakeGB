@@ -53,7 +53,8 @@ make clean
 
 ## Coding Style & Naming Conventions
 - C++ standard: C++23 (`CMakeLists.txt`).
-- Formatting: `.clang-format` (LLVM base, 4-space indent, 100-column limit). Run `clang-format` before committing.
+- Formatting: `.clang-format` (2-space indent, no tabs, attached braces, 100-column limit). Run
+  `clang-format` on touched C++ files before `clang-tidy`, build, tests, and commit.
 - Naming: classes/types `PascalCase`, functions/variables `camelCase`, constants/macros `UPPER_SNAKE_CASE`.
 - Keep game-state transitions explicit; prefer named enums/states over numeric literals.
 - Avoid relative `#include` paths; prefer module-prefixed includes (for example, `core/...`, `adapter/...`, `fsm/...`).
@@ -88,7 +89,8 @@ make clean
   - `scripts/ui_nav_debug.sh <target>` uses the same target router for manual inspection and accepts the same `DBG_CHOICE_TYPES` / `DBG_STATIC_PARAMS` env vars.
   - Manual token injection goes through the runtime input file, for example `printf 'DBG_STATIC_CHOICE:TITLE=POWER_PICK,CHOICES=7|4|1,INDEX=1\n' >> /tmp/snakegb_ui_input.txt`.
   - Detailed parameter formats and supported scenes live in `docs/UI_DEBUG_INJECTION.md`.
-- Enforce this validation order for C++ changes: `clang-tidy` first, then build, then tests.
+- Enforce this validation order for C++ changes: `clang-format` first, then `clang-tidy`, then build,
+  then tests.
 - Run `clang-tidy` on touched C++ files before each commit (use `-p <build-dir>` and prefer fixing new warnings in the same change).
 - Prefer `scripts/clang_tidy_cached.sh <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
 - Build uses `ccache` automatically when available (`SNAKEGB_USE_CCACHE=ON` in CMake).

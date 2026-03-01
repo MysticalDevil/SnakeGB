@@ -1,14 +1,15 @@
 #pragma once
 
-#include "core/level/runtime.h"
+#include <optional>
 
 #include <QStringView>
-#include <optional>
+
+#include "core/level/runtime.h"
 
 namespace snakegb::adapter {
 
-[[nodiscard]] auto loadResolvedLevelFromResource(QStringView resourcePath,
-                                                 int levelIndex) -> std::optional<snakegb::core::ResolvedLevelData>;
+[[nodiscard]] auto loadResolvedLevelFromResource(QStringView resourcePath, int levelIndex)
+  -> std::optional<snakegb::core::ResolvedLevelData>;
 [[nodiscard]] auto readLevelCountFromResource(QStringView resourcePath, int fallbackCount) -> int;
 
 } // namespace snakegb::adapter

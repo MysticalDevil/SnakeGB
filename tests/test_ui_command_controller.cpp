@@ -1,52 +1,48 @@
+#include <QSignalSpy>
+#include <QtTest/QtTest>
+
 #include "adapter/engine_adapter.h"
 #include "adapter/ui/controller.h"
 #include "app_state.h"
 #include "power_up_id.h"
 
-#include <QSignalSpy>
-#include <QtTest/QtTest>
-
-class TestUiCommandController : public QObject
-{
-    Q_OBJECT
+class TestUiCommandController : public QObject {
+  Q_OBJECT
 
 private slots:
-    static void testDispatchForwardsUiAction();
-    static void testRequestStateChangeForwardsStateTransition();
-    static void testSeedChoicePreviewForwardsDebugSeed();
+  static void testDispatchForwardsUiAction();
+  static void testRequestStateChangeForwardsStateTransition();
+  static void testSeedChoicePreviewForwardsDebugSeed();
 };
 
-void TestUiCommandController::testDispatchForwardsUiAction()
-{
-    EngineAdapter engineAdapter;
-    UiCommandController controller(&engineAdapter);
-    QSignalSpy paletteSpy(&controller, &UiCommandController::paletteChanged);
+void TestUiCommandController::testDispatchForwardsUiAction() {
+  EngineAdapter engineAdapter;
+  UiCommandController controller(&engineAdapter);
+  QSignalSpy paletteSpy(&controller, &UiCommandController::paletteChanged);
 
-    controller.dispatch("next_palette");
+  controller.dispatch("next_palette");
 
-    QCOMPARE(paletteSpy.count(), 1);
+  QCOMPARE(paletteSpy.count(), 1);
 }
 
-void TestUiCommandController::testRequestStateChangeForwardsStateTransition()
-{
-    EngineAdapter engineAdapter;
-    UiCommandController controller(&engineAdapter);
+void TestUiCommandController::testRequestStateChangeForwardsStateTransition() {
+  EngineAdapter engineAdapter;
+  UiCommandController controller(&engineAdapter);
 
-    controller.requestStateChange(AppState::StartMenu);
+  controller.requestStateChange(AppState::StartMenu);
 
-    QCOMPARE(engineAdapter.state(), AppState::StartMenu);
+  QCOMPARE(engineAdapter.state(), AppState::StartMenu);
 }
 
-void TestUiCommandController::testSeedChoicePreviewForwardsDebugSeed()
-{
-    EngineAdapter engineAdapter;
-    UiCommandController controller(&engineAdapter);
-    const QVariantList choiceTypes{PowerUpId::Rich, PowerUpId::Shield, PowerUpId::Ghost};
+void TestUiCommandController::testSeedChoicePreviewForwardsDebugSeed() {
+  EngineAdapter engineAdapter;
+  UiCommandController controller(&engineAdapter);
+  const QVariantList choiceTypes{PowerUpId::Rich, PowerUpId::Shield, PowerUpId::Ghost};
 
-    controller.seedChoicePreview(choiceTypes);
+  controller.seedChoicePreview(choiceTypes);
 
-    QCOMPARE(engineAdapter.state(), AppState::ChoiceSelection);
-    QVERIFY(!engineAdapter.choices().isEmpty());
+  QCOMPARE(engineAdapter.state(), AppState::ChoiceSelection);
+  QVERIFY(!engineAdapter.choices().isEmpty());
 }
 
 QTEST_MAIN(TestUiCommandController)

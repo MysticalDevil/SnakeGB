@@ -3,9 +3,9 @@
 namespace snakegb::adapter {
 
 enum class BackAction {
-    None = 0,
-    QuitToMenu,
-    QuitApplication,
+  None = 0,
+  QuitToMenu,
+  QuitApplication,
 };
 
 [[nodiscard]] auto resolveBackActionForState(int state) -> BackAction;

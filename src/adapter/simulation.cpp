@@ -1,192 +1,181 @@
 #include "adapter/engine_adapter.h"
-
 #include "adapter/profile/bridge.h"
 
 using namespace Qt::StringLiterals;
 
-namespace
-{
+namespace {
 
 struct SessionStepDriverConfig {
-    int activeState = AppState::Playing;
-    int collisionTargetState = AppState::GameOver;
-    bool consumeInputQueue = true;
-    bool recordConsumedInput = true;
-    bool emitCrashFeedbackOnCollision = true;
+  int activeState = AppState::Playing;
+  int collisionTargetState = AppState::GameOver;
+  bool consumeInputQueue = true;
+  bool recordConsumedInput = true;
+  bool emitCrashFeedbackOnCollision = true;
 };
 
-auto runSessionStepDriver(IGameEngine &engine, const SessionStepDriverConfig &config) -> bool
-{
-    const auto result = engine.advanceSessionStep({
-        .boardWidth = 20,
-        .boardHeight = 18,
-        .consumeInputQueue = config.consumeInputQueue,
-        .pauseOnChoiceTrigger = (config.activeState != AppState::Replaying),
-    });
+auto runSessionStepDriver(IGameEngine& engine, const SessionStepDriverConfig& config) -> bool {
+  const auto result = engine.advanceSessionStep({
+    .boardWidth = 20,
+    .boardHeight = 18,
+    .consumeInputQueue = config.consumeInputQueue,
+    .pauseOnChoiceTrigger = (config.activeState != AppState::Replaying),
+  });
 
-    if (result.consumedInput && config.recordConsumedInput) {
-        engine.recordInputAtCurrentTick(result.consumedDirection);
+  if (result.consumedInput && config.recordConsumedInput) {
+    engine.recordInputAtCurrentTick(result.consumedDirection);
+  }
+
+  if (result.collision) {
+    if (config.emitCrashFeedbackOnCollision) {
+      engine.triggerHaptic(8);
+      engine.playEventSound(1);
     }
+    engine.requestStateChange(config.collisionTargetState);
+    return false;
+  }
 
-    if (result.collision) {
-        if (config.emitCrashFeedbackOnCollision) {
-            engine.triggerHaptic(8);
-            engine.playEventSound(1);
-        }
-        engine.requestStateChange(config.collisionTargetState);
-        return false;
-    }
-
-    return result.appliedMovement && engine.currentState() == config.activeState &&
-           !engine.hasPendingStateChange();
+  return result.appliedMovement && engine.currentState() == config.activeState &&
+         !engine.hasPendingStateChange();
 }
 
 } // namespace
 
-auto EngineAdapter::advanceSessionStep(const snakegb::core::SessionAdvanceConfig &config)
-    -> snakegb::core::SessionAdvanceResult
-{
-    const auto result = m_sessionCore.advanceSessionStep(
-        config, [this](const int bound) { return m_rng.bounded(bound); });
+auto EngineAdapter::advanceSessionStep(const snakegb::core::SessionAdvanceConfig& config)
+  -> snakegb::core::SessionAdvanceResult {
+  const auto result = m_sessionCore.advanceSessionStep(
+    config, [this](const int bound) { return m_rng.bounded(bound); });
 
-    applyCollisionMitigationEffects(result);
+  applyCollisionMitigationEffects(result);
 
-    if (result.ateFood) {
-        applyFoodConsumptionEffects(result.foodPan, result.triggerChoice, result.spawnPowerUp);
-    }
+  if (result.ateFood) {
+    applyFoodConsumptionEffects(result.foodPan, result.triggerChoice, result.spawnPowerUp);
+  }
 
-    if (result.atePowerUp) {
-        applyPowerUpConsumptionEffects(result);
-    }
+  if (result.atePowerUp) {
+    applyPowerUpConsumptionEffects(result);
+  }
 
-    if (result.appliedMovement) {
-        applyMovementEffects(result);
-    }
+  if (result.appliedMovement) {
+    applyMovementEffects(result);
+  }
 
-    return result;
+  return result;
 }
 
-void EngineAdapter::applyReplayTimelineForCurrentTick(int &inputHistoryIndex, int &choiceHistoryIndex)
-{
-    const auto result = m_sessionCore.applyReplayTimeline(m_bestInputHistory, inputHistoryIndex,
-                                                          m_bestChoiceHistory,
-                                                          choiceHistoryIndex);
-    if (result.choiceIndex.has_value()) {
-        selectChoice(*result.choiceIndex);
-    }
+void EngineAdapter::applyReplayTimelineForCurrentTick(int& inputHistoryIndex,
+                                                      int& choiceHistoryIndex) {
+  const auto result = m_sessionCore.applyReplayTimeline(
+    m_bestInputHistory, inputHistoryIndex, m_bestChoiceHistory, choiceHistoryIndex);
+  if (result.choiceIndex.has_value()) {
+    selectChoice(*result.choiceIndex);
+  }
 }
 
-void EngineAdapter::advancePlayingState()
-{
-    runSessionStepDriver(*this, {
-                                    .activeState = AppState::Playing,
-                                    .collisionTargetState = AppState::GameOver,
-                                    .consumeInputQueue = true,
-                                    .recordConsumedInput = true,
-                                    .emitCrashFeedbackOnCollision = true,
-                                });
+void EngineAdapter::advancePlayingState() {
+  runSessionStepDriver(*this,
+                       {
+                         .activeState = AppState::Playing,
+                         .collisionTargetState = AppState::GameOver,
+                         .consumeInputQueue = true,
+                         .recordConsumedInput = true,
+                         .emitCrashFeedbackOnCollision = true,
+                       });
 }
 
-void EngineAdapter::advanceReplayState()
-{
-    applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
+void EngineAdapter::advanceReplayState() {
+  applyReplayTimelineForCurrentTick(m_replayInputHistoryIndex, m_replayChoiceHistoryIndex);
 
-    runSessionStepDriver(*this, {
-                                    .activeState = AppState::Replaying,
-                                    .collisionTargetState = AppState::StartMenu,
-                                    .consumeInputQueue = false,
-                                    .recordConsumedInput = false,
-                                    .emitCrashFeedbackOnCollision = false,
-                                });
+  runSessionStepDriver(*this,
+                       {
+                         .activeState = AppState::Replaying,
+                         .collisionTargetState = AppState::StartMenu,
+                         .consumeInputQueue = false,
+                         .recordConsumedInput = false,
+                         .emitCrashFeedbackOnCollision = false,
+                       });
 }
 
 void EngineAdapter::applyCollisionMitigationEffects(
-    const snakegb::core::SessionAdvanceResult &result)
-{
-    if (result.consumeLaser && result.obstacleIndex >= 0 &&
-        result.obstacleIndex < m_session.obstacles.size()) {
-        emit obstaclesChanged();
-        triggerHaptic(8);
-        emit buffChanged();
-    }
-    if (result.consumeShield) {
-        triggerHaptic(5);
-        emit buffChanged();
-    }
+  const snakegb::core::SessionAdvanceResult& result) {
+  if (result.consumeLaser && result.obstacleIndex >= 0 &&
+      result.obstacleIndex < m_session.obstacles.size()) {
+    emit obstaclesChanged();
+    triggerHaptic(8);
+    emit buffChanged();
+  }
+  if (result.consumeShield) {
+    triggerHaptic(5);
+    emit buffChanged();
+  }
 }
 
-void EngineAdapter::applyChoiceTransition()
-{
-    if (m_state == AppState::Replaying) {
-        generateChoices();
-    } else {
-        requestStateChange(AppState::ChoiceSelection);
-    }
+void EngineAdapter::applyChoiceTransition() {
+  if (m_state == AppState::Replaying) {
+    generateChoices();
+  } else {
+    requestStateChange(AppState::ChoiceSelection);
+  }
 }
 
-void EngineAdapter::applyFoodConsumptionEffects(const float pan, const bool triggerChoice,
-                                            const bool spawnPowerUpAfterFood)
-{
-    emit foodEaten(pan);
-    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
-    emit scoreChanged();
-    spawnFood();
+void EngineAdapter::applyFoodConsumptionEffects(const float pan,
+                                                const bool triggerChoice,
+                                                const bool spawnPowerUpAfterFood) {
+  emit foodEaten(pan);
+  m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+  emit scoreChanged();
+  spawnFood();
 
-    if (triggerChoice) {
-        applyChoiceTransition();
-    } else if (spawnPowerUpAfterFood) {
-        spawnPowerUp();
-    }
+  if (triggerChoice) {
+    applyChoiceTransition();
+  } else if (spawnPowerUpAfterFood) {
+    spawnPowerUp();
+  }
 
-    triggerHaptic(std::min(5, 2 + (m_session.score / 10)));
+  triggerHaptic(std::min(5, 2 + (m_session.score / 10)));
 }
 
 void EngineAdapter::applyPowerUpConsumptionEffects(
-    const snakegb::core::SessionAdvanceResult &result)
-{
-    snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
-    if (result.miniApplied) {
-        syncSnakeModelFromCore();
-        emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
-    }
-
-    emit powerUpEaten();
-    m_timer->setInterval(result.slowMode ? 250 : m_sessionCore.currentTickIntervalMs());
-
-    triggerHaptic(5);
-    emit buffChanged();
-    emit powerUpChanged();
-}
-
-void EngineAdapter::applyMovementEffects(const snakegb::core::SessionAdvanceResult &result)
-{
+  const snakegb::core::SessionAdvanceResult& result) {
+  snakegb::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType);
+  if (result.miniApplied) {
     syncSnakeModelFromCore();
-    m_currentRecording.append(m_sessionCore.headPosition());
+    emit eventPrompt(u"MINI BLITZ! SIZE CUT"_s);
+  }
 
-    if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
-        m_ghostFrameIndex++;
-        emit ghostChanged();
-    }
-    if (result.movedFood) {
-        emit foodChanged();
-    }
-    if (result.magnetAteFood) {
-        applyFoodConsumptionEffects(result.magnetFoodPan, result.triggerChoiceAfterMagnet,
-                                    result.spawnPowerUpAfterMagnet);
-    }
-    checkAchievements();
+  emit powerUpEaten();
+  m_timer->setInterval(result.slowMode ? 250 : m_sessionCore.currentTickIntervalMs());
+
+  triggerHaptic(5);
+  emit buffChanged();
+  emit powerUpChanged();
 }
 
-void EngineAdapter::applyPostTickTasks()
-{
-    if (!m_currentScript.isEmpty()) {
-        runLevelScript();
-    }
-    m_sessionCore.finishRuntimeUpdate();
+void EngineAdapter::applyMovementEffects(const snakegb::core::SessionAdvanceResult& result) {
+  syncSnakeModelFromCore();
+  m_currentRecording.append(m_sessionCore.headPosition());
+
+  if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
+    m_ghostFrameIndex++;
+    emit ghostChanged();
+  }
+  if (result.movedFood) {
+    emit foodChanged();
+  }
+  if (result.magnetAteFood) {
+    applyFoodConsumptionEffects(
+      result.magnetFoodPan, result.triggerChoiceAfterMagnet, result.spawnPowerUpAfterMagnet);
+  }
+  checkAchievements();
 }
 
-void EngineAdapter::deactivateBuff()
-{
-    m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
-    emit buffChanged();
+void EngineAdapter::applyPostTickTasks() {
+  if (!m_currentScript.isEmpty()) {
+    runLevelScript();
+  }
+  m_sessionCore.finishRuntimeUpdate();
+}
+
+void EngineAdapter::deactivateBuff() {
+  m_timer->setInterval(m_sessionCore.currentTickIntervalMs());
+  emit buffChanged();
 }

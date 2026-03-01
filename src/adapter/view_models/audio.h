@@ -4,20 +4,19 @@
 
 class EngineAdapter;
 
-class AudioSettingsViewModel final : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
+class AudioSettingsViewModel final : public QObject {
+  Q_OBJECT
+  Q_PROPERTY(float volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
 public:
-    explicit AudioSettingsViewModel(EngineAdapter *engineAdapter, QObject *parent = nullptr);
+  explicit AudioSettingsViewModel(EngineAdapter* engineAdapter, QObject* parent = nullptr);
 
-    [[nodiscard]] auto volume() const -> float;
-    void setVolume(float value);
+  [[nodiscard]] auto volume() const -> float;
+  void setVolume(float value);
 
 signals:
-    void volumeChanged();
+  void volumeChanged();
 
 private:
-    EngineAdapter *m_engineAdapter = nullptr;
+  EngineAdapter* m_engineAdapter = nullptr;
 };

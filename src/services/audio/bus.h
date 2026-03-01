@@ -2,62 +2,58 @@
 
 #include <functional>
 
-namespace snakegb::services
-{
+namespace snakegb::services {
 
-enum class MusicCommand
-{
-    None,
-    StartNow,
-    StopNow,
-    DeferMenuStart,
+enum class MusicCommand {
+  None,
+  StartNow,
+  StopNow,
+  DeferMenuStart,
 };
 
-struct AudioCallbacks
-{
-    std::function<void()> startMusic;
-    std::function<void()> stopMusic;
-    std::function<void(bool)> setPaused;
-    std::function<void(bool)> setMusicEnabled;
-    std::function<void(float)> setVolume;
-    std::function<void(int)> setScore;
-    std::function<void(int, int, float)> playBeep;
-    std::function<void(int)> playCrash;
+struct AudioCallbacks {
+  std::function<void()> startMusic;
+  std::function<void()> stopMusic;
+  std::function<void(bool)> setPaused;
+  std::function<void(bool)> setMusicEnabled;
+  std::function<void(float)> setVolume;
+  std::function<void(int)> setScore;
+  std::function<void(int, int, float)> playBeep;
+  std::function<void(int)> playCrash;
 };
 
-struct FoodAudioCue
-{
-    int score = 0;
-    float pan = 0.0F;
+struct FoodAudioCue {
+  int score = 0;
+  float pan = 0.0F;
 };
 
-class AudioBus
-{
+class AudioBus {
 public:
-    AudioBus() = default;
-    explicit AudioBus(AudioCallbacks callbacks);
+  AudioBus() = default;
+  explicit AudioBus(AudioCallbacks callbacks);
 
-    void setCallbacks(AudioCallbacks callbacks);
+  void setCallbacks(AudioCallbacks callbacks);
 
-    void syncPausedState(int state) const;
-    void
-    handleStateChanged(int state, bool musicEnabled,
-                       const std::function<void(int delayMs, const std::function<void()> &callback)>
-                           &deferStart) const;
-    void handleMusicToggle(bool musicEnabled, int state) const;
-    void applyVolume(float value) const;
+  void syncPausedState(int state) const;
+  void
+  handleStateChanged(int state,
+                     bool musicEnabled,
+                     const std::function<void(int delayMs, const std::function<void()>& callback)>&
+                       deferStart) const;
+  void handleMusicToggle(bool musicEnabled, int state) const;
+  void applyVolume(float value) const;
 
-    void playFood(const FoodAudioCue &cue) const;
-    void playPowerUp() const;
-    void playCrash() const;
-    void playUiInteract() const;
-    void playConfirm() const;
+  void playFood(const FoodAudioCue& cue) const;
+  void playPowerUp() const;
+  void playCrash() const;
+  void playUiInteract() const;
+  void playConfirm() const;
 
-    [[nodiscard]] static auto pausedForState(int state) -> bool;
-    [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
+  [[nodiscard]] static auto pausedForState(int state) -> bool;
+  [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
 
 private:
-    AudioCallbacks m_callbacks;
+  AudioCallbacks m_callbacks;
 };
 
 } // namespace snakegb::services

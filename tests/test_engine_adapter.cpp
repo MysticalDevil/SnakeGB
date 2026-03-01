@@ -6,373 +6,382 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QtTest>
-#include "app_state.h"
-#include "adapter/ghost/store.h"
+
 #include "adapter/engine_adapter.h"
+#include "adapter/ghost/store.h"
+#include "app_state.h"
 #include "power_up_id.h"
 
 class TestEngineAdapter : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 private:
-    static void clearPersistentState() {
-        QSettings settings;
-        const QString settingsFile = settings.fileName();
-        settings.clear();
-        settings.sync();
+  static void clearPersistentState() {
+    QSettings settings;
+    const QString settingsFile = settings.fileName();
+    settings.clear();
+    settings.sync();
 
-        if (!settingsFile.isEmpty()) {
-            QFile::remove(settingsFile);
-            const QFileInfo settingsInfo(settingsFile);
-            QDir settingsDir(settingsInfo.absolutePath());
-            settingsDir.removeRecursively();
-        }
-
-        const QString appDataDirectory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-        QFile::remove(snakegb::adapter::ghostFilePathForDirectory(appDataDirectory));
-        QDir appDataDir(appDataDirectory);
-        if (appDataDir.exists()) {
-            appDataDir.removeRecursively();
-        }
+    if (!settingsFile.isEmpty()) {
+      QFile::remove(settingsFile);
+      const QFileInfo settingsInfo(settingsFile);
+      QDir settingsDir(settingsInfo.absolutePath());
+      settingsDir.removeRecursively();
     }
 
-    static auto pickBuff(EngineAdapter &game, int buffType) -> bool {
-        for (int attempt = 0; attempt < 80; ++attempt) {
-            game.generateChoices();
-            const auto currentChoices = game.choices();
-            for (int i = 0; i < currentChoices.size(); ++i) {
-                const auto map = currentChoices[i].toMap();
-                if (map.value("type").toInt() == buffType) {
-                    game.selectChoice(i);
-                    return true;
-                }
-            }
+    const QString appDataDirectory =
+      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QFile::remove(snakegb::adapter::ghostFilePathForDirectory(appDataDirectory));
+    QDir appDataDir(appDataDirectory);
+    if (appDataDir.exists()) {
+      appDataDir.removeRecursively();
+    }
+  }
+
+  static auto pickBuff(EngineAdapter& game, int buffType) -> bool {
+    for (int attempt = 0; attempt < 80; ++attempt) {
+      game.generateChoices();
+      const auto currentChoices = game.choices();
+      for (int i = 0; i < currentChoices.size(); ++i) {
+        const auto map = currentChoices[i].toMap();
+        if (map.value("type").toInt() == buffType) {
+          game.selectChoice(i);
+          return true;
         }
-        return false;
+      }
+    }
+    return false;
+  }
+
+  static void consumeCurrentFood(EngineAdapter& game) {
+    const int previousScore = game.score();
+
+    for (int attempt = 0; attempt < 4; ++attempt) {
+      const QPoint food = game.food();
+
+      QPoint direction;
+      std::deque<QPoint> body;
+      if ((attempt % 2) == 0) {
+        if (food.x() >= 3) {
+          direction = QPoint(1, 0);
+          body = {
+            QPoint(food.x() - 1, food.y()),
+            QPoint(food.x() - 2, food.y()),
+            QPoint(food.x() - 3, food.y()),
+          };
+        } else {
+          direction = QPoint(-1, 0);
+          body = {
+            QPoint(food.x() + 1, food.y()),
+            QPoint(food.x() + 2, food.y()),
+            QPoint(food.x() + 3, food.y()),
+          };
+        }
+      } else {
+        if (food.y() >= 3) {
+          direction = QPoint(0, 1);
+          body = {
+            QPoint(food.x(), food.y() - 1),
+            QPoint(food.x(), food.y() - 2),
+            QPoint(food.x(), food.y() - 3),
+          };
+        } else {
+          direction = QPoint(0, -1);
+          body = {
+            QPoint(food.x(), food.y() + 1),
+            QPoint(food.x(), food.y() + 2),
+            QPoint(food.x(), food.y() + 3),
+          };
+        }
+      }
+
+      game.snakeModelPtr()->reset(body);
+      game.setDirection(direction);
+      game.forceUpdate();
+
+      if (game.score() > previousScore || game.state() == AppState::ChoiceSelection) {
+        return;
+      }
     }
 
-    static void consumeCurrentFood(EngineAdapter &game) {
-        const int previousScore = game.score();
-
-        for (int attempt = 0; attempt < 4; ++attempt) {
-            const QPoint food = game.food();
-
-            QPoint direction;
-            std::deque<QPoint> body;
-            if ((attempt % 2) == 0) {
-                if (food.x() >= 3) {
-                    direction = QPoint(1, 0);
-                    body = {
-                        QPoint(food.x() - 1, food.y()),
-                        QPoint(food.x() - 2, food.y()),
-                        QPoint(food.x() - 3, food.y()),
-                    };
-                } else {
-                    direction = QPoint(-1, 0);
-                    body = {
-                        QPoint(food.x() + 1, food.y()),
-                        QPoint(food.x() + 2, food.y()),
-                        QPoint(food.x() + 3, food.y()),
-                    };
-                }
-            } else {
-                if (food.y() >= 3) {
-                    direction = QPoint(0, 1);
-                    body = {
-                        QPoint(food.x(), food.y() - 1),
-                        QPoint(food.x(), food.y() - 2),
-                        QPoint(food.x(), food.y() - 3),
-                    };
-                } else {
-                    direction = QPoint(0, -1);
-                    body = {
-                        QPoint(food.x(), food.y() + 1),
-                        QPoint(food.x(), food.y() + 2),
-                        QPoint(food.x(), food.y() + 3),
-                    };
-                }
-            }
-
-            game.snakeModelPtr()->reset(body);
-            game.setDirection(direction);
-            game.forceUpdate();
-
-            if (game.score() > previousScore || game.state() == AppState::ChoiceSelection) {
-                return;
-            }
-        }
-
-        QFAIL("Failed to consume the current food through the active session-step path");
-    }
+    QFAIL("Failed to consume the current food through the active session-step path");
+  }
 
 private slots:
-    void initTestCase() {
-        QStandardPaths::setTestModeEnabled(true);
-        QCoreApplication::setOrganizationName("SnakeGBTests");
-        QCoreApplication::setApplicationName("EngineAdapterTest");
-        clearPersistentState();
+  void initTestCase() {
+    QStandardPaths::setTestModeEnabled(true);
+    QCoreApplication::setOrganizationName("SnakeGBTests");
+    QCoreApplication::setApplicationName("EngineAdapterTest");
+    clearPersistentState();
+  }
+
+  void init() {
+    clearPersistentState();
+  }
+
+  void cleanup() {
+    clearPersistentState();
+  }
+
+  void testInitialState() {
+    EngineAdapter game;
+    QVERIFY(game.state() == AppState::Splash || game.state() == AppState::StartMenu);
+  }
+
+  void testGameCycle() {
+    EngineAdapter game;
+    game.startGame();
+
+    // Push logic far enough to ensure it hits boundary or completes splash
+    for (int i = 0; i < 100; ++i)
+      game.forceUpdate();
+
+    // After 100 forced steps, it MUST have transitioned out of Playing or hit boundary
+    QVERIFY(game.state() != AppState::Splash);
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::GameOver);
+  }
+
+  void testSnakeMovesAfterStart() {
+    EngineAdapter game;
+    game.startGame();
+    const QPoint before = game.snakeModelPtr()->body().front();
+    game.forceUpdate();
+    const QPoint after = game.snakeModelPtr()->body().front();
+    QVERIFY(before != after);
+  }
+
+  void testSplashTransitionRequest() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    QVERIFY(game.state() == AppState::StartMenu);
+    game.requestStateChange(AppState::Splash);
+    QVERIFY(game.state() == AppState::Splash);
+  }
+
+  void testNextLevelChangesName() {
+    EngineAdapter game;
+    const QString before = game.currentLevelName();
+    game.nextLevel();
+    const QString after = game.currentLevelName();
+    QVERIFY(before != after);
+  }
+
+  void testHandleSelectInMenuChangesLevel() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    const QString before = game.currentLevelName();
+    game.handleSelect();
+    const QString after = game.currentLevelName();
+    QVERIFY(before != after);
+  }
+
+  void testTheCageAppliesObstaclesOnNewRun() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+    QVERIFY2(!game.hasSave(), "Save session should be cleared before starting The Cage");
+
+    // Classic -> The Cage
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("The Cage"));
+
+    game.handleStart();
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
+    QVERIFY2(game.obstacles().size() > 0, "The Cage should spawn wall obstacles in-game");
+  }
+
+  void testDynamicPulseHasObstaclesOnStart() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+
+    // Classic -> The Cage -> Dynamic Pulse
+    game.handleSelect();
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+
+    game.handleStart();
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
+    QVERIFY2(game.obstacles().size() > 0, "Dynamic Pulse should produce dynamic obstacles");
+  }
+
+  void testDynamicPulseObstaclesMoveOverTime() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+
+    game.handleSelect();
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+
+    game.handleStart();
+    const QVariantList before = game.obstacles();
+    for (int i = 0; i < 6; ++i) {
+      game.forceUpdate();
     }
+    const QVariantList after = game.obstacles();
+    QVERIFY2(before != after, "Dynamic Pulse obstacles should change over time");
+  }
 
-    void init() { clearPersistentState(); }
+  void testDeleteSaveResetsLevelToClassicAndNewRunUsesClassic() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
 
-    void cleanup() { clearPersistentState(); }
+    // Move away from Classic and create a save by returning to menu.
+    game.handleSelect();
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+    game.handleStart();
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
+    game.quitToMenu();
+    QVERIFY2(game.hasSave(), "Session save should exist after quitting from an active run");
 
-    void testInitialState() {
-        EngineAdapter game;
-        QVERIFY(game.state() == AppState::Splash || game.state() == AppState::StartMenu);
+    // Clear save and start without selecting level again.
+    game.deleteSave();
+    QVERIFY2(!game.hasSave(), "Session save should be cleared");
+    QCOMPARE(game.currentLevelName(), QString("Classic"));
+
+    game.handleStart();
+    QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
+             "Start should begin a new run, not reload old session");
+    QCOMPARE(game.obstacles().size(), 0);
+  }
+
+  void testDeleteSaveThenSelectStartsChosenLevel() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+    QCOMPARE(game.currentLevelName(), QString("Classic"));
+
+    // After reset to Classic, one select should choose The Cage.
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("The Cage"));
+
+    game.handleStart();
+    QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
+             "Start should begin a new run");
+    QVERIFY2(game.obstacles().size() > 0, "The Cage run should use The Cage obstacles");
+  }
+
+  void testTunnelRunInitialSpawnAvoidsObstacles() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+
+    // Classic -> The Cage -> Dynamic Pulse -> Tunnel Run
+    game.handleSelect();
+    game.handleSelect();
+    game.handleSelect();
+    QCOMPARE(game.currentLevelName(), QString("Tunnel Run"));
+
+    game.handleStart();
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
+
+    QSet<QPoint> obstacleSet;
+    for (const QVariant& item : game.obstacles()) {
+      const QVariantMap map = item.toMap();
+      obstacleSet.insert(QPoint(map.value("x").toInt(), map.value("y").toInt()));
     }
-
-    void testGameCycle() {
-        EngineAdapter game;
-        game.startGame(); 
-        
-        // Push logic far enough to ensure it hits boundary or completes splash
-        for(int i=0; i<100; ++i) game.forceUpdate();
-
-        // After 100 forced steps, it MUST have transitioned out of Playing or hit boundary
-        QVERIFY(game.state() != AppState::Splash);
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::GameOver);
+    for (const QPoint& segment : game.snakeModelPtr()->body()) {
+      QVERIFY2(!obstacleSet.contains(segment),
+               "Tunnel Run initial snake body must not overlap obstacles");
     }
+  }
 
-    void testSnakeMovesAfterStart() {
-        EngineAdapter game;
-        game.startGame();
-        const QPoint before = game.snakeModelPtr()->body().front();
-        game.forceUpdate();
-        const QPoint after = game.snakeModelPtr()->body().front();
-        QVERIFY(before != after);
+  void testHeadWrapsAtBoundary() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+    game.handleStart();
+
+    game.snakeModelPtr()->reset({QPoint(19, 10), QPoint(18, 10), QPoint(17, 10)});
+    game.setDirection(QPoint(1, 0));
+
+    game.forceUpdate();
+    const QPoint head = game.snakeModelPtr()->body().front();
+    QCOMPARE(head, QPoint(0, 10));
+  }
+
+  void testDoubleBuffCrossesTenThresholdKeepsValidState() {
+    EngineAdapter game;
+    game.startGame();
+
+    for (int attempt = 0; attempt < 20 && game.score() < 9; ++attempt) {
+      if (game.state() == AppState::ChoiceSelection) {
+        game.selectChoice(0);
+        continue;
+      }
+      consumeCurrentFood(game);
     }
+    QVERIFY2(game.score() >= 9,
+             "Expected score to reach the pre-threshold range before picking Double");
 
-    void testSplashTransitionRequest() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        QVERIFY(game.state() == AppState::StartMenu);
-        game.requestStateChange(AppState::Splash);
-        QVERIFY(game.state() == AppState::Splash);
-    }
+    QVERIFY2(pickBuff(game, PowerUpId::Double),
+             "Failed to pick Double buff from generated choices");
+    QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Double));
 
-    void testNextLevelChangesName() {
-        EngineAdapter game;
-        const QString before = game.currentLevelName();
-        game.nextLevel();
-        const QString after = game.currentLevelName();
-        QVERIFY(before != after);
-    }
+    const int scoreBeforeDoubleFood = game.score();
+    consumeCurrentFood(game);
+    QCOMPARE(game.score(), scoreBeforeDoubleFood + 2);
+    QVERIFY2(
+      game.state() == AppState::Playing || game.state() == AppState::ChoiceSelection,
+      "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
+  }
 
-    void testHandleSelectInMenuChangesLevel() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        const QString before = game.currentLevelName();
-        game.handleSelect();
-        const QString after = game.currentLevelName();
-        QVERIFY(before != after);
-    }
+  void testQuitToMenuFromGameOverDoesNotCreateSave() {
+    EngineAdapter game;
+    game.requestStateChange(AppState::StartMenu);
+    game.deleteSave();
+    QVERIFY(!game.hasSave());
 
-    void testTheCageAppliesObstaclesOnNewRun() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
-        QVERIFY2(!game.hasSave(), "Save session should be cleared before starting The Cage");
+    game.handleStart();
+    QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
 
-        // Classic -> The Cage
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("The Cage"));
+    game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
+    game.setDirection(QPoint(1, 0));
+    game.forceUpdate();
+    QCOMPARE(game.state(), AppState::GameOver);
+    QVERIFY(!game.hasSave());
 
-        game.handleStart();
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
-        QVERIFY2(game.obstacles().size() > 0, "The Cage should spawn wall obstacles in-game");
-    }
+    game.quitToMenu();
+    QCOMPARE(game.state(), AppState::StartMenu);
+    QVERIFY2(!game.hasSave(), "GameOver back-to-menu should not generate a continue save");
+  }
 
-    void testDynamicPulseHasObstaclesOnStart() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
+  void testLatestBuffSelectionOverridesPreviousBuff() {
+    EngineAdapter game;
+    game.startGame();
 
-        // Classic -> The Cage -> Dynamic Pulse
-        game.handleSelect();
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+    QVERIFY2(pickBuff(game, PowerUpId::Ghost), "Failed to pick Ghost buff");
+    QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Ghost));
 
-        game.handleStart();
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
-        QVERIFY2(game.obstacles().size() > 0, "Dynamic Pulse should produce dynamic obstacles");
-    }
+    QVERIFY2(pickBuff(game, PowerUpId::Slow), "Failed to pick Slow buff");
+    QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Slow));
+  }
 
-    void testDynamicPulseObstaclesMoveOverTime() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
+  void testReplayAppliesRecordedInputOnMatchingFrame() {
+    EngineAdapter game;
+    game.startGame();
 
-        game.handleSelect();
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
+    game.move(1, 0);
+    game.forceUpdate();
 
-        game.handleStart();
-        const QVariantList before = game.obstacles();
-        for (int i = 0; i < 6; ++i) {
-            game.forceUpdate();
-        }
-        const QVariantList after = game.obstacles();
-        QVERIFY2(before != after, "Dynamic Pulse obstacles should change over time");
-    }
+    consumeCurrentFood(game);
+    QVERIFY(game.score() > 0);
 
-    void testDeleteSaveResetsLevelToClassicAndNewRunUsesClassic() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
+    game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
+    game.setDirection(QPoint(1, 0));
+    game.forceUpdate();
+    QCOMPARE(game.state(), AppState::GameOver);
+    QVERIFY2(game.hasReplay(), "Replay should be available after a new high score run");
 
-        // Move away from Classic and create a save by returning to menu.
-        game.handleSelect();
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("Dynamic Pulse"));
-        game.handleStart();
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
-        game.quitToMenu();
-        QVERIFY2(game.hasSave(), "Session save should exist after quitting from an active run");
+    game.requestStateChange(AppState::StartMenu);
+    game.startReplay();
+    QCOMPARE(game.state(), AppState::Replaying);
 
-        // Clear save and start without selecting level again.
-        game.deleteSave();
-        QVERIFY2(!game.hasSave(), "Session save should be cleared");
-        QCOMPARE(game.currentLevelName(), QString("Classic"));
-
-        game.handleStart();
-        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
-                 "Start should begin a new run, not reload old session");
-        QCOMPARE(game.obstacles().size(), 0);
-    }
-
-    void testDeleteSaveThenSelectStartsChosenLevel() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
-        QCOMPARE(game.currentLevelName(), QString("Classic"));
-
-        // After reset to Classic, one select should choose The Cage.
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("The Cage"));
-
-        game.handleStart();
-        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::Paused,
-                 "Start should begin a new run");
-        QVERIFY2(game.obstacles().size() > 0,
-                 "The Cage run should use The Cage obstacles");
-    }
-
-    void testTunnelRunInitialSpawnAvoidsObstacles() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
-
-        // Classic -> The Cage -> Dynamic Pulse -> Tunnel Run
-        game.handleSelect();
-        game.handleSelect();
-        game.handleSelect();
-        QCOMPARE(game.currentLevelName(), QString("Tunnel Run"));
-
-        game.handleStart();
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
-
-        QSet<QPoint> obstacleSet;
-        for (const QVariant &item : game.obstacles()) {
-            const QVariantMap map = item.toMap();
-            obstacleSet.insert(QPoint(map.value("x").toInt(), map.value("y").toInt()));
-        }
-        for (const QPoint &segment : game.snakeModelPtr()->body()) {
-            QVERIFY2(!obstacleSet.contains(segment),
-                     "Tunnel Run initial snake body must not overlap obstacles");
-        }
-    }
-
-    void testHeadWrapsAtBoundary() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
-        game.handleStart();
-
-        game.snakeModelPtr()->reset({QPoint(19, 10), QPoint(18, 10), QPoint(17, 10)});
-        game.setDirection(QPoint(1, 0));
-
-        game.forceUpdate();
-        const QPoint head = game.snakeModelPtr()->body().front();
-        QCOMPARE(head, QPoint(0, 10));
-    }
-
-    void testDoubleBuffCrossesTenThresholdKeepsValidState() {
-        EngineAdapter game;
-        game.startGame();
-
-        for (int attempt = 0; attempt < 20 && game.score() < 9; ++attempt) {
-            if (game.state() == AppState::ChoiceSelection) {
-                game.selectChoice(0);
-                continue;
-            }
-            consumeCurrentFood(game);
-        }
-        QVERIFY2(game.score() >= 9, "Expected score to reach the pre-threshold range before picking Double");
-
-        QVERIFY2(pickBuff(game, PowerUpId::Double), "Failed to pick Double buff from generated choices");
-        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Double));
-
-        const int scoreBeforeDoubleFood = game.score();
-        consumeCurrentFood(game);
-        QCOMPARE(game.score(), scoreBeforeDoubleFood + 2);
-        QVERIFY2(game.state() == AppState::Playing || game.state() == AppState::ChoiceSelection,
-                 "Dynamic roguelike trigger should keep state valid without forcing a fixed threshold popup");
-    }
-
-    void testQuitToMenuFromGameOverDoesNotCreateSave() {
-        EngineAdapter game;
-        game.requestStateChange(AppState::StartMenu);
-        game.deleteSave();
-        QVERIFY(!game.hasSave());
-
-        game.handleStart();
-        QVERIFY(game.state() == AppState::Playing || game.state() == AppState::Paused);
-
-        game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
-        game.setDirection(QPoint(1, 0));
-        game.forceUpdate();
-        QCOMPARE(game.state(), AppState::GameOver);
-        QVERIFY(!game.hasSave());
-
-        game.quitToMenu();
-        QCOMPARE(game.state(), AppState::StartMenu);
-        QVERIFY2(!game.hasSave(), "GameOver back-to-menu should not generate a continue save");
-    }
-
-    void testLatestBuffSelectionOverridesPreviousBuff() {
-        EngineAdapter game;
-        game.startGame();
-
-        QVERIFY2(pickBuff(game, PowerUpId::Ghost), "Failed to pick Ghost buff");
-        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Ghost));
-
-        QVERIFY2(pickBuff(game, PowerUpId::Slow), "Failed to pick Slow buff");
-        QCOMPARE(game.activeBuff(), static_cast<int>(PowerUpId::Slow));
-    }
-
-    void testReplayAppliesRecordedInputOnMatchingFrame() {
-        EngineAdapter game;
-        game.startGame();
-
-        game.move(1, 0);
-        game.forceUpdate();
-
-        consumeCurrentFood(game);
-        QVERIFY(game.score() > 0);
-
-        game.snakeModelPtr()->reset({QPoint(10, 10), QPoint(11, 10), QPoint(12, 10)});
-        game.setDirection(QPoint(1, 0));
-        game.forceUpdate();
-        QCOMPARE(game.state(), AppState::GameOver);
-        QVERIFY2(game.hasReplay(), "Replay should be available after a new high score run");
-
-        game.requestStateChange(AppState::StartMenu);
-        game.startReplay();
-        QCOMPARE(game.state(), AppState::Replaying);
-
-        game.forceUpdate();
-        QCOMPARE(game.snakeModelPtr()->body().front(), QPoint(11, 10));
-    }
+    game.forceUpdate();
+    QCOMPARE(game.snakeModelPtr()->body().front(), QPoint(11, 10));
+  }
 };
 
 QTEST_MAIN(TestEngineAdapter)

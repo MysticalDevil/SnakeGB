@@ -1,55 +1,51 @@
-#include "adapter/engine_adapter.h"
-#include "adapter/view_models/status.h"
-
 #include <QSignalSpy>
 #include <QtTest/QtTest>
 
-class TestSessionStatusViewModel : public QObject
-{
-    Q_OBJECT
+#include "adapter/engine_adapter.h"
+#include "adapter/view_models/status.h"
+
+class TestSessionStatusViewModel : public QObject {
+  Q_OBJECT
 
 private slots:
-    static void testMirrorsSessionStatusProperties();
-    static void testHasSaveSignalTracksAdapter();
-    static void testLevelSignalTracksAdapter();
+  static void testMirrorsSessionStatusProperties();
+  static void testHasSaveSignalTracksAdapter();
+  static void testLevelSignalTracksAdapter();
 };
 
-void TestSessionStatusViewModel::testMirrorsSessionStatusProperties()
-{
-    EngineAdapter engineAdapter;
-    SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
+void TestSessionStatusViewModel::testMirrorsSessionStatusProperties() {
+  EngineAdapter engineAdapter;
+  SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
 
-    QCOMPARE(sessionStatusViewModel.hasSave(), engineAdapter.hasSave());
-    QCOMPARE(sessionStatusViewModel.hasReplay(), engineAdapter.hasReplay());
-    QCOMPARE(sessionStatusViewModel.highScore(), engineAdapter.highScore());
-    QCOMPARE(sessionStatusViewModel.level(), engineAdapter.level());
-    QCOMPARE(sessionStatusViewModel.currentLevelName(), engineAdapter.currentLevelName());
+  QCOMPARE(sessionStatusViewModel.hasSave(), engineAdapter.hasSave());
+  QCOMPARE(sessionStatusViewModel.hasReplay(), engineAdapter.hasReplay());
+  QCOMPARE(sessionStatusViewModel.highScore(), engineAdapter.highScore());
+  QCOMPARE(sessionStatusViewModel.level(), engineAdapter.level());
+  QCOMPARE(sessionStatusViewModel.currentLevelName(), engineAdapter.currentLevelName());
 }
 
-void TestSessionStatusViewModel::testHasSaveSignalTracksAdapter()
-{
-    EngineAdapter engineAdapter;
-    SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
-    QSignalSpy hasSaveSpy(&sessionStatusViewModel, &SessionStatusViewModel::hasSaveChanged);
+void TestSessionStatusViewModel::testHasSaveSignalTracksAdapter() {
+  EngineAdapter engineAdapter;
+  SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
+  QSignalSpy hasSaveSpy(&sessionStatusViewModel, &SessionStatusViewModel::hasSaveChanged);
 
-    engineAdapter.startGame();
-    engineAdapter.quitToMenu();
+  engineAdapter.startGame();
+  engineAdapter.quitToMenu();
 
-    QVERIFY(hasSaveSpy.count() >= 1);
-    QVERIFY(sessionStatusViewModel.hasSave());
+  QVERIFY(hasSaveSpy.count() >= 1);
+  QVERIFY(sessionStatusViewModel.hasSave());
 }
 
-void TestSessionStatusViewModel::testLevelSignalTracksAdapter()
-{
-    EngineAdapter engineAdapter;
-    SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
-    QSignalSpy levelSpy(&sessionStatusViewModel, &SessionStatusViewModel::levelChanged);
+void TestSessionStatusViewModel::testLevelSignalTracksAdapter() {
+  EngineAdapter engineAdapter;
+  SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
+  QSignalSpy levelSpy(&sessionStatusViewModel, &SessionStatusViewModel::levelChanged);
 
-    const auto before = sessionStatusViewModel.currentLevelName();
-    engineAdapter.nextLevel();
+  const auto before = sessionStatusViewModel.currentLevelName();
+  engineAdapter.nextLevel();
 
-    QCOMPARE(levelSpy.count(), 1);
-    QVERIFY(sessionStatusViewModel.currentLevelName() != before);
+  QCOMPARE(levelSpy.count(), 1);
+  QVERIFY(sessionStatusViewModel.currentLevelName() != before);
 }
 
 QTEST_MAIN(TestSessionStatusViewModel)

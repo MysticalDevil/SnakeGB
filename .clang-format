@@ -1,27 +1,43 @@
 BasedOnStyle: LLVM
-IndentWidth: 4
-ColumnLimit: 100
+
+# Language / line length
 Standard: Latest
-AccessModifierOffset: -4
-AllowShortFunctionsOnASingleLine: Empty
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterClass: true
-  AfterControlStatement: Never
-  AfterEnum: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
-  BeforeElse: false
-  IndentBraces: false
-  SplitEmptyFunction: true
-  SplitEmptyRecord: true
-  SplitEmptyNamespace: true
+ColumnLimit: 100
+
+# Indentation
+IndentWidth: 2
+ContinuationIndentWidth: 2
+TabWidth: 2
+UseTab: Never
+
+# Declarations / packing
+AccessModifierOffset: -2
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+BinPackParameters: false
+BinPackArguments: false
+NamespaceIndentation: None
+PackConstructorInitializers: Never
+
+# Spacing / alignment
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpaceInEmptyParentheses: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Braces
+BreakBeforeBraces: Attach
+
+# Includes
+SortIncludes: true
+IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:           '^<Q.*'
-    Priority:        20
-  - Regex:           '^<.*'
-    Priority:        10
-  - Regex:           '.*'
-    Priority:        30
+  - Regex: '^<Q.*'
+    Priority: 20
+  - Regex: '^<.*'
+    Priority: 10
+  - Regex: '.*'
+    Priority: 30

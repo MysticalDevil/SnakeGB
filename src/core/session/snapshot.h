@@ -1,16 +1,16 @@
 #pragma once
 
-#include "core/session/state.h"
+#include <deque>
 
 #include <QPoint>
 
-#include <deque>
+#include "core/session/state.h"
 
 namespace snakegb::core {
 
 struct StateSnapshot {
-    SessionState state;
-    std::deque<QPoint> body;
+  SessionState state;
+  std::deque<QPoint> body;
 };
 
 } // namespace snakegb::core

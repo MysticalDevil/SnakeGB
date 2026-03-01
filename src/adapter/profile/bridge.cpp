@@ -2,146 +2,131 @@
 
 #include "profile_manager.h"
 
-namespace snakegb::adapter
-{
+namespace snakegb::adapter {
 
-auto paletteIndex(const ProfileManager *profile) -> int
-{
-    return profile != nullptr ? profile->paletteIndex() : 0;
+auto paletteIndex(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->paletteIndex() : 0;
 }
 
-void setPaletteIndex(ProfileManager *profile, const int index)
-{
-    if (profile != nullptr) {
-        profile->setPaletteIndex(index);
-    }
+void setPaletteIndex(ProfileManager* profile, const int index) {
+  if (profile != nullptr) {
+    profile->setPaletteIndex(index);
+  }
 }
 
-auto shellIndex(const ProfileManager *profile) -> int
-{
-    return profile != nullptr ? profile->shellIndex() : 0;
+auto shellIndex(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->shellIndex() : 0;
 }
 
-void setShellIndex(ProfileManager *profile, const int index)
-{
-    if (profile != nullptr) {
-        profile->setShellIndex(index);
-    }
+void setShellIndex(ProfileManager* profile, const int index) {
+  if (profile != nullptr) {
+    profile->setShellIndex(index);
+  }
 }
 
-auto levelIndex(const ProfileManager *profile) -> int
-{
-    return profile != nullptr ? profile->levelIndex() : 0;
+auto levelIndex(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->levelIndex() : 0;
 }
 
-void setLevelIndex(ProfileManager *profile, const int index)
-{
-    if (profile != nullptr) {
-        profile->setLevelIndex(index);
-    }
+void setLevelIndex(ProfileManager* profile, const int index) {
+  if (profile != nullptr) {
+    profile->setLevelIndex(index);
+  }
 }
 
-auto volume(const ProfileManager *profile) -> float
-{
-    return profile != nullptr ? profile->volume() : 1.0F;
+auto volume(const ProfileManager* profile) -> float {
+  return profile != nullptr ? profile->volume() : 1.0F;
 }
 
-void setVolume(ProfileManager *profile, const float value)
-{
-    if (profile != nullptr) {
-        profile->setVolume(value);
-    }
+void setVolume(ProfileManager* profile, const float value) {
+  if (profile != nullptr) {
+    profile->setVolume(value);
+  }
 }
 
-auto highScore(const ProfileManager *profile) -> int
-{
-    return profile != nullptr ? profile->highScore() : 0;
+auto highScore(const ProfileManager* profile) -> int {
+  return profile != nullptr ? profile->highScore() : 0;
 }
 
-void updateHighScore(ProfileManager *profile, const int score)
-{
-    if (profile != nullptr) {
-        profile->updateHighScore(score);
-    }
+void updateHighScore(ProfileManager* profile, const int score) {
+  if (profile != nullptr) {
+    profile->updateHighScore(score);
+  }
 }
 
-void incrementCrashes(ProfileManager *profile)
-{
-    if (profile != nullptr) {
-        profile->incrementCrashes();
-    }
+void incrementCrashes(ProfileManager* profile) {
+  if (profile != nullptr) {
+    profile->incrementCrashes();
+  }
 }
 
-void logFoodEaten(ProfileManager *profile)
-{
-    if (profile != nullptr) {
-        profile->logFoodEaten();
-    }
+void logFoodEaten(ProfileManager* profile) {
+  if (profile != nullptr) {
+    profile->logFoodEaten();
+  }
 }
 
-void discoverFruit(ProfileManager *profile, const int type)
-{
-    if (profile != nullptr) {
-        profile->discoverFruit(type);
-    }
+void discoverFruit(ProfileManager* profile, const int type) {
+  if (profile != nullptr) {
+    profile->discoverFruit(type);
+  }
 }
 
-auto unlockedMedals(const ProfileManager *profile) -> QStringList
-{
-    return profile != nullptr ? profile->unlockedMedals() : QStringList{};
+auto unlockedMedals(const ProfileManager* profile) -> QStringList {
+  return profile != nullptr ? profile->unlockedMedals() : QStringList{};
 }
 
-auto unlockMedal(ProfileManager *profile, const QString &title) -> bool
-{
-    if (profile == nullptr) {
-        return false;
-    }
-    return profile->unlockMedal(title);
+auto unlockMedal(ProfileManager* profile, const QString& title) -> bool {
+  if (profile == nullptr) {
+    return false;
+  }
+  return profile->unlockMedal(title);
 }
 
-auto discoveredFruits(const ProfileManager *profile) -> QList<int>
-{
-    return profile != nullptr ? profile->discoveredFruits() : QList<int>{};
+auto discoveredFruits(const ProfileManager* profile) -> QList<int> {
+  return profile != nullptr ? profile->discoveredFruits() : QList<int>{};
 }
 
-auto hasSession(const ProfileManager *profile) -> bool
-{
-    return profile != nullptr ? profile->hasSession() : false;
+auto hasSession(const ProfileManager* profile) -> bool {
+  return profile != nullptr ? profile->hasSession() : false;
 }
 
-void saveSession(ProfileManager *profile, const int score, const std::deque<QPoint> &body,
-                 const QList<QPoint> &obstacles, const QPoint food, const QPoint direction)
-{
-    if (profile != nullptr) {
-        profile->saveSession(score, body, obstacles, food, direction);
-    }
+void saveSession(ProfileManager* profile,
+                 const int score,
+                 const std::deque<QPoint>& body,
+                 const QList<QPoint>& obstacles,
+                 const QPoint food,
+                 const QPoint direction) {
+  if (profile != nullptr) {
+    profile->saveSession(score, body, obstacles, food, direction);
+  }
 }
 
-void saveSession(ProfileManager *profile, const snakegb::core::StateSnapshot &snapshot)
-{
-    const auto persisted = fromCoreStateSnapshot(snapshot);
-    saveSession(profile, persisted.score, persisted.body, persisted.obstacles, persisted.food,
-                persisted.direction);
+void saveSession(ProfileManager* profile, const snakegb::core::StateSnapshot& snapshot) {
+  const auto persisted = fromCoreStateSnapshot(snapshot);
+  saveSession(profile,
+              persisted.score,
+              persisted.body,
+              persisted.obstacles,
+              persisted.food,
+              persisted.direction);
 }
 
-void clearSession(ProfileManager *profile)
-{
-    if (profile != nullptr) {
-        profile->clearSession();
-    }
+void clearSession(ProfileManager* profile) {
+  if (profile != nullptr) {
+    profile->clearSession();
+  }
 }
 
-auto loadSession(ProfileManager *profile) -> QVariantMap
-{
-    return profile != nullptr ? profile->loadSession() : QVariantMap{};
+auto loadSession(ProfileManager* profile) -> QVariantMap {
+  return profile != nullptr ? profile->loadSession() : QVariantMap{};
 }
 
-auto loadSessionSnapshot(ProfileManager *profile) -> std::optional<SessionSnapshot>
-{
-    if (profile == nullptr || !profile->hasSession()) {
-        return std::nullopt;
-    }
-    return decodeSessionSnapshot(profile->loadSession());
+auto loadSessionSnapshot(ProfileManager* profile) -> std::optional<SessionSnapshot> {
+  if (profile == nullptr || !profile->hasSession()) {
+    return std::nullopt;
+  }
+  return decodeSessionSnapshot(profile->loadSession());
 }
 
 } // namespace snakegb::adapter

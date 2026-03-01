@@ -1,62 +1,96 @@
 #pragma once
 
+#include <deque>
+
 #include <QObject>
+#include <QPoint>
 #include <QSettings>
 #include <QStringList>
 #include <QVariantList>
-#include <QPoint>
-#include <deque>
 
 class ProfileManager : public QObject {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    explicit ProfileManager(QObject *parent = nullptr);
+  explicit ProfileManager(QObject* parent = nullptr);
 
-    [[nodiscard]] auto paletteIndex() const -> int { return m_paletteIndex; }
-    void setPaletteIndex(int index);
-    [[nodiscard]] auto shellIndex() const -> int { return m_shellIndex; }
-    void setShellIndex(int index);
-    [[nodiscard]] auto levelIndex() const -> int { return m_levelIndex; }
-    void setLevelIndex(int index);
-    [[nodiscard]] auto volume() const -> float { return m_volume; }
-    void setVolume(float v);
-    
-    [[nodiscard]] auto highScore() const -> int { return m_highScore; }
-    void updateHighScore(int score);
+  [[nodiscard]] auto paletteIndex() const -> int {
+    return m_paletteIndex;
+  }
+  void setPaletteIndex(int index);
+  [[nodiscard]] auto shellIndex() const -> int {
+    return m_shellIndex;
+  }
+  void setShellIndex(int index);
+  [[nodiscard]] auto levelIndex() const -> int {
+    return m_levelIndex;
+  }
+  void setLevelIndex(int index);
+  [[nodiscard]] auto volume() const -> float {
+    return m_volume;
+  }
+  void setVolume(float v);
 
-    void incrementCrashes() { m_totalCrashes++; saveStats(); }
-    void logFoodEaten() { m_totalFoodEaten++; saveStats(); }
-    void logGhostTrigger() { m_totalGhostTriggers++; saveStats(); }
+  [[nodiscard]] auto highScore() const -> int {
+    return m_highScore;
+  }
+  void updateHighScore(int score);
 
-    [[nodiscard]] auto unlockedMedals() const -> QStringList { return m_unlockedMedals; }
-    auto unlockMedal(const QString &title) -> bool;
+  void incrementCrashes() {
+    m_totalCrashes++;
+    saveStats();
+  }
+  void logFoodEaten() {
+    m_totalFoodEaten++;
+    saveStats();
+  }
+  void logGhostTrigger() {
+    m_totalGhostTriggers++;
+    saveStats();
+  }
 
-    void discoverFruit(int type);
-    [[nodiscard]] auto discoveredFruits() const -> QList<int> { return m_discoveredFruits; }
-    
-    void saveSession(int score, const std::deque<QPoint> &body, const QList<QPoint> &obstacles, QPoint food, QPoint dir);
-    void clearSession();
-    [[nodiscard]] auto hasSession() const -> bool;
-    auto loadSession() -> QVariantMap;
+  [[nodiscard]] auto unlockedMedals() const -> QStringList {
+    return m_unlockedMedals;
+  }
+  auto unlockMedal(const QString& title) -> bool;
 
-    [[nodiscard]] auto totalCrashes() const -> int { return m_totalCrashes; }
-    [[nodiscard]] auto totalFoodEaten() const -> int { return m_totalFoodEaten; }
-    [[nodiscard]] auto totalGhostTriggers() const -> int { return m_totalGhostTriggers; }
+  void discoverFruit(int type);
+  [[nodiscard]] auto discoveredFruits() const -> QList<int> {
+    return m_discoveredFruits;
+  }
+
+  void saveSession(int score,
+                   const std::deque<QPoint>& body,
+                   const QList<QPoint>& obstacles,
+                   QPoint food,
+                   QPoint dir);
+  void clearSession();
+  [[nodiscard]] auto hasSession() const -> bool;
+  auto loadSession() -> QVariantMap;
+
+  [[nodiscard]] auto totalCrashes() const -> int {
+    return m_totalCrashes;
+  }
+  [[nodiscard]] auto totalFoodEaten() const -> int {
+    return m_totalFoodEaten;
+  }
+  [[nodiscard]] auto totalGhostTriggers() const -> int {
+    return m_totalGhostTriggers;
+  }
 
 signals:
-    void medalUnlocked(const QString &title);
+  void medalUnlocked(const QString& title);
 
 private:
-    void saveStats();
-    QSettings m_settings;
-    int m_paletteIndex = 0;
-    int m_shellIndex = 0;
-    int m_levelIndex = 0;
-    int m_highScore = 0;
-    float m_volume = 1.0f;
-    int m_totalCrashes = 0;
-    int m_totalFoodEaten = 0;
-    int m_totalGhostTriggers = 0;
-    QStringList m_unlockedMedals;
-    QList<int> m_discoveredFruits;
+  void saveStats();
+  QSettings m_settings;
+  int m_paletteIndex = 0;
+  int m_shellIndex = 0;
+  int m_levelIndex = 0;
+  int m_highScore = 0;
+  float m_volume = 1.0f;
+  int m_totalCrashes = 0;
+  int m_totalFoodEaten = 0;
+  int m_totalGhostTriggers = 0;
+  QStringList m_unlockedMedals;
+  QList<int> m_discoveredFruits;
 };
