@@ -92,6 +92,53 @@ QtObject {
         controller.logButton(source, "action", "dispatch", action)
     }
 
+    function keyName(key) {
+        switch (key) {
+        case Qt.Key_Up:
+            return "Up"
+        case Qt.Key_Down:
+            return "Down"
+        case Qt.Key_Left:
+            return "Left"
+        case Qt.Key_Right:
+            return "Right"
+        case Qt.Key_A:
+            return "A"
+        case Qt.Key_B:
+            return "B"
+        case Qt.Key_C:
+            return "C"
+        case Qt.Key_M:
+            return "M"
+        case Qt.Key_Return:
+            return "Return"
+        case Qt.Key_Enter:
+            return "Enter"
+        case Qt.Key_S:
+            return "S"
+        case Qt.Key_Space:
+            return "Space"
+        case Qt.Key_Shift:
+            return "Shift"
+        case Qt.Key_X:
+            return "X"
+        case Qt.Key_Y:
+            return "Y"
+        case Qt.Key_Z:
+            return "Z"
+        case Qt.Key_Back:
+            return "Back"
+        case Qt.Key_Escape:
+            return "Escape"
+        case Qt.Key_F6:
+            return "F6"
+        case Qt.Key_F7:
+            return "F7"
+        default:
+            return `Key(${key})`
+        }
+    }
+
     function setDpadPressed(dx, dy) {
         controller.shellBridge.setDirectionPressed(dx, dy)
     }
@@ -286,7 +333,7 @@ QtObject {
             return
         }
         controller.logButton("keyboard",
-                             Qt.keyToString(event.key),
+                             controller.keyName(event.key),
                              "press",
                              controller.detailedButtonLogs ? "raw" : "")
         controller.applyKeyAction(controller.pressedKeyActions[event.key])
@@ -297,7 +344,7 @@ QtObject {
             return
         }
         controller.logButton("keyboard",
-                             Qt.keyToString(event.key),
+                             controller.keyName(event.key),
                              "release",
                              controller.detailedButtonLogs ? "raw" : "")
         controller.clearDirectionVisuals()
