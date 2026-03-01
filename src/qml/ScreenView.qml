@@ -489,7 +489,10 @@ Item {
 
         OSDLayer {
             id: osd
-            anchors.fill: screenSafeArea
+            x: screenSafeArea.x
+            y: screenSafeArea.y
+            width: screenSafeArea.width
+            height: screenSafeArea.height
             z: LayerScale.screenOsd
             bg: root.gameAccent
             ink: root.gameAccentInk

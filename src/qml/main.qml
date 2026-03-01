@@ -25,9 +25,13 @@ Window {
     readonly property color p2: themeViewModel.palette[2]
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
+    readonly property var commandControllerRef: uiCommandController
+    readonly property var audioSettingsViewModelRef: audioSettingsViewModel
+    readonly property var sessionRenderViewModelRef: sessionRenderViewModel
+    readonly property var inputInjectorRef: inputInjector
     readonly property var themeViewModelRef: themeViewModel
     property real elapsed: 0.0
-    readonly property int currentState: sessionRenderViewModel.state
+    readonly property int currentState: sessionRenderViewModelRef.state
     readonly property var inputAction: ({
         NavUp: "nav_up",
         NavDown: "nav_down",
@@ -56,10 +60,10 @@ Window {
 
     UiActionRouter {
         id: uiActionRouter
-        commandController: uiCommandController
+        commandController: window.commandControllerRef
         inputController: uiInputController
         debugController: uiDebugController
-        screen: window.screenRef
+        screen: compositionHost.screenItem
         currentState: window.currentState
         actionMap: window.inputAction
         iconDebugMode: uiRuntimeState.iconDebugMode
@@ -68,14 +72,14 @@ Window {
 
     UiDebugController {
         id: uiDebugController
-        commandController: uiCommandController
-        inputInjector: inputInjector
+        commandController: window.commandControllerRef
+        inputInjector: window.inputInjectorRef
         actionMap: window.inputAction
         currentState: window.currentState
         iconDebugMode: uiRuntimeState.iconDebugMode
         staticDebugScene: uiRuntimeState.staticDebugScene
         staticDebugOptions: uiRuntimeState.staticDebugOptions
-        screen: window.screenRef
+        screen: compositionHost.screenItem
         inputController: uiInputController
         clearDirectionVisuals: uiInputController.clearDirectionVisuals
         stateOwner: uiRuntimeState
@@ -87,25 +91,23 @@ Window {
         hasSave: sessionStatusViewModel.hasSave
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
-        commandController: uiCommandController
-        screen: window.screenRef
+        commandController: window.commandControllerRef
+        screen: compositionHost.screenItem
     }
 
     UiInputController {
         id: uiInputController
-        commandController: uiCommandController
+        commandController: window.commandControllerRef
         actionRouter: uiActionRouter
         inputPressController: inputPressController
         debugController: uiDebugController
-        shellBridge: shellBridge
-        sessionRenderViewModel: sessionRenderViewModel
-        audioSettingsViewModel: audioSettingsViewModel
-        screen: window.screenRef
+        shellBridge: compositionHost.bridge
+        sessionRenderViewModel: window.sessionRenderViewModelRef
+        audioSettingsViewModel: window.audioSettingsViewModelRef
+        screen: compositionHost.screenItem
         iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
     }
-
-    readonly property var screenRef: compositionHost.screenItem
 
     UiCompositionHost {
         id: compositionHost
@@ -117,10 +119,10 @@ Window {
         shellBaseHeight: window.shellBaseHeight
         screenBaseWidth: window.screenBaseWidth
         screenBaseHeight: window.screenBaseHeight
-        commandController: uiCommandController
+        commandController: window.commandControllerRef
         inputController: uiInputController
         themeViewModel: window.themeViewModelRef
-        audioSettingsViewModel: audioSettingsViewModel
+        audioSettingsViewModel: window.audioSettingsViewModelRef
         uiRuntimeState: uiRuntimeState
         p0: window.p0
         p1: window.p1
@@ -129,6 +131,4 @@ Window {
         gameFont: window.gameFont
         elapsed: window.elapsed
     }
-
-    readonly property var shellBridge: compositionHost.bridge
 }
