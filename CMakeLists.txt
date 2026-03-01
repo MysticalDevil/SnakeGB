@@ -178,6 +178,10 @@ if(ANDROID)
     set_property(TARGET NenoSerpent PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 endif()
 
+if(QT_VERSION_MAJOR EQUAL 6)
+    qt_finalize_executable(NenoSerpent)
+endif()
+
 enable_testing()
 add_executable(engine-adapter-tests
     tests/test_engine_adapter.cpp

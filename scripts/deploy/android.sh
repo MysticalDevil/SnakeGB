@@ -102,9 +102,60 @@ echo "[info] JAVA_HOME=${JAVA_HOME:-<not set>}"
 
 cmake --build "${BUILD_DIR}" --target apk --parallel
 
-UNSIGNED_APK="$(find "${BUILD_DIR}/android-build/build/outputs/apk/release" -maxdepth 1 -type f -name '*-unsigned.apk' | head -n1)"
+build_type_lc="$(echo "${CMAKE_BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
+apk_roots=(
+  "${BUILD_DIR}/android-build/build/outputs/apk"
+  "${BUILD_DIR}/src/android-build/build/outputs/apk"
+)
+apk_output_dirs=()
+for root in "${apk_roots[@]}"; do
+  if [[ -d "${root}/${build_type_lc}" ]]; then
+    apk_output_dirs+=("${root}/${build_type_lc}")
+  fi
+  if [[ -d "${root}/release" ]]; then
+    apk_output_dirs+=("${root}/release")
+  fi
+  if [[ -d "${root}/debug" ]]; then
+    apk_output_dirs+=("${root}/debug")
+  fi
+done
+
+UNSIGNED_APK=""
+for dir in "${apk_output_dirs[@]}"; do
+  UNSIGNED_APK="$(find "${dir}" -maxdepth 1 -type f -name '*-unsigned.apk' | head -n1)"
+  if [[ -n "${UNSIGNED_APK}" ]]; then
+    break
+  fi
+done
+
 if [[ -z "${UNSIGNED_APK}" ]]; then
-  echo "[error] Unsigned APK not found under ${BUILD_DIR}/android-build/build/outputs/apk/release"
+  for root in "${apk_roots[@]}"; do
+    if [[ -d "${root}" ]]; then
+      UNSIGNED_APK="$(find "${root}" -type f -name '*-unsigned.apk' | head -n1)"
+      if [[ -n "${UNSIGNED_APK}" ]]; then
+        break
+      fi
+    fi
+  done
+fi
+
+SIGNED_INPUT_APK=""
+if [[ -z "${UNSIGNED_APK}" ]]; then
+  for root in "${apk_roots[@]}"; do
+    if [[ -d "${root}" ]]; then
+      SIGNED_INPUT_APK="$(find "${root}" -type f -name '*.apk' ! -name '*-unsigned.apk' | head -n1)"
+      if [[ -n "${SIGNED_INPUT_APK}" ]]; then
+        break
+      fi
+    fi
+  done
+fi
+
+if [[ -z "${UNSIGNED_APK}" && -z "${SIGNED_INPUT_APK}" ]]; then
+  echo "[error] APK not found under Android build output roots:"
+  for root in "${apk_roots[@]}"; do
+    echo "  - ${root}"
+  done
   exit 1
 fi
 
@@ -142,18 +193,21 @@ if [[ ! -f "${DEBUG_KEYSTORE_PATH}" ]]; then
     -validity 10000 >/dev/null 2>&1
 fi
 
-ALIGNED_APK="${ALIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}-aligned.apk}"
-SIGNED_APK="${SIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}.apk}"
-
-"${ZIPALIGN_BIN}" -f 4 "${UNSIGNED_APK}" "${ALIGNED_APK}"
-"${APKSIGNER_BIN}" sign \
-  --ks "${DEBUG_KEYSTORE_PATH}" \
-  --ks-pass "pass:${DEBUG_KEYSTORE_PASS}" \
-  --key-pass "pass:${DEBUG_KEY_PASS}" \
-  --ks-key-alias "${DEBUG_KEY_ALIAS}" \
-  --out "${SIGNED_APK}" \
-  "${ALIGNED_APK}"
-"${APKSIGNER_BIN}" verify "${SIGNED_APK}"
+if [[ -n "${SIGNED_INPUT_APK}" ]]; then
+  SIGNED_APK="${SIGNED_APK:-${SIGNED_INPUT_APK}}"
+else
+  ALIGNED_APK="${ALIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}-aligned.apk}"
+  SIGNED_APK="${SIGNED_APK:-/tmp/${APP_ID}-${ANDROID_ABI}.apk}"
+  "${ZIPALIGN_BIN}" -f 4 "${UNSIGNED_APK}" "${ALIGNED_APK}"
+  "${APKSIGNER_BIN}" sign \
+    --ks "${DEBUG_KEYSTORE_PATH}" \
+    --ks-pass "pass:${DEBUG_KEYSTORE_PASS}" \
+    --key-pass "pass:${DEBUG_KEY_PASS}" \
+    --ks-key-alias "${DEBUG_KEY_ALIAS}" \
+    --out "${SIGNED_APK}" \
+    "${ALIGNED_APK}"
+  "${APKSIGNER_BIN}" verify "${SIGNED_APK}"
+fi
 
 echo "[info] Signed APK: ${SIGNED_APK}"
 

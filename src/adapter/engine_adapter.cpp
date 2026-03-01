@@ -11,7 +11,6 @@
 #endif
 #ifdef Q_OS_ANDROID
 #include <QJniObject>
-#include <QtCore/qnativeinterface.h>
 #endif
 
 #include <algorithm>
@@ -216,7 +215,12 @@ void EngineAdapter::stopEngineTimer() {
 void EngineAdapter::triggerHaptic(const int magnitude) {
   emit requestFeedback(magnitude);
 #ifdef Q_OS_ANDROID
-  QJniObject context = QNativeInterface::QAndroidApplication::context();
+  QJniObject context = QJniObject::callStaticObjectMethod(
+    "org/qtproject/qt/android/QtNative", "activity", "()Landroid/app/Activity;");
+  if (!context.isValid()) {
+    context = QJniObject::callStaticObjectMethod(
+      "org/qtproject/qt/android/QtNative", "context", "()Landroid/content/Context;");
+  }
   if (context.isValid()) {
     QJniObject vibrator =
       context.callObjectMethod("getSystemService",
