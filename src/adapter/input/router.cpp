@@ -100,8 +100,25 @@ void EngineAdapter::quitToMenu() {
 void EngineAdapter::toggleMusic() {
   m_musicEnabled = !m_musicEnabled;
   qInfo().noquote() << "[AudioFlow][EngineAdapter] toggleMusic ->" << m_musicEnabled;
-  m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state));
+  m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state), m_bgmVariant);
   emit musicEnabledChanged();
+}
+
+void EngineAdapter::cycleBgm() {
+  m_bgmVariant = (m_bgmVariant + 1) % 2;
+  qInfo().noquote() << "[AudioFlow][EngineAdapter] cycleBgm -> variant" << m_bgmVariant;
+
+  emit eventPrompt(m_bgmVariant == 0 ? u"BGM A"_s : u"BGM B"_s);
+
+  if (!m_musicEnabled) {
+    return;
+  }
+
+  if (m_state == AppState::StartMenu || m_state == AppState::Playing ||
+      m_state == AppState::Replaying) {
+    emit audioStartMusic(
+      static_cast<int>(m_audioBus.musicTrackForState(static_cast<int>(m_state), m_bgmVariant)));
+  }
 }
 
 void EngineAdapter::quit() {

@@ -17,8 +17,11 @@ struct ScoreCatalog {
   QVector<ScoreStep> uiInteractCue;
   QVector<ScoreStep> confirmCue;
   QVector<ScoreTrackStep> menuTrack;
+  QVector<ScoreTrackStep> menuAltTrack;
   QVector<ScoreTrackStep> gameplayTrack;
+  QVector<ScoreTrackStep> gameplayAltTrack;
   QVector<ScoreTrackStep> replayTrack;
+  QVector<ScoreTrackStep> replayAltTrack;
 };
 
 struct ScoreCatalogCache {
@@ -120,8 +123,11 @@ void applyExternalOverrides(ScoreCatalog& catalog, const QString& overridePath) 
   }
 
   applyTrackOverride(tracks, "menu", catalog.menuTrack);
+  applyTrackOverride(tracks, "menu_alt", catalog.menuAltTrack);
   applyTrackOverride(tracks, "gameplay", catalog.gameplayTrack);
+  applyTrackOverride(tracks, "gameplay_alt", catalog.gameplayAltTrack);
   applyTrackOverride(tracks, "replay", catalog.replayTrack);
+  applyTrackOverride(tracks, "replay_alt", catalog.replayAltTrack);
 }
 
 auto loadBuiltInCatalog() -> ScoreCatalog {
@@ -143,8 +149,11 @@ auto loadBuiltInCatalog() -> ScoreCatalog {
     .uiInteractCue = parseCueSteps(cues.value("ui_interact").toArray()),
     .confirmCue = parseCueSteps(cues.value("confirm").toArray()),
     .menuTrack = parseTrackSteps(tracks.value("menu").toArray()),
+    .menuAltTrack = parseTrackSteps(tracks.value("menu_alt").toArray()),
     .gameplayTrack = parseTrackSteps(tracks.value("gameplay").toArray()),
+    .gameplayAltTrack = parseTrackSteps(tracks.value("gameplay_alt").toArray()),
     .replayTrack = parseTrackSteps(tracks.value("replay").toArray()),
+    .replayAltTrack = parseTrackSteps(tracks.value("replay_alt").toArray()),
   };
 }
 
@@ -232,10 +241,16 @@ auto scoreTrackSteps(const ScoreTrackId trackId) -> std::span<const ScoreTrackSt
   switch (trackId) {
   case ScoreTrackId::Menu:
     return catalog().menuTrack;
+  case ScoreTrackId::MenuAlt:
+    return catalog().menuAltTrack;
   case ScoreTrackId::Gameplay:
     return catalog().gameplayTrack;
+  case ScoreTrackId::GameplayAlt:
+    return catalog().gameplayAltTrack;
   case ScoreTrackId::Replay:
     return catalog().replayTrack;
+  case ScoreTrackId::ReplayAlt:
+    return catalog().replayAltTrack;
   }
   return {};
 }

@@ -14,6 +14,7 @@ public:
 
   Q_INVOKABLE void dispatch(const QString& action) const;
   Q_INVOKABLE void requestStateChange(int state) const;
+  Q_INVOKABLE void cycleBgm() const;
   Q_INVOKABLE void seedChoicePreview(const QVariantList& types = QVariantList()) const;
   Q_INVOKABLE void seedReplayBuffPreview() const;
 

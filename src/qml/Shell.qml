@@ -258,6 +258,7 @@ Item {
     }
 
     Item {
+        id: speakerCluster
         anchors.right: parent.right
         anchors.rightMargin: 10
         anchors.bottom: parent.bottom
@@ -267,6 +268,18 @@ Item {
         opacity: 0.82
 
         SpeakerGrill { anchors.fill: parent; theme: shell.shellTheme }
+
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+                keyFocusScope.forceActiveFocus()
+                if (shell.commandController) {
+                    shell.commandController.cycleBgm()
+                }
+            }
+        }
     }
 
     // --- Physical Volume Wheel (Game Boy side thumbwheel style) ---

@@ -14,8 +14,11 @@ enum class ScoreCueId {
 
 enum class ScoreTrackId {
   Menu,
+  MenuAlt,
   Gameplay,
+  GameplayAlt,
   Replay,
+  ReplayAlt,
 };
 
 enum class PulseDuty : int {

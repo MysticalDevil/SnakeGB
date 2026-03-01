@@ -32,6 +32,12 @@ void UiCommandController::requestStateChange(const int state) const {
   }
 }
 
+void UiCommandController::cycleBgm() const {
+  if (m_engineAdapter != nullptr) {
+    m_engineAdapter->cycleBgm();
+  }
+}
+
 void UiCommandController::seedChoicePreview(const QVariantList& types) const {
   if (m_engineAdapter != nullptr) {
     m_engineAdapter->debugSeedChoicePreview(types);

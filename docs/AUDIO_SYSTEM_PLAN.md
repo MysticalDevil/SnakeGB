@@ -387,11 +387,12 @@ Acceptance:
 Current status:
 
 - `Partial`
-- score-track loading now supports a controlled external override file for `menu`, `gameplay`,
-  and `replay`
+- score-track loading now supports a controlled external override file for `menu`, `menu_alt`,
+  `gameplay`, `gameplay_alt`, `replay`, and `replay_alt`
 - the override path defaults to an app-data location and can be redirected with
   `SNAKEGB_SCORE_OVERRIDE_FILE` for testing and manual iteration
 - invalid or missing override content falls back to the built-in resource catalog safely
+- the shell speaker now cycles the active built-in BGM variant (`A/B`) for the current music slot
 - there is still no end-user import UX, per-track metadata policy, or cue override support yet
 
 ### Phase 6: Advanced Audio Behavior

@@ -128,6 +128,7 @@ void EngineAdapter::setupAudioSignals() {
     m_audioBus.handleStateChanged(
       static_cast<int>(m_state),
       m_musicEnabled,
+      m_bgmVariant,
       [this, token](const int delayMs, const std::function<void()>& callback) -> void {
         QTimer::singleShot(delayMs, this, [this, token, callback]() -> void {
           if (token != m_audioStateToken) {

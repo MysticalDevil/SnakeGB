@@ -55,14 +55,18 @@ auto AudioBus::musicCommandForState(const int state, const bool musicEnabled) ->
   return MusicCommand::None;
 }
 
-auto AudioBus::musicTrackForState(const int state) -> snakegb::audio::ScoreTrackId {
+auto AudioBus::musicTrackForState(const int state, const int bgmVariant)
+  -> snakegb::audio::ScoreTrackId {
+  const bool useAlt = (bgmVariant % 2) != 0;
   if (state == 1) {
-    return snakegb::audio::ScoreTrackId::Menu;
+    return useAlt ? snakegb::audio::ScoreTrackId::MenuAlt : snakegb::audio::ScoreTrackId::Menu;
   }
   if (state == 5) {
-    return snakegb::audio::ScoreTrackId::Replay;
+    return useAlt ? snakegb::audio::ScoreTrackId::ReplayAlt
+                  : snakegb::audio::ScoreTrackId::Replay;
   }
-  return snakegb::audio::ScoreTrackId::Gameplay;
+  return useAlt ? snakegb::audio::ScoreTrackId::GameplayAlt
+                : snakegb::audio::ScoreTrackId::Gameplay;
 }
 
 auto AudioBus::eventGroup(const snakegb::audio::Event event) -> AudioGroup {
@@ -191,8 +195,9 @@ void AudioBus::syncPausedState(const int state) const {
 void AudioBus::handleStateChanged(
   const int state,
   const bool musicEnabled,
+  const int bgmVariant,
   const std::function<void(int delayMs, const std::function<void()>& callback)>& deferStart) const {
-  const auto trackId = musicTrackForState(state);
+  const auto trackId = musicTrackForState(state, bgmVariant);
   switch (musicCommandForState(state, musicEnabled)) {
   case MusicCommand::StartNow:
     emitIfSet(m_callbacks.startMusic, trackId);
@@ -215,11 +220,11 @@ void AudioBus::handleStateChanged(
   }
 }
 
-void AudioBus::handleMusicToggle(const bool musicEnabled, const int state) const {
+void AudioBus::handleMusicToggle(const bool musicEnabled, const int state, const int bgmVariant) const {
   emitIfSet(m_callbacks.setMusicEnabled, musicEnabled);
 
   if (musicEnabled && state != 0) {
-    emitIfSet(m_callbacks.startMusic, musicTrackForState(state));
+    emitIfSet(m_callbacks.startMusic, musicTrackForState(state, bgmVariant));
     return;
   }
   if (!musicEnabled) {

@@ -74,8 +74,11 @@ Looped BGM tracks live under `tracks`.
 Currently supported built-in track ids:
 
 - `menu`
+- `menu_alt`
 - `gameplay`
+- `gameplay_alt`
 - `replay`
+- `replay_alt`
 
 Each track is an array of steps:
 
@@ -166,15 +169,19 @@ Override file shape:
         "bassDuty": "quarter"
       }
     ],
+    "menu_alt": [],
     "gameplay": [],
-    "replay": []
+    "gameplay_alt": [],
+    "replay": [],
+    "replay_alt": []
   }
 }
 ```
 
 Rules:
 
-- Only `tracks.menu`, `tracks.gameplay`, and `tracks.replay` are currently supported.
+- `tracks.menu`, `tracks.menu_alt`, `tracks.gameplay`, `tracks.gameplay_alt`,
+  `tracks.replay`, and `tracks.replay_alt` are supported.
 - Overrides are per-track.
 - If an override track parses to a non-empty step list, it replaces the built-in track.
 - Invalid, missing, or empty override tracks fall back to the built-in resource track.
@@ -209,6 +216,6 @@ SNAKEGB_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/SnakeGB
 ## Current Limits
 
 - Cue resources still use raw `frequencyHz` rather than note names.
-- Only three built-in music slots exist.
+- Built-in music currently exposes two variants per runtime slot (`A/B`) rather than arbitrary sets.
 - No end-user import UI exists yet.
 - No metadata such as tempo, loop markers, gain, or per-track bus assignment exists yet.

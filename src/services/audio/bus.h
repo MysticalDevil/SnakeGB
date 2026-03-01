@@ -47,16 +47,18 @@ public:
   void
   handleStateChanged(int state,
                      bool musicEnabled,
+                     int bgmVariant,
                      const std::function<void(int delayMs, const std::function<void()>& callback)>&
                        deferStart) const;
-  void handleMusicToggle(bool musicEnabled, int state) const;
+  void handleMusicToggle(bool musicEnabled, int state, int bgmVariant) const;
   void applyVolume(float value) const;
 
   void dispatchEvent(snakegb::audio::Event event, const snakegb::audio::EventPayload& payload = {});
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
   [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
-  [[nodiscard]] static auto musicTrackForState(int state) -> snakegb::audio::ScoreTrackId;
+  [[nodiscard]] static auto musicTrackForState(int state, int bgmVariant)
+    -> snakegb::audio::ScoreTrackId;
   [[nodiscard]] static auto eventGroup(snakegb::audio::Event event) -> AudioGroup;
   [[nodiscard]] static auto eventCooldownMs(snakegb::audio::Event event) -> int;
   [[nodiscard]] static auto eventPriority(snakegb::audio::Event event) -> int;

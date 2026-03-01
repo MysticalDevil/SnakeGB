@@ -201,6 +201,7 @@ public:
   Q_INVOKABLE void nextShellColor();
   Q_INVOKABLE void handleBAction();
   Q_INVOKABLE void quitToMenu();
+  Q_INVOKABLE void cycleBgm();
   Q_INVOKABLE void toggleMusic();
   Q_INVOKABLE void quit();
   Q_INVOKABLE void handleSelect();
@@ -248,6 +249,9 @@ public:
   }
   [[nodiscard]] auto ghost() const -> QVariantList;
   [[nodiscard]] auto musicEnabled() const noexcept -> bool;
+  [[nodiscard]] auto bgmVariant() const noexcept -> int {
+    return m_bgmVariant;
+  }
   [[nodiscard]] auto achievements() const -> QVariantList;
   [[nodiscard]] auto medalLibrary() const -> QVariantList;
   [[nodiscard]] auto coverage() const noexcept -> float;
@@ -394,6 +398,7 @@ private:
   std::deque<QPoint>& m_inputQueue;
   std::unique_ptr<GameState> m_fsmState;
   bool m_musicEnabled = true;
+  int m_bgmVariant = 0;
   bool m_stateCallbackInProgress = false;
   std::optional<int> m_pendingStateChange;
 

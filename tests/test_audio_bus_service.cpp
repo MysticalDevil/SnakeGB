@@ -14,6 +14,7 @@ private slots:
   void testCueTableCoversAllEvents();
   void testPausedStates();
   void testStateChangePolicy();
+  void testAlternateTrackSelectionPolicy();
   void testMusicTogglePolicy();
   void testDispatchEventRoutesCallbacks();
   void testUiEventsRespectCooldownPolicy();
@@ -63,10 +64,26 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
   QCOMPARE(gameplayTrack.front().leadPitch, snakegb::audio::Pitch::A4);
   QCOMPARE(gameplayTrack.front().leadDuty, snakegb::audio::PulseDuty::Half);
 
+  const auto menuAltTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::MenuAlt);
+  QCOMPARE(menuAltTrack.size(), 16U);
+  QCOMPARE(menuAltTrack.front().leadPitch, snakegb::audio::Pitch::C5);
+  QCOMPARE(menuAltTrack.front().leadDuty, snakegb::audio::PulseDuty::Narrow);
+
+  const auto gameplayAltTrack =
+    snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::GameplayAlt);
+  QCOMPARE(gameplayAltTrack.front().leadPitch, snakegb::audio::Pitch::E4);
+  QCOMPARE(gameplayAltTrack.front().bassDuty, snakegb::audio::PulseDuty::Wide);
+
   const auto replayTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::Replay);
   QCOMPARE(replayTrack.size(), 12U);
   QCOMPARE(replayTrack.front().leadPitch, snakegb::audio::Pitch::C5);
   QCOMPARE(replayTrack.front().bassPitch, snakegb::audio::Pitch::C3);
+
+  const auto replayAltTrack =
+    snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::ReplayAlt);
+  QCOMPARE(replayAltTrack.size(), 8U);
+  QCOMPARE(replayAltTrack.front().leadPitch, snakegb::audio::Pitch::A4);
+  QCOMPARE(replayAltTrack.front().leadDuty, snakegb::audio::PulseDuty::Wide);
 }
 
 void TestAudioBusService::testPausedStates() {
@@ -101,7 +118,7 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(pausedState, 1);
 
   audioBus.handleStateChanged(
-    1, true, [&](const int delayMs, const std::function<void()>& callback) -> void {
+    1, true, 0, [&](const int delayMs, const std::function<void()>& callback) -> void {
       deferredDelay = delayMs;
       callback();
     });
@@ -110,16 +127,31 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(deferredStartCount, 1);
   QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Menu));
 
-  audioBus.handleStateChanged(2, true, {});
+  audioBus.handleStateChanged(2, true, 0, {});
   QCOMPARE(startCount, 2);
   QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Gameplay));
 
-  audioBus.handleStateChanged(5, true, {});
+  audioBus.handleStateChanged(5, true, 0, {});
   QCOMPARE(startCount, 3);
   QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Replay));
 
-  audioBus.handleStateChanged(4, true, {});
+  audioBus.handleStateChanged(4, true, 0, {});
   QCOMPARE(stopCount, 1);
+}
+
+void TestAudioBusService::testAlternateTrackSelectionPolicy() {
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(1, 0),
+           snakegb::audio::ScoreTrackId::Menu);
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(1, 1),
+           snakegb::audio::ScoreTrackId::MenuAlt);
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(2, 0),
+           snakegb::audio::ScoreTrackId::Gameplay);
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(2, 1),
+           snakegb::audio::ScoreTrackId::GameplayAlt);
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(5, 0),
+           snakegb::audio::ScoreTrackId::Replay);
+  QCOMPARE(snakegb::services::AudioBus::musicTrackForState(5, 1),
+           snakegb::audio::ScoreTrackId::ReplayAlt);
 }
 
 void TestAudioBusService::testMusicTogglePolicy() {
@@ -137,13 +169,13 @@ void TestAudioBusService::testMusicTogglePolicy() {
     .setMusicEnabled = [&](const bool enabled) -> void { musicEnabled = enabled ? 1 : 0; },
   });
 
-  audioBus.handleMusicToggle(true, 2);
+  audioBus.handleMusicToggle(true, 2, 0);
   QCOMPARE(musicEnabled, 1);
   QCOMPARE(startCount, 1);
   QCOMPARE(startedTrack, static_cast<int>(snakegb::audio::ScoreTrackId::Gameplay));
   QCOMPARE(stopCount, 0);
 
-  audioBus.handleMusicToggle(false, 2);
+  audioBus.handleMusicToggle(false, 2, 0);
   QCOMPARE(musicEnabled, 0);
   QCOMPARE(stopCount, 1);
 }
@@ -247,6 +279,15 @@ void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
           "leadDuty": "wide",
           "bassDuty": "quarter"
         }
+      ],
+      "menu_alt": [
+        {
+          "lead": "D5",
+          "bass": "D3",
+          "durationMs": 150,
+          "leadDuty": "half",
+          "bassDuty": "wide"
+        }
       ]
     }
   })json");
@@ -261,6 +302,11 @@ void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
   QCOMPARE(replayTrack.front().bassPitch, snakegb::audio::Pitch::A3);
   QCOMPARE(replayTrack.front().leadDuty, snakegb::audio::PulseDuty::Wide);
   QCOMPARE(replayTrack.front().bassDuty, snakegb::audio::PulseDuty::Quarter);
+
+  const auto menuAltTrack = snakegb::audio::scoreTrackSteps(snakegb::audio::ScoreTrackId::MenuAlt);
+  QCOMPARE(menuAltTrack.size(), 1U);
+  QCOMPARE(menuAltTrack.front().leadPitch, snakegb::audio::Pitch::D5);
+  QCOMPARE(menuAltTrack.front().bassPitch, snakegb::audio::Pitch::D3);
 }
 
 void TestAudioBusService::testTransientEventsTriggerMusicDucking() {
