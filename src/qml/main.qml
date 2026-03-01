@@ -19,9 +19,6 @@ Window {
     readonly property color p3: themeViewModel.palette[3]
     readonly property string gameFont: "Monospace"
     property real elapsed: 0.0
-    property bool iconDebugMode: false
-    property string staticDebugScene: ""
-    property var staticDebugOptions: ({})
     readonly property int currentState: sessionRenderViewModel.state
     readonly property var inputAction: ({
         NavUp: "nav_up",
@@ -45,6 +42,10 @@ Window {
         loops: Animation.Infinite 
     }
 
+    UiRuntimeState {
+        id: uiRuntimeState
+    }
+
     UiActionRouter {
         id: uiActionRouter
         commandController: uiCommandController
@@ -52,8 +53,8 @@ Window {
         debugController: uiDebugController
         currentState: window.currentState
         actionMap: window.inputAction
-        iconDebugMode: window.iconDebugMode
-        staticDebugScene: window.staticDebugScene
+        iconDebugMode: uiRuntimeState.iconDebugMode
+        staticDebugScene: uiRuntimeState.staticDebugScene
         moveIconLabSelection: screen.iconLabMove
     }
 
@@ -63,20 +64,20 @@ Window {
         inputInjector: inputInjector
         actionMap: window.inputAction
         currentState: window.currentState
-        iconDebugMode: window.iconDebugMode
-        staticDebugScene: window.staticDebugScene
-        staticDebugOptions: window.staticDebugOptions
+        iconDebugMode: uiRuntimeState.iconDebugMode
+        staticDebugScene: uiRuntimeState.staticDebugScene
+        staticDebugOptions: uiRuntimeState.staticDebugOptions
         showOsd: screen.showOSD
         inputController: uiInputController
         clearDirectionVisuals: uiInputController.clearDirectionVisuals
-        stateOwner: window
+        stateOwner: uiRuntimeState
     }
 
     InputPressController {
         id: inputPressController
         currentState: window.currentState
         hasSave: sessionStatusViewModel.hasSave
-        iconDebugMode: window.iconDebugMode
+        iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
         commandController: uiCommandController
         showOsd: screen.showOSD
@@ -92,7 +93,7 @@ Window {
         sessionRenderViewModel: sessionRenderViewModel
         audioSettingsViewModel: audioSettingsViewModel
         showVolumeOsd: screen.showVolumeOSD
-        iconDebugMode: window.iconDebugMode
+        iconDebugMode: uiRuntimeState.iconDebugMode
         actionMap: window.inputAction
     }
 
@@ -133,9 +134,9 @@ Window {
                     p3: window.p3
                     gameFont: window.gameFont
                     elapsed: window.elapsed
-                    iconDebugMode: window.iconDebugMode
-                    staticDebugScene: window.staticDebugScene
-                    staticDebugOptions: window.staticDebugOptions
+                    iconDebugMode: uiRuntimeState.iconDebugMode
+                    staticDebugScene: uiRuntimeState.staticDebugScene
+                    staticDebugOptions: uiRuntimeState.staticDebugOptions
                 }
             }
         }
