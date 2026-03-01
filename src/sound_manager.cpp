@@ -45,8 +45,10 @@ SoundManager::SoundManager(QObject* parent)
 void SoundManager::initAudioAsync() {
   auto device = QMediaDevices::defaultAudioOutput();
   if (!device.isNull()) {
-    m_sfxSink = new QAudioSink(device, m_format, this);
+    m_sfxSink = new QAudioSink(device, m_format, this); // NOLINT(cppcoreguidelines-owning-memory)
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     m_bgmLeadSink = new QAudioSink(device, m_format, this);
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     m_bgmBassSink = new QAudioSink(device, m_format, this);
     m_sfxSink->setVolume(m_volume);
     m_bgmLeadSink->setVolume(m_volume);
@@ -103,6 +105,30 @@ auto SoundManager::playBeep(const int frequencyHz, const int durationMs, float p
   m_sfxBuffer.setData(data);
   if (m_sfxBuffer.open(QIODevice::ReadOnly))
     m_sfxSink->start(&m_sfxBuffer);
+}
+
+auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
+  qInfo().noquote() << "[AudioFlow][SoundManager] playScoreCue id=" << cueId << "pan=" << pan;
+  if (m_sfxSink == nullptr) {
+    return;
+  }
+
+  const auto steps = snakegb::audio::scoreCueSteps(static_cast<snakegb::audio::ScoreCueId>(cueId));
+  if (steps.empty()) {
+    return;
+  }
+
+  QByteArray data;
+  for (const auto& step : steps) {
+    appendSquareWave(step.frequencyHz, step.durationMs, data, step.amplitude, step.duty, pan);
+  }
+
+  m_sfxSink->stop();
+  m_sfxBuffer.close();
+  m_sfxBuffer.setData(data);
+  if (m_sfxBuffer.open(QIODevice::ReadOnly)) {
+    m_sfxSink->start(&m_sfxBuffer);
+  }
 }
 
 auto SoundManager::playCrash(const int durationMs) -> void {
@@ -212,6 +238,17 @@ auto SoundManager::generateSquareWave(const int frequencyHz,
   }
 }
 
+void SoundManager::appendSquareWave(const int frequencyHz,
+                                    const int durationMs,
+                                    QByteArray& buffer,
+                                    const int amplitude,
+                                    const double duty,
+                                    const float pan) {
+  QByteArray segment;
+  generateSquareWave(frequencyHz, durationMs, segment, amplitude, duty, pan);
+  buffer.append(segment);
+}
+
 void SoundManager::applyLowPassFilter(QByteArray& buffer) {
   double lastValL = 128.0;
   double lastValR = 128.0;
@@ -290,6 +327,9 @@ auto SoundManager::setMusicEnabled(bool enabled) -> void {
 }
 
 auto SoundManager::playBeep(int, int, float) -> void {
+}
+
+auto SoundManager::playScoreCue(int, float) -> void {
 }
 
 auto SoundManager::playCrash(int) -> void {

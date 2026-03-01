@@ -310,6 +310,7 @@ signals:
   void playerCrashed();
   void uiInteractTriggered();
   void audioPlayBeep(int frequencyHz, int durationMs, float pan);
+  void audioPlayScoreCue(int cueId, float pan);
   void audioPlayCrash(int durationMs);
   void audioStartMusic();
   void audioStopMusic();

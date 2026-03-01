@@ -11,6 +11,8 @@
 #include <QBuffer>
 #endif
 
+#include "audio/score.h"
+
 class SoundManager final : public QObject {
   Q_OBJECT
 public:
@@ -26,6 +28,7 @@ public:
   auto setPaused(bool paused) -> void;
   // Updated: playBeep now accepts panning (-1.0 left to 1.0 right)
   Q_INVOKABLE void playBeep(int frequencyHz, int durationMs, float pan = 0.0f);
+  Q_INVOKABLE void playScoreCue(int cueId, float pan = 0.0f);
   Q_INVOKABLE void playCrash(int durationMs);
   Q_INVOKABLE void startMusic();
   Q_INVOKABLE void stopMusic();
@@ -53,6 +56,12 @@ private:
                           int amplitude = 32,
                           double duty = 0.25,
                           float pan = 0.0f);
+  void appendSquareWave(int frequencyHz,
+                        int durationMs,
+                        QByteArray& buffer,
+                        int amplitude = 32,
+                        double duty = 0.25,
+                        float pan = 0.0f);
   void applyLowPassFilter(QByteArray& buffer);
   void applyReverb(QByteArray& buffer); // New: Dynamic Reverb
   void generateNoise(int durationMs, QByteArray& buffer);

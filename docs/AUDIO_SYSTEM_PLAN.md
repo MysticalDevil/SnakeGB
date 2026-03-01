@@ -354,6 +354,13 @@ Acceptance:
 - BGM can be expanded without wiring new code paths each time
 - music routing remains event-driven
 
+Current status:
+
+- `Completed` for the initial score-cue milestone
+- short confirmation cues now route through a score-based cue id instead of raw beep parameters
+- `SoundManager` can render a minimal in-memory score sequence for score cues
+- full score resource files and expanded BGM routing remain the next step inside this phase
+
 ### Phase 5: User BGM Import
 
 Add a controlled user-authored BGM path.

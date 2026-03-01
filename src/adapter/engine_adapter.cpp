@@ -63,6 +63,9 @@ EngineAdapter::EngineAdapter(QObject* parent)
     .playBeep = [this](const int frequencyHz, const int durationMs, const float pan) -> void {
       emit audioPlayBeep(frequencyHz, durationMs, pan);
     },
+    .playScoreCue = [this](const snakegb::audio::ScoreCueId cueId, const float pan) -> void {
+      emit audioPlayScoreCue(static_cast<int>(cueId), pan);
+    },
     .playCrash = [this](const int durationMs) -> void { emit audioPlayCrash(durationMs); },
   });
 

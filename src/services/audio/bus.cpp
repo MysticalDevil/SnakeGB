@@ -217,6 +217,11 @@ void AudioBus::dispatchEvent(const snakegb::audio::Event event,
   case snakegb::audio::CueKind::Crash:
     emitIfSet(m_callbacks.playCrash, cue->durationMs);
     break;
+  case snakegb::audio::CueKind::Score:
+    if (m_callbacks.playScoreCue) {
+      m_callbacks.playScoreCue(cue->scoreCue, 0.0F);
+    }
+    break;
   }
 }
 

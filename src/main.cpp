@@ -92,6 +92,8 @@ auto main(int argc, char* argv[]) -> int {
   QObject::connect(
     &engineAdapter, &EngineAdapter::audioPlayBeep, &soundManager, &SoundManager::playBeep);
   QObject::connect(
+    &engineAdapter, &EngineAdapter::audioPlayScoreCue, &soundManager, &SoundManager::playScoreCue);
+  QObject::connect(
     &engineAdapter, &EngineAdapter::audioPlayCrash, &soundManager, &SoundManager::playCrash);
   QObject::connect(
     &engineAdapter, &EngineAdapter::audioStartMusic, &soundManager, &SoundManager::startMusic);

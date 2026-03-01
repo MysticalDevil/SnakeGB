@@ -1,6 +1,7 @@
 #include <QtTest/QtTest>
 
 #include "audio/cue.h"
+#include "audio/score.h"
 #include "services/audio/bus.h"
 
 class TestAudioBusService : public QObject {
@@ -24,7 +25,12 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
 
   const auto confirmCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Confirm);
   QVERIFY(confirmCue.has_value());
-  QCOMPARE(confirmCue->frequencyHz, 1046);
+  QCOMPARE(confirmCue->kind, snakegb::audio::CueKind::Score);
+  QCOMPARE(confirmCue->scoreCue, snakegb::audio::ScoreCueId::Confirm);
+
+  const auto confirmSteps = snakegb::audio::scoreCueSteps(snakegb::audio::ScoreCueId::Confirm);
+  QCOMPARE(confirmSteps.size(), 3U);
+  QCOMPARE(confirmSteps.front().frequencyHz, 1046);
 
   const auto crashCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Crash);
   QVERIFY(crashCue.has_value());
@@ -104,6 +110,7 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
   int beepDuration = 0;
   float beepPan = 0.0F;
   int crashDuration = 0;
+  int scoreCueId = -1;
 
   snakegb::services::AudioBus audioBus({
     .setScore = [&](const int value) -> void { score = value; },
@@ -111,6 +118,9 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
       beepFrequency = frequencyHz;
       beepDuration = durationMs;
       beepPan = pan;
+    },
+    .playScoreCue = [&](const snakegb::audio::ScoreCueId cueId, const float) -> void {
+      scoreCueId = static_cast<int>(cueId);
     },
     .playCrash = [&](const int durationMs) -> void { crashDuration = durationMs; },
   });
@@ -131,8 +141,7 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
   QCOMPARE(beepDuration, 50);
 
   audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
-  QCOMPARE(beepFrequency, 1046);
-  QCOMPARE(beepDuration, 140);
+  QCOMPARE(scoreCueId, static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
 
   audioBus.dispatchEvent(snakegb::audio::Event::Crash);
   QCOMPARE(crashDuration, 500);
@@ -158,10 +167,14 @@ void TestAudioBusService::testUiEventsRespectCooldownPolicy() {
 
 void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
   QList<int> frequencies;
+  QList<int> scoreCueIds;
 
   snakegb::services::AudioBus audioBus({
     .playBeep = [&](const int frequencyHz, const int, const float) -> void {
       frequencies.push_back(frequencyHz);
+    },
+    .playScoreCue = [&](const snakegb::audio::ScoreCueId cueId, const float) -> void {
+      scoreCueIds.push_back(static_cast<int>(cueId));
     },
   });
 
@@ -169,9 +182,10 @@ void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
   audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
   audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
 
-  QCOMPARE(frequencies.size(), 2);
+  QCOMPARE(frequencies.size(), 1);
+  QCOMPARE(scoreCueIds.size(), 1);
   QCOMPARE(frequencies.at(0), 200);
-  QCOMPARE(frequencies.at(1), 1046);
+  QCOMPARE(scoreCueIds.at(0), static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
 }
 
 QTEST_MAIN(TestAudioBusService)

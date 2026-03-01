@@ -31,6 +31,7 @@ struct AudioCallbacks {
   std::function<void(float)> setVolume;
   std::function<void(int)> setScore;
   std::function<void(int, int, float)> playBeep;
+  std::function<void(snakegb::audio::ScoreCueId, float)> playScoreCue;
   std::function<void(int)> playCrash;
 };
 

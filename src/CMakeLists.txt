@@ -23,6 +23,7 @@ add_library(snakegb_adapter
     app_state.h
     audio/cue.h
     audio/event.h
+    audio/score.h
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
     adapter/view_models/audio.h
