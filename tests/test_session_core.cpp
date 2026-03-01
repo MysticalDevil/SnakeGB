@@ -1,6 +1,6 @@
 #include <QtTest>
 
-#include "core/session_core.h"
+#include "core/session/core.h"
 
 // QtTest slot-based tests intentionally stay as member functions and use assertion-heavy bodies.
 // NOLINTBEGIN(readability-convert-member-functions-to-static,readability-function-cognitive-complexity)

@@ -3,7 +3,7 @@ import QtQuick
 Column {
     id: hud
     property bool active: false
-    property var engineAdapter
+    property var sessionRender
     property color ink: "white"
     property string gameFont: ""
     property int highScoreOverride: -1
@@ -12,10 +12,10 @@ Column {
     property real rightInset: 10
     readonly property int displayHighScore: highScoreOverride >= 0
                                              ? highScoreOverride
-                                             : (engineAdapter ? engineAdapter.highScore : 0)
+                                             : (sessionRender ? sessionRender.highScore : 0)
     readonly property int displayScore: scoreOverride >= 0
                                         ? scoreOverride
-                                        : (engineAdapter ? engineAdapter.score : 0)
+                                        : (sessionRender ? sessionRender.score : 0)
 
     anchors.top: parent.top
     anchors.right: parent.right

@@ -1,5 +1,5 @@
 #include "adapter/engine_adapter.h"
-#include "adapter/session_status_view_model.h"
+#include "adapter/view_models/status.h"
 
 #include <QSignalSpy>
 #include <QtTest/QtTest>

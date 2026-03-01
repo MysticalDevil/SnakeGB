@@ -1,4 +1,4 @@
-#include "adapter/level_script_runtime.h"
+#include "adapter/level/script_runtime.h"
 
 #include <QtTest/QtTest>
 

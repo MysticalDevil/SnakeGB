@@ -1,4 +1,4 @@
-#include "adapter/level_loader.h"
+#include "adapter/level/loader.h"
 
 #include <QDir>
 #include <QFile>

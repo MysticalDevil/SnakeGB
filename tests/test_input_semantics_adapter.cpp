@@ -1,4 +1,4 @@
-#include "adapter/input_semantics.h"
+#include "adapter/input/semantics.h"
 #include "game_engine_interface.h"
 
 #include <QtTest/QtTest>

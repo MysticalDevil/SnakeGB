@@ -1,8 +1,8 @@
-#include "core/game_rules.h"
-#include "core/replay_timeline.h"
-#include "core/buff_runtime.h"
-#include "core/choice_runtime.h"
-#include "core/level_runtime.h"
+#include "core/game/rules.h"
+#include "core/replay/timeline.h"
+#include "core/buff/runtime.h"
+#include "core/choice/runtime.h"
+#include "core/level/runtime.h"
 #include "game_engine_interface.h"
 
 #include <QtTest/QtTest>

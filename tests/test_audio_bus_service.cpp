@@ -1,4 +1,4 @@
-#include "services/audio_bus.h"
+#include "services/audio/bus.h"
 
 #include <QtTest/QtTest>
 

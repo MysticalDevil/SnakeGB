@@ -1,13 +1,13 @@
 add_library(snakegb_core
-    core/game_rules.cpp
-    core/buff_runtime.cpp
-    core/session_core.cpp
-    core/session_runner.cpp
-    core/replay_timeline.cpp
-    core/session_runtime.cpp
-    core/level_runtime.cpp
-    core/achievement_rules.cpp
-    core/choice_runtime.cpp
+    core/game/rules.cpp
+    core/buff/runtime.cpp
+    core/session/core.cpp
+    core/session/runner.cpp
+    core/replay/timeline.cpp
+    core/session/runtime.cpp
+    core/level/runtime.cpp
+    core/achievement/rules.cpp
+    core/choice/runtime.cpp
 )
 target_include_directories(snakegb_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(snakegb_core PRIVATE Qt6::Core)
@@ -23,38 +23,40 @@ add_library(snakegb_adapter
     app_state.h
     adapter/engine_adapter.h
     adapter/engine_adapter.cpp
-    adapter/audio_settings_view_model.h
-    adapter/audio_settings_view_model.cpp
-    adapter/theme_view_model.h
-    adapter/theme_view_model.cpp
-    adapter/session_status_view_model.h
-    adapter/session_status_view_model.cpp
-    adapter/selection_view_model.h
-    adapter/selection_view_model.cpp
-    adapter/input_router.cpp
+    adapter/view_models/audio.h
+    adapter/view_models/audio.cpp
+    adapter/view_models/theme.h
+    adapter/view_models/theme.cpp
+    adapter/view_models/status.h
+    adapter/view_models/status.cpp
+    adapter/view_models/render.h
+    adapter/view_models/render.cpp
+    adapter/view_models/selection.h
+    adapter/view_models/selection.cpp
+    adapter/input/router.cpp
     adapter/tick_driver.cpp
     adapter/simulation.cpp
     adapter/board_state.cpp
-    adapter/session_state_runtime.cpp
-    adapter/session_state.cpp
-    adapter/level_flow.cpp
+    adapter/session/runtime.cpp
+    adapter/session/state.cpp
+    adapter/level/flow.cpp
     adapter/persistence.cpp
     adapter/choices.cpp
     adapter/lifecycle.cpp
     adapter/view_model.cpp
-    adapter/ui_action.cpp
-    adapter/input_semantics.cpp
-    adapter/achievement_runtime.cpp
-    adapter/ghost_store.cpp
-    adapter/choice_models.cpp
-    adapter/library_models.cpp
-    adapter/profile_bridge.cpp
-    adapter/level_applier.cpp
-    adapter/level_loader.cpp
-    adapter/level_script_runtime.cpp
-    services/audio_bus.cpp
-    services/level_repository.cpp
-    services/save_repository.cpp
+    adapter/ui/action.cpp
+    adapter/input/semantics.cpp
+    adapter/achievement/runtime.cpp
+    adapter/ghost/store.cpp
+    adapter/models/choice.cpp
+    adapter/models/library.cpp
+    adapter/profile/bridge.cpp
+    adapter/level/applier.cpp
+    adapter/level/loader.cpp
+    adapter/level/script_runtime.cpp
+    services/audio/bus.cpp
+    services/level/repository.cpp
+    services/save/repository.cpp
     profile_manager.cpp
     profile_manager.h
 )

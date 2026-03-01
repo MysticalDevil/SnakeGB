@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include "core/buff_runtime.h"
+#include "core/buff/runtime.h"
 
 class PowerUpId final : public QObject {
     Q_OBJECT

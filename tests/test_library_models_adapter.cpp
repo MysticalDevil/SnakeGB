@@ -1,4 +1,4 @@
-#include "adapter/library_models.h"
+#include "adapter/models/library.h"
 
 #include <QtTest/QtTest>
 

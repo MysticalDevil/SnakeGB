@@ -1,7 +1,7 @@
 #include "adapter/engine_adapter.h"
 
-#include "adapter/library_models.h"
-#include "adapter/profile_bridge.h"
+#include "adapter/models/library.h"
+#include "adapter/profile/bridge.h"
 
 #include <algorithm>
 

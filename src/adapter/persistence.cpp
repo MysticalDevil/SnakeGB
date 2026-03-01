@@ -1,6 +1,6 @@
 #include "adapter/engine_adapter.h"
 
-#include "adapter/profile_bridge.h"
+#include "adapter/profile/bridge.h"
 #include "fsm/game_state.h"
 
 using namespace Qt::StringLiterals;

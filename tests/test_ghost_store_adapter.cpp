@@ -1,4 +1,4 @@
-#include "adapter/ghost_store.h"
+#include "adapter/ghost/store.h"
 
 #include <QDataStream>
 #include <QFile>

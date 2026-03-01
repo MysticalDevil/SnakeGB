@@ -1,6 +1,6 @@
 #include <QtTest/QtTest>
 
-#include "adapter/ui_action.h"
+#include "adapter/ui/action.h"
 
 using snakegb::adapter::UiAction;
 using snakegb::adapter::UiActionDispatchCallbacks;

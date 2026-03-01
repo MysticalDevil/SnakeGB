@@ -1,8 +1,8 @@
 #include "adapter/engine_adapter.h"
 
-#include "adapter/choice_models.h"
-#include "adapter/profile_bridge.h"
-#include "core/choice_runtime.h"
+#include "adapter/models/choice.h"
+#include "adapter/profile/bridge.h"
+#include "core/choice/runtime.h"
 #include "fsm/game_state.h"
 #include "power_up_id.h"
 

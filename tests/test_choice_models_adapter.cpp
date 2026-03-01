@@ -1,4 +1,4 @@
-#include "adapter/choice_models.h"
+#include "adapter/models/choice.h"
 
 #include <QtTest/QtTest>
 
@@ -50,4 +50,3 @@ void TestChoiceModelsAdapter::testChoiceTypeAtValidAndInvalidRows()
 
 QTEST_MAIN(TestChoiceModelsAdapter)
 #include "test_choice_models_adapter.moc"
-

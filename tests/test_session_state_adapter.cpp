@@ -1,4 +1,4 @@
-#include "adapter/session_state.h"
+#include "adapter/session/state.h"
 
 #include <QtTest/QtTest>
 

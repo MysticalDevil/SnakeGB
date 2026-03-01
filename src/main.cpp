@@ -12,11 +12,12 @@
 #include <cstdlib>
 
 #include "app_state.h"
-#include "adapter/audio_settings_view_model.h"
+#include "adapter/view_models/audio.h"
 #include "adapter/engine_adapter.h"
-#include "adapter/selection_view_model.h"
-#include "adapter/session_status_view_model.h"
-#include "adapter/theme_view_model.h"
+#include "adapter/view_models/render.h"
+#include "adapter/view_models/selection.h"
+#include "adapter/view_models/status.h"
+#include "adapter/view_models/theme.h"
 #include "input_injection_pipe.h"
 #include "power_up_id.h"
 #include "sound_manager.h"
@@ -67,6 +68,7 @@ auto main(int argc, char *argv[]) -> int {
     EngineAdapter engineAdapter;
     AudioSettingsViewModel audioSettingsViewModel(&engineAdapter);
     SelectionViewModel selectionViewModel(&engineAdapter);
+    SessionRenderViewModel sessionRenderViewModel(&engineAdapter);
     SessionStatusViewModel sessionStatusViewModel(&engineAdapter);
     ThemeViewModel themeViewModel(&engineAdapter);
     SoundManager soundManager;
@@ -90,6 +92,7 @@ auto main(int argc, char *argv[]) -> int {
     engine.rootContext()->setContextProperty("engineAdapter", &engineAdapter);
     engine.rootContext()->setContextProperty("audioSettingsViewModel", &audioSettingsViewModel);
     engine.rootContext()->setContextProperty("selectionViewModel", &selectionViewModel);
+    engine.rootContext()->setContextProperty("sessionRenderViewModel", &sessionRenderViewModel);
     engine.rootContext()->setContextProperty("sessionStatusViewModel", &sessionStatusViewModel);
     engine.rootContext()->setContextProperty("themeViewModel", &themeViewModel);
     engine.rootContext()->setContextProperty("inputInjector", &inputInjectionPipe);

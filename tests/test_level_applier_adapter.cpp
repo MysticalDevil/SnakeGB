@@ -1,4 +1,4 @@
-#include "adapter/level_applier.h"
+#include "adapter/level/applier.h"
 
 #include <QtTest/QtTest>
 

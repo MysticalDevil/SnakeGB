@@ -1,4 +1,4 @@
-#include "adapter/ui_action.h"
+#include "adapter/ui/action.h"
 
 #include <QtTest/QtTest>
 

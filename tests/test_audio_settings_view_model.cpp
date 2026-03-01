@@ -1,4 +1,4 @@
-#include "adapter/audio_settings_view_model.h"
+#include "adapter/view_models/audio.h"
 #include "adapter/engine_adapter.h"
 
 #include <QSignalSpy>

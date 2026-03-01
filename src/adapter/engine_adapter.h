@@ -9,13 +9,13 @@
 #include <QTimer>
 #include <QVariantList>
 #include "app_state.h"
-#include "core/replay_types.h"
-#include "core/session_core.h"
-#include "core/session_state.h"
+#include "core/replay/types.h"
+#include "core/session/core.h"
+#include "core/session/state.h"
 #include "game_engine_interface.h"
-#include "services/audio_bus.h"
-#include "services/level_repository.h"
-#include "services/save_repository.h"
+#include "services/audio/bus.h"
+#include "services/level/repository.h"
+#include "services/save/repository.h"
 #ifdef SNAKEGB_HAS_SENSORS
 #include <QAccelerometer>
 #endif
@@ -100,22 +100,7 @@ private:
 class EngineAdapter final : public QObject, public IGameEngine
 {
     Q_OBJECT
-    Q_PROPERTY(SnakeModel *snakeModel READ snakeModelPtr CONSTANT)
-    Q_PROPERTY(QPoint food READ food NOTIFY foodChanged)
-    Q_PROPERTY(QPoint powerUpPos READ powerUpPos NOTIFY powerUpChanged)
-    Q_PROPERTY(int powerUpType READ powerUpType NOTIFY powerUpChanged)
-    Q_PROPERTY(int score READ score NOTIFY scoreChanged)
-    Q_PROPERTY(int highScore READ highScore NOTIFY highScoreChanged)
     Q_PROPERTY(AppState::Value state READ state NOTIFY stateChanged)
-    Q_PROPERTY(int boardWidth READ boardWidth CONSTANT)
-    Q_PROPERTY(int boardHeight READ boardHeight CONSTANT)
-    Q_PROPERTY(QVariantList obstacles READ obstacles NOTIFY obstaclesChanged)
-    Q_PROPERTY(QVariantList ghost READ ghost NOTIFY ghostChanged)
-    Q_PROPERTY(int activeBuff READ activeBuff NOTIFY buffChanged)
-    Q_PROPERTY(int buffTicksRemaining READ buffTicksRemaining NOTIFY buffChanged)
-    Q_PROPERTY(int buffTicksTotal READ buffTicksTotal NOTIFY buffChanged)
-    Q_PROPERTY(QPointF reflectionOffset READ reflectionOffset NOTIFY reflectionOffsetChanged)
-    Q_PROPERTY(bool shieldActive READ shieldActive NOTIFY buffChanged)
 
 public:
     explicit EngineAdapter(QObject *parent = nullptr);

@@ -1,5 +1,5 @@
 #include "adapter/engine_adapter.h"
-#include "adapter/selection_view_model.h"
+#include "adapter/view_models/selection.h"
 
 #include <QSignalSpy>
 #include <QtTest/QtTest>

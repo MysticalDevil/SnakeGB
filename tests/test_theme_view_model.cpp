@@ -1,5 +1,5 @@
 #include "adapter/engine_adapter.h"
-#include "adapter/theme_view_model.h"
+#include "adapter/view_models/theme.h"
 
 #include <QSignalSpy>
 #include <QtTest/QtTest>

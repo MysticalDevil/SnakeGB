@@ -1,8 +1,8 @@
 #pragma once
 
 #include "app_state.h"
-#include "core/replay_types.h"
-#include "core/session_step_types.h"
+#include "core/replay/types.h"
+#include "core/session/step_types.h"
 
 #include <QPoint>
 #include <QVariantList>

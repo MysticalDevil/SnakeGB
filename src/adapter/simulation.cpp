@@ -1,6 +1,6 @@
 #include "adapter/engine_adapter.h"
 
-#include "adapter/profile_bridge.h"
+#include "adapter/profile/bridge.h"
 
 using namespace Qt::StringLiterals;
 

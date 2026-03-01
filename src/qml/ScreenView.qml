@@ -10,6 +10,7 @@ import "LayerScale.js" as LayerScale
 Item {
     id: root
     property var engineAdapter
+    property var sessionRender: sessionRenderViewModel
     property color p0
     property color p1
     property color p2
@@ -218,8 +219,8 @@ Item {
                     anchors.fill: parent
                     z: LayerScale.screenSceneBase
                     visible: root.staticDebugScene === "" &&
-                             engineAdapter.state >= AppState.Playing &&
-                             engineAdapter.state <= AppState.ChoiceSelection
+                             sessionRender.state >= AppState.Playing &&
+                             sessionRender.state <= AppState.ChoiceSelection
 
                     Rectangle {
                         anchors.fill: parent
@@ -231,8 +232,8 @@ Item {
                         onPaint: {
                             const ctx = getContext("2d")
                             ctx.reset()
-                            const cw = width / Math.max(1, engineAdapter.boardWidth)
-                            const ch = height / Math.max(1, engineAdapter.boardHeight)
+                            const cw = width / Math.max(1, sessionRender.boardWidth)
+                            const ch = height / Math.max(1, sessionRender.boardHeight)
                             ctx.strokeStyle = root.gameGrid
                             ctx.lineWidth = 1
                             for (let x = 0; x <= width; x += cw) {
@@ -257,7 +258,7 @@ Item {
                 SplashLayer {
                     anchors.fill: parent
                     z: LayerScale.stateSplash
-                    active: engineAdapter.state === AppState.Splash
+                    active: sessionRender.state === AppState.Splash
                     gameFont: root.gameFont
                     menuColor: root.menuColor
                 }
@@ -266,7 +267,7 @@ Item {
                 MenuLayer {
                     anchors.fill: parent
                     z: LayerScale.stateMenu
-                    active: engineAdapter.state === AppState.StartMenu
+                    active: sessionRender.state === AppState.StartMenu
                     gameFont: root.gameFont
                     elapsed: root.elapsed
                     menuColor: root.menuColor
@@ -278,21 +279,21 @@ Item {
                 WorldLayer {
                     id: worldLayer
                     z: LayerScale.stateWorld
-                    active: engineAdapter.state >= AppState.Playing && engineAdapter.state <= AppState.ChoiceSelection
-                    currentState: engineAdapter.state
-                    boardWidth: engineAdapter.boardWidth
-                    boardHeight: engineAdapter.boardHeight
-                    ghostModel: engineAdapter.ghost
-                    snakeModel: engineAdapter.snakeModel
-                    shieldActive: engineAdapter.shieldActive
-                    obstacleModel: engineAdapter.obstacles
+                    active: sessionRender.state >= AppState.Playing && sessionRender.state <= AppState.ChoiceSelection
+                    currentState: sessionRender.state
+                    boardWidth: sessionRender.boardWidth
+                    boardHeight: sessionRender.boardHeight
+                    ghostModel: sessionRender.ghost
+                    snakeModel: sessionRender.snakeModel
+                    shieldActive: sessionRender.shieldActive
+                    obstacleModel: sessionRender.obstacles
                     currentLevelName: sessionStatusViewModel.currentLevelName
-                    foodPos: engineAdapter.food
-                    powerUpPos: engineAdapter.powerUpPos
-                    powerUpType: engineAdapter.powerUpType
-                    activeBuff: engineAdapter.activeBuff
-                    buffTicksRemaining: engineAdapter.buffTicksRemaining
-                    buffTicksTotal: engineAdapter.buffTicksTotal
+                    foodPos: sessionRender.food
+                    powerUpPos: sessionRender.powerUpPos
+                    powerUpType: sessionRender.powerUpType
+                    activeBuff: sessionRender.activeBuff
+                    buffTicksRemaining: sessionRender.buffTicksRemaining
+                    buffTicksTotal: sessionRender.buffTicksTotal
                     elapsed: root.elapsed
                     gameFont: root.gameFont
                     menuColor: root.menuColor
@@ -314,7 +315,7 @@ Item {
                 LibraryLayer {
                     anchors.fill: parent
                     z: LayerScale.stateLibrary
-                    active: engineAdapter.state === AppState.Library
+                    active: sessionRender.state === AppState.Library
                     fruitLibraryModel: selectionViewModel.fruitLibrary
                     libraryIndex: selectionViewModel.libraryIndex
                     setLibraryIndex: function(index) {
@@ -344,7 +345,7 @@ Item {
                         root.engineAdapter.dispatchUiAction(`set_medal_index:${index}`)
                     }
                     gameFont: root.gameFont
-                    visible: engineAdapter.state === AppState.MedalRoom
+                    visible: sessionRender.state === AppState.MedalRoom
                 }
 
                 StaticDebugLayer {
@@ -353,8 +354,8 @@ Item {
                     visible: root.staticDebugScene !== ""
                     staticScene: root.staticDebugScene
                     staticDebugOptions: root.staticDebugOptions
-                    boardWidth: engineAdapter.boardWidth
-                    boardHeight: engineAdapter.boardHeight
+                    boardWidth: sessionRender.boardWidth
+                    boardHeight: sessionRender.boardHeight
                     gameFont: root.gameFont
                     menuColor: root.menuColor
                     playBg: root.playBg
@@ -394,11 +395,11 @@ Item {
                     z: LayerScale.screenHud
                     active: !root.iconDebugMode &&
                             root.staticDebugScene === "" &&
-                            (engineAdapter.state === AppState.Playing || engineAdapter.state === AppState.Replaying)
-                    engineAdapter: root.engineAdapter
+                            (sessionRender.state === AppState.Playing || sessionRender.state === AppState.Replaying)
+                    sessionRender: root.sessionRender
                     gameFont: root.gameFont
                     ink: root.gameInk
-                    topInset: screenSafeArea.y + (engineAdapter.state === AppState.Replaying ? 30 : 2)
+                    topInset: screenSafeArea.y + (sessionRender.state === AppState.Replaying ? 30 : 2)
                     rightInset: root.width - screenSafeArea.x - screenSafeArea.width + 2
                 }
             }
@@ -409,8 +410,8 @@ Item {
                 showPausedAndGameOver: !root.iconDebugMode && root.staticDebugScene === ""
                 showReplayAndChoice: !root.iconDebugMode && root.staticDebugScene === ""
                 blurSourceItem: preOverlayContent
-                currentState: engineAdapter.state
-                currentScore: engineAdapter.score
+                currentState: sessionRender.state
+                currentScore: sessionRender.score
                 choices: selectionViewModel.choices
                 choiceIndex: selectionViewModel.choiceIndex
                 menuColor: root.menuColor
@@ -461,11 +462,11 @@ Item {
             property variant source: ShaderEffectSource { sourceItem: gameContent; hideSource: true; live: true }
             property variant history: ShaderEffectSource { sourceItem: lcdShader; live: true; recursive: true }
             property real time: root.elapsed
-            property real reflectionX: engineAdapter.reflectionOffset.x
-            property real reflectionY: engineAdapter.reflectionOffset.y
-            property bool isPlayScene: engineAdapter.state === AppState.Playing || root.staticDebugScene === "game"
-            property bool isReplayScene: engineAdapter.state === AppState.Replaying || root.staticDebugScene === "replay"
-            property bool isChoiceScene: engineAdapter.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
+            property real reflectionX: sessionRender.reflectionOffset.x
+            property real reflectionY: sessionRender.reflectionOffset.y
+            property bool isPlayScene: sessionRender.state === AppState.Playing || root.staticDebugScene === "game"
+            property bool isReplayScene: sessionRender.state === AppState.Replaying || root.staticDebugScene === "replay"
+            property bool isChoiceScene: sessionRender.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
             property real lumaBoost: isPlayScene ? 0.95
                                    : (isReplayScene ? 0.985
                                       : (isChoiceScene ? 0.99 : 1.0))

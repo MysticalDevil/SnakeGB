@@ -89,9 +89,9 @@ Overall: **5.8/10** (needs refactor before scaling).
   - `profile_adapter.h/.cpp`
 
 - `src/services/`
-  - `level_repository.h/.cpp`
-  - `audio_bus.h/.cpp`
-  - `save_repository.h/.cpp`
+  - `services/level/repository.h/.cpp`
+  - `services/audio/bus.h/.cpp`
+  - `services/save/repository.h/.cpp`
 
 Note:
 - `EngineAdapter` is now the explicit Qt/QML adapter surface; future work should keep shrinking it rather than
@@ -260,6 +260,8 @@ state, not the desired end state.
 - QML coupling reduction is improved, but not finished.
   - most interactive paths are action-routed.
   - remaining direct `EngineAdapter` exposure is now adapter-surface exposure rather than core-rule leakage.
+  - runtime render-facing QML state is now partially contracted behind dedicated view models, including
+    `SessionRenderViewModel` for screen/HUD render data.
 - Hard KPIs in Section 5 are now satisfied within the scope of this plan.
 
 ## 9. Deferred Low-Priority Items
@@ -321,21 +323,21 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   method calls.
 - QML-triggered haptic/feedback requests are now also action-routed, so interactive QML calls are standardized on
   `dispatchUiAction(...)`.
-- Action string parsing is extracted into `src/adapter/ui_action.*`; `EngineAdapter::dispatchUiAction` now delegates
+- Action string parsing is extracted into `src/adapter/ui/action.*`; `EngineAdapter::dispatchUiAction` now delegates
   parsing and keeps only semantic dispatch.
-- Back-button state semantics are extracted into `src/adapter/input_semantics.*`; adapter behavior is covered by
+- Back-button state semantics are extracted into `src/adapter/input/semantics.*`; adapter behavior is covered by
   `AdapterSemanticsTest`.
-- Level resource loading (`QFile` + bytes handoff) is extracted into `src/adapter/level_loader.*`; behavior is
+- Level resource loading (`QFile` + bytes handoff) is extracted into `src/adapter/level/loader.*`; behavior is
   covered by `AdapterLevelLoaderTest`.
-- Level apply/fallback decision flow is extracted into `src/adapter/level_applier.*`; behavior is covered by
+- Level apply/fallback decision flow is extracted into `src/adapter/level/applier.*`; behavior is covered by
   `AdapterLevelApplierTest`.
-- Scripted level runtime evaluation is extracted into `src/adapter/level_script_runtime.*`; behavior is covered by
+- Scripted level runtime evaluation is extracted into `src/adapter/level/script_runtime.*`; behavior is covered by
   `AdapterLevelScriptRuntimeTest`.
 - Ghost replay persistence (`ghost.dat` load/save + legacy compatibility) is extracted into
-  `src/adapter/ghost_store.*`; behavior is covered by `AdapterGhostStoreTest`.
-- Profile session-map decoding is extracted into `src/adapter/session_state.*`; behavior is covered by
+  `src/adapter/ghost/store.*`; behavior is covered by `AdapterGhostStoreTest`.
+- Profile session-map decoding is extracted into `src/adapter/session/state.*`; behavior is covered by
   `AdapterSessionStateTest`.
-- Fruit/medal library view-model mapping is extracted into `src/adapter/library_models.*`; behavior is covered by
+- Fruit/medal library view-model mapping is extracted into `src/adapter/models/library.*`; behavior is covered by
   `AdapterLibraryModelsTest`.
 - `EngineAdapter` constructor wiring is split into focused helpers (`setupAudioSignals`, `setupSensorRuntime`) to
   reduce entry-point coupling before further service extraction.
@@ -347,31 +349,31 @@ These are explicitly deferred to keep the core/adapter refactor moving:
   adapter file can continue shrinking around orchestration logic.
 - FSM state instantiation is now centralized in `src/fsm/state_factory.*`; `EngineAdapter` no longer constructs concrete
   `*State` classes directly, reducing adapter-to-state implementation coupling.
-- UI action execution routing is extracted into `src/adapter/ui_action.*` dispatcher callbacks; `EngineAdapter` now binds
+- UI action execution routing is extracted into `src/adapter/ui/action.*` dispatcher callbacks; `EngineAdapter` now binds
   orchestration lambdas instead of owning the large action switch.
 - `EngineAdapter` implementation is now split into focused translation units:
   - `src/adapter/engine_adapter.cpp` (bootstrap + state bridge + device wiring)
-  - `src/adapter/input_router.cpp` (QML/action input orchestration)
+  - `src/adapter/input/router.cpp` (QML/action input orchestration)
   - `src/adapter/tick_driver.cpp` (tick/runtime orchestration)
-  - `src/adapter/session_state.cpp` (session metadata + level selection orchestration)
-  - `src/adapter/level_flow.cpp` (level loading/apply + achievement/script triggers)
+  - `src/adapter/session/state.cpp` (session metadata + level selection orchestration)
+  - `src/adapter/level/flow.cpp` (level loading/apply + achievement/script triggers)
   - `src/adapter/persistence.cpp` (save/load snapshot + high-score/ghost persistence)
   - `src/adapter/choices.cpp` (roguelike choice generation/selection runtime)
   - `src/adapter/lifecycle.cpp` (restart/replay/pause/lazy FSM bootstrap flow)
-- Added `src/adapter/profile_bridge.*` as a dedicated adapter seam for profile/session/stats
+- Added `src/adapter/profile/bridge.*` as a dedicated adapter seam for profile/session/stats
   operations, reducing direct `EngineAdapter -> ProfileManager` coupling across input/runtime/session/view units.
 - Main hotspot file `src/adapter/engine_adapter.cpp` is reduced to ~270 lines, making review/merge conflicts significantly smaller
   while preserving the existing QML-facing interface.
 - `CMakeLists.txt` and test targets now compile the same split units, keeping runtime/test code paths aligned.
-- Session bootstrap/reset orchestration is further contracted in `src/adapter/session_state.cpp` via
+- Session bootstrap/reset orchestration is further contracted in `src/adapter/session/state.cpp` via
   `resetTransientRuntimeState()` and `resetReplayRuntimeTracking()`, reducing duplicate mutable-state branches across
   restart/replay/resume paths before the remaining core-session extraction.
-- Level/achievement orchestration is separated from session flow into `src/adapter/level_flow.cpp`, keeping
+- Level/achievement orchestration is separated from session flow into `src/adapter/level/flow.cpp`, keeping
   level script/apply concerns isolated from lifecycle concerns.
 - Persistence and replay snapshot paths are separated into `src/adapter/persistence.cpp`, reducing adapter
   coupling around profile/session/ghost I/O.
 - Roguelike choice flow and lifecycle transitions are isolated in `src/adapter/choices.cpp` and
-  `src/adapter/lifecycle.cpp`, shrinking `src/adapter/session_state.cpp` further and making future
+  `src/adapter/lifecycle.cpp`, shrinking `src/adapter/session/state.cpp` further and making future
   `SessionCore` extraction more mechanical.
 
 ### Phase C progress snapshot (2026-02-21)
@@ -379,8 +381,8 @@ These are explicitly deferred to keep the core/adapter refactor moving:
 - Added headless core-focused tests in `tests/test_core_rules.cpp`:
   - `buff_runtime` rules (food scoring/duration/shrink invariants)
   - `replay_timeline` deterministic tick application (input + choice frame playback behavior)
-- Expanded `core-rules-tests` linkage in `CMakeLists.txt` to include `src/core/buff_runtime.cpp` and
-  `src/core/replay_timeline.cpp`.
+- Expanded `core-rules-tests` linkage in `CMakeLists.txt` to include `src/core/buff/runtime.cpp`
+  and `src/core/replay/timeline.cpp`.
 - Verification passed:
   - `ctest --output-on-failure` (EngineAdapterTest + CoreRulesTest)
   - `./scripts/input_semantics_matrix_wayland.sh` (input semantics compatibility matrix)
