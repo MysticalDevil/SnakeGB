@@ -174,12 +174,15 @@ if(NENOSERPENT_OPTIMIZE_SIZE)
     endif()
 endif()
 
-if(ANDROID)
-    set_property(TARGET NenoSerpent PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-endif()
+set_property(TARGET NenoSerpent PROPERTY
+    QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
+set_property(TARGET NenoSerpent PROPERTY QT_ANDROID_PACKAGE_NAME "org.devil.nenoserpent")
+set_property(TARGET NenoSerpent PROPERTY QT_ANDROID_VERSION_NAME "${PROJECT_VERSION}")
+set_property(TARGET NenoSerpent PROPERTY QT_ANDROID_VERSION_CODE 200)
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(NenoSerpent)
+    qt_finalize_project()
 endif()
 
 enable_testing()

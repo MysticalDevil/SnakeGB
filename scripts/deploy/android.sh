@@ -100,9 +100,42 @@ echo "[info] JAVA_HOME=${JAVA_HOME:-<not set>}"
   -DQt6HostInfo_DIR="${QT_HOST_INFO_DIR}" \
   -DNENOSERPENT_OPTIMIZE_SIZE=ON
 
+# Build native target first so updated QML/resources are definitely linked.
+cmake --build "${BUILD_DIR}" --target NenoSerpent --parallel
+# Keep compatibility with existing Qt-generated packaging entry.
 cmake --build "${BUILD_DIR}" --target apk --parallel
 
+ANDROID_BUILD_DIR="${BUILD_DIR}/src/android-build"
+if [[ ! -d "${ANDROID_BUILD_DIR}" ]]; then
+  echo "[error] Android build dir not found: ${ANDROID_BUILD_DIR}"
+  exit 1
+fi
+
+if [[ -d "${PROJECT_ROOT}/android/res" ]]; then
+  mkdir -p "${ANDROID_BUILD_DIR}/res"
+  # Overlay project resources only. Do not wipe Qt-generated values/arrays.
+  cp -r "${PROJECT_ROOT}/android/res/." "${ANDROID_BUILD_DIR}/res/"
+fi
+if [[ -f "${ANDROID_BUILD_DIR}/gradle.properties" ]]; then
+  if rg -q '^androidPackageName=' "${ANDROID_BUILD_DIR}/gradle.properties"; then
+    sed -i "s/^androidPackageName=.*/androidPackageName=${APP_ID}/" \
+      "${ANDROID_BUILD_DIR}/gradle.properties"
+  else
+    printf '\nandroidPackageName=%s\n' "${APP_ID}" >>"${ANDROID_BUILD_DIR}/gradle.properties"
+  fi
+fi
+
 build_type_lc="$(echo "${CMAKE_BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
+case "${build_type_lc}" in
+  release|minsizerel)
+    gradle_task="assembleRelease"
+    ;;
+  *)
+    gradle_task="assembleDebug"
+    ;;
+esac
+
+"${ANDROID_BUILD_DIR}/gradlew" --no-daemon -p "${ANDROID_BUILD_DIR}" "${gradle_task}"
 apk_roots=(
   "${BUILD_DIR}/android-build/build/outputs/apk"
   "${BUILD_DIR}/src/android-build/build/outputs/apk"

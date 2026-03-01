@@ -34,6 +34,32 @@ ctest --preset debug
 ```bash
 CMAKE_BUILD_TYPE=Debug ./scripts/deploy.sh android
 ```
+- Android deploy must use the current app id and avoid stale legacy packages:
+```bash
+QT_ANDROID_PREFIX=~/qt-toolchains/build-qt-android/build-android-arm64/qt-android-install \
+APP_ID=org.devil.nenoserpent \
+CMAKE_BUILD_TYPE=Debug \
+./scripts/deploy.sh android
+```
+- Before Android UI verification, always remove legacy packages to avoid launching the wrong app:
+```bash
+adb uninstall org.devil.snakegb || true
+adb uninstall org.qtproject.example.NenoSerpent || true
+```
+- If Android shows old UI after deployment, force a clean package rebuild:
+```bash
+rm -rf build/android/src/android-build
+QT_ANDROID_PREFIX=~/qt-toolchains/build-qt-android/build-android-arm64/qt-android-install \
+APP_ID=org.devil.nenoserpent \
+CMAKE_BUILD_TYPE=Debug \
+./scripts/deploy.sh android
+```
+- Post-deploy Android verification:
+```bash
+adb shell pm list packages | rg 'org\\.devil\\.nenoserpent|org\\.devil\\.snakegb|org\\.qtproject\\.example\\.NenoSerpent'
+adb shell cmd package resolve-activity --brief org.devil.nenoserpent
+adb logcat -b crash -d | tail -n 120
+```
 - Palette screenshot matrix (Wayland, current input semantics):
 ```bash
 ./scripts/ui.sh palette-matrix /tmp/nenoserpent_palette_matrix

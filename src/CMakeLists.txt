@@ -86,6 +86,7 @@ qt_add_resources(nenoserpent_adapter "audio_score_res"
 )
 
 qt_add_executable(NenoSerpent
+    MANUAL_FINALIZATION
     main.cpp
     power_up_id.h
     input_injection_pipe.cpp
