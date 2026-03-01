@@ -235,11 +235,6 @@ Item {
                         shell.bridge.selectReleased()
                     }
                 }
-                onClicked: {
-                    if (shell.bridge) {
-                        shell.bridge.selectTriggered()
-                    }
-                }
             }
 
             SmallButton {
@@ -256,11 +251,6 @@ Item {
                 onReleased: {
                     if (shell.bridge) {
                         shell.bridge.startReleased()
-                    }
-                }
-                onClicked: {
-                    if (shell.bridge) {
-                        shell.bridge.startTriggered()
                     }
                 }
             }
