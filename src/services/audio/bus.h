@@ -28,6 +28,7 @@ struct AudioCallbacks {
   std::function<void()> stopMusic;
   std::function<void(bool)> setPaused;
   std::function<void(bool)> setMusicEnabled;
+  std::function<void(float, int)> duckMusic;
   std::function<void(float)> setVolume;
   std::function<void(int)> setScore;
   std::function<void(int, int, float)> playBeep;
@@ -59,6 +60,8 @@ public:
   [[nodiscard]] static auto eventGroup(snakegb::audio::Event event) -> AudioGroup;
   [[nodiscard]] static auto eventCooldownMs(snakegb::audio::Event event) -> int;
   [[nodiscard]] static auto eventPriority(snakegb::audio::Event event) -> int;
+  [[nodiscard]] static auto duckingForEvent(snakegb::audio::Event event)
+    -> std::optional<std::pair<float, int>>;
 
 private:
   struct RecentUiEvent {

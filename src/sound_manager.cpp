@@ -39,6 +39,11 @@ SoundManager::SoundManager(QObject* parent)
   m_reverbBuffer.resize(reverbFrames, 0.0);
 
   connect(&m_musicTimer, &QTimer::timeout, this, &SoundManager::playNextNote);
+  m_musicDuckTimer.setSingleShot(true);
+  connect(&m_musicDuckTimer, &QTimer::timeout, this, [this]() -> void {
+    m_musicDuckScale = 1.0F;
+    applyMusicVolumes();
+  });
   QTimer::singleShot(DeferMs, this, &SoundManager::initAudioAsync);
 }
 
@@ -51,8 +56,7 @@ void SoundManager::initAudioAsync() {
     // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     m_bgmBassSink = new QAudioSink(device, m_format, this);
     m_sfxSink->setVolume(m_volume);
-    m_bgmLeadSink->setVolume(m_volume);
-    m_bgmBassSink->setVolume(m_volume);
+    applyMusicVolumes();
   }
 }
 
@@ -73,10 +77,15 @@ void SoundManager::setVolume(float volume) {
   m_volume = std::clamp(volume, 0.0f, 1.0f);
   if (m_sfxSink != nullptr)
     m_sfxSink->setVolume(m_volume);
+  applyMusicVolumes();
+}
+
+void SoundManager::applyMusicVolumes() {
+  const auto musicVolume = m_volume * m_musicDuckScale;
   if (m_bgmLeadSink != nullptr)
-    m_bgmLeadSink->setVolume(m_volume);
+    m_bgmLeadSink->setVolume(musicVolume);
   if (m_bgmBassSink != nullptr)
-    m_bgmBassSink->setVolume(m_volume);
+    m_bgmBassSink->setVolume(musicVolume);
 }
 
 auto SoundManager::setPaused(bool paused) -> void {
@@ -162,6 +171,16 @@ auto SoundManager::stopMusic() -> void {
     m_bgmLeadSink->stop();
   if (m_bgmBassSink != nullptr)
     m_bgmBassSink->stop();
+}
+
+auto SoundManager::duckMusic(const float scale, const int durationMs) -> void {
+  m_musicDuckScale = std::clamp(scale, 0.1F, 1.0F);
+  applyMusicVolumes();
+  if (durationMs > 0) {
+    m_musicDuckTimer.start(durationMs);
+  } else {
+    m_musicDuckTimer.stop();
+  }
 }
 
 auto SoundManager::playNextNote() -> void {
@@ -337,6 +356,9 @@ void SoundManager::setVolume(float volume) {
   m_volume = std::clamp(volume, 0.0F, 1.0F);
 }
 
+void SoundManager::applyMusicVolumes() {
+}
+
 auto SoundManager::setPaused(bool paused) -> void {
   m_isPaused = paused;
 }
@@ -358,6 +380,9 @@ auto SoundManager::startMusic(int) -> void {
 }
 
 auto SoundManager::stopMusic() -> void {
+}
+
+auto SoundManager::duckMusic(float, int) -> void {
 }
 
 auto SoundManager::playNextNote() -> void {

@@ -60,6 +60,9 @@ EngineAdapter::EngineAdapter(QObject* parent)
     .stopMusic = [this]() -> void { emit audioStopMusic(); },
     .setPaused = [this](const bool paused) -> void { emit audioSetPaused(paused); },
     .setMusicEnabled = [this](const bool enabled) -> void { emit audioSetMusicEnabled(enabled); },
+    .duckMusic = [this](const float scale, const int durationMs) -> void {
+      emit audioDuckMusic(scale, durationMs);
+    },
     .setVolume = [this](const float volume) -> void { emit audioSetVolume(volume); },
     .setScore = [this](const int score) -> void { emit audioSetScore(score); },
     .playBeep = [this](const int frequencyHz, const int durationMs, const float pan) -> void {

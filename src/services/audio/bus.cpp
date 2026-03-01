@@ -17,6 +17,13 @@ template <typename T> void emitIfSet(const std::function<void(T)>& callback, T v
   }
 }
 
+template <typename T, typename U>
+void emitIfSet(const std::function<void(T, U)>& callback, T first, U second) {
+  if (callback) {
+    callback(first, second);
+  }
+}
+
 using Clock = std::chrono::steady_clock;
 using Ms = std::chrono::milliseconds;
 
@@ -97,6 +104,23 @@ auto AudioBus::eventPriority(const snakegb::audio::Event event) -> int {
     return 0;
   }
   return 0;
+}
+
+auto AudioBus::duckingForEvent(const snakegb::audio::Event event)
+  -> std::optional<std::pair<float, int>> {
+  switch (event) {
+  case snakegb::audio::Event::UiInteract:
+    return std::pair{0.82F, 70};
+  case snakegb::audio::Event::Confirm:
+    return std::pair{0.68F, 110};
+  case snakegb::audio::Event::PowerUp:
+    return std::pair{0.72F, 130};
+  case snakegb::audio::Event::Crash:
+    return std::pair{0.35F, 240};
+  case snakegb::audio::Event::Food:
+    return std::nullopt;
+  }
+  return std::nullopt;
 }
 
 auto AudioBus::lastEventTime(const snakegb::audio::Event event) -> Clock::time_point& {
@@ -214,6 +238,10 @@ void AudioBus::dispatchEvent(const snakegb::audio::Event event,
     return;
   }
   rememberDispatch(event, now);
+
+  if (const auto ducking = duckingForEvent(event); ducking.has_value()) {
+    emitIfSet(m_callbacks.duckMusic, ducking->first, ducking->second);
+  }
 
   const auto cue = snakegb::audio::cueForEvent(event);
   if (!cue.has_value()) {

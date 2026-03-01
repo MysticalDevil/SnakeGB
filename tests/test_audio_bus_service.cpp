@@ -19,6 +19,7 @@ private slots:
   void testUiEventsRespectCooldownPolicy();
   void testConfirmOverridesRecentUiInteract();
   void testExternalTrackOverrideLoadsFromEnvPath();
+  void testTransientEventsTriggerMusicDucking();
 };
 
 void TestAudioBusService::testCueTableCoversAllEvents() {
@@ -260,6 +261,31 @@ void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
   QCOMPARE(replayTrack.front().bassPitch, snakegb::audio::Pitch::A3);
   QCOMPARE(replayTrack.front().leadDuty, snakegb::audio::PulseDuty::Wide);
   QCOMPARE(replayTrack.front().bassDuty, snakegb::audio::PulseDuty::Quarter);
+}
+
+void TestAudioBusService::testTransientEventsTriggerMusicDucking() {
+  QList<QPair<float, int>> duckingCalls;
+
+  snakegb::services::AudioBus audioBus({
+    .duckMusic = [&](const float scale, const int durationMs) -> void {
+      duckingCalls.push_back({scale, durationMs});
+    },
+  });
+
+  audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
+  audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
+  audioBus.dispatchEvent(snakegb::audio::Event::PowerUp);
+  audioBus.dispatchEvent(snakegb::audio::Event::Crash);
+
+  QCOMPARE(duckingCalls.size(), 4);
+  QCOMPARE(duckingCalls.at(0).first, 0.82F);
+  QCOMPARE(duckingCalls.at(0).second, 70);
+  QCOMPARE(duckingCalls.at(1).first, 0.68F);
+  QCOMPARE(duckingCalls.at(1).second, 110);
+  QCOMPARE(duckingCalls.at(2).first, 0.72F);
+  QCOMPARE(duckingCalls.at(2).second, 130);
+  QCOMPARE(duckingCalls.at(3).first, 0.35F);
+  QCOMPARE(duckingCalls.at(3).second, 240);
 }
 
 QTEST_MAIN(TestAudioBusService)

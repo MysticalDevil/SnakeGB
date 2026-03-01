@@ -32,6 +32,7 @@ public:
   Q_INVOKABLE void playCrash(int durationMs);
   Q_INVOKABLE void startMusic(int trackId);
   Q_INVOKABLE void stopMusic();
+  Q_INVOKABLE void duckMusic(float scale, int durationMs);
   [[nodiscard]] auto musicEnabled() const -> bool {
     return m_musicEnabled;
   }
@@ -43,6 +44,7 @@ public:
 
   void initAudioAsync();
   void setScore(int score);
+  void applyMusicVolumes();
 
 private slots:
   void playNextNote();
@@ -77,9 +79,11 @@ private:
 #endif
 
   QTimer m_musicTimer;
+  QTimer m_musicDuckTimer;
   bool m_musicEnabled = true;
   bool m_isPaused = false;
   float m_volume = 1.0f;
+  float m_musicDuckScale = 1.0f;
   int m_noteIndex = 0;
   int m_currentScore = 0;
   snakegb::audio::ScoreTrackId m_currentTrackId = snakegb::audio::ScoreTrackId::Menu;

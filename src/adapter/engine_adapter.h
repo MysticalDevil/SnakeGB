@@ -314,6 +314,7 @@ signals:
   void audioPlayCrash(int durationMs);
   void audioStartMusic(int trackId);
   void audioStopMusic();
+  void audioDuckMusic(float scale, int durationMs);
   void audioSetPaused(bool paused);
   void audioSetMusicEnabled(bool enabled);
   void audioSetVolume(float volume);

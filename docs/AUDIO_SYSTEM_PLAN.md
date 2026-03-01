@@ -406,6 +406,15 @@ Possible additions:
 - platform-specific differences
 - haptic/audio coordination
 
+Current status:
+
+- `Partial`
+- transient `UiInteract`, `Confirm`, `PowerUp`, and `Crash` events now trigger a simple music
+  ducking policy through `AudioBus`
+- the ducking decision lives in the bus/policy layer and is routed to `SoundManager` as a
+  separate control signal
+- richer mixer behavior, per-group gain controls, and transition-aware ducking remain unfinished
+
 ## Recommended Immediate Next Step
 
 Implement Phase 1 first:
