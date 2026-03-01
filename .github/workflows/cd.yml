@@ -125,20 +125,21 @@ jobs:
 
       - name: Restore signing keystore
         run: |
+          KEYSTORE_PATH="$HOME/.keystores/nenoserpent-release.jks"
           mkdir -p "$HOME/.keystores"
-          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$HOME/.keystores/nenoserpent-release.jks"
-          chmod 600 "$HOME/.keystores/nenoserpent-release.jks"
+          echo "${{ secrets.ANDROID_KEYSTORE_B64 }}" | base64 -d > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          echo "NENO_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
 
       - name: Build signed Android APK
         env:
           QT_ANDROID_PREFIX: ${{ github.workspace }}/.qt/Qt/6.7.2/android_arm64_v8a
           QT_HOST_PATH: ${{ github.workspace }}/.qt/Qt/6.7.2/gcc_64
-          QT_CMAKE_BIN: ${{ github.workspace }}/.qt/Qt/6.7.2/gcc_64/bin/qt-cmake
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           ANDROID_NDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.2.12479018
           CMAKE_BUILD_TYPE: Release
           APP_ID: org.devil.nenoserpent
-          DEBUG_KEYSTORE_PATH: $HOME/.keystores/nenoserpent-release.jks
+          DEBUG_KEYSTORE_PATH: ${{ env.NENO_KEYSTORE_PATH }}
           DEBUG_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           DEBUG_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           DEBUG_KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
