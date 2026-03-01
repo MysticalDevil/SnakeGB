@@ -8,8 +8,8 @@ Item {
     property bool hasSave: false
     property bool iconDebugMode: false
     property var actionMap: ({})
+    property var commandController
     property var showOsd
-    property var dispatchUiAction
 
     property bool selectPressActive: false
     property bool selectLongPressConsumed: false
@@ -68,8 +68,8 @@ Item {
             controller.selectLongPressConsumed = false
             return true
         }
-        if (controller.dispatchUiAction) {
-            controller.dispatchUiAction(controller.actionMap.SelectShort)
+        if (controller.commandController) {
+            controller.commandController.dispatch(controller.actionMap.SelectShort)
         }
         return true
     }
@@ -80,9 +80,9 @@ Item {
         }
         controller.saveClearConfirmPending = false
         saveClearConfirmTimer.stop()
-        if (controller.dispatchUiAction) {
-            controller.dispatchUiAction("delete_save")
-            controller.dispatchUiAction("feedback_heavy")
+        if (controller.commandController) {
+            controller.commandController.dispatch("delete_save")
+            controller.commandController.dispatch("feedback_heavy")
         }
         controller.showStatus("SAVE CLEARED")
         return true

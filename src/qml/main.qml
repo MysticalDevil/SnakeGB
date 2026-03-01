@@ -97,8 +97,8 @@ Window {
         hasSave: sessionStatusViewModel.hasSave
         iconDebugMode: window.iconDebugMode
         actionMap: window.inputAction
+        commandController: commandControllerRef
         showOsd: screen.showOSD
-        dispatchUiAction: window.dispatchRuntimeAction
     }
 
     UiInputController {
