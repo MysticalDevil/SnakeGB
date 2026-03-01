@@ -19,6 +19,9 @@ Rectangle {
     readonly property color titleStripFill: Qt.lighter(menuColor("cardSecondary"), 1.02)
     readonly property color titleInk: readableText ? readableText(titleStripFill) : menuColor("titleInk")
     readonly property color badgeInk: readableText ? readableText(accent) : menuColor("actionInk")
+    readonly property int badgeWidth: Math.max(30, rarityText.implicitWidth + 10)
+    readonly property int titleMaxWidth: width - badgeWidth - 14
+    readonly property int titleWidth: Math.min(titleMaxWidth, Math.max(40, titleText.implicitWidth + 10))
 
     width: 126
     height: 32
@@ -30,11 +33,10 @@ Rectangle {
 
     Rectangle {
         anchors.left: parent.left
-        anchors.right: parent.right
         anchors.leftMargin: 4
-        anchors.rightMargin: 46
         anchors.top: parent.top
         anchors.topMargin: 4
+        width: buffPanel.titleWidth
         height: 12
         radius: 3
         color: buffPanel.titleStripFill
@@ -42,6 +44,7 @@ Rectangle {
         border.width: 1
 
         Text {
+            id: titleText
             anchors.fill: parent
             anchors.leftMargin: 5
             anchors.rightMargin: 4
@@ -60,7 +63,7 @@ Rectangle {
         anchors.rightMargin: 4
         anchors.top: parent.top
         anchors.topMargin: 4
-        width: 38
+        width: buffPanel.badgeWidth
         height: 12
         radius: 3
         color: buffPanel.accent
@@ -68,6 +71,7 @@ Rectangle {
         border.width: 1
 
         Text {
+            id: rarityText
             anchors.centerIn: parent
             text: buffPanel.rarityLabel
             color: buffPanel.badgeInk
