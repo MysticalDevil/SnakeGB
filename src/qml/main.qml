@@ -96,25 +96,6 @@ Window {
         actionMap: window.inputAction
     }
 
-    Connections {
-        target: uiCommandController
-        function onPaletteChanged() { 
-            if (window.currentState === AppState.Splash) return
-            screen.showOSD(themeViewModel.paletteName)
-        }
-        function onShellChanged() { 
-            if (window.currentState !== AppState.Splash) {
-                screen.triggerPowerCycle()
-            }
-        }
-        function onAchievementEarned(title) { 
-            screen.showOSD(`UNLOCKED: ${title}`) 
-        }
-        function onEventPrompt(text) {
-            screen.showOSD(`>> ${text} <<`)
-        }
-    }
-
     Item {
         id: rootContainer
         anchors.fill: parent
@@ -144,6 +125,7 @@ Window {
                     id: screen
                     anchors.fill: parent
                     commandController: uiCommandController
+                    themeViewModel: themeViewModel
                     p0: window.p0
                     p1: window.p1
                     p2: window.p2

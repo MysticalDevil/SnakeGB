@@ -10,7 +10,9 @@ import "LayerScale.js" as LayerScale
 Item {
     id: root
     property var commandController
+    property var themeViewModel
     property var sessionRender: sessionRenderViewModel
+    property int currentState: sessionRender.state
     property color p0
     property color p1
     property color p2
@@ -499,4 +501,29 @@ Item {
     function showOSD(t) { osd.show(t) }
     function showVolumeOSD(value) { osd.showVolume(value) }
     function triggerPowerCycle() { commandController.dispatch("state_splash") }
+
+    property var commandControllerConnections: Connections {
+        target: root.commandController
+
+        function onPaletteChanged() {
+            if (root.currentState === AppState.Splash) {
+                return
+            }
+            root.showOSD(root.themeViewModel.paletteName)
+        }
+
+        function onShellChanged() {
+            if (root.currentState !== AppState.Splash) {
+                root.triggerPowerCycle()
+            }
+        }
+
+        function onAchievementEarned(title) {
+            root.showOSD(`UNLOCKED: ${title}`)
+        }
+
+        function onEventPrompt(text) {
+            root.showOSD(`>> ${text} <<`)
+        }
+    }
 }
