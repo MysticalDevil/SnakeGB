@@ -66,25 +66,13 @@ Window {
     UiActionRouter {
         id: uiActionRouter
         commandController: commandControllerRef
+        inputController: uiInputController
+        debugController: uiDebugController
         currentState: window.currentState
         actionMap: window.inputAction
         iconDebugMode: window.iconDebugMode
         staticDebugScene: window.staticDebugScene
-        saveClearConfirmPending: inputPressController.saveClearConfirmPending
-        handleDirection: uiInputController.handleDirection
-        toggleIconLabMode: uiDebugController.toggleIconLabMode
-        setStaticScene: uiDebugController.setStaticScene
-        cycleStaticScene: uiDebugController.cycleStaticScene
-        exitIconLab: uiDebugController.exitIconLab
-        performPrimary: uiInputController.handlePrimaryAction
-        performSecondary: uiInputController.handleSecondaryAction
-        performStart: uiInputController.handleStartAction
-        performSelectShort: uiInputController.handleSelectShortAction
-        performBack: uiInputController.handleBackAction
-        trackEasterToken: uiDebugController.handleEasterInput
         moveIconLabSelection: screen.iconLabMove
-        setDirectionPressed: uiInputController.setDpadPressed
-        clearDirectionVisuals: uiInputController.clearDirectionVisuals
     }
 
     UiDebugController {

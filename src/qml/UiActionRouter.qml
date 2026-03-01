@@ -5,25 +5,13 @@ QtObject {
     id: router
 
     property var commandController
+    property var inputController
+    property var debugController
     property int currentState: AppState.Splash
     property var actionMap: ({})
     property bool iconDebugMode: false
     property string staticDebugScene: ""
-    property bool saveClearConfirmPending: false
-    property var handleDirection
-    property var toggleIconLabMode
-    property var setStaticScene
-    property var cycleStaticScene
-    property var exitIconLab
-    property var performPrimary
-    property var performSecondary
-    property var performStart
-    property var performSelectShort
-    property var performBack
-    property var trackEasterToken
     property var moveIconLabSelection
-    property var setDirectionPressed
-    property var clearDirectionVisuals
 
     readonly property string modeOverlay: "overlay"
     readonly property string modePage: "page"
@@ -93,14 +81,14 @@ QtObject {
             return false
         }
 
-        if (router.trackEasterToken && router.trackEasterToken(token)) {
-            if (router.clearDirectionVisuals) {
-                router.clearDirectionVisuals()
+        if (router.debugController && router.debugController.handleEasterInput(token)) {
+            if (router.inputController) {
+                router.inputController.clearDirectionVisuals()
             }
             return true
         }
-        if (router.handleDirection) {
-            router.handleDirection(dx, dy)
+        if (router.inputController) {
+            router.inputController.handleDirection(dx, dy)
         }
         return true
     }
@@ -125,21 +113,23 @@ QtObject {
             return false
         }
 
-        if (router.trackEasterToken) {
-            router.trackEasterToken(token)
+        if (router.debugController) {
+            router.debugController.handleEasterInput(token)
         }
         if (router.moveIconLabSelection) {
             router.moveIconLabSelection(dx, dy)
         }
-        if (router.setDirectionPressed) {
-            router.setDirectionPressed(dx, dy)
+        if (router.inputController) {
+            router.inputController.setDpadPressed(dx, dy)
         }
         return true
     }
 
     function routeGlobal(action) {
         if (action === router.actionMap.ToggleIconLab) {
-            return perform(router.toggleIconLabMode)
+            return router.debugController
+                ? perform(router.debugController.toggleIconLabMode)
+                : false
         }
         if (action === router.actionMap.ToggleShellColor) {
             return dispatch("toggle_shell_color")
@@ -149,10 +139,14 @@ QtObject {
         }
         if (action === router.actionMap.Escape) {
             if (router.iconDebugMode) {
-                return perform(router.exitIconLab)
+                return router.debugController
+                    ? perform(router.debugController.exitIconLab)
+                    : false
             }
             if (router.staticDebugScene !== "") {
-                return perform(() => router.setStaticScene(""))
+                return router.debugController
+                    ? perform(() => router.debugController.setStaticScene("", {}))
+                    : false
             }
             return dispatch("quit")
         }
@@ -164,10 +158,14 @@ QtObject {
             return true
         }
         if (action === router.actionMap.Secondary || action === router.actionMap.Back) {
-            return perform(router.exitIconLab)
+            return router.debugController
+                ? perform(router.debugController.exitIconLab)
+                : false
         }
         if (action === router.actionMap.Primary) {
-            return perform(router.performPrimary)
+            return router.inputController
+                ? perform(router.inputController.handlePrimaryAction)
+                : false
         }
         if (action === router.actionMap.Start || action === router.actionMap.SelectShort) {
             return true
@@ -177,15 +175,21 @@ QtObject {
 
     function routeStaticScene(action) {
         if (action === router.actionMap.NavUp || action === router.actionMap.NavLeft) {
-            return perform(() => router.cycleStaticScene(-1))
+            return router.debugController
+                ? perform(() => router.debugController.cycleStaticScene(-1))
+                : false
         }
         if (action === router.actionMap.NavDown || action === router.actionMap.NavRight) {
-            return perform(() => router.cycleStaticScene(1))
+            return router.debugController
+                ? perform(() => router.debugController.cycleStaticScene(1))
+                : false
         }
         if (action === router.actionMap.Primary || action === router.actionMap.Secondary ||
                 action === router.actionMap.Start || action === router.actionMap.SelectShort ||
                 action === router.actionMap.Back) {
-            return perform(() => router.setStaticScene(""))
+            return router.debugController
+                ? perform(() => router.debugController.setStaticScene("", {}))
+                : false
         }
         return true
     }
@@ -209,17 +213,19 @@ QtObject {
 
     function routeOverlayAction(action) {
         if (action === router.actionMap.Start) {
-            return perform(router.performStart)
+            return router.inputController
+                ? perform(router.inputController.handleStartAction)
+                : false
         }
         if (action === router.actionMap.Primary) {
-            if (router.currentState === AppState.Paused && router.trackEasterToken) {
-                router.trackEasterToken("A")
+            if (router.currentState === AppState.Paused && router.debugController) {
+                router.debugController.handleEasterInput("A")
             }
             return true
         }
         if (action === router.actionMap.Secondary) {
-            if (router.currentState === AppState.Paused && router.trackEasterToken) {
-                router.trackEasterToken("B")
+            if (router.currentState === AppState.Paused && router.debugController) {
+                router.debugController.handleEasterInput("B")
             }
             return true
         }
@@ -245,38 +251,55 @@ QtObject {
             return true
         }
         if (action === router.actionMap.Secondary) {
-            return perform(router.performSecondary)
+            return router.inputController
+                ? perform(router.inputController.handleSecondaryAction)
+                : false
         }
         if (action === router.actionMap.Start) {
-            return perform(router.performStart)
+            return router.inputController
+                ? perform(router.inputController.handleStartAction)
+                : false
         }
         if (action === router.actionMap.SelectShort) {
-            return perform(router.performSelectShort)
+            return router.inputController
+                ? perform(router.inputController.handleSelectShortAction)
+                : false
         }
         if (action === router.actionMap.Back) {
-            return perform(router.performBack)
+            return router.inputController
+                ? perform(router.inputController.handleBackAction)
+                : false
         }
         return false
     }
 
     function routeShellAction(action) {
         if (action === router.actionMap.Primary) {
-            if (router.saveClearConfirmPending) {
-                return perform(router.performPrimary)
+            if (router.inputController &&
+                    router.inputController.inputPressController.saveClearConfirmPending) {
+                return perform(router.inputController.handlePrimaryAction)
             }
             return true
         }
         if (action === router.actionMap.Secondary) {
-            return perform(router.performSecondary)
+            return router.inputController
+                ? perform(router.inputController.handleSecondaryAction)
+                : false
         }
         if (action === router.actionMap.Back) {
-            return perform(router.performBack)
+            return router.inputController
+                ? perform(router.inputController.handleBackAction)
+                : false
         }
         if (action === router.actionMap.Start) {
-            return perform(router.performStart)
+            return router.inputController
+                ? perform(router.inputController.handleStartAction)
+                : false
         }
         if (action === router.actionMap.SelectShort) {
-            return perform(router.performSelectShort)
+            return router.inputController
+                ? perform(router.inputController.handleSelectShortAction)
+                : false
         }
         return false
     }
