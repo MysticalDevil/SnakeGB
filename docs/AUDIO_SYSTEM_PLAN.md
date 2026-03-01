@@ -357,7 +357,8 @@ Acceptance:
 Current status:
 
 - `Completed` for the initial score-cue milestone
-- short confirmation cues now route through a score-based cue id instead of raw beep parameters
+- short confirmation and UI interaction cues now route through score-based cue ids instead of raw
+  beep parameters
 - `SoundManager` can render a minimal in-memory score sequence for score cues
 - full score resource files and expanded BGM routing remain the next step inside this phase
 

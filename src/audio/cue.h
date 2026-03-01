@@ -31,7 +31,7 @@ inline constexpr std::array<CueSpec, 5> CueTable{{
    .updatesScore = true},
   {.event = Event::PowerUp, .kind = CueKind::Beep, .frequencyHz = 1200, .durationMs = 150},
   {.event = Event::Crash, .kind = CueKind::Crash, .durationMs = 500},
-  {.event = Event::UiInteract, .kind = CueKind::Beep, .frequencyHz = 200, .durationMs = 50},
+  {.event = Event::UiInteract, .kind = CueKind::Score, .scoreCue = ScoreCueId::UiInteract},
   {.event = Event::Confirm, .kind = CueKind::Score, .scoreCue = ScoreCueId::Confirm},
 }};
 

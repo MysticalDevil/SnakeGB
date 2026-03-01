@@ -23,6 +23,16 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
   QCOMPARE(foodCue->frequencyHz, 880);
   QVERIFY(foodCue->updatesScore);
 
+  const auto uiInteractCue = snakegb::audio::cueForEvent(snakegb::audio::Event::UiInteract);
+  QVERIFY(uiInteractCue.has_value());
+  QCOMPARE(uiInteractCue->kind, snakegb::audio::CueKind::Score);
+  QCOMPARE(uiInteractCue->scoreCue, snakegb::audio::ScoreCueId::UiInteract);
+
+  const auto uiInteractSteps =
+    snakegb::audio::scoreCueSteps(snakegb::audio::ScoreCueId::UiInteract);
+  QCOMPARE(uiInteractSteps.size(), 2U);
+  QCOMPARE(uiInteractSteps.front().frequencyHz, 262);
+
   const auto confirmCue = snakegb::audio::cueForEvent(snakegb::audio::Event::Confirm);
   QVERIFY(confirmCue.has_value());
   QCOMPARE(confirmCue->kind, snakegb::audio::CueKind::Score);
@@ -111,6 +121,7 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
   float beepPan = 0.0F;
   int crashDuration = 0;
   int scoreCueId = -1;
+  int scoreCueCount = 0;
 
   snakegb::services::AudioBus audioBus({
     .setScore = [&](const int value) -> void { score = value; },
@@ -121,6 +132,7 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
     },
     .playScoreCue = [&](const snakegb::audio::ScoreCueId cueId, const float) -> void {
       scoreCueId = static_cast<int>(cueId);
+      scoreCueCount++;
     },
     .playCrash = [&](const int durationMs) -> void { crashDuration = durationMs; },
   });
@@ -137,42 +149,39 @@ void TestAudioBusService::testDispatchEventRoutesCallbacks() {
   QCOMPARE(beepPan, 0.0F);
 
   audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
-  QCOMPARE(beepFrequency, 200);
-  QCOMPARE(beepDuration, 50);
+  QCOMPARE(scoreCueId, static_cast<int>(snakegb::audio::ScoreCueId::UiInteract));
+  QCOMPARE(scoreCueCount, 1);
 
   audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
   QCOMPARE(scoreCueId, static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
+  QCOMPARE(scoreCueCount, 2);
 
   audioBus.dispatchEvent(snakegb::audio::Event::Crash);
   QCOMPARE(crashDuration, 500);
 }
 
 void TestAudioBusService::testUiEventsRespectCooldownPolicy() {
-  int beepCount = 0;
-  int lastFrequency = 0;
+  int scoreCueCount = 0;
+  int lastScoreCueId = -1;
 
   snakegb::services::AudioBus audioBus({
-    .playBeep = [&](const int frequencyHz, const int, const float) -> void {
-      beepCount++;
-      lastFrequency = frequencyHz;
+    .playScoreCue = [&](const snakegb::audio::ScoreCueId cueId, const float) -> void {
+      scoreCueCount++;
+      lastScoreCueId = static_cast<int>(cueId);
     },
   });
 
   audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
   audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
 
-  QCOMPARE(beepCount, 1);
-  QCOMPARE(lastFrequency, 200);
+  QCOMPARE(scoreCueCount, 1);
+  QCOMPARE(lastScoreCueId, static_cast<int>(snakegb::audio::ScoreCueId::UiInteract));
 }
 
 void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
-  QList<int> frequencies;
   QList<int> scoreCueIds;
 
   snakegb::services::AudioBus audioBus({
-    .playBeep = [&](const int frequencyHz, const int, const float) -> void {
-      frequencies.push_back(frequencyHz);
-    },
     .playScoreCue = [&](const snakegb::audio::ScoreCueId cueId, const float) -> void {
       scoreCueIds.push_back(static_cast<int>(cueId));
     },
@@ -182,10 +191,9 @@ void TestAudioBusService::testConfirmOverridesRecentUiInteract() {
   audioBus.dispatchEvent(snakegb::audio::Event::Confirm);
   audioBus.dispatchEvent(snakegb::audio::Event::UiInteract);
 
-  QCOMPARE(frequencies.size(), 1);
-  QCOMPARE(scoreCueIds.size(), 1);
-  QCOMPARE(frequencies.at(0), 200);
-  QCOMPARE(scoreCueIds.at(0), static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
+  QCOMPARE(scoreCueIds.size(), 2);
+  QCOMPARE(scoreCueIds.at(0), static_cast<int>(snakegb::audio::ScoreCueId::UiInteract));
+  QCOMPARE(scoreCueIds.at(1), static_cast<int>(snakegb::audio::ScoreCueId::Confirm));
 }
 
 QTEST_MAIN(TestAudioBusService)
