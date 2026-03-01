@@ -125,6 +125,12 @@ for candidate in "${android_build_candidates[@]}"; do
   fi
 done
 if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
+  gradle_wrapper_path="$(find "${BUILD_DIR}" -type f -path '*/android-build/gradlew' | head -n1)"
+  if [[ -n "${gradle_wrapper_path}" ]]; then
+    ANDROID_BUILD_DIR="$(dirname "${gradle_wrapper_path}")"
+  fi
+fi
+if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
   echo "[error] Android build dir not found. checked:"
   for candidate in "${android_build_candidates[@]}"; do
     echo "  - ${candidate}"
