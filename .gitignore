@@ -2,6 +2,10 @@ build*/
 cmake-build-*/
 compile_commands.json
 android-build/
+dist/
+artifacts/
+*.AppImage
+AppDir/
 .env
 .env.*
 !.env.example
