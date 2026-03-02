@@ -57,16 +57,49 @@ auto AudioBus::musicCommandForState(const int state, const bool musicEnabled) ->
 
 auto AudioBus::musicTrackForState(const int state, const int bgmVariant)
   -> nenoserpent::audio::ScoreTrackId {
-  const bool useAlt = (bgmVariant % 2) != 0;
+  const int variantCount = nenoserpent::audio::bgmVariantCount();
+  const int variant =
+    variantCount <= 0 ? 0 : ((bgmVariant % variantCount) + variantCount) % variantCount;
   if (state == 1) {
-    return useAlt ? nenoserpent::audio::ScoreTrackId::MenuAlt : nenoserpent::audio::ScoreTrackId::Menu;
+    switch (variant) {
+    case 0:
+      return nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn;
+    case 1:
+      return nenoserpent::audio::ScoreTrackId::MenuNeonPulse;
+    case 2:
+      return nenoserpent::audio::ScoreTrackId::MenuCipherRun;
+    case 3:
+      return nenoserpent::audio::ScoreTrackId::MenuAfterglowEcho;
+    default:
+      return nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn;
+    }
   }
   if (state == 5) {
-    return useAlt ? nenoserpent::audio::ScoreTrackId::ReplayAlt
-                  : nenoserpent::audio::ScoreTrackId::Replay;
+    switch (variant) {
+    case 0:
+      return nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn;
+    case 1:
+      return nenoserpent::audio::ScoreTrackId::ReplayNeonPulse;
+    case 2:
+      return nenoserpent::audio::ScoreTrackId::ReplayCipherRun;
+    case 3:
+      return nenoserpent::audio::ScoreTrackId::ReplayAfterglowEcho;
+    default:
+      return nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn;
+    }
   }
-  return useAlt ? nenoserpent::audio::ScoreTrackId::GameplayAlt
-                : nenoserpent::audio::ScoreTrackId::Gameplay;
+  switch (variant) {
+  case 0:
+    return nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn;
+  case 1:
+    return nenoserpent::audio::ScoreTrackId::GameplayNeonPulse;
+  case 2:
+    return nenoserpent::audio::ScoreTrackId::GameplayCipherRun;
+  case 3:
+    return nenoserpent::audio::ScoreTrackId::GameplayAfterglowEcho;
+  default:
+    return nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn;
+  }
 }
 
 auto AudioBus::eventGroup(const nenoserpent::audio::Event event) -> AudioGroup {
@@ -143,7 +176,8 @@ auto AudioBus::lastEventTime(const nenoserpent::audio::Event event) -> Clock::ti
   return m_lastEventTimes[0];
 }
 
-auto AudioBus::lastEventTime(const nenoserpent::audio::Event event) const -> const Clock::time_point& {
+auto AudioBus::lastEventTime(const nenoserpent::audio::Event event) const
+  -> const Clock::time_point& {
   switch (event) {
   case nenoserpent::audio::Event::Food:
     return m_lastEventTimes[0];
@@ -159,8 +193,8 @@ auto AudioBus::lastEventTime(const nenoserpent::audio::Event event) const -> con
   return m_lastEventTimes[0];
 }
 
-auto AudioBus::shouldDispatchEvent(const nenoserpent::audio::Event event, const Clock::time_point now)
-  -> bool {
+auto AudioBus::shouldDispatchEvent(const nenoserpent::audio::Event event,
+                                   const Clock::time_point now) -> bool {
   const auto cooldown = eventCooldownMs(event);
   if (cooldown > 0) {
     const auto& eventTime = lastEventTime(event);
@@ -180,7 +214,8 @@ auto AudioBus::shouldDispatchEvent(const nenoserpent::audio::Event event, const 
   return true;
 }
 
-void AudioBus::rememberDispatch(const nenoserpent::audio::Event event, const Clock::time_point now) {
+void AudioBus::rememberDispatch(const nenoserpent::audio::Event event,
+                                const Clock::time_point now) {
   lastEventTime(event) = now;
   if (eventGroup(event) == AudioGroup::Ui) {
     m_recentUiEvent =
@@ -220,7 +255,9 @@ void AudioBus::handleStateChanged(
   }
 }
 
-void AudioBus::handleMusicToggle(const bool musicEnabled, const int state, const int bgmVariant) const {
+void AudioBus::handleMusicToggle(const bool musicEnabled,
+                                 const int state,
+                                 const int bgmVariant) const {
   emitIfSet(m_callbacks.setMusicEnabled, musicEnabled);
 
   if (musicEnabled && state != 0) {

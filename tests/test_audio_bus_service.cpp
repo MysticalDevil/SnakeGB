@@ -44,7 +44,8 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
   QCOMPARE(confirmCue->kind, nenoserpent::audio::CueKind::Score);
   QCOMPARE(confirmCue->scoreCue, nenoserpent::audio::ScoreCueId::Confirm);
 
-  const auto confirmSteps = nenoserpent::audio::scoreCueSteps(nenoserpent::audio::ScoreCueId::Confirm);
+  const auto confirmSteps =
+    nenoserpent::audio::scoreCueSteps(nenoserpent::audio::ScoreCueId::Confirm);
   QCOMPARE(confirmSteps.size(), 3U);
   QCOMPARE(confirmSteps.front().frequencyHz, 1046);
 
@@ -53,37 +54,46 @@ void TestAudioBusService::testCueTableCoversAllEvents() {
   QCOMPARE(crashCue->kind, nenoserpent::audio::CueKind::Crash);
   QCOMPARE(crashCue->durationMs, 500);
 
-  const auto menuTrack = nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::Menu);
+  const auto menuTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn);
   QCOMPARE(menuTrack.size(), 32U);
   QCOMPARE(menuTrack.front().leadPitch, nenoserpent::audio::Pitch::E5);
   QCOMPARE(menuTrack.back().bassPitch, nenoserpent::audio::Pitch::C3);
   QCOMPARE(menuTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Quarter);
 
   const auto gameplayTrack =
-    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::Gameplay);
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn);
   QCOMPARE(gameplayTrack.front().leadPitch, nenoserpent::audio::Pitch::A4);
   QCOMPARE(gameplayTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Half);
 
-  const auto menuAltTrack = nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::MenuAlt);
-  QCOMPARE(menuAltTrack.size(), 16U);
-  QCOMPARE(menuAltTrack.front().leadPitch, nenoserpent::audio::Pitch::C5);
-  QCOMPARE(menuAltTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Narrow);
+  const auto menuNeonTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::MenuNeonPulse);
+  QCOMPARE(menuNeonTrack.size(), 16U);
+  QCOMPARE(menuNeonTrack.front().leadPitch, nenoserpent::audio::Pitch::C5);
+  QCOMPARE(menuNeonTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Narrow);
 
-  const auto gameplayAltTrack =
-    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::GameplayAlt);
-  QCOMPARE(gameplayAltTrack.front().leadPitch, nenoserpent::audio::Pitch::E4);
-  QCOMPARE(gameplayAltTrack.front().bassDuty, nenoserpent::audio::PulseDuty::Wide);
+  const auto gameplayNeonTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::GameplayNeonPulse);
+  QCOMPARE(gameplayNeonTrack.front().leadPitch, nenoserpent::audio::Pitch::E4);
+  QCOMPARE(gameplayNeonTrack.front().bassDuty, nenoserpent::audio::PulseDuty::Wide);
 
-  const auto replayTrack = nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::Replay);
+  const auto replayTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn);
   QCOMPARE(replayTrack.size(), 12U);
   QCOMPARE(replayTrack.front().leadPitch, nenoserpent::audio::Pitch::C5);
   QCOMPARE(replayTrack.front().bassPitch, nenoserpent::audio::Pitch::C3);
 
-  const auto replayAltTrack =
-    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::ReplayAlt);
-  QCOMPARE(replayAltTrack.size(), 8U);
-  QCOMPARE(replayAltTrack.front().leadPitch, nenoserpent::audio::Pitch::A4);
-  QCOMPARE(replayAltTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Wide);
+  const auto replayNeonTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::ReplayNeonPulse);
+  QCOMPARE(replayNeonTrack.size(), 8U);
+  QCOMPARE(replayNeonTrack.front().leadPitch, nenoserpent::audio::Pitch::A4);
+  QCOMPARE(replayNeonTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Wide);
+
+  QCOMPARE(nenoserpent::audio::bgmVariantCount(), 4);
+  QCOMPARE(nenoserpent::audio::bgmVariantName(0), u"EMERALD DAWN");
+  QCOMPARE(nenoserpent::audio::bgmVariantName(1), u"NEON PULSE");
+  QCOMPARE(nenoserpent::audio::bgmVariantName(2), u"CIPHER RUN");
+  QCOMPARE(nenoserpent::audio::bgmVariantName(3), u"AFTERGLOW ECHO");
 }
 
 void TestAudioBusService::testPausedStates() {
@@ -125,15 +135,15 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(deferredDelay, 650);
   QCOMPARE(startCount, 1);
   QCOMPARE(deferredStartCount, 1);
-  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::Menu));
+  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn));
 
   audioBus.handleStateChanged(2, true, 0, {});
   QCOMPARE(startCount, 2);
-  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::Gameplay));
+  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn));
 
   audioBus.handleStateChanged(5, true, 0, {});
   QCOMPARE(startCount, 3);
-  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::Replay));
+  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn));
 
   audioBus.handleStateChanged(4, true, 0, {});
   QCOMPARE(stopCount, 1);
@@ -141,17 +151,29 @@ void TestAudioBusService::testStateChangePolicy() {
 
 void TestAudioBusService::testAlternateTrackSelectionPolicy() {
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(1, 0),
-           nenoserpent::audio::ScoreTrackId::Menu);
+           nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn);
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(1, 1),
-           nenoserpent::audio::ScoreTrackId::MenuAlt);
+           nenoserpent::audio::ScoreTrackId::MenuNeonPulse);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(1, 2),
+           nenoserpent::audio::ScoreTrackId::MenuCipherRun);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(1, 3),
+           nenoserpent::audio::ScoreTrackId::MenuAfterglowEcho);
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(2, 0),
-           nenoserpent::audio::ScoreTrackId::Gameplay);
+           nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn);
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(2, 1),
-           nenoserpent::audio::ScoreTrackId::GameplayAlt);
+           nenoserpent::audio::ScoreTrackId::GameplayNeonPulse);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(2, 2),
+           nenoserpent::audio::ScoreTrackId::GameplayCipherRun);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(2, 3),
+           nenoserpent::audio::ScoreTrackId::GameplayAfterglowEcho);
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(5, 0),
-           nenoserpent::audio::ScoreTrackId::Replay);
+           nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn);
   QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(5, 1),
-           nenoserpent::audio::ScoreTrackId::ReplayAlt);
+           nenoserpent::audio::ScoreTrackId::ReplayNeonPulse);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(5, 2),
+           nenoserpent::audio::ScoreTrackId::ReplayCipherRun);
+  QCOMPARE(nenoserpent::services::AudioBus::musicTrackForState(5, 3),
+           nenoserpent::audio::ScoreTrackId::ReplayAfterglowEcho);
 }
 
 void TestAudioBusService::testMusicTogglePolicy() {
@@ -172,7 +194,7 @@ void TestAudioBusService::testMusicTogglePolicy() {
   audioBus.handleMusicToggle(true, 2, 0);
   QCOMPARE(musicEnabled, 1);
   QCOMPARE(startCount, 1);
-  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::Gameplay));
+  QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn));
   QCOMPARE(stopCount, 0);
 
   audioBus.handleMusicToggle(false, 2, 0);
@@ -280,7 +302,7 @@ void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
           "bassDuty": "quarter"
         }
       ],
-      "menu_alt": [
+      "menu_neon_pulse": [
         {
           "lead": "D5",
           "bass": "D3",
@@ -296,17 +318,19 @@ void TestAudioBusService::testExternalTrackOverrideLoadsFromEnvPath() {
   qputenv("NENOSERPENT_SCORE_OVERRIDE_FILE", overridePath.toUtf8());
   const auto restoreEnv = qScopeGuard([]() { qunsetenv("NENOSERPENT_SCORE_OVERRIDE_FILE"); });
 
-  const auto replayTrack = nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::Replay);
+  const auto replayTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn);
   QCOMPARE(replayTrack.size(), 1U);
   QCOMPARE(replayTrack.front().leadPitch, nenoserpent::audio::Pitch::A5);
   QCOMPARE(replayTrack.front().bassPitch, nenoserpent::audio::Pitch::A3);
   QCOMPARE(replayTrack.front().leadDuty, nenoserpent::audio::PulseDuty::Wide);
   QCOMPARE(replayTrack.front().bassDuty, nenoserpent::audio::PulseDuty::Quarter);
 
-  const auto menuAltTrack = nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::MenuAlt);
-  QCOMPARE(menuAltTrack.size(), 1U);
-  QCOMPARE(menuAltTrack.front().leadPitch, nenoserpent::audio::Pitch::D5);
-  QCOMPARE(menuAltTrack.front().bassPitch, nenoserpent::audio::Pitch::D3);
+  const auto menuNeonTrack =
+    nenoserpent::audio::scoreTrackSteps(nenoserpent::audio::ScoreTrackId::MenuNeonPulse);
+  QCOMPARE(menuNeonTrack.size(), 1U);
+  QCOMPARE(menuNeonTrack.front().leadPitch, nenoserpent::audio::Pitch::D5);
+  QCOMPARE(menuNeonTrack.front().bassPitch, nenoserpent::audio::Pitch::D3);
 }
 
 void TestAudioBusService::testTransientEventsTriggerMusicDucking() {

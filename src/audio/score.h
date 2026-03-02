@@ -13,12 +13,18 @@ enum class ScoreCueId {
 };
 
 enum class ScoreTrackId {
-  Menu,
-  MenuAlt,
-  Gameplay,
-  GameplayAlt,
-  Replay,
-  ReplayAlt,
+  MenuEmeraldDawn,
+  MenuNeonPulse,
+  MenuCipherRun,
+  MenuAfterglowEcho,
+  GameplayEmeraldDawn,
+  GameplayNeonPulse,
+  GameplayCipherRun,
+  GameplayAfterglowEcho,
+  ReplayEmeraldDawn,
+  ReplayNeonPulse,
+  ReplayCipherRun,
+  ReplayAfterglowEcho,
 };
 
 enum class PulseDuty : int {
@@ -72,5 +78,7 @@ struct ScoreTrackStep {
 [[nodiscard]] auto pitchFromName(QStringView name) -> Pitch;
 [[nodiscard]] auto scoreCueSteps(ScoreCueId cueId) -> std::span<const ScoreStep>;
 [[nodiscard]] auto scoreTrackSteps(ScoreTrackId trackId) -> std::span<const ScoreTrackStep>;
+[[nodiscard]] auto bgmVariantCount() -> int;
+[[nodiscard]] auto bgmVariantName(int variant) -> QStringView;
 
 } // namespace nenoserpent::audio

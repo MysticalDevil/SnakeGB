@@ -16,12 +16,18 @@ namespace {
 struct ScoreCatalog {
   QVector<ScoreStep> uiInteractCue;
   QVector<ScoreStep> confirmCue;
-  QVector<ScoreTrackStep> menuTrack;
-  QVector<ScoreTrackStep> menuAltTrack;
-  QVector<ScoreTrackStep> gameplayTrack;
-  QVector<ScoreTrackStep> gameplayAltTrack;
-  QVector<ScoreTrackStep> replayTrack;
-  QVector<ScoreTrackStep> replayAltTrack;
+  QVector<ScoreTrackStep> menuEmeraldDawnTrack;
+  QVector<ScoreTrackStep> menuNeonPulseTrack;
+  QVector<ScoreTrackStep> menuCipherRunTrack;
+  QVector<ScoreTrackStep> menuAfterglowEchoTrack;
+  QVector<ScoreTrackStep> gameplayEmeraldDawnTrack;
+  QVector<ScoreTrackStep> gameplayNeonPulseTrack;
+  QVector<ScoreTrackStep> gameplayCipherRunTrack;
+  QVector<ScoreTrackStep> gameplayAfterglowEchoTrack;
+  QVector<ScoreTrackStep> replayEmeraldDawnTrack;
+  QVector<ScoreTrackStep> replayNeonPulseTrack;
+  QVector<ScoreTrackStep> replayCipherRunTrack;
+  QVector<ScoreTrackStep> replayAfterglowEchoTrack;
 };
 
 struct ScoreCatalogCache {
@@ -122,12 +128,26 @@ void applyExternalOverrides(ScoreCatalog& catalog, const QString& overridePath) 
     return;
   }
 
-  applyTrackOverride(tracks, "menu", catalog.menuTrack);
-  applyTrackOverride(tracks, "menu_alt", catalog.menuAltTrack);
-  applyTrackOverride(tracks, "gameplay", catalog.gameplayTrack);
-  applyTrackOverride(tracks, "gameplay_alt", catalog.gameplayAltTrack);
-  applyTrackOverride(tracks, "replay", catalog.replayTrack);
-  applyTrackOverride(tracks, "replay_alt", catalog.replayAltTrack);
+  applyTrackOverride(tracks, "menu_emerald_dawn", catalog.menuEmeraldDawnTrack);
+  applyTrackOverride(tracks, "menu_neon_pulse", catalog.menuNeonPulseTrack);
+  applyTrackOverride(tracks, "menu_cipher_run", catalog.menuCipherRunTrack);
+  applyTrackOverride(tracks, "menu_afterglow_echo", catalog.menuAfterglowEchoTrack);
+  applyTrackOverride(tracks, "gameplay_emerald_dawn", catalog.gameplayEmeraldDawnTrack);
+  applyTrackOverride(tracks, "gameplay_neon_pulse", catalog.gameplayNeonPulseTrack);
+  applyTrackOverride(tracks, "gameplay_cipher_run", catalog.gameplayCipherRunTrack);
+  applyTrackOverride(tracks, "gameplay_afterglow_echo", catalog.gameplayAfterglowEchoTrack);
+  applyTrackOverride(tracks, "replay_emerald_dawn", catalog.replayEmeraldDawnTrack);
+  applyTrackOverride(tracks, "replay_neon_pulse", catalog.replayNeonPulseTrack);
+  applyTrackOverride(tracks, "replay_cipher_run", catalog.replayCipherRunTrack);
+  applyTrackOverride(tracks, "replay_afterglow_echo", catalog.replayAfterglowEchoTrack);
+
+  // Backward compatible keys from the older two-variant scheme.
+  applyTrackOverride(tracks, "menu", catalog.menuEmeraldDawnTrack);
+  applyTrackOverride(tracks, "menu_alt", catalog.menuNeonPulseTrack);
+  applyTrackOverride(tracks, "gameplay", catalog.gameplayEmeraldDawnTrack);
+  applyTrackOverride(tracks, "gameplay_alt", catalog.gameplayNeonPulseTrack);
+  applyTrackOverride(tracks, "replay", catalog.replayEmeraldDawnTrack);
+  applyTrackOverride(tracks, "replay_alt", catalog.replayNeonPulseTrack);
 }
 
 auto loadBuiltInCatalog() -> ScoreCatalog {
@@ -148,12 +168,19 @@ auto loadBuiltInCatalog() -> ScoreCatalog {
   return {
     .uiInteractCue = parseCueSteps(cues.value("ui_interact").toArray()),
     .confirmCue = parseCueSteps(cues.value("confirm").toArray()),
-    .menuTrack = parseTrackSteps(tracks.value("menu").toArray()),
-    .menuAltTrack = parseTrackSteps(tracks.value("menu_alt").toArray()),
-    .gameplayTrack = parseTrackSteps(tracks.value("gameplay").toArray()),
-    .gameplayAltTrack = parseTrackSteps(tracks.value("gameplay_alt").toArray()),
-    .replayTrack = parseTrackSteps(tracks.value("replay").toArray()),
-    .replayAltTrack = parseTrackSteps(tracks.value("replay_alt").toArray()),
+    .menuEmeraldDawnTrack = parseTrackSteps(tracks.value("menu_emerald_dawn").toArray()),
+    .menuNeonPulseTrack = parseTrackSteps(tracks.value("menu_neon_pulse").toArray()),
+    .menuCipherRunTrack = parseTrackSteps(tracks.value("menu_cipher_run").toArray()),
+    .menuAfterglowEchoTrack = parseTrackSteps(tracks.value("menu_afterglow_echo").toArray()),
+    .gameplayEmeraldDawnTrack = parseTrackSteps(tracks.value("gameplay_emerald_dawn").toArray()),
+    .gameplayNeonPulseTrack = parseTrackSteps(tracks.value("gameplay_neon_pulse").toArray()),
+    .gameplayCipherRunTrack = parseTrackSteps(tracks.value("gameplay_cipher_run").toArray()),
+    .gameplayAfterglowEchoTrack =
+      parseTrackSteps(tracks.value("gameplay_afterglow_echo").toArray()),
+    .replayEmeraldDawnTrack = parseTrackSteps(tracks.value("replay_emerald_dawn").toArray()),
+    .replayNeonPulseTrack = parseTrackSteps(tracks.value("replay_neon_pulse").toArray()),
+    .replayCipherRunTrack = parseTrackSteps(tracks.value("replay_cipher_run").toArray()),
+    .replayAfterglowEchoTrack = parseTrackSteps(tracks.value("replay_afterglow_echo").toArray()),
   };
 }
 
@@ -239,20 +266,51 @@ auto scoreCueSteps(const ScoreCueId cueId) -> std::span<const ScoreStep> {
 
 auto scoreTrackSteps(const ScoreTrackId trackId) -> std::span<const ScoreTrackStep> {
   switch (trackId) {
-  case ScoreTrackId::Menu:
-    return catalog().menuTrack;
-  case ScoreTrackId::MenuAlt:
-    return catalog().menuAltTrack;
-  case ScoreTrackId::Gameplay:
-    return catalog().gameplayTrack;
-  case ScoreTrackId::GameplayAlt:
-    return catalog().gameplayAltTrack;
-  case ScoreTrackId::Replay:
-    return catalog().replayTrack;
-  case ScoreTrackId::ReplayAlt:
-    return catalog().replayAltTrack;
+  case ScoreTrackId::MenuEmeraldDawn:
+    return catalog().menuEmeraldDawnTrack;
+  case ScoreTrackId::MenuNeonPulse:
+    return catalog().menuNeonPulseTrack;
+  case ScoreTrackId::MenuCipherRun:
+    return catalog().menuCipherRunTrack;
+  case ScoreTrackId::MenuAfterglowEcho:
+    return catalog().menuAfterglowEchoTrack;
+  case ScoreTrackId::GameplayEmeraldDawn:
+    return catalog().gameplayEmeraldDawnTrack;
+  case ScoreTrackId::GameplayNeonPulse:
+    return catalog().gameplayNeonPulseTrack;
+  case ScoreTrackId::GameplayCipherRun:
+    return catalog().gameplayCipherRunTrack;
+  case ScoreTrackId::GameplayAfterglowEcho:
+    return catalog().gameplayAfterglowEchoTrack;
+  case ScoreTrackId::ReplayEmeraldDawn:
+    return catalog().replayEmeraldDawnTrack;
+  case ScoreTrackId::ReplayNeonPulse:
+    return catalog().replayNeonPulseTrack;
+  case ScoreTrackId::ReplayCipherRun:
+    return catalog().replayCipherRunTrack;
+  case ScoreTrackId::ReplayAfterglowEcho:
+    return catalog().replayAfterglowEchoTrack;
   }
   return {};
+}
+
+auto bgmVariantCount() -> int {
+  return 4;
+}
+
+auto bgmVariantName(const int variant) -> QStringView {
+  switch (variant < 0 ? 0 : variant % bgmVariantCount()) {
+  case 0:
+    return u"EMERALD DAWN";
+  case 1:
+    return u"NEON PULSE";
+  case 2:
+    return u"CIPHER RUN";
+  case 3:
+    return u"AFTERGLOW ECHO";
+  default:
+    return u"EMERALD DAWN";
+  }
 }
 
 } // namespace nenoserpent::audio

@@ -11,7 +11,7 @@
     ]
   },
   "tracks": {
-    "menu": [
+    "menu_emerald_dawn": [
       { "lead": "E5", "bass": "C3", "durationMs": 180, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "G5", "bass": "C3", "durationMs": 180, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "A5", "bass": "F3", "durationMs": 180, "leadDuty": "quarter", "bassDuty": "half" },
@@ -48,7 +48,7 @@
       { "lead": "C5", "bass": "C3", "durationMs": 180, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "G4", "bass": "C3", "durationMs": 420, "leadDuty": "quarter", "bassDuty": "half" }
     ],
-    "menu_alt": [
+    "menu_neon_pulse": [
       { "lead": "C5", "bass": "C3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "wide" },
       { "lead": "E5", "bass": "C3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "wide" },
       { "lead": "G5", "bass": "G3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "wide" },
@@ -67,7 +67,27 @@
       { "lead": "C5", "bass": "C3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "wide" },
       { "lead": "G4", "bass": "C3", "durationMs": 420, "leadDuty": "narrow", "bassDuty": "wide" }
     ],
-    "gameplay": [
+    "menu_cipher_run": [
+      { "lead": "G4", "bass": "C3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "B4", "bass": "C3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "D5", "bass": "G3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "E5", "bass": "G3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "D5", "bass": "F3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "B4", "bass": "F3", "durationMs": 150, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "A4", "bass": "E3", "durationMs": 180, "leadDuty": "half", "bassDuty": "quarter" },
+      { "lead": "REST", "bass": "E3", "durationMs": 240, "leadDuty": "half", "bassDuty": "quarter" }
+    ],
+    "menu_afterglow_echo": [
+      { "lead": "A4", "bass": "A3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "C5", "bass": "A3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "E5", "bass": "E3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "D5", "bass": "E3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "C5", "bass": "F3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "A4", "bass": "F3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "G4", "bass": "D3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "half" },
+      { "lead": "REST", "bass": "D3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "half" }
+    ],
+    "gameplay_emerald_dawn": [
       { "lead": "A4", "bass": "A3", "durationMs": 300, "leadDuty": "half", "bassDuty": "half" },
       { "lead": "B4", "bass": "B3", "durationMs": 300, "leadDuty": "half", "bassDuty": "half" },
       { "lead": "C5", "bass": "C4", "durationMs": 300, "leadDuty": "half", "bassDuty": "half" },
@@ -95,7 +115,7 @@
       { "lead": "E5", "bass": "E3", "durationMs": 300, "leadDuty": "half", "bassDuty": "half" },
       { "lead": "D5", "bass": "D3", "durationMs": 600, "leadDuty": "half", "bassDuty": "half" }
     ],
-    "gameplay_alt": [
+    "gameplay_neon_pulse": [
       { "lead": "E4", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "wide" },
       { "lead": "G4", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "wide" },
       { "lead": "A4", "bass": "F3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "wide" },
@@ -113,7 +133,37 @@
       { "lead": "C4", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "wide" },
       { "lead": "REST", "bass": "C3", "durationMs": 360, "leadDuty": "quarter", "bassDuty": "wide" }
     ],
-    "replay": [
+    "gameplay_cipher_run": [
+      { "lead": "C4", "bass": "C3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "D4", "bass": "C3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "F4", "bass": "F3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "G4", "bass": "F3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "A4", "bass": "A3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "G4", "bass": "A3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "F4", "bass": "G3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "D4", "bass": "G3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "C4", "bass": "C3", "durationMs": 240, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "REST", "bass": "C3", "durationMs": 120, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "E4", "bass": "E3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "G4", "bass": "E3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "B4", "bass": "B3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "A4", "bass": "B3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "G4", "bass": "G3", "durationMs": 240, "leadDuty": "narrow", "bassDuty": "half" },
+      { "lead": "REST", "bass": "G3", "durationMs": 180, "leadDuty": "narrow", "bassDuty": "half" }
+    ],
+    "gameplay_afterglow_echo": [
+      { "lead": "A4", "bass": "D3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "C5", "bass": "D3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "E5", "bass": "G3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "D5", "bass": "G3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "C5", "bass": "F3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "A4", "bass": "F3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "G4", "bass": "E3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "E4", "bass": "E3", "durationMs": 360, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "D4", "bass": "D3", "durationMs": 420, "leadDuty": "wide", "bassDuty": "quarter" },
+      { "lead": "REST", "bass": "D3", "durationMs": 180, "leadDuty": "wide", "bassDuty": "quarter" }
+    ],
+    "replay_emerald_dawn": [
       { "lead": "C5", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "E5", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "G5", "bass": "G3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "half" },
@@ -127,7 +177,7 @@
       { "lead": "A5", "bass": "F3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "half" },
       { "lead": "G5", "bass": "F3", "durationMs": 420, "leadDuty": "quarter", "bassDuty": "half" }
     ],
-    "replay_alt": [
+    "replay_neon_pulse": [
       { "lead": "A4", "bass": "D3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "quarter" },
       { "lead": "C5", "bass": "D3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "quarter" },
       { "lead": "D5", "bass": "G3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "quarter" },
@@ -136,6 +186,26 @@
       { "lead": "A4", "bass": "F3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "quarter" },
       { "lead": "G4", "bass": "F3", "durationMs": 240, "leadDuty": "wide", "bassDuty": "quarter" },
       { "lead": "E4", "bass": "C3", "durationMs": 420, "leadDuty": "wide", "bassDuty": "quarter" }
+    ],
+    "replay_cipher_run": [
+      { "lead": "G4", "bass": "C3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "A4", "bass": "C3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "C5", "bass": "F3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "A4", "bass": "F3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "F4", "bass": "D3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "G4", "bass": "D3", "durationMs": 180, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "A4", "bass": "E3", "durationMs": 240, "leadDuty": "half", "bassDuty": "wide" },
+      { "lead": "REST", "bass": "E3", "durationMs": 300, "leadDuty": "half", "bassDuty": "wide" }
+    ],
+    "replay_afterglow_echo": [
+      { "lead": "E5", "bass": "A3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "D5", "bass": "A3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "C5", "bass": "F3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "A4", "bass": "F3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "G4", "bass": "D3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "E4", "bass": "D3", "durationMs": 300, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "D4", "bass": "C3", "durationMs": 360, "leadDuty": "quarter", "bassDuty": "quarter" },
+      { "lead": "REST", "bass": "C3", "durationMs": 240, "leadDuty": "quarter", "bassDuty": "quarter" }
     ]
   }
 }

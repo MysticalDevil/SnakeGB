@@ -46,10 +46,10 @@ void TestUiCommandController::testCycleBgmForwardsVariantSwitch() {
   controller.cycleBgm();
 
   QCOMPARE(promptSpy.count(), 1);
-  QCOMPARE(promptSpy.takeFirst().at(0).toString(), QString("BGM B"));
+  QCOMPARE(promptSpy.takeFirst().at(0).toString(), QString("TRACK: NEON PULSE"));
   QCOMPARE(musicSpy.count(), 1);
   QCOMPARE(musicSpy.takeFirst().at(0).toInt(),
-           static_cast<int>(nenoserpent::audio::ScoreTrackId::MenuAlt));
+           static_cast<int>(nenoserpent::audio::ScoreTrackId::MenuNeonPulse));
 }
 
 void TestUiCommandController::testSeedChoicePreviewForwardsDebugSeed() {

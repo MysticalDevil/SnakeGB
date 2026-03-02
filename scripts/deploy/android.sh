@@ -21,6 +21,7 @@ APP_ID="${APP_ID:-org.devil.nenoserpent}"
 INSTALL_TO_DEVICE="${INSTALL_TO_DEVICE:-1}"
 LAUNCH_AFTER_INSTALL="${LAUNCH_AFTER_INSTALL:-1}"
 GRADLE_TIMEOUT_SECS="${GRADLE_TIMEOUT_SECS:-0}"
+OUTPUT_APK="${OUTPUT_APK:-${PROJECT_ROOT}/dist/android/${APP_ID}-${ANDROID_ABI}.apk}"
 
 log_phase() {
   echo "[phase] $*"
@@ -125,6 +126,12 @@ for candidate in "${android_build_candidates[@]}"; do
   fi
 done
 if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
+  while IFS= read -r candidate; do
+    ANDROID_BUILD_DIR="${candidate}"
+    break
+  done < <(find "${BUILD_DIR}" -type d -name 'android-build' | sort)
+fi
+if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
   gradle_wrapper_path="$(find "${BUILD_DIR}" -type f -path '*/android-build/gradlew' | head -n1)"
   if [[ -n "${gradle_wrapper_path}" ]]; then
     ANDROID_BUILD_DIR="$(dirname "${gradle_wrapper_path}")"
@@ -135,6 +142,8 @@ if [[ -z "${ANDROID_BUILD_DIR}" ]]; then
   for candidate in "${android_build_candidates[@]}"; do
     echo "  - ${candidate}"
   done
+  echo "[warn] discovered android-build dirs under ${BUILD_DIR}:"
+  find "${BUILD_DIR}" -type d -name 'android-build' | sort || true
 fi
 
 if [[ -n "${ANDROID_BUILD_DIR}" ]]; then
@@ -179,6 +188,12 @@ apk_roots=(
   "${BUILD_DIR}/android-build/build/outputs/apk"
   "${BUILD_DIR}/src/android-build/build/outputs/apk"
 )
+if [[ -n "${ANDROID_BUILD_DIR}" ]]; then
+  apk_roots=(
+    "${ANDROID_BUILD_DIR}/build/outputs/apk"
+    "${apk_roots[@]}"
+  )
+fi
 apk_output_dirs=()
 for root in "${apk_roots[@]}"; do
   if [[ -d "${root}/${build_type_lc}" ]]; then
@@ -212,6 +227,9 @@ if [[ -z "${UNSIGNED_APK}" ]]; then
 fi
 
 SIGNED_INPUT_APK=""
+if [[ -n "${ANDROID_BUILD_DIR}" ]]; then
+  SIGNED_INPUT_APK="$(find "${ANDROID_BUILD_DIR}" -maxdepth 2 -type f -name '*.apk' ! -name '*-unsigned.apk' | head -n1)"
+fi
 if [[ -z "${UNSIGNED_APK}" ]]; then
   for root in "${apk_roots[@]}"; do
     if [[ -d "${root}" ]]; then
@@ -286,6 +304,10 @@ else
     "${ALIGNED_APK}"
   "${APKSIGNER_BIN}" verify "${SIGNED_APK}"
 fi
+
+mkdir -p "$(dirname "${OUTPUT_APK}")"
+cp -f "${SIGNED_APK}" "${OUTPUT_APK}"
+SIGNED_APK="${OUTPUT_APK}"
 
 echo "[info] Signed APK: ${SIGNED_APK}"
 

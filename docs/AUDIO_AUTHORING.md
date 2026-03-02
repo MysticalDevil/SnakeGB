@@ -73,12 +73,18 @@ Looped BGM tracks live under `tracks`.
 
 Currently supported built-in track ids:
 
-- `menu`
-- `menu_alt`
-- `gameplay`
-- `gameplay_alt`
-- `replay`
-- `replay_alt`
+- `menu_emerald_dawn`
+- `menu_neon_pulse`
+- `menu_cipher_run`
+- `menu_afterglow_echo`
+- `gameplay_emerald_dawn`
+- `gameplay_neon_pulse`
+- `gameplay_cipher_run`
+- `gameplay_afterglow_echo`
+- `replay_emerald_dawn`
+- `replay_neon_pulse`
+- `replay_cipher_run`
+- `replay_afterglow_echo`
 
 Each track is an array of steps:
 
@@ -169,19 +175,26 @@ Override file shape:
         "bassDuty": "quarter"
       }
     ],
-    "menu_alt": [],
-    "gameplay": [],
-    "gameplay_alt": [],
-    "replay": [],
-    "replay_alt": []
+    "menu_neon_pulse": [],
+    "menu_cipher_run": [],
+    "menu_afterglow_echo": [],
+    "gameplay_emerald_dawn": [],
+    "gameplay_neon_pulse": [],
+    "gameplay_cipher_run": [],
+    "gameplay_afterglow_echo": [],
+    "replay_emerald_dawn": [],
+    "replay_neon_pulse": [],
+    "replay_cipher_run": [],
+    "replay_afterglow_echo": []
   }
 }
 ```
 
 Rules:
 
-- `tracks.menu`, `tracks.menu_alt`, `tracks.gameplay`, `tracks.gameplay_alt`,
-  `tracks.replay`, and `tracks.replay_alt` are supported.
+- all 12 built-in track ids above are supported override keys.
+- legacy keys `menu`, `menu_alt`, `gameplay`, `gameplay_alt`, `replay`, `replay_alt`
+  are still accepted for compatibility (mapped to `emerald_dawn` and `neon_pulse`).
 - Overrides are per-track.
 - If an override track parses to a non-empty step list, it replaces the built-in track.
 - Invalid, missing, or empty override tracks fall back to the built-in resource track.
@@ -216,6 +229,7 @@ NENOSERPENT_SCORE_OVERRIDE_FILE=/tmp/custom_tracks.json ./build/dev/NenoSerpent
 ## Current Limits
 
 - Cue resources still use raw `frequencyHz` rather than note names.
-- Built-in music currently exposes two variants per runtime slot (`A/B`) rather than arbitrary sets.
+- Built-in music now exposes four named suites:
+  `EMERALD DAWN`, `NEON PULSE`, `CIPHER RUN`, `AFTERGLOW ECHO`.
 - No end-user import UI exists yet.
 - No metadata such as tempo, loop markers, gain, or per-track bus assignment exists yet.

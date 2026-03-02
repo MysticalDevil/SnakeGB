@@ -86,7 +86,8 @@ private:
   float m_musicDuckScale = 1.0f;
   int m_noteIndex = 0;
   int m_currentScore = 0;
-  nenoserpent::audio::ScoreTrackId m_currentTrackId = nenoserpent::audio::ScoreTrackId::Menu;
+  nenoserpent::audio::ScoreTrackId m_currentTrackId =
+    nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn;
 
 #ifdef NENOSERPENT_HAS_MULTIMEDIA
   // Filter state
