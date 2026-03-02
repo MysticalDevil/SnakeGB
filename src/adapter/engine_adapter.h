@@ -209,6 +209,7 @@ public:
   Q_INVOKABLE void handleSelect();
   Q_INVOKABLE void handleStart();
   Q_INVOKABLE void deleteSave();
+  Q_INVOKABLE void toggleBotAutoplay();
   Q_INVOKABLE void debugSeedReplayBuffPreview();
   Q_INVOKABLE void debugSeedChoicePreview(const QVariantList& types = QVariantList());
 
@@ -281,6 +282,9 @@ public:
     return m_choicePending;
   }
   [[nodiscard]] auto fruitLibrary() const -> QVariantList;
+  [[nodiscard]] auto botAutoplayEnabled() const noexcept -> bool {
+    return m_botAutoplayEnabled;
+  }
 
   static constexpr int BOARD_WIDTH = 20;
   static constexpr int BOARD_HEIGHT = 18;
@@ -311,6 +315,7 @@ signals:
   void fruitLibraryChanged();
   void medalIndexChanged();
   void eventPrompt(QString text);
+  void botAutoplayChanged();
 
   void foodEaten(float pan);
   void powerUpEaten();
@@ -335,6 +340,7 @@ private:
   void setupSensorRuntime();
   void applyReplayTimelineForCurrentTick(int& inputHistoryIndex, int& choiceHistoryIndex);
   void applyPostTickTasks();
+  auto driveBotAutoplay() -> bool;
   void updateReflectionFallback();
   [[nodiscard]] auto initialGameplayIntervalMs() const -> int;
   [[nodiscard]] auto gameplayTickIntervalMs() const -> int;
@@ -407,6 +413,7 @@ private:
   std::unique_ptr<GameState> m_fsmState;
   bool m_musicEnabled = true;
   int m_bgmVariant = 0;
+  bool m_botAutoplayEnabled = false;
   bool m_stateCallbackInProgress = false;
   std::optional<int> m_pendingStateChange;
 

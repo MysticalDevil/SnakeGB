@@ -16,6 +16,7 @@ void TestUiActionParser::testKnownActionsMapToExpectedKinds() {
   using nenoserpent::adapter::NavAction;
   using nenoserpent::adapter::PrimaryAction;
   using nenoserpent::adapter::StartAction;
+  using nenoserpent::adapter::ToggleBotAction;
   using nenoserpent::adapter::ToggleMusicAction;
 
   QCOMPARE(std::get<NavAction>(nenoserpent::adapter::parseUiAction("nav_up")).dy, -1);
@@ -23,7 +24,10 @@ void TestUiActionParser::testKnownActionsMapToExpectedKinds() {
   QVERIFY(std::holds_alternative<StartAction>(nenoserpent::adapter::parseUiAction("start")));
   QVERIFY(
     std::holds_alternative<ToggleMusicAction>(nenoserpent::adapter::parseUiAction("toggle_music")));
-  QVERIFY(std::holds_alternative<FeedbackUiAction>(nenoserpent::adapter::parseUiAction("feedback_ui")));
+  QVERIFY(
+    std::holds_alternative<ToggleBotAction>(nenoserpent::adapter::parseUiAction("toggle_bot")));
+  QVERIFY(
+    std::holds_alternative<FeedbackUiAction>(nenoserpent::adapter::parseUiAction("feedback_ui")));
 }
 
 void TestUiActionParser::testIndexedActionsParsePayload() {
@@ -40,12 +44,12 @@ void TestUiActionParser::testIndexedActionsParsePayload() {
 void TestUiActionParser::testUnknownAndInvalidActionsFallbackToUnknown() {
   using nenoserpent::adapter::UnknownAction;
 
-  QVERIFY(
-    std::holds_alternative<UnknownAction>(nenoserpent::adapter::parseUiAction("not_a_real_action")));
+  QVERIFY(std::holds_alternative<UnknownAction>(
+    nenoserpent::adapter::parseUiAction("not_a_real_action")));
   QVERIFY(std::holds_alternative<UnknownAction>(
     nenoserpent::adapter::parseUiAction("set_library_index:abc")));
-  QVERIFY(
-    std::holds_alternative<UnknownAction>(nenoserpent::adapter::parseUiAction("set_medal_index:bad")));
+  QVERIFY(std::holds_alternative<UnknownAction>(
+    nenoserpent::adapter::parseUiAction("set_medal_index:bad")));
 }
 
 QTEST_MAIN(TestUiActionParser)

@@ -47,7 +47,8 @@ Window {
         Escape: "escape",
         ToggleIconLab: "toggle_icon_lab",
         ToggleShellColor: "toggle_shell_color",
-        ToggleMusic: "toggle_music"
+        ToggleMusic: "toggle_music",
+        ToggleBot: "toggle_bot"
     })
     Timer {
         interval: window.elapsedTickMs

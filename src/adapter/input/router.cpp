@@ -36,6 +36,7 @@ void EngineAdapter::dispatchUiAction(const nenoserpent::adapter::UiAction& actio
       },
       .onToggleShellColor = [this]() -> void { nextShellColor(); },
       .onToggleMusic = [this]() -> void { toggleMusic(); },
+      .onToggleBot = [this]() -> void { toggleBotAutoplay(); },
       .onQuitToMenu = [this]() -> void { quitToMenu(); },
       .onQuit = [this]() -> void { quit(); },
       .onNextPalette = [this]() -> void { nextPalette(); },
@@ -103,6 +104,13 @@ void EngineAdapter::toggleMusic() {
   qCInfo(nenoserpentAudioLog).noquote() << "toggleMusic ->" << m_musicEnabled;
   m_audioBus.handleMusicToggle(m_musicEnabled, static_cast<int>(m_state), m_bgmVariant);
   emit musicEnabledChanged();
+}
+
+void EngineAdapter::toggleBotAutoplay() {
+  m_botAutoplayEnabled = !m_botAutoplayEnabled;
+  emit botAutoplayChanged();
+  emit eventPrompt(m_botAutoplayEnabled ? u"BOT: ON"_s : u"BOT: OFF"_s);
+  qCInfo(nenoserpentInputLog).noquote() << "bot autoplay ->" << m_botAutoplayEnabled;
 }
 
 void EngineAdapter::cycleBgm() {

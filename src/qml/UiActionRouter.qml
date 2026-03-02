@@ -151,6 +151,8 @@ QtObject {
             return dispatch("toggle_shell_color")
         case router.actionMap.ToggleMusic:
             return dispatch("toggle_music")
+        case router.actionMap.ToggleBot:
+            return dispatch("toggle_bot")
         case router.actionMap.Escape:
             if (router.iconDebugMode) {
                 return router.debugController
