@@ -110,7 +110,7 @@ void EngineAdapter::cycleBgm() {
   m_bgmVariant = variantCount > 0 ? (m_bgmVariant + 1) % variantCount : 0;
   qCInfo(nenoserpentAudioLog).noquote() << "cycleBgm -> variant" << m_bgmVariant;
 
-  emit eventPrompt(u"TRACK: "_s + QString(nenoserpent::audio::bgmVariantName(m_bgmVariant)));
+  emit eventPrompt(u"TRACK: "_s + nenoserpent::audio::bgmVariantName(m_bgmVariant).toString());
 
   if (!m_musicEnabled) {
     return;
