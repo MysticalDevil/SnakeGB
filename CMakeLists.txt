@@ -185,6 +185,7 @@ if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_project()
 endif()
 
+if(NOT ANDROID)
 enable_testing()
 add_executable(engine-adapter-tests
     tests/test_engine_adapter.cpp
@@ -417,6 +418,7 @@ target_include_directories(adapter-choice-models-tests PRIVATE src)
 target_link_libraries(adapter-choice-models-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
 add_test(NAME AdapterChoiceModelsTest COMMAND adapter-choice-models-tests)
 set_tests_properties(AdapterChoiceModelsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
 
 nenoserpent_apply_project_options(
     nenoserpent_core
