@@ -112,14 +112,6 @@ void EngineAdapter::toggleBotAutoplay() {
   emit botAutoplayChanged();
   emit eventPrompt(m_botAutoplayEnabled ? u"BOT: ON"_s : u"BOT: OFF"_s);
   qCInfo(nenoserpentInputLog).noquote() << "bot autoplay ->" << m_botAutoplayEnabled;
-
-  if (!m_botAutoplayEnabled) {
-    return;
-  }
-
-  if (m_state == AppState::StartMenu) {
-    dispatchStateCallback([](GameState& state) -> void { state.handleStart(); });
-  }
 }
 
 void EngineAdapter::cycleBgm() {
