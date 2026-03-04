@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SOURCE_FOREGROUND="${ROOT_DIR}/res/snake-foreground.png"
+SOURCE_FOREGROUND="${ROOT_DIR}/android/res/icon-src/snake-foreground.png"
 RES_DIR="${ROOT_DIR}/android/res"
 PLAYSTORE_DIR="${ROOT_DIR}/android/playstore"
 ICON_BG_COLOR="${ICON_BG_COLOR:-#DBE88C}"
