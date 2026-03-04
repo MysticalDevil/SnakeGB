@@ -9,6 +9,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DATASET_PATH="${BOT_TRAIN_DATASET:-/tmp/nenoserpent_bot_dataset.csv}"
 MODEL_PATH="${BOT_TRAIN_MODEL:-/tmp/nenoserpent_bot_policy.pt}"
 METADATA_PATH="${BOT_TRAIN_METADATA:-/tmp/nenoserpent_bot_policy_meta.json}"
+RUNTIME_JSON_PATH="${BOT_TRAIN_RUNTIME_JSON:-/tmp/nenoserpent_bot_policy_runtime.json}"
 EPOCHS="${BOT_TRAIN_EPOCHS:-30}"
 BATCH_SIZE="${BOT_TRAIN_BATCH_SIZE:-256}"
 LR="${BOT_TRAIN_LR:-0.001}"
@@ -27,6 +28,10 @@ while (($# > 0)); do
       ;;
     --metadata)
       METADATA_PATH="$2"
+      shift 2
+      ;;
+    --runtime-json)
+      RUNTIME_JSON_PATH="$2"
       shift 2
       ;;
     --epochs)
@@ -60,6 +65,7 @@ exec python3 "${ROOT_DIR}/scripts/dev/bot_train.py" \
   --dataset "${DATASET_PATH}" \
   --output-model "${MODEL_PATH}" \
   --output-metadata "${METADATA_PATH}" \
+  --output-runtime-json "${RUNTIME_JSON_PATH}" \
   --epochs "${EPOCHS}" \
   --batch-size "${BATCH_SIZE}" \
   --lr "${LR}" \

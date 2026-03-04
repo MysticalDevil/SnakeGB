@@ -13,6 +13,7 @@
 #include <QVariantList>
 
 #include "adapter/bot/backend.h"
+#include "adapter/bot/features.h"
 #include "adapter/bot/runtime.h"
 #include "core/buff/runtime.h"
 #include "core/session/runner.h"
@@ -96,62 +97,23 @@ struct DatasetWriter final {
     return enabled && maxSamples > 0 && sampleCount >= maxSamples;
   }
 
-  static auto directionClass(const QPoint& direction) -> int {
-    if (direction == QPoint(0, -1)) {
-      return 0; // up
-    }
-    if (direction == QPoint(1, 0)) {
-      return 1; // right
-    }
-    if (direction == QPoint(0, 1)) {
-      return 2; // down
-    }
-    if (direction == QPoint(-1, 0)) {
-      return 3; // left
-    }
-    return -1;
-  }
-
-  auto writeSample(const nenoserpent::adapter::bot::Snapshot& snapshot,
-                   const int levelIndex,
-                   const int score,
-                   const QPoint& action) -> void {
+  auto writeSample(const nenoserpent::adapter::bot::Snapshot& snapshot, const QPoint& action)
+    -> void {
     if (!enabled || shouldStop()) {
       return;
     }
-    const int actionClass = directionClass(action);
+    const int actionClass = nenoserpent::adapter::bot::directionClass(action);
     if (actionClass < 0) {
       return;
     }
-    auto collides = [&snapshot](const QPoint& cell) -> int {
-      const bool outOfBounds = cell.x() < 0 || cell.y() < 0 || cell.x() >= snapshot.boardWidth ||
-                               cell.y() >= snapshot.boardHeight;
-      if (outOfBounds) {
-        return 1;
+    const auto features = nenoserpent::adapter::bot::extractFeatures(snapshot);
+    for (int i = 0; i < nenoserpent::adapter::bot::Features::kSize; ++i) {
+      if (i > 0) {
+        stream << ',';
       }
-      if (snapshot.obstacles.contains(cell) ||
-          std::ranges::find(snapshot.body, cell) != snapshot.body.end()) {
-        return 1;
-      }
-      return 0;
-    };
-
-    const QPoint up(0, -1);
-    const QPoint right(1, 0);
-    const QPoint down(0, 1);
-    const QPoint left(-1, 0);
-
-    stream << levelIndex << ',' << score << ',' << snapshot.body.size() << ',' << snapshot.head.x()
-           << ',' << snapshot.head.y() << ',' << snapshot.direction.x() << ','
-           << snapshot.direction.y() << ',' << (snapshot.food.x() - snapshot.head.x()) << ','
-           << (snapshot.food.y() - snapshot.head.y()) << ','
-           << (snapshot.powerUpPos.x() - snapshot.head.x()) << ','
-           << (snapshot.powerUpPos.y() - snapshot.head.y()) << ',' << snapshot.powerUpType << ','
-           << (snapshot.powerUpType > 0 ? 1 : 0) << ',' << (snapshot.ghostActive ? 1 : 0) << ','
-           << (snapshot.shieldActive ? 1 : 0) << ',' << (snapshot.portalActive ? 1 : 0) << ','
-           << (snapshot.laserActive ? 1 : 0) << ',' << collides(snapshot.head + up) << ','
-           << collides(snapshot.head + right) << ',' << collides(snapshot.head + down) << ','
-           << collides(snapshot.head + left) << ',' << actionClass << '\n';
+      stream << features.values[static_cast<std::size_t>(i)];
+    }
+    stream << ',' << actionClass << '\n';
     sampleCount += 1;
   }
 
@@ -222,6 +184,8 @@ auto runBenchmark(const int games,
             .food = state.food,
             .powerUpPos = state.powerUpPos,
             .powerUpType = state.powerUpType,
+            .score = state.score,
+            .levelIndex = levelIndex,
             .ghostActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Ghost),
             .shieldActive = state.shieldActive,
             .portalActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Portal),
@@ -254,6 +218,8 @@ auto runBenchmark(const int games,
               .food = state.food,
               .powerUpPos = state.powerUpPos,
               .powerUpType = state.powerUpType,
+              .score = state.score,
+              .levelIndex = levelIndex,
               .ghostActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Ghost),
               .shieldActive = state.shieldActive,
               .portalActive =
@@ -264,8 +230,6 @@ auto runBenchmark(const int games,
               .obstacles = state.obstacles,
               .body = core.body(),
             },
-            levelIndex,
-            state.score,
             *decision.enqueueDirection);
         }
         runner.enqueueDirection(*decision.enqueueDirection);

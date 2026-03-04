@@ -38,7 +38,8 @@ Dataset schema is emitted by `bot-benchmark --dump-dataset` and includes:
 ./scripts/dev.sh bot-train \
   --dataset /tmp/nenoserpent_bot_dataset.csv \
   --model /tmp/nenoserpent_bot_policy.pt \
-  --metadata /tmp/nenoserpent_bot_policy_meta.json
+  --metadata /tmp/nenoserpent_bot_policy_meta.json \
+  --runtime-json /tmp/nenoserpent_bot_policy_runtime.json
 ```
 
 Important args:
@@ -47,6 +48,7 @@ Important args:
 - `--batch-size` (default `256`)
 - `--lr` (default `1e-3`)
 - `--train-ratio` (default `0.9`)
+- `--runtime-json` (default `/tmp/nenoserpent_bot_policy_runtime.json`)
 
 ## 3. Evaluate
 

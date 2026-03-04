@@ -57,6 +57,8 @@ auto EngineAdapter::driveBotAutoplay() -> bool {
         .food = m_session.food,
         .powerUpPos = m_session.powerUpPos,
         .powerUpType = m_session.powerUpType,
+        .score = m_session.score,
+        .levelIndex = m_levelIndex,
         .ghostActive = m_session.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Ghost),
         .shieldActive = m_session.shieldActive,
         .portalActive = m_session.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Portal),

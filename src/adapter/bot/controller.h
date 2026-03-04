@@ -17,6 +17,8 @@ struct Snapshot {
   QPoint food{0, 0};
   QPoint powerUpPos{-1, -1};
   int powerUpType = 0;
+  int score = 0;
+  int levelIndex = 0;
   bool ghostActive = false;
   bool shieldActive = false;
   bool portalActive = false;

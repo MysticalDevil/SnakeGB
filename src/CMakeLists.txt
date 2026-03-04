@@ -48,6 +48,10 @@ add_library(nenoserpent_adapter
     adapter/bot/controller.cpp
     adapter/bot/backend.h
     adapter/bot/backend.cpp
+    adapter/bot/features.h
+    adapter/bot/features.cpp
+    adapter/bot/ml_backend.h
+    adapter/bot/ml_backend.cpp
     adapter/bot/config.h
     adapter/bot/config.cpp
     adapter/bot/runtime.h
