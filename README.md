@@ -99,6 +99,9 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 
 # Run bot benchmark (builds bot-benchmark target and executes it)
 ./scripts/dev.sh bot-benchmark --games 300 --max-ticks 5000 --profile dev
+
+# Run fixed bot E2E regression matrix (safe/balanced/aggressive x fixed levels)
+./scripts/dev.sh bot-e2e build/debug
 ```
 
 ### Build and Deploy (WebAssembly)
