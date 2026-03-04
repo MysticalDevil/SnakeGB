@@ -46,6 +46,17 @@ auto EngineAdapter::driveBotAutoplay() -> bool {
   if (!m_fsmState) {
     return false;
   }
+  const nenoserpent::adapter::bot::BotBackend* backend = nullptr;
+  switch (m_botBackendMode) {
+  case nenoserpent::adapter::bot::BotBackendMode::Off:
+    break;
+  case nenoserpent::adapter::bot::BotBackendMode::Rule:
+    backend = &nenoserpent::adapter::bot::ruleBackend();
+    break;
+  case nenoserpent::adapter::bot::BotBackendMode::Ml:
+    backend = &m_botMlBackend;
+    break;
+  }
   const auto decision = nenoserpent::adapter::bot::step({
     .enabled = botAutoplayEnabled(),
     .cooldownTicks = m_botActionCooldownTicks,
@@ -71,9 +82,25 @@ auto EngineAdapter::driveBotAutoplay() -> bool {
     .choices = m_choices,
     .currentChoiceIndex = m_choiceIndex,
     .strategy = &m_botStrategyConfig,
-    .backend = &nenoserpent::adapter::bot::ruleBackend(),
+    .backend = backend,
+    .fallbackBackend = &nenoserpent::adapter::bot::ruleBackend(),
   });
   m_botActionCooldownTicks = decision.nextCooldownTicks;
+
+  if (botAutoplayEnabled()) {
+    const QString routeKey = decision.usedFallback
+                               ? decision.backend + u":"_s + decision.fallbackReason
+                               : decision.backend;
+    if (routeKey != m_lastBotBackendRoute) {
+      m_lastBotBackendRoute = routeKey;
+      if (decision.usedFallback) {
+        qCInfo(nenoserpentInputLog).noquote()
+          << "bot backend fallback ->" << decision.backend << "reason=" << decision.fallbackReason;
+      } else {
+        qCInfo(nenoserpentInputLog).noquote() << "bot backend route ->" << decision.backend;
+      }
+    }
+  }
 
   if (decision.enqueueDirection.has_value() &&
       m_sessionCore.enqueueDirection(*decision.enqueueDirection)) {

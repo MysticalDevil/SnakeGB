@@ -109,8 +109,6 @@ auto powerPriority(const StrategyConfig& config, const int type) -> int {
 
 auto modeName(const BotMode mode) -> QString {
   switch (mode) {
-  case BotMode::Off:
-    return QStringLiteral("off");
   case BotMode::Safe:
     return QStringLiteral("safe");
   case BotMode::Balanced:
@@ -123,22 +121,18 @@ auto modeName(const BotMode mode) -> QString {
 
 auto nextMode(const BotMode mode) -> BotMode {
   switch (mode) {
-  case BotMode::Off:
-    return BotMode::Safe;
   case BotMode::Safe:
     return BotMode::Balanced;
   case BotMode::Balanced:
     return BotMode::Aggressive;
   case BotMode::Aggressive:
-    return BotMode::Off;
+    return BotMode::Safe;
   }
-  return BotMode::Off;
+  return BotMode::Balanced;
 }
 
 void applyModeDefaults(StrategyConfig& config, const BotMode mode) {
   switch (mode) {
-  case BotMode::Off:
-    break;
   case BotMode::Safe:
     config.safeNeighborWeight += 5;
     config.trapPenalty += 10;
@@ -155,6 +149,30 @@ void applyModeDefaults(StrategyConfig& config, const BotMode mode) {
     config.trapPenalty = std::max(0, config.trapPenalty - 8);
     break;
   }
+}
+
+auto backendModeName(const BotBackendMode mode) -> QString {
+  switch (mode) {
+  case BotBackendMode::Off:
+    return QStringLiteral("off");
+  case BotBackendMode::Rule:
+    return QStringLiteral("rule");
+  case BotBackendMode::Ml:
+    return QStringLiteral("ml");
+  }
+  return QStringLiteral("off");
+}
+
+auto nextBackendMode(const BotBackendMode mode) -> BotBackendMode {
+  switch (mode) {
+  case BotBackendMode::Off:
+    return BotBackendMode::Rule;
+  case BotBackendMode::Rule:
+    return BotBackendMode::Ml;
+  case BotBackendMode::Ml:
+    return BotBackendMode::Off;
+  }
+  return BotBackendMode::Off;
 }
 
 auto currentBuildProfileName() -> QString {

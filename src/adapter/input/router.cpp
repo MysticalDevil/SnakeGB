@@ -113,13 +113,13 @@ void EngineAdapter::toggleBotAutoplay() {
 }
 
 void EngineAdapter::cycleBotMode() {
-  m_botMode = nenoserpent::adapter::bot::nextMode(m_botMode);
+  m_botBackendMode = nenoserpent::adapter::bot::nextBackendMode(m_botBackendMode);
   m_botActionCooldownTicks = 0;
-  applyBotModeDefaults();
+  m_lastBotBackendRoute.clear();
   emit botAutoplayChanged();
   emit botStrategyChanged();
-  emit eventPrompt(u"BOT MODE: "_s + botModeName().toUpper());
-  qCInfo(nenoserpentInputLog).noquote() << "bot mode ->" << botModeName();
+  emit eventPrompt(u"BOT BACKEND: "_s + botModeName().toUpper());
+  qCInfo(nenoserpentInputLog).noquote() << "bot backend ->" << botModeName();
 }
 
 void EngineAdapter::resetBotModeDefaults() {
@@ -127,7 +127,8 @@ void EngineAdapter::resetBotModeDefaults() {
   applyBotModeDefaults();
   emit botStrategyChanged();
   emit eventPrompt(u"BOT RESET: MODE DEFAULT"_s);
-  qCInfo(nenoserpentInputLog).noquote() << "bot strategy reset for mode ->" << botModeName();
+  qCInfo(nenoserpentInputLog).noquote()
+    << "bot strategy reset for mode ->" << nenoserpent::adapter::bot::modeName(m_botStrategyMode);
 }
 
 auto EngineAdapter::setBotParam(const QString& key, int value) -> bool {
@@ -191,13 +192,15 @@ auto EngineAdapter::setBotParam(const QString& key, int value) -> bool {
 
 void EngineAdapter::applyBotModeDefaults() {
   m_botStrategyConfig = m_botBaseStrategyConfig;
-  nenoserpent::adapter::bot::applyModeDefaults(m_botStrategyConfig, m_botMode);
+  nenoserpent::adapter::bot::applyModeDefaults(m_botStrategyConfig, m_botStrategyMode);
 }
 
 auto EngineAdapter::botStatus() const -> QVariantMap {
   return {
     {u"enabled"_s, botAutoplayEnabled()},
     {u"mode"_s, botModeName()},
+    {u"backend"_s, botModeName()},
+    {u"strategyMode"_s, nenoserpent::adapter::bot::modeName(m_botStrategyMode)},
     {u"openSpaceWeight"_s, m_botStrategyConfig.openSpaceWeight},
     {u"safeNeighborWeight"_s, m_botStrategyConfig.safeNeighborWeight},
     {u"targetDistanceWeight"_s, m_botStrategyConfig.targetDistanceWeight},

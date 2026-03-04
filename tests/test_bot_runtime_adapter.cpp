@@ -12,6 +12,7 @@ private slots:
   void cooldownDelaysNonPlayingActions();
   void usesCustomCooldownFromStrategy();
   void usesInjectedBackendForDirectionAndChoice();
+  void fallsBackToSecondaryBackendWhenPrimaryUnavailable();
 };
 
 void BotRuntimeAdapterTest::startMenuTriggersStartWhenEnabled() {
@@ -123,6 +124,62 @@ void BotRuntimeAdapterTest::usesInjectedBackendForDirectionAndChoice() {
   QVERIFY(choiceResult.setChoiceIndex.has_value());
   QCOMPARE(*choiceResult.setChoiceIndex, 2);
   QVERIFY(choiceResult.triggerStart);
+}
+
+void BotRuntimeAdapterTest::fallsBackToSecondaryBackendWhenPrimaryUnavailable() {
+  class UnavailableBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("ml");
+    }
+    [[nodiscard]] auto isAvailable() const -> bool override {
+      return false;
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return std::nullopt;
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return -1;
+    }
+  };
+
+  class RuleLikeBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("rule");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return QPoint(0, -1);
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return 1;
+    }
+  };
+
+  const UnavailableBackend primary{};
+  const RuleLikeBackend fallback{};
+
+  nenoserpent::adapter::bot::RuntimeInput input{};
+  input.enabled = true;
+  input.state = AppState::Playing;
+  input.snapshot.body = {QPoint(10, 10), QPoint(10, 11)};
+  input.backend = &primary;
+  input.fallbackBackend = &fallback;
+
+  const auto result = nenoserpent::adapter::bot::step(input);
+  QVERIFY(result.enqueueDirection.has_value());
+  QCOMPARE(*result.enqueueDirection, QPoint(0, -1));
+  QCOMPARE(result.backend, QStringLiteral("rule"));
+  QVERIFY(result.usedFallback);
+  QCOMPARE(result.fallbackReason, QStringLiteral("backend-unavailable"));
 }
 
 QTEST_MAIN(BotRuntimeAdapterTest)

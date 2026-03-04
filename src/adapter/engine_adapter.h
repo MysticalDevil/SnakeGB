@@ -11,6 +11,7 @@
 #include <QVariantMap>
 
 #include "adapter/bot/config.h"
+#include "adapter/bot/ml_backend.h"
 #include "adapter/haptics/controller.h"
 #include "adapter/ui/action.h"
 #include "app_state.h"
@@ -289,10 +290,10 @@ public:
   }
   [[nodiscard]] auto fruitLibrary() const -> QVariantList;
   [[nodiscard]] auto botAutoplayEnabled() const noexcept -> bool {
-    return m_botMode != nenoserpent::adapter::bot::BotMode::Off;
+    return m_botBackendMode != nenoserpent::adapter::bot::BotBackendMode::Off;
   }
   [[nodiscard]] auto botModeName() const -> QString {
-    return nenoserpent::adapter::bot::modeName(m_botMode);
+    return nenoserpent::adapter::bot::backendModeName(m_botBackendMode);
   }
 
   static constexpr int BOARD_WIDTH = 20;
@@ -424,7 +425,12 @@ private:
   std::unique_ptr<GameState> m_fsmState;
   bool m_musicEnabled = true;
   int m_bgmVariant = 0;
-  nenoserpent::adapter::bot::BotMode m_botMode = nenoserpent::adapter::bot::BotMode::Off;
+  nenoserpent::adapter::bot::BotMode m_botStrategyMode =
+    nenoserpent::adapter::bot::BotMode::Balanced;
+  nenoserpent::adapter::bot::BotBackendMode m_botBackendMode =
+    nenoserpent::adapter::bot::BotBackendMode::Off;
+  nenoserpent::adapter::bot::MlBackend m_botMlBackend;
+  QString m_lastBotBackendRoute;
   int m_botActionCooldownTicks = 0;
   nenoserpent::adapter::bot::StrategyConfig m_botBaseStrategyConfig =
     nenoserpent::adapter::bot::defaultStrategyConfig();

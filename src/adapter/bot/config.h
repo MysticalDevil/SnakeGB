@@ -7,10 +7,15 @@
 namespace nenoserpent::adapter::bot {
 
 enum class BotMode {
-  Off,
   Safe,
   Balanced,
   Aggressive,
+};
+
+enum class BotBackendMode {
+  Off,
+  Rule,
+  Ml,
 };
 
 struct StrategyConfig {
@@ -44,6 +49,8 @@ struct StrategyLoadResult {
 [[nodiscard]] auto modeName(BotMode mode) -> QString;
 [[nodiscard]] auto nextMode(BotMode mode) -> BotMode;
 void applyModeDefaults(StrategyConfig& config, BotMode mode);
+[[nodiscard]] auto backendModeName(BotBackendMode mode) -> QString;
+[[nodiscard]] auto nextBackendMode(BotBackendMode mode) -> BotBackendMode;
 [[nodiscard]] auto currentBuildProfileName() -> QString;
 [[nodiscard]] auto loadStrategyConfigFromJson(const QByteArray& json,
                                               const QString& profile,

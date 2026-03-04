@@ -68,6 +68,18 @@ EngineAdapter::EngineAdapter(QObject* parent)
       << "source=" << strategyLoad.source << "reason=" << strategyLoad.error;
   }
 
+  const QString mlModelPath = qEnvironmentVariable("NENOSERPENT_BOT_ML_MODEL").trimmed();
+  if (!mlModelPath.isEmpty()) {
+    if (m_botMlBackend.loadFromFile(mlModelPath)) {
+      qCInfo(nenoserpentInputLog).noquote() << "bot ml model loaded source=" << mlModelPath;
+    } else {
+      qCWarning(nenoserpentInputLog).noquote() << "bot ml model unavailable source=" << mlModelPath
+                                               << "reason=" << m_botMlBackend.errorString();
+    }
+  } else {
+    qCInfo(nenoserpentInputLog).noquote() << "bot ml model not configured";
+  }
+
   m_audioBus.setCallbacks({
     .startMusic = [this](const nenoserpent::audio::ScoreTrackId trackId) -> void {
       emit audioStartMusic(static_cast<int>(trackId));

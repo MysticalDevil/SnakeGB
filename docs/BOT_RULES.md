@@ -1,18 +1,25 @@
 # Bot Rules and Tuning
 
-NenoSerpent uses a rule-based bot with a tunable strategy config.
+NenoSerpent uses a backend-switched bot runtime with tunable rule strategy config.
 
 ## Runtime Architecture
 
 - `adapter/bot/controller.*`: movement and choice scoring.
 - `adapter/bot/runtime.*`: state-aware bot flow (`Playing`, `ChoiceSelection`, `GameOver`, etc.).
 - `adapter/bot/config.*`: profile loading, default values, build-profile selection.
+- `adapter/bot/backend.*`: unified backend abstraction (`decideDirection`, `decideChoice`, `reset`).
+- `adapter/bot/ml_backend.*`: lightweight C++ MLP inference backend (JSON weights).
 
 `EngineAdapter` only injects the current game snapshot and executes bot outputs.
 
-Mode behavior (`F8`):
+Backend behavior (`F8`):
 
 - `off`: bot disabled
+- `rule`: rule backend enabled
+- `ml`: ML backend enabled; automatic fallback to `rule` on model unavailable/inference miss
+
+Strategy behavior:
+
 - `safe`: stronger survivability bias
 - `balanced`: default profile behavior
 - `aggressive`: stronger scoring/path-shortening bias

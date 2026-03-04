@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include <QString>
 #include <QVariantList>
 
 #include "adapter/bot/backend.h"
@@ -19,6 +20,7 @@ struct RuntimeInput {
   int currentChoiceIndex = 0;
   const StrategyConfig* strategy = nullptr;
   const BotBackend* backend = nullptr;
+  const BotBackend* fallbackBackend = nullptr;
 };
 
 struct RuntimeOutput {
@@ -27,6 +29,9 @@ struct RuntimeOutput {
   std::optional<QPoint> enqueueDirection;
   std::optional<int> setChoiceIndex;
   bool triggerStart = false;
+  QString backend = QStringLiteral("rule");
+  bool usedFallback = false;
+  QString fallbackReason;
 };
 
 [[nodiscard]] auto step(const RuntimeInput& input) -> RuntimeOutput;

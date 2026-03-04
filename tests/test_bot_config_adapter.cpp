@@ -8,6 +8,7 @@ class BotConfigAdapterTest final : public QObject {
 private slots:
   void parsesProfileOverridesFromJson();
   void fallsBackWhenProfileMissing();
+  void cyclesBackendModesInExpectedOrder();
 };
 
 void BotConfigAdapterTest::parsesProfileOverridesFromJson() {
@@ -54,6 +55,18 @@ void BotConfigAdapterTest::fallsBackWhenProfileMissing() {
   QVERIFY(!result.loaded);
   QVERIFY(!result.error.isEmpty());
   QCOMPARE(result.config.safeNeighborWeight, 10);
+}
+
+void BotConfigAdapterTest::cyclesBackendModesInExpectedOrder() {
+  using nenoserpent::adapter::bot::BotBackendMode;
+  QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Off), QStringLiteral("off"));
+  QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Rule),
+           QStringLiteral("rule"));
+  QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Ml), QStringLiteral("ml"));
+
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Off), BotBackendMode::Rule);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Rule), BotBackendMode::Ml);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Ml), BotBackendMode::Off);
 }
 
 QTEST_MAIN(BotConfigAdapterTest)
