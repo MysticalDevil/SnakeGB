@@ -47,7 +47,7 @@ Build profile selection key:
 Run with:
 
 ```bash
-./scripts/dev.sh bot-benchmark --games 300 --max-ticks 5000 --profile dev --mode balanced
+./scripts/dev.sh bot-benchmark --games 300 --max-ticks 5000 --profile dev --mode balanced --backend rule
 ```
 
 The benchmark reports max/avg/median/p95 score and game-over/timeout outcomes.
@@ -59,7 +59,7 @@ CI regression gate:
 ```
 
 Baseline scenarios live in `scripts/ci/bot_e2e_baseline.tsv` and lock fixed
-`mode + level + seed + threshold` tuples.
+`backend + mode + level + seed + threshold` tuples.
 
 Leaderboard benchmark suite (fixed 20 scenarios):
 
@@ -69,6 +69,9 @@ Leaderboard benchmark suite (fixed 20 scenarios):
 
 Suite definition is tracked in `scripts/ci/bot_leaderboard_suite.tsv`.
 This is used to compare long-run relative strength across modes and seeds.
+When `BOT_ML_MODEL` is set and suite contains `ml` rows, the script emits a
+`rule vs ml` compare table and can enforce no-regression via
+`BOT_LEADERBOARD_REQUIRE_NO_REGRESSION=1`.
 
 Offline parameter tuning:
 

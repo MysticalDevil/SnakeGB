@@ -11,6 +11,7 @@ PROFILE="${BOT_DATASET_PROFILE:-debug}"
 SUITE_FILE="${BOT_DATASET_SUITE:-${ROOT_DIR}/scripts/ci/bot_leaderboard_suite.tsv}"
 OUTPUT_PATH="${BOT_DATASET_OUTPUT:-/tmp/nenoserpent_bot_dataset.csv}"
 MAX_SAMPLES_PER_CASE="${BOT_DATASET_MAX_SAMPLES_PER_CASE:-0}"
+ML_MODEL_PATH="${BOT_ML_MODEL:-}"
 
 while (($# > 0)); do
   case "$1" in
@@ -41,12 +42,21 @@ cmake --preset "${BUILD_PRESET}"
 cmake --build --preset "${BUILD_PRESET}" --target bot-benchmark
 
 rm -f "${OUTPUT_PATH}"
-while IFS=$'\t' read -r case_id mode level seed games max_ticks; do
+while IFS=$'\t' read -r case_id backend mode level seed games max_ticks; do
   if [[ -z "${case_id}" || "${case_id}" == \#* ]]; then
     continue
   fi
 
-  echo "[bot-dataset] case=${case_id} mode=${mode} level=${level} seed=${seed}"
+  ml_args=()
+  if [[ "${backend}" == "ml" ]]; then
+    if [[ -z "${ML_MODEL_PATH}" ]]; then
+      echo "[bot-dataset] skip ml case without BOT_ML_MODEL: ${case_id}" >&2
+      continue
+    fi
+    ml_args=(--ml-model "${ML_MODEL_PATH}")
+  fi
+
+  echo "[bot-dataset] case=${case_id} backend=${backend} mode=${mode} level=${level} seed=${seed}"
   "${ROOT_DIR}/build/${BUILD_PRESET}/bot-benchmark" \
     --games "${games}" \
     --max-ticks "${max_ticks}" \
@@ -54,6 +64,8 @@ while IFS=$'\t' read -r case_id mode level seed games max_ticks; do
     --level "${level}" \
     --profile "${PROFILE}" \
     --mode "${mode}" \
+    --backend "${backend}" \
+    "${ml_args[@]}" \
     --dump-dataset "${OUTPUT_PATH}" \
     --max-samples "${MAX_SAMPLES_PER_CASE}" \
     | tail -n 1

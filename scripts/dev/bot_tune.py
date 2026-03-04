@@ -154,6 +154,8 @@ def run_scenarios(
                 profile,
                 "--mode",
                 mode,
+                "--backend",
+                "rule",
                 "--strategy-file",
                 str(strategy_override),
             ]

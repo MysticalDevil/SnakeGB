@@ -14,6 +14,7 @@
 
 #include "adapter/bot/backend.h"
 #include "adapter/bot/features.h"
+#include "adapter/bot/ml_backend.h"
 #include "adapter/bot/runtime.h"
 #include "core/buff/runtime.h"
 #include "core/session/runner.h"
@@ -60,6 +61,11 @@ struct BenchmarkStats {
   double avgScore = 0.0;
   int medianScore = 0;
   int p95Score = 0;
+};
+
+enum class BenchmarkBackend {
+  Rule,
+  Ml,
 };
 
 struct DatasetWriter final {
@@ -139,6 +145,8 @@ auto runBenchmark(const int games,
                   const QList<QPoint>& obstacles,
                   const nenoserpent::adapter::bot::StrategyConfig& strategy,
                   const int levelIndex,
+                  const nenoserpent::adapter::bot::BotBackend* primaryBackend,
+                  const nenoserpent::adapter::bot::BotBackend* fallbackBackend,
                   DatasetWriter* datasetWriter) -> BenchmarkStats {
   std::vector<int> scores;
   scores.reserve(static_cast<std::size_t>(games));
@@ -197,7 +205,8 @@ auto runBenchmark(const int games,
           },
         .choices = toChoiceModel(runner.choices()),
         .strategy = &strategy,
-        .backend = &nenoserpent::adapter::bot::ruleBackend(),
+        .backend = primaryBackend,
+        .fallbackBackend = fallbackBackend,
       });
       cooldown = decision.nextCooldownTicks;
 
@@ -302,6 +311,13 @@ auto main(int argc, char* argv[]) -> int {
                                 QStringLiteral("Bot mode (safe/balanced/aggressive)."),
                                 QStringLiteral("name"),
                                 QStringLiteral("balanced"));
+  QCommandLineOption backendOption(QStringList{QStringLiteral("backend")},
+                                   QStringLiteral("Bot backend (rule/ml)."),
+                                   QStringLiteral("name"),
+                                   QStringLiteral("rule"));
+  QCommandLineOption mlModelOption(QStringList{QStringLiteral("ml-model")},
+                                   QStringLiteral("Runtime JSON model path for ml backend."),
+                                   QStringLiteral("path"));
   QCommandLineOption strategyFileOption(
     QStringList{QStringLiteral("strategy-file")},
     QStringLiteral("Optional strategy JSON file path override."),
@@ -322,6 +338,8 @@ auto main(int argc, char* argv[]) -> int {
   parser.addOption(levelOption);
   parser.addOption(profileOption);
   parser.addOption(modeOption);
+  parser.addOption(backendOption);
+  parser.addOption(mlModelOption);
   parser.addOption(strategyFileOption);
   parser.addOption(dumpDatasetOption);
   parser.addOption(maxSamplesOption);
@@ -333,6 +351,8 @@ auto main(int argc, char* argv[]) -> int {
   const int levelIndex = std::max(0, parser.value(levelOption).toInt());
   const QString profile = parser.value(profileOption).trimmed().toLower();
   const QString mode = parser.value(modeOption).trimmed().toLower();
+  const QString backendValue = parser.value(backendOption).trimmed().toLower();
+  const QString mlModelPath = parser.value(mlModelOption).trimmed();
   const QString strategyFile = parser.value(strategyFileOption).trimmed();
   const QString dumpDatasetPath = parser.value(dumpDatasetOption).trimmed();
   const int maxSamples = std::max(0, parser.value(maxSamplesOption).toInt());
@@ -369,11 +389,40 @@ auto main(int argc, char* argv[]) -> int {
     datasetWriterPtr = &datasetWriter;
   }
 
-  const auto stats =
-    runBenchmark(games, maxTicks, seedBase, obstacles, strategy, levelIndex, datasetWriterPtr);
+  BenchmarkBackend backend = BenchmarkBackend::Rule;
+  if (backendValue == QStringLiteral("ml")) {
+    backend = BenchmarkBackend::Ml;
+  }
+
+  const nenoserpent::adapter::bot::BotBackend* primaryBackend =
+    &nenoserpent::adapter::bot::ruleBackend();
+  const nenoserpent::adapter::bot::BotBackend* fallbackBackend =
+    &nenoserpent::adapter::bot::ruleBackend();
+  nenoserpent::adapter::bot::MlBackend mlBackend;
+  if (backend == BenchmarkBackend::Ml) {
+    if (mlModelPath.isEmpty()) {
+      std::cerr << "[bot-benchmark] ml backend requested without --ml-model, fallback to rule\n";
+    } else if (mlBackend.loadFromFile(mlModelPath)) {
+      primaryBackend = &mlBackend;
+    } else {
+      std::cerr << "[bot-benchmark] ml model unavailable path=" << mlModelPath.toStdString()
+                << " reason=" << mlBackend.errorString().toStdString() << " fallback=rule\n";
+    }
+  }
+
+  const auto stats = runBenchmark(games,
+                                  maxTicks,
+                                  seedBase,
+                                  obstacles,
+                                  strategy,
+                                  levelIndex,
+                                  primaryBackend,
+                                  fallbackBackend,
+                                  datasetWriterPtr);
   datasetWriter.close();
   std::cout << "[bot-benchmark] games=" << stats.games << " level=" << levelIndex
-            << " profile=" << profile.toStdString() << " mode=" << mode.toStdString() << '\n';
+            << " profile=" << profile.toStdString() << " mode=" << mode.toStdString()
+            << " backend=" << backendValue.toStdString() << '\n';
   std::cout << "[bot-benchmark] score.max=" << stats.maxScore << " score.avg=" << stats.avgScore
             << " score.median=" << stats.medianScore << " score.p95=" << stats.p95Score << '\n';
   std::cout << "[bot-benchmark] outcomes.gameOver=" << stats.gameOvers

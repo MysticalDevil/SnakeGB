@@ -24,12 +24,23 @@ if [[ ! -f "${BASELINE_FILE}" ]]; then
   exit 1
 fi
 
-printf 'mode\tlevel\tavg\tp95\tmin_avg\tmin_p95\tgames\tmax_ticks\tseed\tstatus\n' > "${RESULT_FILE}"
+ML_MODEL_PATH="${BOT_ML_MODEL:-}"
+
+printf 'backend\tmode\tlevel\tavg\tp95\tmin_avg\tmin_p95\tgames\tmax_ticks\tseed\tstatus\n' > "${RESULT_FILE}"
 
 failed=0
-while IFS=$'\t' read -r mode level min_avg min_p95 games max_ticks seed; do
-  if [[ -z "${mode}" || "${mode}" == \#* ]]; then
+while IFS=$'\t' read -r backend mode level min_avg min_p95 games max_ticks seed; do
+  if [[ -z "${backend}" || "${backend}" == \#* ]]; then
     continue
+  fi
+
+  ml_args=()
+  if [[ "${backend}" == "ml" ]]; then
+    if [[ -z "${ML_MODEL_PATH}" ]]; then
+      echo "[bot-e2e] skip ml row without BOT_ML_MODEL: mode=${mode} level=${level}" >&2
+      continue
+    fi
+    ml_args=(--ml-model "${ML_MODEL_PATH}")
   fi
 
   output="$("${BIN_PATH}" \
@@ -38,15 +49,17 @@ while IFS=$'\t' read -r mode level min_avg min_p95 games max_ticks seed; do
     --seed "${seed}" \
     --level "${level}" \
     --profile "${PROFILE}" \
-    --mode "${mode}")"
+    --mode "${mode}" \
+    --backend "${backend}" \
+    "${ml_args[@]}")"
 
   avg="$(printf '%s\n' "${output}" | rg -o 'score\.avg=[0-9]+(\.[0-9]+)?' | head -n 1 | cut -d= -f2)"
   p95="$(printf '%s\n' "${output}" | rg -o 'score\.p95=[0-9]+' | head -n 1 | cut -d= -f2)"
   if [[ -z "${avg}" || -z "${p95}" ]]; then
-    echo "[bot-e2e] parse failed mode=${mode} level=${level}" >&2
+    echo "[bot-e2e] parse failed backend=${backend} mode=${mode} level=${level}" >&2
     failed=1
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-      "${mode}" "${level}" "NA" "NA" "${min_avg}" "${min_p95}" "${games}" "${max_ticks}" "${seed}" \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "${backend}" "${mode}" "${level}" "NA" "NA" "${min_avg}" "${min_p95}" "${games}" "${max_ticks}" "${seed}" \
       "parse-failed" >> "${RESULT_FILE}"
     continue
   fi
@@ -65,8 +78,8 @@ while IFS=$'\t' read -r mode level min_avg min_p95 games max_ticks seed; do
     failed=1
   fi
 
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "${mode}" "${level}" "${avg}" "${p95}" "${min_avg}" "${min_p95}" "${games}" "${max_ticks}" "${seed}" \
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "${backend}" "${mode}" "${level}" "${avg}" "${p95}" "${min_avg}" "${min_p95}" "${games}" "${max_ticks}" "${seed}" \
     "${status}" >> "${RESULT_FILE}"
 done < "${BASELINE_FILE}"
 

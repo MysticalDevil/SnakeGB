@@ -8,6 +8,8 @@ GAMES="${BOT_BENCH_GAMES:-120}"
 MAX_TICKS="${BOT_BENCH_MAX_TICKS:-3000}"
 PROFILE="${BOT_BENCH_PROFILE:-dev}"
 MODE="${BOT_BENCH_MODE:-balanced}"
+BACKEND="${BOT_BENCH_BACKEND:-rule}"
+ML_MODEL_PATH="${BOT_ML_MODEL:-}"
 MIN_AVG="${BOT_BENCH_MIN_AVG:-70}"
 MIN_P95="${BOT_BENCH_MIN_P95:-120}"
 
@@ -17,7 +19,16 @@ if [[ ! -x "${BIN_PATH}" ]]; then
   exit 1
 fi
 
-OUTPUT="$("${BIN_PATH}" --games "${GAMES}" --max-ticks "${MAX_TICKS}" --profile "${PROFILE}" --mode "${MODE}")"
+ml_args=()
+if [[ "${BACKEND}" == "ml" ]]; then
+  if [[ -z "${ML_MODEL_PATH}" ]]; then
+    echo "[bot-gate] BOT_ML_MODEL is required for ml backend" >&2
+    exit 1
+  fi
+  ml_args=(--ml-model "${ML_MODEL_PATH}")
+fi
+
+OUTPUT="$("${BIN_PATH}" --games "${GAMES}" --max-ticks "${MAX_TICKS}" --profile "${PROFILE}" --mode "${MODE}" --backend "${BACKEND}" "${ml_args[@]}")"
 echo "${OUTPUT}"
 
 AVG="$(printf '%s\n' "${OUTPUT}" | rg -o 'score\.avg=[0-9]+(\.[0-9]+)?' | head -n1 | cut -d= -f2)"

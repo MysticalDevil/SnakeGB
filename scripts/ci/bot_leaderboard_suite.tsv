@@ -1,21 +1,41 @@
-# id	mode	level	seed	games	max_ticks
-L01	safe	0	1337	16	2200
-L02	safe	0	1438	16	2200
-L03	safe	0	1539	16	2200
-L04	safe	0	1640	16	2200
-L05	safe	1	1337	16	2200
-L06	safe	1	1438	16	2200
-L07	safe	1	1539	16	2200
-L08	safe	1	1640	16	2200
-L09	balanced	0	1337	20	2400
-L10	balanced	0	1438	20	2400
-L11	balanced	0	1539	20	2400
-L12	balanced	0	1640	20	2400
-L13	balanced	1	1337	20	2400
-L14	balanced	1	1438	20	2400
-L15	balanced	1	1539	20	2400
-L16	balanced	1	1640	20	2400
-L17	aggressive	0	1337	20	2400
-L18	aggressive	0	1438	20	2400
-L19	aggressive	1	1337	20	2400
-L20	aggressive	1	1438	20	2400
+# id	backend	mode	level	seed	games	max_ticks
+L01	rule	safe	0	1337	16	2200
+L02	rule	safe	0	1438	16	2200
+L03	rule	safe	0	1539	16	2200
+L04	rule	safe	0	1640	16	2200
+L05	rule	safe	1	1337	16	2200
+L06	rule	safe	1	1438	16	2200
+L07	rule	safe	1	1539	16	2200
+L08	rule	safe	1	1640	16	2200
+L09	rule	balanced	0	1337	20	2400
+L10	rule	balanced	0	1438	20	2400
+L11	rule	balanced	0	1539	20	2400
+L12	rule	balanced	0	1640	20	2400
+L13	rule	balanced	1	1337	20	2400
+L14	rule	balanced	1	1438	20	2400
+L15	rule	balanced	1	1539	20	2400
+L16	rule	balanced	1	1640	20	2400
+L17	rule	aggressive	0	1337	20	2400
+L18	rule	aggressive	0	1438	20	2400
+L19	rule	aggressive	1	1337	20	2400
+L20	rule	aggressive	1	1438	20	2400
+L01	ml	safe	0	1337	16	2200
+L02	ml	safe	0	1438	16	2200
+L03	ml	safe	0	1539	16	2200
+L04	ml	safe	0	1640	16	2200
+L05	ml	safe	1	1337	16	2200
+L06	ml	safe	1	1438	16	2200
+L07	ml	safe	1	1539	16	2200
+L08	ml	safe	1	1640	16	2200
+L09	ml	balanced	0	1337	20	2400
+L10	ml	balanced	0	1438	20	2400
+L11	ml	balanced	0	1539	20	2400
+L12	ml	balanced	0	1640	20	2400
+L13	ml	balanced	1	1337	20	2400
+L14	ml	balanced	1	1438	20	2400
+L15	ml	balanced	1	1539	20	2400
+L16	ml	balanced	1	1640	20	2400
+L17	ml	aggressive	0	1337	20	2400
+L18	ml	aggressive	0	1438	20	2400
+L19	ml	aggressive	1	1337	20	2400
+L20	ml	aggressive	1	1438	20	2400

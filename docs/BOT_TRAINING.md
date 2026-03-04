@@ -63,6 +63,12 @@ Current eval metric:
 
 - action classification accuracy on provided dataset
 
+Runtime backend can load the exported JSON directly:
+
+```bash
+NENOSERPENT_BOT_ML_MODEL=/tmp/nenoserpent_bot_policy_runtime.json ./build/dev/NenoSerpent
+```
+
 ## 4. Offline Tuning + Training Loop
 
 Recommended loop:
