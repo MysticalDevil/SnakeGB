@@ -25,5 +25,7 @@ android/local.properties
 zig-out/
 *.user
 *.swp
+__pycache__/
+*.pyc
 TODO.md
 ghost.dat

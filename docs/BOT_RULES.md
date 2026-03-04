@@ -75,6 +75,10 @@ The tuned file can be loaded via:
 NENOSERPENT_BOT_STRATEGY_FILE=/tmp/nenoserpent_bot_tuned.json ./build/debug/NenoSerpent
 ```
 
+PyTorch imitation-learning baseline:
+
+- See `docs/BOT_TRAINING.md` for dataset generation, training, and eval workflow.
+
 ## Live Debug Tuning
 
 Debug tokens accepted by runtime injection:

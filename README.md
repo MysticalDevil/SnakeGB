@@ -106,8 +106,15 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Run fixed 20-case leaderboard benchmark suite
 ./scripts/dev.sh bot-leaderboard build/debug
 
+# Generate dataset from fixed leaderboard suite (for imitation training)
+./scripts/dev.sh bot-dataset --output /tmp/nenoserpent_bot_dataset.csv
+
 # Tune bot profile parameters offline and emit override JSON
 ./scripts/dev.sh bot-tune --mode balanced --iterations 60 --output /tmp/nenoserpent_bot_tuned.json
+
+# Train and evaluate PyTorch imitation baseline
+./scripts/dev.sh bot-train --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
+./scripts/dev.sh bot-eval --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
 ```
 
 ### Build and Deploy (WebAssembly)
@@ -166,6 +173,7 @@ docker compose --profile cd run --rm gh-cd-android-preflight
 - Audio authoring guide: `docs/AUDIO_AUTHORING.md`
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
 - Bot rules and tuning: `docs/BOT_RULES.md`
+- Bot training (PyTorch): `docs/BOT_TRAINING.md`
 - Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 - Rule bot strategy override: set `NENOSERPENT_BOT_STRATEGY_FILE=/abs/path/strategy_profiles.json` to override built-in strategy profiles.
 
