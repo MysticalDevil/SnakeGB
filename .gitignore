@@ -20,7 +20,8 @@ AppDir/
 android/local.properties
 .vscode/
 .idea/
-.cache/
+cache/*
+!cache/.gitignore
 .zig-cache/
 zig-out/
 *.user

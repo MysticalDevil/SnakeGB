@@ -132,6 +132,10 @@ just clean
 - Prefer `scripts/dev.sh clang-tidy <build-dir> [files...]` to avoid re-running `clang-tidy` on unchanged files.
 - Generate Android launcher icons (mipmap + Play Store 512x512) with `scripts/dev.sh android-icons` after icon updates.
 - Build uses `ccache` automatically when available (`NENOSERPENT_USE_CCACHE=ON` in CMake).
+- Python dependency execution/install must use `uv`/`uvx`. Do not use `pip` directly.
+- Repository scripts must not redirect cache directories (for example `UV_CACHE_DIR`,
+  `UV_TOOL_DIR`, `XDG_CACHE_HOME`, `PIP_CACHE_DIR`).
+- If script execution needs access to restricted cache directories, request user permission first.
 
 ## Commit & Pull Request Guidelines
 - Follow Conventional Commit style seen in history: `feat(ui): ...`, `fix(runtime+ui): ...`, `refactor(input): ...`, `docs(arch): ...`.
