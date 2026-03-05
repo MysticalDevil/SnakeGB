@@ -12,7 +12,8 @@ private slots:
 
 void BotOrchestratorAdapterTest::updatesCooldownAndRouteWhenAutoplayEnabled() {
   nenoserpent::adapter::bot::State botState;
-  botState.cycleBackendMode(); // off -> rule
+  botState.cycleBackendMode(); // off -> human
+  botState.cycleBackendMode(); // human -> rule
 
   const nenoserpent::adapter::bot::OrchestratorInput input{
     .state = AppState::StartMenu,
@@ -32,7 +33,8 @@ void BotOrchestratorAdapterTest::updatesCooldownAndRouteWhenAutoplayEnabled() {
 
 void BotOrchestratorAdapterTest::keepsRouteStableAcrossIdenticalTicks() {
   nenoserpent::adapter::bot::State botState;
-  botState.cycleBackendMode(); // off -> rule
+  botState.cycleBackendMode(); // off -> human
+  botState.cycleBackendMode(); // human -> rule
 
   const nenoserpent::adapter::bot::OrchestratorInput input{
     .state = AppState::StartMenu,

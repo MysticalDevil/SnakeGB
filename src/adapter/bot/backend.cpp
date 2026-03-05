@@ -55,6 +55,68 @@ struct MoveState {
   int score = 0;
 };
 
+struct StageSignals {
+  int snakeFillPermille = 0;
+  int obstacleFillPermille = 0;
+  bool lateGame = false;
+  bool crowded = false;
+};
+
+auto clampInt(const int value, const int minValue, const int maxValue) -> int {
+  return std::max(minValue, std::min(value, maxValue));
+}
+
+auto deriveStageSignals(const Snapshot& snapshot) -> StageSignals {
+  const int boardCells = std::max(1, snapshot.boardWidth * snapshot.boardHeight);
+  const int bodyCells = static_cast<int>(snapshot.body.size());
+  const int obstacleCells = static_cast<int>(snapshot.obstacles.size());
+
+  StageSignals stage{};
+  stage.snakeFillPermille = (bodyCells * 1000) / boardCells;
+  stage.obstacleFillPermille = (obstacleCells * 1000) / boardCells;
+  stage.lateGame = snapshot.score >= 80 || stage.snakeFillPermille >= 280;
+  stage.crowded = stage.snakeFillPermille >= 220 || stage.obstacleFillPermille >= 120;
+  return stage;
+}
+
+auto stageAdjustedStrategy(const StrategyConfig& base, const Snapshot& snapshot) -> StrategyConfig {
+  StrategyConfig adjusted = base;
+  const StageSignals stage = deriveStageSignals(snapshot);
+
+  if (stage.lateGame) {
+    adjusted.safeNeighborWeight += 7;
+    adjusted.openSpaceWeight += 3;
+    adjusted.trapPenalty += 18;
+    adjusted.targetDistanceWeight = std::max(0, adjusted.targetDistanceWeight - 2);
+    adjusted.powerTargetDistanceSlack = std::max(1, adjusted.powerTargetDistanceSlack - 1);
+    adjusted.lookaheadDepth = std::max(adjusted.lookaheadDepth, 3);
+  }
+
+  if (stage.crowded) {
+    adjusted.safeNeighborWeight += 4;
+    adjusted.trapPenalty += 14;
+    adjusted.targetDistanceWeight = std::max(0, adjusted.targetDistanceWeight - 1);
+    adjusted.lookaheadDepth = std::max(adjusted.lookaheadDepth, 3);
+  }
+
+  if (snapshot.score < 20 && stage.snakeFillPermille < 140 && !stage.crowded) {
+    adjusted.foodConsumeBonus += 4;
+    adjusted.straightBonus += 2;
+    if (adjusted.targetDistanceWeight > 0) {
+      adjusted.targetDistanceWeight += 1;
+    }
+  }
+
+  adjusted.openSpaceWeight = clampInt(adjusted.openSpaceWeight, 0, 60);
+  adjusted.safeNeighborWeight = clampInt(adjusted.safeNeighborWeight, 0, 90);
+  adjusted.targetDistanceWeight = clampInt(adjusted.targetDistanceWeight, 0, 80);
+  adjusted.foodConsumeBonus = clampInt(adjusted.foodConsumeBonus, 0, 100);
+  adjusted.trapPenalty = clampInt(adjusted.trapPenalty, 0, 160);
+  adjusted.lookaheadDepth = clampInt(adjusted.lookaheadDepth, 0, 6);
+  adjusted.powerTargetDistanceSlack = clampInt(adjusted.powerTargetDistanceSlack, 0, 20);
+  return adjusted;
+}
+
 struct MovePreview {
   bool valid = false;
   MoveState next;
@@ -363,6 +425,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   if (snapshot.body.empty() || snapshot.boardWidth <= 0 || snapshot.boardHeight <= 0) {
     return std::nullopt;
   }
+  const StrategyConfig tunedConfig = stageAdjustedStrategy(config, snapshot);
   const MoveState initial{
     .head = snapshot.head,
     .direction = snapshot.direction,
@@ -373,9 +436,10 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   constexpr int kLoopRepeatThreshold = 4;
   const int repeats = memory.observe(snapshot, initial);
   const bool escapeMode = repeats >= kLoopRepeatThreshold;
-  const int depth = std::clamp(config.lookaheadDepth + 1, 2, 6);
+  const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
   const auto tieRotateSeed = static_cast<std::uint64_t>(stateHash(snapshot, initial)) ^
-                             static_cast<std::uint64_t>(config.tieBreakSeed) ^ memory.observeTick();
+                             static_cast<std::uint64_t>(tunedConfig.tieBreakSeed) ^
+                             memory.observeTick();
   const int tieRotateOffset =
     static_cast<int>(tieRotateSeed % static_cast<std::uint64_t>(kDirections.size()));
 
@@ -391,17 +455,18 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     const int revisitCount = memory.repeatsFor(snapshot, preview.next);
     int score = 0;
     if (escapeMode) {
-      score = evaluateEscapeCandidate(snapshot, preview, config, revisitCount);
+      score = evaluateEscapeCandidate(snapshot, preview, tunedConfig, revisitCount);
     } else if (useSearchScoring) {
-      int immediate = (candidate == snapshot.direction ? config.straightBonus : 0);
+      int immediate = (candidate == snapshot.direction ? tunedConfig.straightBonus : 0);
       if (preview.ateFood) {
-        immediate += config.foodConsumeBonus;
+        immediate += tunedConfig.foodConsumeBonus;
       }
       if (preview.atePower) {
-        immediate += powerPriority(config, snapshot.powerUpType);
+        immediate += powerPriority(tunedConfig, snapshot.powerUpType);
       }
       score =
-        immediate + searchValue(snapshot, preview.next, config, depth - 1) - (revisitCount * 48);
+        immediate + searchValue(snapshot, preview.next, tunedConfig, depth - 1) -
+        (revisitCount * 48);
     } else {
       auto blocked = buildBlockedMap(snapshot, preview.next.body);
       if (const auto headIndex =
@@ -413,21 +478,23 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       const int safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, blocked);
       const QPoint target =
         (snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0 &&
-         powerPriority(config, snapshot.powerUpType) >= config.powerTargetPriorityThreshold)
+         powerPriority(tunedConfig, snapshot.powerUpType) >=
+           tunedConfig.powerTargetPriorityThreshold)
           ? snapshot.powerUpPos
           : snapshot.food;
       const int targetDistance =
         toroidalDistance(preview.next.head, target, snapshot.boardWidth, snapshot.boardHeight);
-      int immediate = (candidate == snapshot.direction ? config.straightBonus : 0);
+      int immediate = (candidate == snapshot.direction ? tunedConfig.straightBonus : 0);
       if (preview.ateFood) {
-        immediate += config.foodConsumeBonus;
+        immediate += tunedConfig.foodConsumeBonus;
       }
       if (preview.atePower) {
-        immediate += powerPriority(config, snapshot.powerUpType);
+        immediate += powerPriority(tunedConfig, snapshot.powerUpType);
       }
-      const int trapPenalty = safeNeighbors <= 1 ? config.trapPenalty : 0;
-      score = (openSpace * config.openSpaceWeight) + (safeNeighbors * config.safeNeighborWeight) -
-              (targetDistance * config.targetDistanceWeight) + immediate - trapPenalty -
+      const int trapPenalty = safeNeighbors <= 1 ? tunedConfig.trapPenalty : 0;
+      score = (openSpace * tunedConfig.openSpaceWeight) +
+              (safeNeighbors * tunedConfig.safeNeighborWeight) -
+              (targetDistance * tunedConfig.targetDistanceWeight) + immediate - trapPenalty -
               (revisitCount * 56);
     }
 
