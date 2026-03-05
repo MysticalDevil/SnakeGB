@@ -89,6 +89,12 @@ For online evolution (`ml-online`), run a continuous training loop in parallel:
   --ml-model cache/dev/nenoserpent_bot_online/nenoserpent_bot_policy_runtime.json --headful
 ```
 
+Or use one-command launcher:
+
+```bash
+./scripts/dev.sh bot-online-run --workspace cache/dev/nenoserpent_bot_online --ui-mode screen
+```
+
 Online publish gate (enabled by default in `bot-online-train`):
 
 - Each round benchmarks `current` vs `candidate` runtime JSON with identical seed/settings.

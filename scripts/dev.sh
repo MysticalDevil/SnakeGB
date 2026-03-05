@@ -29,6 +29,7 @@ Commands:
   bot-ml-smoke     Quick smoke gate for ML flow.
   bot-ml-online-gate Validate ml-online training/publish loop.
   bot-online-train Continuous online training loop for ml-online hot reload.
+  bot-online-run   One-command launcher for ml-online trainer + headful gameplay.
   bot-run          Run bot in headful/headless mode.
   bot-e2e          Run bot E2E regression.
   bot-leaderboard  Run bot leaderboard regression.
@@ -109,6 +110,12 @@ Usage: ./scripts/dev.sh bot-online-train [--workspace cache/<dir> --interval-sec
        [--gate-games N --gate-max-ticks N --gate-level N --gate-mode name --gate-eps F]
 Purpose: periodically regenerate dataset and retrain runtime JSON for ml-online mode.
          New model is published only when gate metrics do not regress.
+EOF
+      ;;
+    bot-online-run)
+      cat <<'EOF'
+Usage: ./scripts/dev.sh bot-online-run [--workspace cache/<dir> --build-preset dev --ui-mode screen]
+Purpose: start ml-online trainer loop in background and run game in headful mode.
 EOF
       ;;
     bot-run)
@@ -205,6 +212,9 @@ case "${subcommand}" in
     ;;
   bot-online-train)
     exec "${ROOT_DIR}/dev/bot_online_train.sh" "$@"
+    ;;
+  bot-online-run)
+    exec "${ROOT_DIR}/dev/bot_online_run.sh" "$@"
     ;;
   bot-run)
     exec "${ROOT_DIR}/dev/bot_run.sh" "$@"

@@ -153,6 +153,9 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Optional no-regression tolerance for publish gate
 ./scripts/dev.sh bot-online-train --workspace cache/dev/nenoserpent_bot_online --gate-eps 0.05
 
+# One-command launcher (trainer loop + headful gameplay)
+./scripts/dev.sh bot-online-run --workspace cache/dev/nenoserpent_bot_online --ui-mode screen
+
 # Prune cache directory by age/size watermarks
 ./scripts/dev.sh cache-prune --max-mb 2048 --target-mb 1536 --max-age-days 14
 ```
