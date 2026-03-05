@@ -158,8 +158,6 @@ void SoundManager::applyMusicVolumes() {
 auto SoundManager::setPaused(bool paused) -> void {
   qCInfo(nenoserpentAudioLog).noquote() << "setPaused =" << paused;
   m_isPaused = paused;
-  if (!m_isPaused && m_musicEnabled && !m_musicTimer.isActive())
-    startMusic(static_cast<int>(m_currentTrackId));
 }
 
 auto SoundManager::setMusicEnabled(bool enabled) -> void {
@@ -222,6 +220,7 @@ auto SoundManager::playCrash(const int durationMs) -> void {
 }
 
 auto SoundManager::startMusic(const int trackId) -> void {
+  emit musicStartRequested(trackId);
   qCInfo(nenoserpentAudioLog).noquote()
     << "startMusic"
     << "(enabled=" << m_musicEnabled << ", paused=" << m_isPaused << ", track=" << trackId << ")";
@@ -448,7 +447,8 @@ auto SoundManager::playScoreCue(int, float) -> void {
 auto SoundManager::playCrash(int) -> void {
 }
 
-auto SoundManager::startMusic(int) -> void {
+auto SoundManager::startMusic(const int trackId) -> void {
+  emit musicStartRequested(trackId);
 }
 
 auto SoundManager::stopMusic() -> void {

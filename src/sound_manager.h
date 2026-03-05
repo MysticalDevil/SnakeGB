@@ -46,6 +46,9 @@ public:
   void setScore(int score);
   void applyMusicVolumes();
 
+signals:
+  void musicStartRequested(int trackId);
+
 private slots:
   void playNextNote();
 

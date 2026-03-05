@@ -379,6 +379,19 @@ target_link_libraries(service-audio-bus-tests PRIVATE Qt6::Test Qt6::Core nenose
 add_test(NAME ServiceAudioBusTest COMMAND service-audio-bus-tests)
 set_tests_properties(ServiceAudioBusTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(service-sound-manager-tests
+    tests/services/test_sound_manager_service.cpp
+    src/sound_manager.cpp
+)
+target_include_directories(service-sound-manager-tests PRIVATE src)
+target_link_libraries(service-sound-manager-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui nenoserpent_adapter)
+if(TARGET Qt6::Multimedia)
+    target_link_libraries(service-sound-manager-tests PRIVATE Qt6::Multimedia)
+    target_compile_definitions(service-sound-manager-tests PRIVATE NENOSERPENT_HAS_MULTIMEDIA)
+endif()
+add_test(NAME ServiceSoundManagerTest COMMAND service-sound-manager-tests)
+set_tests_properties(ServiceSoundManagerTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(adapter-level-applier-tests
     tests/adapter/level/test_level_applier_adapter.cpp
 )
@@ -545,6 +558,7 @@ nenoserpent_apply_project_options(
     adapter-level-loader-tests
     service-level-repository-tests
     service-audio-bus-tests
+    service-sound-manager-tests
     adapter-level-applier-tests
     adapter-level-script-runtime-tests
     adapter-ghost-store-tests
