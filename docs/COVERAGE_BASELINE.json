@@ -1,9 +1,9 @@
 {
   "unit": {
-    "line_min": 49.0,
-    "branch_min": 25.0,
-    "line_baseline": 49.0,
-    "branch_baseline": 25.0
+    "line_min": 51.5,
+    "branch_min": 26.5,
+    "line_baseline": 51.5,
+    "branch_baseline": 26.5
   },
   "integration": {
     "line_min": 39.5,
