@@ -18,6 +18,11 @@ Backend behavior (`F8`):
 - `rule`: rule backend enabled
 - `ml`: ML backend enabled; automatic fallback to `rule` on model unavailable/inference miss
 
+Startup backend override:
+
+- `NENOSERPENT_BOT_BACKEND=off|rule|ml`
+- optional `NENOSERPENT_BOT_ML_MODEL=/abs/path/policy.runtime.json`
+
 Strategy behavior:
 
 - `safe`: stronger survivability bias

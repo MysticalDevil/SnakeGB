@@ -80,6 +80,25 @@ EngineAdapter::EngineAdapter(QObject* parent)
     qCInfo(nenoserpentInputLog).noquote() << "bot ml model not configured";
   }
 
+  const QString backendOverride = qEnvironmentVariable("NENOSERPENT_BOT_BACKEND").trimmed().toLower();
+  if (!backendOverride.isEmpty()) {
+    if (backendOverride == QStringLiteral("off")) {
+      m_botBackendMode = nenoserpent::adapter::bot::BotBackendMode::Off;
+      qCInfo(nenoserpentInputLog).noquote() << "bot backend override -> off";
+    } else if (backendOverride == QStringLiteral("rule")) {
+      m_botBackendMode = nenoserpent::adapter::bot::BotBackendMode::Rule;
+      qCInfo(nenoserpentInputLog).noquote() << "bot backend override -> rule";
+    } else if (backendOverride == QStringLiteral("ml")) {
+      m_botBackendMode = nenoserpent::adapter::bot::BotBackendMode::Ml;
+      qCInfo(nenoserpentInputLog).noquote() << "bot backend override -> ml";
+    } else {
+      qCWarning(nenoserpentInputLog).noquote()
+        << "invalid bot backend override:" << backendOverride
+        << "(expected off|rule|ml, fallback off)";
+      m_botBackendMode = nenoserpent::adapter::bot::BotBackendMode::Off;
+    }
+  }
+
   m_audioBus.setCallbacks({
     .startMusic = [this](const nenoserpent::audio::ScoreTrackId trackId) -> void {
       emit audioStartMusic(static_cast<int>(trackId));
