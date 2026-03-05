@@ -148,6 +148,7 @@ EOF
     bot-online-run)
       cat <<'EOF'
 Usage: ./scripts/dev.sh bot-online-run [--workspace cache/<dir> --build-preset dev --ui-mode screen]
+       [--quality low|medium|high|extreme]
        [--suite scripts/ci/bot_leaderboard_rule_suite.tsv]
 Purpose: start ml-online trainer loop in background and run game in headful mode.
          Supports the same trainer stability knobs as bot-online-train.

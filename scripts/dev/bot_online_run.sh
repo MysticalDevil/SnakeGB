@@ -12,6 +12,7 @@ WORKSPACE="${BOT_ONLINE_WORKSPACE:-${TMP_ROOT}/nenoserpent_bot_online}"
 BUILD_PRESET="${BUILD_PRESET:-dev}"
 UI_MODE="${BOT_ONLINE_UI_MODE:-screen}"
 PROFILE="${BOT_ONLINE_PROFILE:-dev}"
+QUALITY="${BOT_ONLINE_QUALITY:-medium}"
 DATASET_SUITE="${BOT_ONLINE_DATASET_SUITE:-${ROOT_DIR}/scripts/ci/bot_leaderboard_rule_suite.tsv}"
 INTERVAL_SEC="${BOT_ONLINE_INTERVAL_SEC:-20}"
 EPOCHS="${BOT_ONLINE_EPOCHS:-8}"
@@ -28,6 +29,14 @@ MIN_DATASET_SAMPLES="${BOT_ONLINE_MIN_DATASET_SAMPLES:-40}"
 MIN_PUBLISH_ROUND="${BOT_ONLINE_MIN_PUBLISH_ROUND:-1}"
 PUBLISH_COOLDOWN_ROUNDS="${BOT_ONLINE_PUBLISH_COOLDOWN_ROUNDS:-1}"
 MAX_BLOCKED_STREAK="${BOT_ONLINE_MAX_BLOCKED_STREAK:-8}"
+
+EPOCHS_SET=0
+BATCH_SIZE_SET=0
+GATE_GAMES_SET=0
+GATE_MAX_TICKS_SET=0
+MIN_DATASET_SAMPLES_SET=0
+MIN_PUBLISH_ROUND_SET=0
+PUBLISH_COOLDOWN_ROUNDS_SET=0
 
 while (($# > 0)); do
   case "$1" in
@@ -47,6 +56,10 @@ while (($# > 0)); do
       PROFILE="$2"
       shift 2
       ;;
+    --quality)
+      QUALITY="$2"
+      shift 2
+      ;;
     --suite)
       DATASET_SUITE="$2"
       shift 2
@@ -57,10 +70,12 @@ while (($# > 0)); do
       ;;
     --epochs)
       EPOCHS="$2"
+      EPOCHS_SET=1
       shift 2
       ;;
     --batch-size)
       BATCH_SIZE="$2"
+      BATCH_SIZE_SET=1
       shift 2
       ;;
     --lr)
@@ -69,10 +84,12 @@ while (($# > 0)); do
       ;;
     --gate-games)
       GATE_GAMES="$2"
+      GATE_GAMES_SET=1
       shift 2
       ;;
     --gate-max-ticks)
       GATE_MAX_TICKS="$2"
+      GATE_MAX_TICKS_SET=1
       shift 2
       ;;
     --gate-level)
@@ -97,14 +114,17 @@ while (($# > 0)); do
       ;;
     --min-dataset-samples)
       MIN_DATASET_SAMPLES="$2"
+      MIN_DATASET_SAMPLES_SET=1
       shift 2
       ;;
     --min-publish-round)
       MIN_PUBLISH_ROUND="$2"
+      MIN_PUBLISH_ROUND_SET=1
       shift 2
       ;;
     --publish-cooldown-rounds)
       PUBLISH_COOLDOWN_ROUNDS="$2"
+      PUBLISH_COOLDOWN_ROUNDS_SET=1
       shift 2
       ;;
     --max-blocked-streak)
@@ -122,6 +142,8 @@ Options:
   --build-preset <name>         Build preset for game binary (default: dev)
   --ui-mode <full|screen>       UI mode for headful game run (default: screen)
   --profile <debug|dev|release> Trainer dataset profile (default: dev)
+  --quality <low|medium|high|extreme>
+                                Quality preset for training/gate intensity (default: medium)
   --suite <path>                Trainer dataset suite (default: scripts/ci/bot_leaderboard_rule_suite.tsv)
   --interval-sec <N>            Trainer round interval (default: 20)
   --epochs <N>                  Trainer epochs per round (default: 8)
@@ -157,6 +179,53 @@ if [[ "${UI_MODE}" != "full" && "${UI_MODE}" != "screen" ]]; then
   exit 1
 fi
 
+apply_quality_defaults() {
+  case "${QUALITY}" in
+    low)
+      ((EPOCHS_SET == 0)) && EPOCHS=4
+      ((BATCH_SIZE_SET == 0)) && BATCH_SIZE=128
+      ((GATE_GAMES_SET == 0)) && GATE_GAMES=16
+      ((GATE_MAX_TICKS_SET == 0)) && GATE_MAX_TICKS=1200
+      ((MIN_DATASET_SAMPLES_SET == 0)) && MIN_DATASET_SAMPLES=24
+      ((MIN_PUBLISH_ROUND_SET == 0)) && MIN_PUBLISH_ROUND=1
+      ((PUBLISH_COOLDOWN_ROUNDS_SET == 0)) && PUBLISH_COOLDOWN_ROUNDS=1
+      ;;
+    medium)
+      ((EPOCHS_SET == 0)) && EPOCHS=8
+      ((BATCH_SIZE_SET == 0)) && BATCH_SIZE=192
+      ((GATE_GAMES_SET == 0)) && GATE_GAMES=24
+      ((GATE_MAX_TICKS_SET == 0)) && GATE_MAX_TICKS=1600
+      ((MIN_DATASET_SAMPLES_SET == 0)) && MIN_DATASET_SAMPLES=40
+      ((MIN_PUBLISH_ROUND_SET == 0)) && MIN_PUBLISH_ROUND=1
+      ((PUBLISH_COOLDOWN_ROUNDS_SET == 0)) && PUBLISH_COOLDOWN_ROUNDS=1
+      ;;
+    high)
+      ((EPOCHS_SET == 0)) && EPOCHS=16
+      ((BATCH_SIZE_SET == 0)) && BATCH_SIZE=256
+      ((GATE_GAMES_SET == 0)) && GATE_GAMES=64
+      ((GATE_MAX_TICKS_SET == 0)) && GATE_MAX_TICKS=2400
+      ((MIN_DATASET_SAMPLES_SET == 0)) && MIN_DATASET_SAMPLES=200
+      ((MIN_PUBLISH_ROUND_SET == 0)) && MIN_PUBLISH_ROUND=3
+      ((PUBLISH_COOLDOWN_ROUNDS_SET == 0)) && PUBLISH_COOLDOWN_ROUNDS=2
+      ;;
+    extreme)
+      ((EPOCHS_SET == 0)) && EPOCHS=32
+      ((BATCH_SIZE_SET == 0)) && BATCH_SIZE=384
+      ((GATE_GAMES_SET == 0)) && GATE_GAMES=96
+      ((GATE_MAX_TICKS_SET == 0)) && GATE_MAX_TICKS=3000
+      ((MIN_DATASET_SAMPLES_SET == 0)) && MIN_DATASET_SAMPLES=320
+      ((MIN_PUBLISH_ROUND_SET == 0)) && MIN_PUBLISH_ROUND=4
+      ((PUBLISH_COOLDOWN_ROUNDS_SET == 0)) && PUBLISH_COOLDOWN_ROUNDS=3
+      ;;
+    *)
+      echo "invalid --quality: ${QUALITY} (expected low|medium|high|extreme)" >&2
+      exit 1
+      ;;
+  esac
+}
+
+apply_quality_defaults
+
 mkdir -p "${WORKSPACE}"
 RUNTIME_JSON_PATH="${WORKSPACE}/nenoserpent_bot_policy_runtime.json"
 TRAINER_PID=0
@@ -170,6 +239,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 echo "[bot-online-run] start trainer workspace=${WORKSPACE}"
+echo "[bot-online-run] quality=${QUALITY} epochs=${EPOCHS} batch_size=${BATCH_SIZE} gate_games=${GATE_GAMES} gate_max_ticks=${GATE_MAX_TICKS} min_dataset_samples=${MIN_DATASET_SAMPLES} min_publish_round=${MIN_PUBLISH_ROUND} publish_cooldown_rounds=${PUBLISH_COOLDOWN_ROUNDS}"
 "${DEV_SH}" bot-online-train \
   --workspace "${WORKSPACE}" \
   --profile "${PROFILE}" \
