@@ -1,0 +1,13 @@
+# id	backend	mode	level	seed	games	max_ticks
+E01	rule	safe	1	1337	24	3200
+E02	rule	safe	1	1438	24	3200
+E03	rule	safe	1	1539	24	3200
+E04	rule	safe	1	1640	24	3200
+E05	rule	balanced	1	1337	24	3200
+E06	rule	balanced	1	1438	24	3200
+E07	rule	balanced	1	1539	24	3200
+E08	rule	balanced	1	1640	24	3200
+E09	rule	aggressive	1	1337	24	3200
+E10	rule	aggressive	1	1438	24	3200
+E11	rule	aggressive	1	1539	24	3200
+E12	rule	aggressive	1	1640	24	3200

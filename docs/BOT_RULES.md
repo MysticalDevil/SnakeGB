@@ -114,10 +114,29 @@ When `BOT_ML_MODEL` is set and suite contains `ml` rows, the script emits a
 `rule vs ml` compare table (score + choice decision quality) and can enforce no-regression via
 `BOT_LEADERBOARD_REQUIRE_NO_REGRESSION=1`.
 
+Extreme-map regression suite:
+
+```bash
+./scripts/dev.sh bot-extreme build/dev
+```
+
+Gate knobs:
+
+- `BOT_EXTREME_MIN_AVG`
+- `BOT_EXTREME_MIN_P95`
+- `BOT_EXTREME_MAX_LOOP_RATE`
+- `BOT_EXTREME_MAX_TIMEOUT_RATE`
+
 Offline parameter tuning:
 
 ```bash
 ./scripts/dev.sh bot-tune --mode balanced --iterations 60 --output cache/dev/nenoserpent_bot_tuned.json
+```
+
+Loop-aware calibration knobs are available:
+
+```bash
+./scripts/dev.sh bot-tune --max-loop-rate 0.40 --objective-loop-penalty 75
 ```
 
 The tuned file can be loaded via:

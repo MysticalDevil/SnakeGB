@@ -38,6 +38,7 @@ Commands:
   bot-run          Run bot in headful/headless mode.
   bot-e2e          Run bot E2E regression.
   bot-leaderboard  Run bot leaderboard regression.
+  bot-extreme      Run extreme-map bot regression gate.
   cache-prune      Prune repository cache by age and size watermarks.
 
 Examples:
@@ -182,6 +183,12 @@ Usage: ./scripts/dev.sh bot-leaderboard [build-dir] [suite.tsv]
 Purpose: run leaderboard suite and compare stability/perf.
 EOF
       ;;
+    bot-extreme)
+      cat <<'EOF'
+Usage: ./scripts/dev.sh bot-extreme [build-dir] [suite.tsv]
+Purpose: run extreme-map suite and enforce anti-loop/timeout gates.
+EOF
+      ;;
     cache-prune)
       cat <<'EOF'
 Usage: ./scripts/dev.sh cache-prune [--cache-dir path --max-mb N --target-mb N --max-age-days N]
@@ -284,6 +291,9 @@ case "${subcommand}" in
     ;;
   bot-leaderboard)
     exec "${ROOT_DIR}/ci/bot_leaderboard_regression.sh" "$@"
+    ;;
+  bot-extreme)
+    exec "${ROOT_DIR}/ci/bot_extreme_regression.sh" "$@"
     ;;
   cache-prune)
     exec "${ROOT_DIR}/dev/cache_prune.sh" "$@"
