@@ -96,6 +96,35 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 
 # Generate Android launcher mipmaps + Play Store 512x512 icon
 ./scripts/dev.sh android-icons
+
+# Run bot benchmark (builds bot-benchmark target and executes it)
+./scripts/dev.sh bot-benchmark --games 300 --max-ticks 5000 --profile dev
+
+# Run fixed bot E2E regression matrix (safe/balanced/aggressive x fixed levels)
+./scripts/dev.sh bot-e2e build/debug
+
+# Run fixed 20-case leaderboard benchmark suite
+./scripts/dev.sh bot-leaderboard build/debug
+
+# Generate dataset from fixed leaderboard suite (for imitation training)
+./scripts/dev.sh bot-dataset --output /tmp/nenoserpent_bot_dataset.csv
+
+# Tune bot profile parameters offline and emit override JSON
+./scripts/dev.sh bot-tune --mode balanced --iterations 60 --output /tmp/nenoserpent_bot_tuned.json
+
+# Train and evaluate PyTorch imitation baseline
+./scripts/dev.sh bot-train --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
+./scripts/dev.sh bot-eval --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
+
+# Reproducible rule-vs-ml full gate (dataset -> train -> eval -> no-regression compare)
+./scripts/dev.sh bot-ml-gate --workspace /tmp/nenoserpent_bot_ml_gate
+
+# Quick ml smoke gate with repository tiny model
+./scripts/dev.sh bot-ml-smoke build/dev
+
+# Run bot in headful mode directly (no manual F8 cycling needed)
+./scripts/dev.sh bot-run --backend rule --headful
+./scripts/dev.sh bot-run --backend ml --ml-model /tmp/nenoserpent_bot_policy_runtime.json --headful
 ```
 
 ### Build and Deploy (WebAssembly)
@@ -145,13 +174,19 @@ docker compose --profile cd run --rm gh-cd-android-preflight
   - In pause/game over/replay/library/medal: back to menu
 - **Y / C / Tap Logo**: Cycle Console Shell Colors
 - **M**: Toggle Music
+- **F8**: Cycle Bot Backend (`off -> rule -> ml -> off`)
+- **F9**: Toggle Bot Tuning Panel (debug UI)
 - **Back / Esc**: Quit App
 
 ## Input Architecture Notes
 - Logging system plan: `docs/LOGGING_SYSTEM_PLAN.md`
 - Audio authoring guide: `docs/AUDIO_AUTHORING.md`
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
+- Bot rules and tuning: `docs/BOT_RULES.md`
+- Bot training (PyTorch): `docs/BOT_TRAINING.md`
+- Bot ML validation gate: `docs/BOT_ML_VALIDATION.md`
 - Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
+- Rule bot strategy override: set `NENOSERPENT_BOT_STRATEGY_FILE=/abs/path/strategy_profiles.json` to override built-in strategy profiles.
 
 ## License
 Licensed under the [GNU GPL v3](LICENSE).

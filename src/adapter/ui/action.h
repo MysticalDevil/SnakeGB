@@ -19,6 +19,7 @@ struct SelectShortAction {};
 struct BackCommandAction {};
 struct ToggleShellColorAction {};
 struct ToggleMusicAction {};
+struct ToggleBotAction {};
 struct QuitToMenuAction {};
 struct QuitAction {};
 struct NextPaletteAction {};
@@ -44,6 +45,7 @@ using UiAction = std::variant<UnknownAction,
                               BackCommandAction,
                               ToggleShellColorAction,
                               ToggleMusicAction,
+                              ToggleBotAction,
                               QuitToMenuAction,
                               QuitAction,
                               NextPaletteAction,
@@ -64,6 +66,7 @@ struct UiActionDispatchCallbacks {
   std::function<void()> onBack;
   std::function<void()> onToggleShellColor;
   std::function<void()> onToggleMusic;
+  std::function<void()> onToggleBot;
   std::function<void()> onQuitToMenu;
   std::function<void()> onQuit;
   std::function<void()> onNextPalette;

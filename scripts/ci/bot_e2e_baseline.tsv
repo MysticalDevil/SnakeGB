@@ -1,0 +1,7 @@
+# backend	mode	level	min_avg	min_p95	games	max_ticks	seed
+rule	safe	0	24	36	40	2200	1337
+rule	safe	1	20	32	40	2200	1438
+rule	balanced	0	52	84	50	2600	1337
+rule	balanced	1	44	72	50	2600	1438
+rule	aggressive	0	58	92	50	2600	1337
+rule	aggressive	1	50	80	50	2600	1438

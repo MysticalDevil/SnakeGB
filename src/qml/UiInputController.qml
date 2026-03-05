@@ -39,6 +39,8 @@ QtObject {
         [Qt.Key_C]: { type: "dispatch", action: "ToggleShellColor" },
         [Qt.Key_Y]: { type: "dispatch", action: "ToggleShellColor" },
         [Qt.Key_M]: { type: "dispatch", action: "ToggleMusic" },
+        [Qt.Key_F8]: { type: "dispatch", action: "ToggleBot" },
+        [Qt.Key_F9]: { type: "dispatch", action: "ToggleBotPanel" },
         [Qt.Key_Back]: { type: "dispatch", action: "Back" },
         [Qt.Key_Escape]: { type: "dispatch", action: "Escape" },
         [Qt.Key_F6]: { type: "dispatch", action: "ToggleIconLab" },
@@ -150,6 +152,10 @@ QtObject {
             return "F6"
         case Qt.Key_F7:
             return "F7"
+        case Qt.Key_F8:
+            return "F8"
+        case Qt.Key_F9:
+            return "F9"
         default:
             return `Key(${key})`
         }

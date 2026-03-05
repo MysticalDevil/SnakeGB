@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Purpose: run NenoSerpent in bot-oriented manual mode (headful/headless switchable).
+# Example:
+#   ./scripts/dev.sh bot-run --backend rule --headful
+#   ./scripts/dev.sh bot-run --backend ml --ml-model /tmp/policy.runtime.json --ui-mode screen
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BUILD_PRESET="${BUILD_PRESET:-dev}"
+HEADFUL=1
+UI_MODE="full"
+BOT_BACKEND="${BOT_BACKEND:-off}"
+ML_MODEL_PATH="${BOT_ML_MODEL:-}"
+
+while (($# > 0)); do
+  case "$1" in
+    --build-preset)
+      BUILD_PRESET="$2"
+      shift 2
+      ;;
+    --headful)
+      HEADFUL=1
+      shift
+      ;;
+    --headless)
+      HEADFUL=0
+      shift
+      ;;
+    --ui-mode)
+      UI_MODE="$2"
+      shift 2
+      ;;
+    --backend)
+      BOT_BACKEND="$2"
+      shift 2
+      ;;
+    --ml-model)
+      ML_MODEL_PATH="$2"
+      shift 2
+      ;;
+    *)
+      echo "unknown arg: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ "${UI_MODE}" != "full" && "${UI_MODE}" != "screen" && "${UI_MODE}" != "shell" ]]; then
+  echo "invalid --ui-mode: ${UI_MODE} (expected full|screen|shell)" >&2
+  exit 1
+fi
+if [[ "${BOT_BACKEND}" != "off" && "${BOT_BACKEND}" != "rule" && "${BOT_BACKEND}" != "ml" ]]; then
+  echo "invalid --backend: ${BOT_BACKEND} (expected off|rule|ml)" >&2
+  exit 1
+fi
+if [[ "${BOT_BACKEND}" == "ml" && -z "${ML_MODEL_PATH}" ]]; then
+  echo "backend=ml requires --ml-model <runtime-json-path>" >&2
+  exit 1
+fi
+
+cmake --preset "${BUILD_PRESET}"
+cmake --build --preset "${BUILD_PRESET}" --target NenoSerpent
+
+APP_PATH="${ROOT_DIR}/build/${BUILD_PRESET}/NenoSerpent"
+if [[ ! -x "${APP_PATH}" ]]; then
+  echo "missing executable: ${APP_PATH}" >&2
+  exit 1
+fi
+
+export NENOSERPENT_BOT_BACKEND="${BOT_BACKEND}"
+if [[ -n "${ML_MODEL_PATH}" ]]; then
+  export NENOSERPENT_BOT_ML_MODEL="${ML_MODEL_PATH}"
+fi
+
+if [[ "${HEADFUL}" == "1" ]]; then
+  exec "${APP_PATH}" "--ui-mode=${UI_MODE}"
+fi
+
+exec env QT_QPA_PLATFORM=offscreen "${APP_PATH}" "--ui-mode=${UI_MODE}"

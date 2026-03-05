@@ -92,6 +92,7 @@ qt_add_resources(NenoSerpent "res"
         "src/qml/StaticDebugLayer.qml"
         "src/qml/OverlayLayer.qml"
         "src/qml/WorldLayer.qml"
+        "src/qml/BotDebugPanel.qml"
         "src/qml/SplashLayer.qml"
         "src/qml/DPad.qml"
         "src/qml/GBButton.qml"
@@ -187,6 +188,13 @@ endif()
 
 if(NOT ANDROID)
 enable_testing()
+
+add_executable(bot-benchmark
+    src/tools/bot_benchmark.cpp
+)
+target_include_directories(bot-benchmark PRIVATE src)
+target_link_libraries(bot-benchmark PRIVATE Qt6::Core nenoserpent_core nenoserpent_adapter)
+
 add_executable(engine-adapter-tests
     tests/test_engine_adapter.cpp
 )
@@ -418,6 +426,38 @@ target_include_directories(adapter-choice-models-tests PRIVATE src)
 target_link_libraries(adapter-choice-models-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
 add_test(NAME AdapterChoiceModelsTest COMMAND adapter-choice-models-tests)
 set_tests_properties(AdapterChoiceModelsTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-bot-tests
+    tests/test_bot_controller_adapter.cpp
+)
+target_include_directories(adapter-bot-tests PRIVATE src)
+target_link_libraries(adapter-bot-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
+add_test(NAME AdapterBotTest COMMAND adapter-bot-tests)
+set_tests_properties(AdapterBotTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-bot-runtime-tests
+    tests/test_bot_runtime_adapter.cpp
+)
+target_include_directories(adapter-bot-runtime-tests PRIVATE src)
+target_link_libraries(adapter-bot-runtime-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
+add_test(NAME AdapterBotRuntimeTest COMMAND adapter-bot-runtime-tests)
+set_tests_properties(AdapterBotRuntimeTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-bot-ml-tests
+    tests/test_bot_ml_backend_adapter.cpp
+)
+target_include_directories(adapter-bot-ml-tests PRIVATE src)
+target_link_libraries(adapter-bot-ml-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
+add_test(NAME AdapterBotMlTest COMMAND adapter-bot-ml-tests)
+set_tests_properties(AdapterBotMlTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(adapter-bot-config-tests
+    tests/test_bot_config_adapter.cpp
+)
+target_include_directories(adapter-bot-config-tests PRIVATE src)
+target_link_libraries(adapter-bot-config-tests PRIVATE Qt6::Test Qt6::Core nenoserpent_adapter)
+add_test(NAME AdapterBotConfigTest COMMAND adapter-bot-config-tests)
+set_tests_properties(AdapterBotConfigTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
 
 nenoserpent_apply_project_options(
@@ -447,6 +487,11 @@ nenoserpent_apply_project_options(
     adapter-session-state-tests
     adapter-library-models-tests
     adapter-choice-models-tests
+    adapter-bot-tests
+    adapter-bot-runtime-tests
+    adapter-bot-ml-tests
+    adapter-bot-config-tests
+    bot-benchmark
 )
 
 if(UNIX AND NOT APPLE AND NOT ANDROID)

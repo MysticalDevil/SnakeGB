@@ -44,6 +44,18 @@ add_library(nenoserpent_adapter
     adapter/view_models/render.cpp
     adapter/view_models/selection.h
     adapter/view_models/selection.cpp
+    adapter/bot/controller.h
+    adapter/bot/controller.cpp
+    adapter/bot/backend.h
+    adapter/bot/backend.cpp
+    adapter/bot/features.h
+    adapter/bot/features.cpp
+    adapter/bot/ml_backend.h
+    adapter/bot/ml_backend.cpp
+    adapter/bot/config.h
+    adapter/bot/config.cpp
+    adapter/bot/runtime.h
+    adapter/bot/runtime.cpp
     adapter/input/router.cpp
     adapter/tick_driver.cpp
     adapter/simulation.cpp
@@ -90,6 +102,12 @@ qt_add_resources(nenoserpent_adapter "audio_score_res"
     PREFIX "/"
     FILES
         "audio/score_catalog.json"
+)
+
+qt_add_resources(nenoserpent_adapter "bot_strategy_res"
+    PREFIX "/"
+    FILES
+        "adapter/bot/strategy_profiles.json"
 )
 
 qt_add_executable(NenoSerpent
