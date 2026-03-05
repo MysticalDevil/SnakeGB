@@ -367,6 +367,9 @@ private:
   void applyFoodConsumptionEffects(float pan, bool triggerChoice, bool spawnPowerUp);
   void applyPowerUpConsumptionEffects(const nenoserpent::core::SessionAdvanceResult& result);
   void applyMovementEffects(const nenoserpent::core::SessionAdvanceResult& result);
+  void startChoiceSpeedRecovery(int preChoiceTickIntervalMs, bool slowMode);
+  void advanceChoiceSpeedRecovery();
+  void cancelChoiceSpeedRecovery();
   void deactivateBuff();
   void changeState(std::unique_ptr<GameState> newState);
   void spawnFood();
@@ -443,6 +446,11 @@ private:
   bool m_humanTeachEnabled = false;
   bool m_humanTeachCsvReady = false;
   QString m_humanTeachDatasetPath;
+  bool m_choiceSpeedRecoveryActive = false;
+  int m_choiceSpeedRecoveryElapsedMs = 0;
+  int m_choiceSpeedRecoveryDurationMs = 0;
+  int m_choiceSpeedRecoveryStartIntervalMs = 0;
+  int m_choiceSpeedRecoveryTargetIntervalMs = 0;
 
   static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

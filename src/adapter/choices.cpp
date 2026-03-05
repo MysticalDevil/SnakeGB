@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cmath>
+
 #include "adapter/engine.h"
 #include "adapter/models/choice.h"
 #include "adapter/models/library.h"
@@ -5,8 +8,6 @@
 #include "core/choice/runtime.h"
 #include "fsm/game_state.h"
 #include "power_up_id.h"
-
-#include <algorithm>
 
 using namespace Qt::StringLiterals;
 
@@ -84,12 +85,24 @@ auto buildDebugChoiceSpecs(const QVariantList& types) -> QList<nenoserpent::core
 
 auto choiceRecoveryWindowMs(const int preChoiceTickIntervalMs, const bool slowMode) -> int {
   const int clampedInterval = std::clamp(preChoiceTickIntervalMs, 60, 200);
-  const int fastness = 200 - clampedInterval; // 0 (slow) .. 140 (fast)
+  const int fastness = 200 - clampedInterval;    // 0 (slow) .. 140 (fast)
   int windowMs = 450 + ((fastness * 550) / 140); // 450..1000
   if (slowMode) {
     windowMs = std::max(360, windowMs - 180);
   }
   return std::clamp(windowMs, 360, 1000);
+}
+
+auto choiceRecoveryStartIntervalMs(const int preChoiceTickIntervalMs, const bool slowMode) -> int {
+  const int clamped = std::clamp(preChoiceTickIntervalMs, 60, 200);
+  const int extra = slowMode ? 90 : 130;
+  return std::clamp(clamped + extra, clamped + 40, 260);
+}
+
+auto easeOutQuad(const float t) -> float {
+  const float clamped = std::clamp(t, 0.0F, 1.0F);
+  const float remain = 1.0F - clamped;
+  return 1.0F - (remain * remain);
 }
 } // namespace
 
@@ -159,18 +172,63 @@ void EngineAdapter::selectChoice(const int index) {
 
   emit buffChanged();
   if (m_state == AppState::Replaying) {
+    cancelChoiceSpeedRecovery();
     m_timer->setInterval(gameplayTickIntervalMs());
     return;
   }
 
-  const int recoveryWindowMs = choiceRecoveryWindowMs(preChoiceTickIntervalMs, result.slowMode);
-  m_timer->setInterval(recoveryWindowMs);
-
-  QTimer::singleShot(recoveryWindowMs, this, [this]() -> void {
-    if (m_state == AppState::Playing) {
-      m_timer->setInterval(gameplayTickIntervalMs());
-    }
-  });
-
+  startChoiceSpeedRecovery(preChoiceTickIntervalMs, result.slowMode);
   requestStateChange(AppState::Playing);
+}
+
+void EngineAdapter::startChoiceSpeedRecovery(const int preChoiceTickIntervalMs,
+                                             const bool slowMode) {
+  const int targetInterval = gameplayTickIntervalMs();
+  const int startInterval =
+    std::max(choiceRecoveryStartIntervalMs(preChoiceTickIntervalMs, slowMode), targetInterval + 30);
+  m_choiceSpeedRecoveryActive = (startInterval > targetInterval + 2);
+  m_choiceSpeedRecoveryElapsedMs = 0;
+  m_choiceSpeedRecoveryDurationMs = choiceRecoveryWindowMs(preChoiceTickIntervalMs, slowMode);
+  m_choiceSpeedRecoveryStartIntervalMs = startInterval;
+  m_choiceSpeedRecoveryTargetIntervalMs = targetInterval;
+
+  m_timer->setInterval(m_choiceSpeedRecoveryActive ? startInterval : targetInterval);
+}
+
+void EngineAdapter::advanceChoiceSpeedRecovery() {
+  if (!m_choiceSpeedRecoveryActive || m_state != AppState::Playing) {
+    return;
+  }
+
+  m_choiceSpeedRecoveryTargetIntervalMs = gameplayTickIntervalMs();
+  if (m_choiceSpeedRecoveryStartIntervalMs <= m_choiceSpeedRecoveryTargetIntervalMs) {
+    cancelChoiceSpeedRecovery();
+    m_timer->setInterval(m_choiceSpeedRecoveryTargetIntervalMs);
+    return;
+  }
+
+  const int stepMs = std::max(1, m_timer->interval());
+  m_choiceSpeedRecoveryElapsedMs += stepMs;
+  const int durationMs = std::max(1, m_choiceSpeedRecoveryDurationMs);
+  const float progress =
+    static_cast<float>(m_choiceSpeedRecoveryElapsedMs) / static_cast<float>(durationMs);
+  const float eased = easeOutQuad(progress);
+  const int span = m_choiceSpeedRecoveryStartIntervalMs - m_choiceSpeedRecoveryTargetIntervalMs;
+  const int nextInterval =
+    m_choiceSpeedRecoveryStartIntervalMs - static_cast<int>(std::lround(span * eased));
+
+  m_timer->setInterval(std::clamp(
+    nextInterval, m_choiceSpeedRecoveryTargetIntervalMs, m_choiceSpeedRecoveryStartIntervalMs));
+  if (progress >= 1.0F || m_timer->interval() <= m_choiceSpeedRecoveryTargetIntervalMs) {
+    cancelChoiceSpeedRecovery();
+    m_timer->setInterval(gameplayTickIntervalMs());
+  }
+}
+
+void EngineAdapter::cancelChoiceSpeedRecovery() {
+  m_choiceSpeedRecoveryActive = false;
+  m_choiceSpeedRecoveryElapsedMs = 0;
+  m_choiceSpeedRecoveryDurationMs = 0;
+  m_choiceSpeedRecoveryStartIntervalMs = 0;
+  m_choiceSpeedRecoveryTargetIntervalMs = 0;
 }

@@ -37,6 +37,11 @@ void EngineAdapter::update() {
       }
       applyPostTickTasks();
     }
+    if (m_state == AppState::Playing) {
+      advanceChoiceSpeedRecovery();
+    } else {
+      cancelChoiceSpeedRecovery();
+    }
   }
   if (prevActiveBuff != m_session.activeBuff ||
       prevBuffTicksRemaining != m_session.buffTicksRemaining ||
