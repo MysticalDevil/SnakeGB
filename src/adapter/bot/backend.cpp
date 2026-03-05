@@ -500,6 +500,47 @@ auto evaluateEscapeCandidate(const Snapshot& snapshot,
   return score;
 }
 
+auto boardCells(const Snapshot& snapshot) -> int {
+  return std::max(1, snapshot.boardWidth * snapshot.boardHeight);
+}
+
+auto riskBudgetFor(const Snapshot& snapshot, const int repeats) -> int {
+  const int fillPermille = (static_cast<int>(snapshot.body.size()) * 1000) / boardCells(snapshot);
+  const int obstaclePermille =
+    (static_cast<int>(snapshot.obstacles.size()) * 1000) / boardCells(snapshot);
+
+  int budget = 120;
+  budget -= fillPermille / 10;
+  budget -= obstaclePermille / 16;
+  budget -= repeats * 8;
+  if (snapshot.shieldActive) {
+    budget += 14;
+  }
+  if (snapshot.ghostActive) {
+    budget += 8;
+  }
+  return clampInt(budget, 36, 140);
+}
+
+auto candidateRiskCost(const int openSpace,
+                       const int safeNeighbors,
+                       const int revisitCount,
+                       const Snapshot& snapshot) -> int {
+  const int cells = boardCells(snapshot);
+  int risk = revisitCount * 10;
+  if (safeNeighbors <= 1) {
+    risk += 70;
+  } else if (safeNeighbors == 2) {
+    risk += 20;
+  }
+  if (openSpace < (cells / 8)) {
+    risk += 50;
+  } else if (openSpace < (cells / 5)) {
+    risk += 20;
+  }
+  return risk;
+}
+
 auto selectLoopAwareDirection(const Snapshot& snapshot,
                               const StrategyConfig& config,
                               LoopMemory& memory,
@@ -518,6 +559,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   constexpr int kLoopRepeatThreshold = 4;
   const int repeats = memory.observe(snapshot, initial);
   const bool escapeMode = repeats >= kLoopRepeatThreshold;
+  const int riskBudget = riskBudgetFor(snapshot, repeats);
   const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
   const auto tieRotateSeed = static_cast<std::uint64_t>(stateHash(snapshot, initial)) ^
                              static_cast<std::uint64_t>(tunedConfig.tieBreakSeed) ^
@@ -535,6 +577,14 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     }
 
     const int revisitCount = memory.repeatsFor(snapshot, preview.next);
+    auto blocked = buildBlockedMap(snapshot, preview.next.body);
+    if (const auto headIndex =
+          tryBoardIndex(preview.next.head, snapshot.boardWidth, snapshot.boardHeight);
+        headIndex.has_value()) {
+      blocked[*headIndex] = false;
+    }
+    const int openSpace = floodReachable(preview.next.head, snapshot, blocked);
+    const int safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, blocked);
     int score = 0;
     if (escapeMode) {
       score = evaluateEscapeCandidate(snapshot, preview, tunedConfig, revisitCount);
@@ -550,14 +600,6 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
         immediate + searchValue(snapshot, preview.next, tunedConfig, depth - 1) -
         (revisitCount * 48);
     } else {
-      auto blocked = buildBlockedMap(snapshot, preview.next.body);
-      if (const auto headIndex =
-            tryBoardIndex(preview.next.head, snapshot.boardWidth, snapshot.boardHeight);
-          headIndex.has_value()) {
-        blocked[*headIndex] = false;
-      }
-      const int openSpace = floodReachable(preview.next.head, snapshot, blocked);
-      const int safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, blocked);
       const QPoint tailFallback =
         preview.next.body.empty() ? preview.next.head : preview.next.body.back();
       const TargetDistance targetDistance = resolveTargetDistance(preview.next.head,
@@ -577,6 +619,11 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
               (safeNeighbors * tunedConfig.safeNeighborWeight) -
               (targetDistance.distance * tunedConfig.targetDistanceWeight) + immediate -
               trapPenalty - (revisitCount * 56) - targetDistance.unreachablePenalty;
+    }
+
+    const int riskCost = candidateRiskCost(openSpace, safeNeighbors, revisitCount, snapshot);
+    if (riskCost > riskBudget) {
+      score -= (riskCost - riskBudget) * 6;
     }
 
     const int rawIndex = directionIndex(candidate);
