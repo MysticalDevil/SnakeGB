@@ -17,6 +17,13 @@ Top-level script entry points are intentionally small and centralized:
 
 Old single-purpose wrapper names have been removed. Use these entry points for manual runs, docs, and automation examples.
 
+Directory index and conventions are additionally documented in:
+
+- `scripts/README.md`
+
+Python bytecode artifacts should stay out of source tree. Entrypoints export
+`PYTHONDONTWRITEBYTECODE=1`, and `scripts/.gitignore` ignores `__pycache__/` and `*.pyc`.
+
 ## Help and CLI Conventions
 
 All top-level entry points should implement the same help behavior:
