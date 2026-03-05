@@ -255,6 +255,82 @@ private:
   }
 };
 
+enum class TargetMode {
+  FoodChase,
+  PowerChase,
+  Escape,
+};
+
+class TargetFsm {
+public:
+  auto clear() -> void {
+    m_mode = TargetMode::FoodChase;
+    m_modeTicks = 0;
+    m_lastObserveTick = 0;
+  }
+
+  auto mode() const -> TargetMode {
+    return m_mode;
+  }
+
+  auto update(const Snapshot& snapshot,
+              const StrategyConfig& config,
+              const int repeats,
+              const int noScoreTicks,
+              const std::uint64_t observeTick) -> void {
+    const bool hasPower =
+      snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0 &&
+      powerPriority(config, snapshot.powerUpType) >= config.powerTargetPriorityThreshold;
+    const bool wantEscape = repeats >= 4 || noScoreTicks >= 28;
+    const TargetMode desired =
+      wantEscape ? TargetMode::Escape : (hasPower ? TargetMode::PowerChase : TargetMode::FoodChase);
+
+    if (observeTick != m_lastObserveTick) {
+      ++m_modeTicks;
+      m_lastObserveTick = observeTick;
+    }
+
+    if (desired == m_mode) {
+      return;
+    }
+    if (desired == TargetMode::Escape) {
+      switchMode(desired);
+      return;
+    }
+    if (m_mode == TargetMode::Escape) {
+      if (m_modeTicks >= 6) {
+        switchMode(desired);
+      }
+      return;
+    }
+    if (m_modeTicks >= 10) {
+      switchMode(desired);
+    }
+  }
+
+  auto targetPoint(const Snapshot& snapshot, const StrategyConfig& config) const -> QPoint {
+    if (m_mode == TargetMode::Escape) {
+      return snapshot.body.empty() ? snapshot.food : snapshot.body.back();
+    }
+    if (m_mode == TargetMode::PowerChase && snapshot.powerUpPos.x() >= 0 &&
+        snapshot.powerUpPos.y() >= 0 &&
+        powerPriority(config, snapshot.powerUpType) >= config.powerTargetPriorityThreshold) {
+      return snapshot.powerUpPos;
+    }
+    return snapshot.food;
+  }
+
+private:
+  auto switchMode(const TargetMode mode) -> void {
+    m_mode = mode;
+    m_modeTicks = 0;
+  }
+
+  TargetMode m_mode = TargetMode::FoodChase;
+  int m_modeTicks = 0;
+  std::uint64_t m_lastObserveTick = 0;
+};
+
 auto buildBlockedMap(const Snapshot& snapshot, const std::deque<QPoint>& body)
   -> std::vector<bool> {
   std::vector<bool> blocked(static_cast<std::size_t>(snapshot.boardWidth * snapshot.boardHeight),
@@ -387,32 +463,11 @@ struct TargetDistance {
   int unreachablePenalty = 0;
 };
 
-auto resolvePrimaryTarget(const QPoint& head,
-                          const Snapshot& snapshot,
-                          const StrategyConfig& config) -> QPoint {
-  QPoint target = snapshot.food;
-  const bool hasPowerUp = snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0;
-  const int priority = powerPriority(config, snapshot.powerUpType);
-
-  if (hasPowerUp && priority >= config.powerTargetPriorityThreshold) {
-    const int foodDistance =
-      toroidalDistance(head, snapshot.food, snapshot.boardWidth, snapshot.boardHeight);
-    const int powerDistance =
-      toroidalDistance(head, snapshot.powerUpPos, snapshot.boardWidth, snapshot.boardHeight);
-    if (powerDistance <= foodDistance + config.powerTargetDistanceSlack) {
-      target = snapshot.powerUpPos;
-    }
-  }
-  return target;
-}
-
 auto resolveTargetDistance(const QPoint& head,
+                           const QPoint& target,
                            const Snapshot& snapshot,
-                           const StrategyConfig& config,
                            const std::vector<bool>& blocked,
                            const QPoint& tailFallback) -> TargetDistance {
-  const QPoint target = resolvePrimaryTarget(head, snapshot, config);
-
   if (const auto reachable = shortestReachableDistance(head, target, snapshot, blocked);
       reachable.has_value()) {
     return {.distance = *reachable, .unreachablePenalty = 0};
@@ -551,8 +606,10 @@ auto previewMove(const Snapshot& snapshot, const MoveState& state, const QPoint&
   return preview;
 }
 
-auto evaluateLeaf(const Snapshot& snapshot, const MoveState& state, const StrategyConfig& config)
-  -> int {
+auto evaluateLeaf(const Snapshot& snapshot,
+                  const MoveState& state,
+                  const StrategyConfig& config,
+                  const QPoint& target) -> int {
   auto blocked = buildBlockedMap(snapshot, state.body);
   if (const auto headIndex = tryBoardIndex(state.head, snapshot.boardWidth, snapshot.boardHeight);
       headIndex.has_value()) {
@@ -562,7 +619,7 @@ auto evaluateLeaf(const Snapshot& snapshot, const MoveState& state, const Strate
   const int safeNeighbors = countSafeNeighbors(state.head, snapshot, blocked);
   const QPoint tailFallback = state.body.empty() ? state.head : state.body.back();
   const TargetDistance targetDistance =
-    resolveTargetDistance(state.head, snapshot, config, blocked, tailFallback);
+    resolveTargetDistance(state.head, target, snapshot, blocked, tailFallback);
   const int trapPenalty = safeNeighbors <= 1 ? config.trapPenalty : 0;
   return (openSpace * config.openSpaceWeight) + (safeNeighbors * config.safeNeighborWeight) -
          (targetDistance.distance * config.targetDistanceWeight) - trapPenalty +
@@ -572,9 +629,10 @@ auto evaluateLeaf(const Snapshot& snapshot, const MoveState& state, const Strate
 auto searchValue(const Snapshot& snapshot,
                  const MoveState& state,
                  const StrategyConfig& config,
-                 const int depth) -> int {
+                 const int depth,
+                 const QPoint& target) -> int {
   if (depth <= 0) {
-    return evaluateLeaf(snapshot, state, config);
+    return evaluateLeaf(snapshot, state, config, target);
   }
 
   int best = std::numeric_limits<int>::min();
@@ -592,7 +650,7 @@ auto searchValue(const Snapshot& snapshot,
     if (preview.atePower) {
       immediate += powerPriority(config, snapshot.powerUpType);
     }
-    const int score = immediate + searchValue(snapshot, preview.next, config, depth - 1);
+    const int score = immediate + searchValue(snapshot, preview.next, config, depth - 1, target);
     if (score > best) {
       best = score;
     }
@@ -610,7 +668,8 @@ auto rolloutHorizon(const StrategyConfig& config) -> int {
 
 auto rolloutScore(const Snapshot& snapshot,
                   const MoveState& startState,
-                  const StrategyConfig& config) -> int {
+                  const StrategyConfig& config,
+                  const QPoint& target) -> int {
   MoveState current = startState;
   int total = 0;
   const int horizon = rolloutHorizon(config);
@@ -623,7 +682,7 @@ auto rolloutScore(const Snapshot& snapshot,
       if (!preview.valid) {
         continue;
       }
-      int score = evaluateLeaf(snapshot, preview.next, config);
+      int score = evaluateLeaf(snapshot, preview.next, config, target);
       if (preview.ateFood) {
         score += config.foodConsumeBonus * 2;
       }
@@ -791,6 +850,7 @@ auto passesHardFilter(const CandidateStats& stats, const HardFilterConfig& conf)
 auto selectLoopAwareDirection(const Snapshot& snapshot,
                               const StrategyConfig& config,
                               LoopMemory& memory,
+                              TargetFsm& targetFsm,
                               const bool useSearchScoring) -> std::optional<QPoint> {
   if (snapshot.body.empty() || snapshot.boardWidth <= 0 || snapshot.boardHeight <= 0) {
     return std::nullopt;
@@ -803,15 +863,14 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     .score = snapshot.score,
   };
 
-  constexpr int kLoopRepeatThreshold = 4;
-  constexpr int kNoScoreEscapeTicks = 28;
   const int repeats = memory.observe(snapshot, initial);
-  const bool stagnantEscape = memory.noScoreTicks() >= kNoScoreEscapeTicks && repeats >= 2;
-  const bool escapeMode = repeats >= kLoopRepeatThreshold || stagnantEscape;
+  targetFsm.update(snapshot, tunedConfig, repeats, memory.noScoreTicks(), memory.observeTick());
+  const bool escapeMode = targetFsm.mode() == TargetMode::Escape;
   const int riskBudget = riskBudgetFor(snapshot, repeats);
   const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
-  const QPoint primaryTarget = resolvePrimaryTarget(initial.head, snapshot, tunedConfig);
-  const bool earlyFoodChaseGuard = (primaryTarget == snapshot.food) && snapshot.score < 40 &&
+  const QPoint primaryTarget = targetFsm.targetPoint(snapshot, tunedConfig);
+  const bool earlyFoodChaseGuard = (targetFsm.mode() == TargetMode::FoodChase) &&
+                                   (primaryTarget == snapshot.food) && snapshot.score < 40 &&
                                    static_cast<int>(snapshot.body.size()) < 12 && !escapeMode;
 
   std::vector<CandidateStats> legalCandidates;
@@ -912,9 +971,10 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       if (preview.atePower) {
         immediate += powerPriority(tunedConfig, snapshot.powerUpType);
       }
-      score = immediate + searchValue(snapshot, preview.next, tunedConfig, depth - 1) -
+      score = immediate +
+              searchValue(snapshot, preview.next, tunedConfig, depth - 1, primaryTarget) -
               (revisitCount * std::max(1, tunedConfig.loopRepeatPenalty - 8));
-      score += rolloutScore(snapshot, preview.next, tunedConfig) / 6;
+      score += rolloutScore(snapshot, preview.next, tunedConfig, primaryTarget) / 6;
       score += approachTargetBonus(
         initial.head, preview.next.head, primaryTarget, snapshot, tunedConfig, repeats);
       score -= pocketPenalty * 2;
@@ -922,7 +982,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       const QPoint tailFallback =
         preview.next.body.empty() ? preview.next.head : preview.next.body.back();
       const TargetDistance targetDistance =
-        resolveTargetDistance(preview.next.head, snapshot, tunedConfig, blocked, tailFallback);
+        resolveTargetDistance(preview.next.head, primaryTarget, snapshot, blocked, tailFallback);
       int immediate = (candidate == snapshot.direction ? tunedConfig.straightBonus : 0);
       if (preview.ateFood) {
         immediate += tunedConfig.foodConsumeBonus;
@@ -973,7 +1033,7 @@ public:
 
   [[nodiscard]] auto decideDirection(const Snapshot& snapshot, const StrategyConfig& config) const
     -> std::optional<QPoint> override {
-    return selectLoopAwareDirection(snapshot, config, m_loopMemory, false);
+    return selectLoopAwareDirection(snapshot, config, m_loopMemory, m_targetFsm, false);
   }
 
   [[nodiscard]] auto decideChoice(const QVariantList& choices, const StrategyConfig& config) const
@@ -983,10 +1043,12 @@ public:
 
   void reset() override {
     m_loopMemory.clear();
+    m_targetFsm.clear();
   }
 
 private:
   mutable LoopMemory m_loopMemory;
+  mutable TargetFsm m_targetFsm;
 };
 
 class SearchBackend final : public BotBackend {
@@ -997,7 +1059,7 @@ public:
 
   [[nodiscard]] auto decideDirection(const Snapshot& snapshot, const StrategyConfig& config) const
     -> std::optional<QPoint> override {
-    return selectLoopAwareDirection(snapshot, config, m_loopMemory, true);
+    return selectLoopAwareDirection(snapshot, config, m_loopMemory, m_targetFsm, true);
   }
 
   [[nodiscard]] auto decideChoice(const QVariantList& choices, const StrategyConfig& config) const
@@ -1007,10 +1069,12 @@ public:
 
   void reset() override {
     m_loopMemory.clear();
+    m_targetFsm.clear();
   }
 
 private:
   mutable LoopMemory m_loopMemory;
+  mutable TargetFsm m_targetFsm;
 };
 
 } // namespace
