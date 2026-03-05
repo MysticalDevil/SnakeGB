@@ -30,6 +30,64 @@ constexpr bool LowLoadAudioMode = true;
 #else
 constexpr bool LowLoadAudioMode = false;
 #endif
+
+auto isGameplayTrack(const nenoserpent::audio::ScoreTrackId trackId) -> bool {
+  using TrackId = nenoserpent::audio::ScoreTrackId;
+  switch (trackId) {
+  case TrackId::GameplayEmeraldDawn:
+  case TrackId::GameplayNeonPulse:
+  case TrackId::GameplayCipherRun:
+  case TrackId::GameplayAfterglowEcho:
+    return true;
+  default:
+    return false;
+  }
+}
+
+auto isReplayTrack(const nenoserpent::audio::ScoreTrackId trackId) -> bool {
+  using TrackId = nenoserpent::audio::ScoreTrackId;
+  switch (trackId) {
+  case TrackId::ReplayEmeraldDawn:
+  case TrackId::ReplayNeonPulse:
+  case TrackId::ReplayCipherRun:
+  case TrackId::ReplayAfterglowEcho:
+    return true;
+  default:
+    return false;
+  }
+}
+
+auto lerp(const double from, const double to, const double t) -> double {
+  return from + ((to - from) * std::clamp(t, 0.0, 1.0));
+}
+
+auto gameplayTempoScaleForScore(const int score) -> double {
+  const int safeScore = std::max(0, score);
+  if (safeScore < 10) {
+    return lerp(1.00, 0.93, safeScore / 10.0);
+  }
+  if (safeScore < 25) {
+    return lerp(0.93, 0.84, (safeScore - 10) / 15.0);
+  }
+  if (safeScore < 45) {
+    return lerp(0.84, 0.74, (safeScore - 25) / 20.0);
+  }
+  if (safeScore < 80) {
+    return lerp(0.74, 0.66, (safeScore - 45) / 35.0);
+  }
+  return 0.66;
+}
+
+auto tempoScaleForTrack(const nenoserpent::audio::ScoreTrackId trackId, const int score) -> double {
+  if (isGameplayTrack(trackId)) {
+    return gameplayTempoScaleForScore(score);
+  }
+  if (isReplayTrack(trackId)) {
+    // Replay keeps a steadier pulse than live gameplay.
+    return std::clamp(gameplayTempoScaleForScore(score) * 1.08, 0.72, 1.05);
+  }
+  return 1.0;
+}
 } // namespace
 
 SoundManager::SoundManager(QObject* parent)
@@ -131,7 +189,8 @@ auto SoundManager::playScoreCue(const int cueId, const float pan) -> void {
     return;
   }
 
-  const auto steps = nenoserpent::audio::scoreCueSteps(static_cast<nenoserpent::audio::ScoreCueId>(cueId));
+  const auto steps =
+    nenoserpent::audio::scoreCueSteps(static_cast<nenoserpent::audio::ScoreCueId>(cueId));
   if (steps.empty()) {
     return;
   }
@@ -208,11 +267,12 @@ auto SoundManager::playNextNote() -> void {
   const auto leadFreq = nenoserpent::audio::pitchFrequencyHz(leadPitch);
   const auto bassFreq = nenoserpent::audio::pitchFrequencyHz(bassPitch);
 
-  double tempoScale = std::max(0.6, 1.0 - ((m_currentScore / 5.0) * 0.05));
+  double tempoScale = tempoScaleForTrack(m_currentTrackId, m_currentScore);
   if (LowLoadAudioMode) {
     tempoScale *= 1.35;
   }
-  int scaledDuration = static_cast<int>(duration * tempoScale);
+  tempoScale = std::clamp(tempoScale, 0.62, 1.6);
+  int scaledDuration = std::max(20, static_cast<int>(duration * tempoScale));
 
   if (leadFreq > 0 && m_bgmLeadSink != nullptr) {
     QByteArray leadData;
