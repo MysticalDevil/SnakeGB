@@ -31,6 +31,7 @@ MIN_PUBLISH_ROUND="${BOT_ONLINE_MIN_PUBLISH_ROUND:-1}"
 PUBLISH_COOLDOWN_ROUNDS="${BOT_ONLINE_PUBLISH_COOLDOWN_ROUNDS:-1}"
 MAX_BLOCKED_STREAK="${BOT_ONLINE_MAX_BLOCKED_STREAK:-8}"
 DECISION_POLICY="${BOT_ONLINE_DECISION_POLICY:-balanced}"
+REPORT_SCORE_GOAL="${BOT_ONLINE_REPORT_SCORE_GOAL:-300}"
 
 EPOCHS_SET=0
 BATCH_SIZE_SET=0
@@ -141,6 +142,10 @@ while (($# > 0)); do
       DECISION_POLICY="$2"
       shift 2
       ;;
+    --report-score-goal|--autostop-score)
+      REPORT_SCORE_GOAL="$2"
+      shift 2
+      ;;
     *)
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
@@ -172,6 +177,7 @@ Options:
   --publish-cooldown-rounds <N> Trainer minimum rounds between publishes (default: 1)
   --max-blocked-streak <N>      Trainer stop threshold for consecutive blocked rounds (default: 8)
   --decision-policy <name>      Bot decision policy: aggressive|balanced|conservative (default: balanced)
+  --report-score-goal <N>       After score > N, continue until natural GameOver, then auto report+exit (default: 300)
 
 Behavior:
   - starts bot-online-train in background
@@ -197,6 +203,10 @@ fi
 if [[ "${DECISION_POLICY}" != "aggressive" && "${DECISION_POLICY}" != "balanced" &&
   "${DECISION_POLICY}" != "conservative" ]]; then
   echo "invalid --decision-policy: ${DECISION_POLICY} (expected aggressive|balanced|conservative)" >&2
+  exit 1
+fi
+if ! [[ "${REPORT_SCORE_GOAL}" =~ ^[0-9]+$ ]]; then
+  echo "invalid --report-score-goal: ${REPORT_SCORE_GOAL} (expected non-negative integer)" >&2
   exit 1
 fi
 
@@ -261,8 +271,47 @@ cleanup() {
     kill "${TRAINER_PID}" 2>/dev/null || true
     wait "${TRAINER_PID}" 2>/dev/null || true
   fi
+  TRAINER_PID=0
 }
 trap cleanup EXIT INT TERM
+
+print_report() {
+  local game_status="$1"
+  local goal="$2"
+  local workspace="$3"
+  local dataset_path="$4"
+  local model_path="$5"
+  local publish_history="$6"
+
+  local c_reset="" c_title="" c_key="" c_val="" c_warn=""
+  if [[ -t 1 ]]; then
+    c_reset=$'\033[0m'
+    c_title=$'\033[1;36m'
+    c_key=$'\033[1;34m'
+    c_val=$'\033[1;32m'
+    c_warn=$'\033[1;33m'
+  fi
+
+  printf '\033c'
+  echo "${c_title}NenoSerpent Bot Run Report${c_reset}"
+  echo "----------------------------------------"
+  echo "${c_key}Exit Status:${c_reset} ${c_val}${game_status}${c_reset}"
+  echo "${c_key}Score Goal:${c_reset} ${c_val}>${goal}${c_reset}"
+  echo "${c_key}Workspace:${c_reset} ${c_val}${workspace}${c_reset}"
+  echo "${c_key}Dataset:${c_reset} ${c_val}${dataset_path}${c_reset}"
+  echo "${c_key}Model:${c_reset} ${c_val}${model_path}${c_reset}"
+  echo "${c_key}Publish History:${c_reset} ${c_val}${publish_history}${c_reset}"
+  if [[ ! -f "${dataset_path}" ]]; then
+    echo "${c_warn}warn:${c_reset} dataset file not found yet"
+  fi
+  if [[ ! -f "${model_path}" ]]; then
+    echo "${c_warn}warn:${c_reset} runtime model file not found yet"
+  fi
+  if [[ ! -f "${publish_history}" ]]; then
+    echo "${c_warn}warn:${c_reset} publish history file not found yet"
+  fi
+  echo "----------------------------------------"
+}
 
 echo "[bot-online-run] start trainer workspace=${WORKSPACE}"
 echo "[bot-online-run] quality=${QUALITY} epochs=${EPOCHS} batch_size=${BATCH_SIZE} gate_games=${GATE_GAMES} gate_max_ticks=${GATE_MAX_TICKS} min_dataset_samples=${MIN_DATASET_SAMPLES} min_publish_round=${MIN_PUBLISH_ROUND} publish_cooldown_rounds=${PUBLISH_COOLDOWN_ROUNDS}"
@@ -288,11 +337,29 @@ echo "[bot-online-run] quality=${QUALITY} epochs=${EPOCHS} batch_size=${BATCH_SI
 TRAINER_PID=$!
 
 echo "[bot-online-run] start game backend=ml-online model=${RUNTIME_JSON_PATH}"
-"${DEV_SH}" bot-run \
+export NENOSERPENT_BOT_WORKSPACE="${WORKSPACE}"
+export NENOSERPENT_BOT_DATASET_PATH="${WORKSPACE}/nenoserpent_bot_dataset.csv"
+export NENOSERPENT_BOT_MODEL_PATH="${RUNTIME_JSON_PATH}"
+GAME_EXIT_STATUS=0
+if ! "${DEV_SH}" bot-run \
   --build-preset "${BUILD_PRESET}" \
   --backend ml-online \
   --ml-model "${RUNTIME_JSON_PATH}" \
   --decision-policy "${DECISION_POLICY}" \
+  --autostop-score "${REPORT_SCORE_GOAL}" \
   --level "${LEVEL_INDEX}" \
   --headful \
-  --ui-mode "${UI_MODE}"
+  --ui-mode "${UI_MODE}"; then
+  GAME_EXIT_STATUS=$?
+fi
+
+cleanup
+trap - EXIT INT TERM
+print_report "${GAME_EXIT_STATUS}" \
+  "${REPORT_SCORE_GOAL}" \
+  "${WORKSPACE}" \
+  "${WORKSPACE}/nenoserpent_bot_dataset.csv" \
+  "${RUNTIME_JSON_PATH}" \
+  "${WORKSPACE}/publish_history.tsv"
+
+exit "${GAME_EXIT_STATUS}"

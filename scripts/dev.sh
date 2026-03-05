@@ -153,10 +153,12 @@ EOF
 Usage: ./scripts/dev.sh bot-online-run [--workspace cache/<dir> --build-preset dev --ui-mode screen]
        [--level N]
        [--decision-policy aggressive|balanced|conservative]
+       [--report-score-goal N]
        [--quality low|medium|high|extreme]
        [--suite scripts/ci/bot_leaderboard_rule_suite.tsv]
 Purpose: start ml-online trainer loop in background and run game in headful mode.
          Supports the same trainer stability knobs as bot-online-train.
+         If score exceeds goal, run continues until natural GameOver then exits with report.
 EOF
       ;;
     bot-online-run-smoke)
@@ -168,7 +170,8 @@ EOF
     bot-run)
       cat <<'EOF'
 Usage: ./scripts/dev.sh bot-run [--backend off|human|rule|ml|ml-online|search] [--headful|--headless] \
-[--ui-mode full|screen] [--level N] [--decision-policy aggressive|balanced|conservative]
+[--ui-mode full|screen] [--level N] [--autostop-score N] \
+[--decision-policy aggressive|balanced|conservative]
 Purpose: run gameplay with selected bot backend and UI mode.
 EOF
       ;;

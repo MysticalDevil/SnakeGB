@@ -433,6 +433,8 @@ private:
   std::unique_ptr<GameState> m_fsmState;
   bool m_musicEnabled = true;
   int m_bgmVariant = 0;
+  int m_botReportScoreGoal = 0;
+  bool m_botScoreGoalReached = false;
   std::unique_ptr<nenoserpent::adapter::bot::BotControlPort> m_botControlOwner;
   nenoserpent::adapter::bot::BotControlPort* m_botControlPort = nullptr;
   nenoserpent::adapter::bot::BotRuntimePort* m_botRuntimePort = nullptr;

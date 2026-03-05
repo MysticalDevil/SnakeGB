@@ -1,7 +1,9 @@
 #include "adapter/engine.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDebug>
+#include <QProcessEnvironment>
 
 #include "adapter/bot/facade.h"
 #include "fsm/game_state.h"
@@ -40,6 +42,19 @@ auto stateName(const int state) -> const char* {
   }
 }
 
+auto parseNonNegativeIntEnv(const QString& name, const int fallback) -> int {
+  const QString raw = QProcessEnvironment::systemEnvironment().value(name).trimmed();
+  if (raw.isEmpty()) {
+    return fallback;
+  }
+  bool ok = false;
+  const int value = raw.toInt(&ok);
+  if (!ok || value < 0) {
+    return fallback;
+  }
+  return value;
+}
+
 } // namespace
 
 EngineAdapter::EngineAdapter(QObject* parent)
@@ -53,6 +68,8 @@ EngineAdapter::EngineAdapter(QObject* parent)
       m_profileManager(std::make_unique<ProfileManager>()),
       m_inputQueue(m_sessionCore.inputQueue()),
       m_fsmState(nullptr) {
+  m_botReportScoreGoal =
+    parseNonNegativeIntEnv(QStringLiteral("NENOSERPENT_BOT_REPORT_SCORE_GOAL"), 0);
   auto botRuntimeFacade = std::make_unique<nenoserpent::adapter::bot::RuntimeFacade>();
   m_botControlPort = botRuntimeFacade.get();
   m_botRuntimePort = botRuntimeFacade.get();
@@ -99,6 +116,22 @@ EngineAdapter::EngineAdapter(QObject* parent)
 
   m_sessionCore.setBody({{10, 10}, {10, 11}, {10, 12}});
   syncSnakeModelFromCore();
+
+  if (m_botReportScoreGoal > 0) {
+    qCInfo(nenoserpentStateLog).noquote()
+      << "bot report goal enabled score>" << m_botReportScoreGoal;
+    connect(this, &EngineAdapter::scoreChanged, this, [this]() -> void {
+      if (m_botScoreGoalReached || m_botReportScoreGoal <= 0 || m_state != AppState::Playing) {
+        return;
+      }
+      if (m_session.score <= m_botReportScoreGoal) {
+        return;
+      }
+      m_botScoreGoalReached = true;
+      qCInfo(nenoserpentStateLog).noquote()
+        << "bot report goal reached score=" << m_session.score;
+    });
+  }
 }
 
 EngineAdapter::~EngineAdapter() {
@@ -148,6 +181,23 @@ void EngineAdapter::setupAudioSignals() {
   });
 
   connect(this, &EngineAdapter::stateChanged, this, [this]() -> void {
+    if (m_state == AppState::StartMenu || m_state == AppState::Playing) {
+      m_botScoreGoalReached = false;
+    }
+    if (m_botReportScoreGoal > 0 && m_state == AppState::GameOver && m_botScoreGoalReached) {
+      const auto env = QProcessEnvironment::systemEnvironment();
+      const QString workspace = env.value(QStringLiteral("NENOSERPENT_BOT_WORKSPACE"));
+      const QString datasetPath = env.value(QStringLiteral("NENOSERPENT_BOT_DATASET_PATH"));
+      const QString modelPath = env.value(QStringLiteral("NENOSERPENT_BOT_MODEL_PATH"));
+      qCInfo(nenoserpentStateLog).noquote() << "[bot-report] goal>" << m_botReportScoreGoal
+                                            << " final_score=" << m_session.score;
+      qCInfo(nenoserpentStateLog).noquote() << "[bot-report] workspace=" << workspace;
+      qCInfo(nenoserpentStateLog).noquote() << "[bot-report] dataset=" << datasetPath;
+      qCInfo(nenoserpentStateLog).noquote() << "[bot-report] model=" << modelPath;
+      qCInfo(nenoserpentStateLog).noquote()
+        << "[bot-report] reached goal then entered GameOver, exiting run";
+      QTimer::singleShot(0, qApp, &QCoreApplication::quit);
+    }
     qCInfo(nenoserpentAudioLog).noquote()
       << "stateChanged ->" << stateName(m_state) << "(musicEnabled=" << m_musicEnabled << ")";
     const int token = m_audioStateToken;
