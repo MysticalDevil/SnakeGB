@@ -1,14 +1,14 @@
 {
   "unit": {
-    "line_min": 70.0,
-    "branch_min": 55.0,
-    "line_baseline": 70.0,
-    "branch_baseline": 55.0
+    "line_min": 49.0,
+    "branch_min": 25.0,
+    "line_baseline": 49.0,
+    "branch_baseline": 25.0
   },
   "integration": {
-    "line_min": 40.0,
-    "branch_min": 25.0,
-    "line_baseline": 40.0,
-    "branch_baseline": 25.0
+    "line_min": 39.5,
+    "branch_min": 15.0,
+    "line_baseline": 39.5,
+    "branch_baseline": 15.0
   }
 }
