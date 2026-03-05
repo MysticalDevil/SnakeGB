@@ -67,6 +67,10 @@ while IFS=$'\t' read -r case_id backend mode level seed games max_ticks; do
     --backend "${backend}" \
     "${ml_args[@]}" \
     --dump-dataset "${OUTPUT_PATH}" \
+    --dataset-case-id "${case_id}" \
+    --dataset-backend "${backend}" \
+    --dataset-mode "${mode}" \
+    --dataset-seed "${seed}" \
     --max-samples "${MAX_SAMPLES_PER_CASE}" \
     | tail -n 1
 done < "${SUITE_FILE}"

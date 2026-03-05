@@ -13,6 +13,7 @@ import json
 import random
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 try:
     import torch
@@ -51,6 +52,8 @@ LABEL_COLUMN = "action"
 class Dataset:
     x: torch.Tensor
     y: torch.Tensor
+    sample_weights: torch.Tensor
+    seed_values: Optional[list[int]]
 
 
 class MlpPolicy(nn.Module):
@@ -68,34 +71,97 @@ class MlpPolicy(nn.Module):
         return self.net(x)
 
 
-def load_csv(path: Path) -> Dataset:
+def hard_sample_weights(x: torch.Tensor, y: torch.Tensor, scale: float) -> torch.Tensor:
+    danger_up = x[:, FEATURE_COLUMNS.index("danger_up")]
+    danger_right = x[:, FEATURE_COLUMNS.index("danger_right")]
+    danger_down = x[:, FEATURE_COLUMNS.index("danger_down")]
+    danger_left = x[:, FEATURE_COLUMNS.index("danger_left")]
+    body_len = x[:, FEATURE_COLUMNS.index("body_len")]
+
+    danger_sum = danger_up + danger_right + danger_down + danger_left
+    per_action_danger = torch.zeros_like(danger_sum)
+    per_action_danger = torch.where(y == 0, danger_up, per_action_danger)
+    per_action_danger = torch.where(y == 1, danger_right, per_action_danger)
+    per_action_danger = torch.where(y == 2, danger_down, per_action_danger)
+    per_action_danger = torch.where(y == 3, danger_left, per_action_danger)
+
+    long_body = (body_len >= 18).float()
+    weights = 1.0 + scale * (1.4 * per_action_danger + 0.25 * danger_sum + 0.35 * long_body)
+    return torch.clamp(weights, min=0.1, max=8.0)
+
+
+def load_csv(path: Path, hard_sample_scale: float) -> Dataset:
     rows_x: list[list[float]] = []
     rows_y: list[int] = []
+    seed_values: list[int] = []
+    has_seed_column = False
     with path.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
         missing = [c for c in FEATURE_COLUMNS + [LABEL_COLUMN] if c not in reader.fieldnames]
         if missing:
             raise RuntimeError(f"dataset missing required columns: {missing}")
+        has_seed_column = bool(reader.fieldnames and "seed" in reader.fieldnames)
         for row in reader:
             rows_x.append([float(row[c]) for c in FEATURE_COLUMNS])
             rows_y.append(int(row[LABEL_COLUMN]))
+            if has_seed_column:
+                seed_values.append(int(row["seed"]))
     if not rows_x:
         raise RuntimeError(f"empty dataset: {path}")
     x = torch.tensor(rows_x, dtype=torch.float32)
     y = torch.tensor(rows_y, dtype=torch.long)
-    return Dataset(x=x, y=y)
+    return Dataset(
+        x=x,
+        y=y,
+        sample_weights=hard_sample_weights(x, y, hard_sample_scale),
+        seed_values=seed_values if has_seed_column else None,
+    )
 
 
 def split_dataset(dataset: Dataset, train_ratio: float, seed: int) -> tuple[Dataset, Dataset]:
     n = dataset.x.shape[0]
-    idx = list(range(n))
-    random.Random(seed).shuffle(idx)
-    train_n = max(1, min(n - 1, int(n * train_ratio)))
-    train_idx = torch.tensor(idx[:train_n], dtype=torch.long)
-    val_idx = torch.tensor(idx[train_n:], dtype=torch.long)
+    if dataset.seed_values is not None and len(set(dataset.seed_values)) > 1:
+        groups: dict[int, list[int]] = {}
+        for idx, seed_value in enumerate(dataset.seed_values):
+            groups.setdefault(seed_value, []).append(idx)
+        seed_keys = list(groups.keys())
+        random.Random(seed).shuffle(seed_keys)
+        train_group_count = max(1, min(len(seed_keys) - 1, int(len(seed_keys) * train_ratio)))
+        train_group_keys = set(seed_keys[:train_group_count])
+        train_rows: list[int] = []
+        val_rows: list[int] = []
+        for seed_key, rows in groups.items():
+            if seed_key in train_group_keys:
+                train_rows.extend(rows)
+            else:
+                val_rows.extend(rows)
+        if not train_rows or not val_rows:
+            idx = list(range(n))
+            random.Random(seed).shuffle(idx)
+            train_n = max(1, min(n - 1, int(n * train_ratio)))
+            train_rows = idx[:train_n]
+            val_rows = idx[train_n:]
+        train_idx = torch.tensor(train_rows, dtype=torch.long)
+        val_idx = torch.tensor(val_rows, dtype=torch.long)
+    else:
+        idx = list(range(n))
+        random.Random(seed).shuffle(idx)
+        train_n = max(1, min(n - 1, int(n * train_ratio)))
+        train_idx = torch.tensor(idx[:train_n], dtype=torch.long)
+        val_idx = torch.tensor(idx[train_n:], dtype=torch.long)
     return (
-        Dataset(x=dataset.x[train_idx], y=dataset.y[train_idx]),
-        Dataset(x=dataset.x[val_idx], y=dataset.y[val_idx]),
+        Dataset(
+            x=dataset.x[train_idx],
+            y=dataset.y[train_idx],
+            sample_weights=dataset.sample_weights[train_idx],
+            seed_values=None,
+        ),
+        Dataset(
+            x=dataset.x[val_idx],
+            y=dataset.y[val_idx],
+            sample_weights=dataset.sample_weights[val_idx],
+            seed_values=None,
+        ),
     )
 
 
@@ -120,12 +186,17 @@ def run_epoch(
     optimizer: torch.optim.Optimizer,
     x: torch.Tensor,
     y: torch.Tensor,
+    sample_weights: Optional[torch.Tensor],
     batch_size: int,
     train: bool,
 ) -> tuple[float, float]:
     criterion = nn.CrossEntropyLoss()
     n = x.shape[0]
-    permutation = torch.randperm(n) if train else torch.arange(n)
+    if train and sample_weights is not None:
+        normalized_weights = sample_weights / sample_weights.sum()
+        permutation = torch.multinomial(normalized_weights, n, replacement=True)
+    else:
+        permutation = torch.randperm(n) if train else torch.arange(n)
     total_loss = 0.0
     total_acc = 0.0
     batches = 0
@@ -161,12 +232,18 @@ def main() -> int:
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--train-ratio", type=float, default=0.9)
     parser.add_argument("--seed", type=int, default=20260304)
+    parser.add_argument(
+        "--hard-sample-scale",
+        type=float,
+        default=1.0,
+        help="Scale for hard-sample weighted sampling during training",
+    )
     args = parser.parse_args()
 
     random.seed(args.seed)
     torch.manual_seed(args.seed)
 
-    dataset = load_csv(Path(args.dataset))
+    dataset = load_csv(Path(args.dataset), hard_sample_scale=args.hard_sample_scale)
     train_data, val_data = split_dataset(dataset, args.train_ratio, args.seed)
 
     mean, std = zscore_fit(train_data.x)
@@ -185,6 +262,7 @@ def main() -> int:
             optimizer=optimizer,
             x=train_x,
             y=train_data.y,
+            sample_weights=train_data.sample_weights,
             batch_size=max(1, args.batch_size),
             train=True,
         )
@@ -194,6 +272,7 @@ def main() -> int:
                 optimizer=optimizer,
                 x=val_x,
                 y=val_data.y,
+                sample_weights=None,
                 batch_size=max(1, args.batch_size),
                 train=False,
             )
@@ -237,6 +316,8 @@ def main() -> int:
         "lr": args.lr,
         "train_ratio": args.train_ratio,
         "seed": args.seed,
+        "hard_sample_scale": args.hard_sample_scale,
+        "dataset_seed_grouped_split": dataset.seed_values is not None,
         "best_val_acc": best_val_acc,
         "history_tail": history[-10:],
         "feature_columns": FEATURE_COLUMNS,

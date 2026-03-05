@@ -15,6 +15,7 @@ BATCH_SIZE="${BOT_TRAIN_BATCH_SIZE:-256}"
 LR="${BOT_TRAIN_LR:-0.001}"
 TRAIN_RATIO="${BOT_TRAIN_TRAIN_RATIO:-0.9}"
 SEED="${BOT_TRAIN_SEED:-20260304}"
+HARD_SAMPLE_SCALE="${BOT_TRAIN_HARD_SAMPLE_SCALE:-1.0}"
 
 while (($# > 0)); do
   case "$1" in
@@ -54,6 +55,10 @@ while (($# > 0)); do
       SEED="$2"
       shift 2
       ;;
+    --hard-sample-scale)
+      HARD_SAMPLE_SCALE="$2"
+      shift 2
+      ;;
     *)
       echo "unknown arg: $1" >&2
       exit 1
@@ -70,4 +75,5 @@ exec uv run python "${ROOT_DIR}/scripts/dev/bot_train.py" \
   --batch-size "${BATCH_SIZE}" \
   --lr "${LR}" \
   --train-ratio "${TRAIN_RATIO}" \
-  --seed "${SEED}"
+  --seed "${SEED}" \
+  --hard-sample-scale "${HARD_SAMPLE_SCALE}"

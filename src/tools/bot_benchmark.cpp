@@ -69,12 +69,21 @@ enum class BenchmarkBackend {
 };
 
 struct DatasetWriter final {
-  explicit DatasetWriter(const QString& path)
-      : file(path) {
+  struct Context {
+    QString caseId;
+    QString backend;
+    QString mode;
+    int seed = 0;
+  };
+
+  explicit DatasetWriter(const QString& path, Context context)
+      : file(path),
+        context(std::move(context)) {
   }
 
   QFile file;
   QTextStream stream{&file};
+  Context context;
   bool enabled = false;
   bool headerWritten = false;
   int sampleCount = 0;
@@ -119,7 +128,8 @@ struct DatasetWriter final {
       }
       stream << features.values[static_cast<std::size_t>(i)];
     }
-    stream << ',' << actionClass << '\n';
+    stream << ',' << context.caseId << ',' << context.backend << ',' << context.mode << ','
+           << context.seed << ',' << actionClass << '\n';
     sampleCount += 1;
   }
 
@@ -134,7 +144,8 @@ private:
   auto writeHeader() -> void {
     stream << "level,score,body_len,head_x,head_y,dir_x,dir_y,food_dx,food_dy,power_dx,power_dy,"
            << "power_type,power_active,ghost_active,shield_active,portal_active,laser_active,"
-           << "danger_up,danger_right,danger_down,danger_left,action\n";
+           << "danger_up,danger_right,danger_down,danger_left,"
+           << "case_id,backend,mode,seed,action\n";
     headerWritten = true;
   }
 };
@@ -331,6 +342,23 @@ auto main(int argc, char* argv[]) -> int {
     QStringLiteral("Maximum dataset rows to dump (0 = unlimited)."),
     QStringLiteral("count"),
     QStringLiteral("0"));
+  QCommandLineOption datasetCaseIdOption(
+    QStringList{QStringLiteral("dataset-case-id")},
+    QStringLiteral("Optional case id metadata for dataset rows."),
+    QStringLiteral("id"));
+  QCommandLineOption datasetBackendOption(
+    QStringList{QStringLiteral("dataset-backend")},
+    QStringLiteral("Optional backend metadata for dataset rows."),
+    QStringLiteral("name"),
+    QStringLiteral("rule"));
+  QCommandLineOption datasetModeOption(QStringList{QStringLiteral("dataset-mode")},
+                                       QStringLiteral("Optional mode metadata for dataset rows."),
+                                       QStringLiteral("name"),
+                                       QStringLiteral("balanced"));
+  QCommandLineOption datasetSeedOption(QStringList{QStringLiteral("dataset-seed")},
+                                       QStringLiteral("Optional seed metadata for dataset rows."),
+                                       QStringLiteral("seed"),
+                                       QStringLiteral("0"));
 
   parser.addOption(gamesOption);
   parser.addOption(ticksOption);
@@ -343,6 +371,10 @@ auto main(int argc, char* argv[]) -> int {
   parser.addOption(strategyFileOption);
   parser.addOption(dumpDatasetOption);
   parser.addOption(maxSamplesOption);
+  parser.addOption(datasetCaseIdOption);
+  parser.addOption(datasetBackendOption);
+  parser.addOption(datasetModeOption);
+  parser.addOption(datasetSeedOption);
   parser.process(app);
 
   const int games = std::max(1, parser.value(gamesOption).toInt());
@@ -356,6 +388,12 @@ auto main(int argc, char* argv[]) -> int {
   const QString strategyFile = parser.value(strategyFileOption).trimmed();
   const QString dumpDatasetPath = parser.value(dumpDatasetOption).trimmed();
   const int maxSamples = std::max(0, parser.value(maxSamplesOption).toInt());
+  const DatasetWriter::Context datasetContext = {
+    .caseId = parser.value(datasetCaseIdOption).trimmed(),
+    .backend = parser.value(datasetBackendOption).trimmed().toLower(),
+    .mode = parser.value(datasetModeOption).trimmed().toLower(),
+    .seed = parser.value(datasetSeedOption).toInt(),
+  };
 
   const auto strategyLoad = nenoserpent::adapter::bot::loadStrategyConfig(profile, strategyFile);
   if (!strategyLoad.loaded) {
@@ -383,7 +421,7 @@ auto main(int argc, char* argv[]) -> int {
     obstacles = level->walls;
   }
 
-  DatasetWriter datasetWriter(dumpDatasetPath);
+  DatasetWriter datasetWriter(dumpDatasetPath, datasetContext);
   DatasetWriter* datasetWriterPtr = nullptr;
   if (!dumpDatasetPath.isEmpty() && datasetWriter.open(maxSamples)) {
     datasetWriterPtr = &datasetWriter;
