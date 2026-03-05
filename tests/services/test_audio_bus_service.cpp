@@ -128,7 +128,7 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(pausedState, 1);
 
   audioBus.handleStateChanged(
-    1, true, 0, [&](const int delayMs, const std::function<void()>& callback) -> void {
+    0, 1, true, 0, [&](const int delayMs, const std::function<void()>& callback) -> void {
       deferredDelay = delayMs;
       callback();
     });
@@ -137,16 +137,22 @@ void TestAudioBusService::testStateChangePolicy() {
   QCOMPARE(deferredStartCount, 1);
   QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::MenuEmeraldDawn));
 
-  audioBus.handleStateChanged(2, true, 0, {});
+  audioBus.handleStateChanged(1, 2, true, 0, {});
   QCOMPARE(startCount, 2);
   QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::GameplayEmeraldDawn));
 
-  audioBus.handleStateChanged(5, true, 0, {});
+  audioBus.handleStateChanged(2, 5, true, 0, {});
   QCOMPARE(startCount, 3);
   QCOMPARE(startedTrack, static_cast<int>(nenoserpent::audio::ScoreTrackId::ReplayEmeraldDawn));
 
-  audioBus.handleStateChanged(4, true, 0, {});
+  audioBus.handleStateChanged(2, 4, true, 0, {});
   QCOMPARE(stopCount, 1);
+
+  audioBus.handleStateChanged(6, 2, true, 0, {});
+  audioBus.handleStateChanged(3, 2, true, 0, {});
+  audioBus.handleStateChanged(7, 2, true, 0, {});
+  audioBus.handleStateChanged(8, 2, true, 0, {});
+  QCOMPARE(startCount, 3);
 }
 
 void TestAudioBusService::testAlternateTrackSelectionPolicy() {

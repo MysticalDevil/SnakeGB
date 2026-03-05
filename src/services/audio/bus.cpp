@@ -42,11 +42,22 @@ auto AudioBus::pausedForState(const int state) -> bool {
   return state == 3 || state == 6 || state == 7 || state == 8;
 }
 
-auto AudioBus::musicCommandForState(const int state, const bool musicEnabled) -> MusicCommand {
+auto AudioBus::musicCommandForState(const int previousState,
+                                    const int state,
+                                    const bool musicEnabled) -> MusicCommand {
   if (state == 1) {
     return musicEnabled ? MusicCommand::DeferMenuStart : MusicCommand::None;
   }
-  if (state == 2 || state == 5) {
+  if (state == 2) {
+    if (!musicEnabled) {
+      return MusicCommand::None;
+    }
+    if (pausedForState(previousState)) {
+      return MusicCommand::None;
+    }
+    return MusicCommand::StartNow;
+  }
+  if (state == 5) {
     return musicEnabled ? MusicCommand::StartNow : MusicCommand::None;
   }
   if (state == 0 || state == 4) {
@@ -228,12 +239,13 @@ void AudioBus::syncPausedState(const int state) const {
 }
 
 void AudioBus::handleStateChanged(
+  const int previousState,
   const int state,
   const bool musicEnabled,
   const int bgmVariant,
   const std::function<void(int delayMs, const std::function<void()>& callback)>& deferStart) const {
   const auto trackId = musicTrackForState(state, bgmVariant);
-  switch (musicCommandForState(state, musicEnabled)) {
+  switch (musicCommandForState(previousState, state, musicEnabled)) {
   case MusicCommand::StartNow:
     emitIfSet(m_callbacks.startMusic, trackId);
     break;

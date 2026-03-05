@@ -145,6 +145,7 @@ void EngineAdapter::setupAudioSignals() {
       << "stateChanged ->" << stateName(m_state) << "(musicEnabled=" << m_musicEnabled << ")";
     const int token = m_audioStateToken;
     m_audioBus.handleStateChanged(
+      static_cast<int>(m_previousAudioState),
       static_cast<int>(m_state),
       m_musicEnabled,
       m_bgmVariant,
@@ -197,9 +198,11 @@ void EngineAdapter::setupSensorRuntime() {
 void EngineAdapter::setInternalState(const int s) {
   const auto next = static_cast<AppState::Value>(s);
   if (m_state != next) {
+    const auto previous = m_state;
     qCInfo(nenoserpentStateLog).noquote()
       << "setInternalState:" << stateName(m_state) << "->" << stateName(next);
     m_state = next;
+    m_previousAudioState = previous;
     m_audioStateToken++;
     m_audioBus.syncPausedState(static_cast<int>(m_state));
     emit stateChanged();

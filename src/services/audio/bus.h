@@ -47,7 +47,8 @@ public:
 
   void syncPausedState(int state) const;
   void
-  handleStateChanged(int state,
+  handleStateChanged(int previousState,
+                     int state,
                      bool musicEnabled,
                      int bgmVariant,
                      const std::function<void(int delayMs, const std::function<void()>& callback)>&
@@ -59,7 +60,8 @@ public:
                      const nenoserpent::audio::EventPayload& payload = {});
 
   [[nodiscard]] static auto pausedForState(int state) -> bool;
-  [[nodiscard]] static auto musicCommandForState(int state, bool musicEnabled) -> MusicCommand;
+  [[nodiscard]] static auto musicCommandForState(int previousState, int state, bool musicEnabled)
+    -> MusicCommand;
   [[nodiscard]] static auto musicTrackForState(int state, int bgmVariant)
     -> nenoserpent::audio::ScoreTrackId;
   [[nodiscard]] static auto eventGroup(nenoserpent::audio::Event event) -> AudioGroup;
