@@ -72,6 +72,8 @@ void BotConfigAdapterTest::cyclesStrategyModesInExpectedOrder() {
 void BotConfigAdapterTest::cyclesBackendModesInExpectedOrder() {
   using nenoserpent::adapter::bot::BotBackendMode;
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Off), QStringLiteral("off"));
+  QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Human),
+           QStringLiteral("human"));
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Rule),
            QStringLiteral("rule"));
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Ml), QStringLiteral("ml"));
@@ -80,7 +82,8 @@ void BotConfigAdapterTest::cyclesBackendModesInExpectedOrder() {
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Search),
            QStringLiteral("search"));
 
-  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Off), BotBackendMode::Rule);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Off), BotBackendMode::Human);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Human), BotBackendMode::Rule);
   QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Rule), BotBackendMode::Ml);
   QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Ml),
            BotBackendMode::MlOnline);

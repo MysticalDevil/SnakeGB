@@ -62,6 +62,7 @@ EngineAdapter::EngineAdapter(QObject* parent)
   if (m_botControlPort != nullptr) {
     m_botControlPort->initializeFromEnvironment();
   }
+  initHumanTeachCapture();
 
   m_audioBus.setCallbacks({
     .startMusic = [this](const nenoserpent::audio::ScoreTrackId trackId) -> void {

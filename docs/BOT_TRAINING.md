@@ -22,6 +22,16 @@ Use fixed leaderboard suite as data source:
 ./scripts/dev.sh bot-dataset --output cache/dev/nenoserpent_bot_dataset.csv
 ```
 
+Human-driven dataset mode:
+
+```bash
+./scripts/dev.sh bot-run --backend human \
+  --human-dataset cache/dev/nenoserpent_human_dataset.csv --headful
+```
+
+This writes manual direction samples in the same feature schema (`action` label compatible),
+so it can be fed into `bot-train` directly or merged with synthetic datasets.
+
 Optional knobs:
 
 - `--profile debug|dev|release`

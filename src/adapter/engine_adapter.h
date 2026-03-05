@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QColor>
+#include <QFile>
 #include <QJSEngine>
 #include <QObject>
 #include <QRandomGenerator>
@@ -24,6 +25,7 @@
 #ifdef NENOSERPENT_HAS_SENSORS
 #include <QAccelerometer>
 #endif
+#include <array>
 #include <deque>
 #include <functional>
 #include <memory>
@@ -379,6 +381,9 @@ private:
   void applyFallbackLevelData(int levelIndex);
   void checkAchievements();
   void runLevelScript();
+  void initHumanTeachCapture();
+  void recordHumanTeachSample(int dx, int dy);
+  void appendHumanTeachCsvRow(const std::array<float, 21>& features, int action);
   static auto isOutOfBounds(const QPoint& p) noexcept -> bool;
   [[nodiscard]] auto saveRepository() const -> nenoserpent::services::SaveRepository;
 
@@ -433,6 +438,9 @@ private:
   nenoserpent::adapter::bot::BotRuntimePort* m_botRuntimePort = nullptr;
   bool m_stateCallbackInProgress = false;
   std::optional<int> m_pendingStateChange;
+  bool m_humanTeachEnabled = false;
+  bool m_humanTeachCsvReady = false;
+  QString m_humanTeachDatasetPath;
 
   static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

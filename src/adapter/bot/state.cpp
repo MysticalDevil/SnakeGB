@@ -64,12 +64,13 @@ void State::initializeFromEnvironment() {
   }
   qCWarning(nenoserpentInputLog).noquote()
     << "invalid bot backend override:" << envConfig.backendRaw
-    << "(expected off|rule|ml|ml-online|search, fallback off)";
+    << "(expected off|human|rule|ml|ml-online|search, fallback off)";
   m_backendMode = BotBackendMode::Off;
 }
 
 auto State::autoplayEnabled() const -> bool {
-  return m_backendMode != BotBackendMode::Off;
+  return m_backendMode == BotBackendMode::Rule || m_backendMode == BotBackendMode::Ml ||
+         m_backendMode == BotBackendMode::MlOnline || m_backendMode == BotBackendMode::Search;
 }
 
 auto State::backendModeName() const -> QString {
@@ -172,6 +173,7 @@ auto State::status() const -> QVariantMap {
 auto State::currentBackend() const -> const BotBackend* {
   switch (m_backendMode) {
   case BotBackendMode::Off:
+  case BotBackendMode::Human:
     return nullptr;
   case BotBackendMode::Rule:
     return &ruleBackend();

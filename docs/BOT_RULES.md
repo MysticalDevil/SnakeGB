@@ -15,6 +15,7 @@ NenoSerpent uses a backend-switched bot runtime with tunable rule strategy confi
 Backend behavior (`F8`):
 
 - `off`: bot disabled
+- `human`: bot disabled for autoplay, but manual directions are recorded as training samples
 - `rule`: rule backend enabled
 - `ml`: ML backend enabled; automatic fallback to `rule` on model unavailable/inference miss
 - `ml-online`: same inference path as `ml`, plus periodic model-file hot reload while playing
@@ -23,12 +24,14 @@ Backend behavior (`F8`):
 Strategy behavior (`F10`):
 
 - `safe -> balanced -> aggressive -> safe` cycle
-- this only changes rule-policy weights; it does not change backend (`off|rule|ml|ml-online|search`)
+- this only changes rule-policy weights; it does not change backend (`off|human|rule|ml|ml-online|search`)
 
 Startup backend override:
 
-- `NENOSERPENT_BOT_BACKEND=off|rule|ml|ml-online|search`
+- `NENOSERPENT_BOT_BACKEND=off|human|rule|ml|ml-online|search`
 - optional `NENOSERPENT_BOT_ML_MODEL=/abs/path/policy.runtime.json`
+- optional human-teach dataset output:
+  - `NENOSERPENT_BOT_HUMAN_DATASET=/abs/path/human_dataset.csv`
 - optional confidence gate:
   - `NENOSERPENT_BOT_ML_MIN_CONF` (default `0.90`)
   - `NENOSERPENT_BOT_ML_MIN_MARGIN` (default `1.20`)
@@ -132,7 +135,7 @@ PyTorch imitation-learning baseline:
 Debug tokens accepted by runtime injection:
 
 - `DBG_BOT_PANEL` (toggle panel visibility)
-- `DBG_BOT_MODE` (cycle backend: `off -> rule -> ml -> ml-online -> search`)
+- `DBG_BOT_MODE` (cycle backend: `off -> human -> rule -> ml -> ml-online -> search`)
 - `DBG_BOT_STRATEGY` (cycle strategy profile)
 - `DBG_BOT_RESET` (reapply current mode defaults)
 - `DBG_BOT_PARAM:KEY=VALUE[,KEY=VALUE...]`

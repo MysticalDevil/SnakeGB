@@ -47,6 +47,10 @@ void BotStateAdapterTest::cycleBackendModeUpdatesAutoplayState() {
   QVERIFY(!state.autoplayEnabled());
 
   state.cycleBackendMode();
+  QCOMPARE(state.backendModeName(), QStringLiteral("human"));
+  QVERIFY(!state.autoplayEnabled());
+
+  state.cycleBackendMode();
   QCOMPARE(state.backendModeName(), QStringLiteral("rule"));
   QVERIFY(state.autoplayEnabled());
 

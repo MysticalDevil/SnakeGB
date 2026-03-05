@@ -1,5 +1,10 @@
 #include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
+#include <QTextStream>
 
+#include "adapter/bot/features.h"
+#include "adapter/bot/snapshot_builder.h"
 #include "adapter/engine_adapter.h"
 #include "adapter/input/semantics.h"
 #include "adapter/profile/bridge.h"
@@ -56,8 +61,79 @@ void EngineAdapter::move(const int dx, const int dy) {
   dispatchStateCallback([dx, dy](GameState& state) -> void { state.handleInput(dx, dy); });
 
   if (m_state == AppState::Playing && m_sessionCore.enqueueDirection(QPoint(dx, dy))) {
+    recordHumanTeachSample(dx, dy);
     emit uiInteractTriggered();
   }
+}
+
+void EngineAdapter::initHumanTeachCapture() {
+  m_humanTeachDatasetPath = qEnvironmentVariable("NENOSERPENT_BOT_HUMAN_DATASET").trimmed();
+  m_humanTeachEnabled = !m_humanTeachDatasetPath.isEmpty();
+  if (!m_humanTeachEnabled) {
+    return;
+  }
+  const QFileInfo info(m_humanTeachDatasetPath);
+  QDir parentDir = info.dir();
+  if (!parentDir.exists()) {
+    parentDir.mkpath(QStringLiteral("."));
+  }
+  m_humanTeachCsvReady = false;
+  qCInfo(nenoserpentInputLog).noquote()
+    << "human-teach capture enabled path=" << m_humanTeachDatasetPath;
+}
+
+void EngineAdapter::appendHumanTeachCsvRow(const std::array<float, 21>& features,
+                                           const int action) {
+  QFile file(m_humanTeachDatasetPath);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+    qCWarning(nenoserpentInputLog).noquote()
+      << "human-teach capture write failed path=" << m_humanTeachDatasetPath;
+    return;
+  }
+  QTextStream stream(&file);
+  if (!m_humanTeachCsvReady && file.size() == 0) {
+    stream << "level,score,body_len,head_x,head_y,dir_x,dir_y,food_dx,food_dy,power_dx,power_dy,"
+              "power_type,power_active,ghost_active,shield_active,portal_active,laser_active,"
+              "danger_up,danger_right,danger_down,danger_left,action,seed,source\n";
+  }
+  m_humanTeachCsvReady = true;
+  for (int idx = 0; idx < 21; ++idx) {
+    if (idx > 0) {
+      stream << ',';
+    }
+    stream << features[static_cast<std::size_t>(idx)];
+  }
+  stream << ',' << action << ',' << m_randomSeed << ",human\n";
+}
+
+void EngineAdapter::recordHumanTeachSample(const int dx, const int dy) {
+  if (!m_humanTeachEnabled || m_botControlPort == nullptr ||
+      m_botControlPort->modeName() != u"human"_s) {
+    return;
+  }
+
+  const QPoint direction(dx, dy);
+  const int action = nenoserpent::adapter::bot::directionClass(direction);
+  if (action < 0) {
+    return;
+  }
+
+  const auto snapshot = nenoserpent::adapter::bot::buildSnapshot({
+    .head = m_sessionCore.headPosition(),
+    .direction = m_sessionCore.direction(),
+    .food = m_session.food,
+    .powerUpPos = m_session.powerUpPos,
+    .powerUpType = m_session.powerUpType,
+    .score = m_session.score,
+    .levelIndex = m_levelIndex,
+    .activeBuff = m_session.activeBuff,
+    .shieldActive = m_session.shieldActive,
+    .boardWidth = BOARD_WIDTH,
+    .boardHeight = BOARD_HEIGHT,
+    .obstacles = m_session.obstacles,
+    .body = m_sessionCore.body(),
+  });
+  appendHumanTeachCsvRow(nenoserpent::adapter::bot::extractFeatures(snapshot).values, action);
 }
 
 void EngineAdapter::nextPalette() {
@@ -119,6 +195,9 @@ void EngineAdapter::cycleBotMode() {
   emit botAutoplayChanged();
   emit botStrategyChanged();
   emit eventPrompt(u"BOT BACKEND: "_s + botModeName().toUpper());
+  if (botModeName() == u"human"_s && m_humanTeachEnabled) {
+    emit eventPrompt(u"HUMAN TEACH: REC"_s);
+  }
   qCInfo(nenoserpentInputLog).noquote() << "bot backend ->" << botModeName();
 }
 

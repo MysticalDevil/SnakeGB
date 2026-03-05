@@ -13,6 +13,7 @@ HEADFUL=1
 UI_MODE="full"
 BOT_BACKEND="${BOT_BACKEND:-off}"
 ML_MODEL_PATH="${BOT_ML_MODEL:-}"
+HUMAN_DATASET_PATH="${NENOSERPENT_BOT_HUMAN_DATASET:-}"
 
 while (($# > 0)); do
   case "$1" in
@@ -40,17 +41,23 @@ while (($# > 0)); do
       ML_MODEL_PATH="$2"
       shift 2
       ;;
+    --human-dataset)
+      HUMAN_DATASET_PATH="$2"
+      shift 2
+      ;;
     *)
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
 Usage:
-  ./scripts/dev.sh bot-run [--build-preset <preset>] [--backend off|rule|ml|ml-online|search]
+  ./scripts/dev.sh bot-run [--build-preset <preset>] [--backend off|human|rule|ml|ml-online|search]
                            [--headful|--headless] [--ui-mode full|screen]
-                           [--ml-model <runtime-json>]
+                           [--ml-model <runtime-json>] [--human-dataset <dataset-csv>]
 
 Notes:
   - shell ui-mode is debug-only and is intentionally disabled for bot-run.
   - backend=ml and backend=ml-online require --ml-model.
+  - backend=human records manual direction samples to --human-dataset
+    (default: cache/dev/nenoserpent_human_dataset.csv).
 EOF
         exit 0
       fi
@@ -64,14 +71,17 @@ if [[ "${UI_MODE}" != "full" && "${UI_MODE}" != "screen" ]]; then
   echo "invalid --ui-mode: ${UI_MODE} (expected full|screen; shell is debug-only)" >&2
   exit 1
 fi
-if [[ "${BOT_BACKEND}" != "off" && "${BOT_BACKEND}" != "rule" && "${BOT_BACKEND}" != "ml" &&
+if [[ "${BOT_BACKEND}" != "off" && "${BOT_BACKEND}" != "human" && "${BOT_BACKEND}" != "rule" && "${BOT_BACKEND}" != "ml" &&
   "${BOT_BACKEND}" != "ml-online" && "${BOT_BACKEND}" != "search" ]]; then
-  echo "invalid --backend: ${BOT_BACKEND} (expected off|rule|ml|ml-online|search)" >&2
+  echo "invalid --backend: ${BOT_BACKEND} (expected off|human|rule|ml|ml-online|search)" >&2
   exit 1
 fi
 if [[ ("${BOT_BACKEND}" == "ml" || "${BOT_BACKEND}" == "ml-online") && -z "${ML_MODEL_PATH}" ]]; then
   echo "backend=${BOT_BACKEND} requires --ml-model <runtime-json-path>" >&2
   exit 1
+fi
+if [[ "${BOT_BACKEND}" == "human" && -z "${HUMAN_DATASET_PATH}" ]]; then
+  HUMAN_DATASET_PATH="${NENOSERPENT_TMP_DIR:-${ROOT_DIR}/cache/dev}/nenoserpent_human_dataset.csv"
 fi
 
 cmake --preset "${BUILD_PRESET}"
@@ -86,6 +96,9 @@ fi
 export NENOSERPENT_BOT_BACKEND="${BOT_BACKEND}"
 if [[ -n "${ML_MODEL_PATH}" ]]; then
   export NENOSERPENT_BOT_ML_MODEL="${ML_MODEL_PATH}"
+fi
+if [[ -n "${HUMAN_DATASET_PATH}" ]]; then
+  export NENOSERPENT_BOT_HUMAN_DATASET="${HUMAN_DATASET_PATH}"
 fi
 
 if [[ "${HEADFUL}" == "1" ]]; then

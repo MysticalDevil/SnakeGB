@@ -133,7 +133,7 @@ EOF
       ;;
     bot-run)
       cat <<'EOF'
-Usage: ./scripts/dev.sh bot-run [--backend off|rule|ml|ml-online|search] [--headful|--headless] \
+Usage: ./scripts/dev.sh bot-run [--backend off|human|rule|ml|ml-online|search] [--headful|--headless] \
 [--ui-mode full|screen]
 Purpose: run gameplay with selected bot backend and UI mode.
 EOF

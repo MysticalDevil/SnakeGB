@@ -14,6 +14,7 @@ enum class BotMode {
 
 enum class BotBackendMode {
   Off,
+  Human,
   Rule,
   Ml,
   MlOnline,

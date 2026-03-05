@@ -20,6 +20,9 @@ auto parseBackendModeOverride(const QString& value) -> std::optional<BotBackendM
   if (value == QStringLiteral("off")) {
     return BotBackendMode::Off;
   }
+  if (value == QStringLiteral("human")) {
+    return BotBackendMode::Human;
+  }
   if (value == QStringLiteral("rule")) {
     return BotBackendMode::Rule;
   }

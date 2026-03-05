@@ -458,6 +458,7 @@ private slots:
     };
 
     checkBackend("off", "off");
+    checkBackend("human", "human");
     checkBackend("rule", "rule");
     checkBackend("ml", "ml");
     checkBackend("search", "search");
