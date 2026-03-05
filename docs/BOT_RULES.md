@@ -52,6 +52,12 @@ Run with:
 
 The benchmark reports max/avg/median/p95 score and game-over/timeout outcomes.
 
+Run full reproducible `rule` vs `ml` gate:
+
+```bash
+./scripts/dev.sh bot-ml-gate --workspace /tmp/nenoserpent_bot_ml_gate
+```
+
 CI regression gate:
 
 ```bash

@@ -115,6 +115,9 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Train and evaluate PyTorch imitation baseline
 ./scripts/dev.sh bot-train --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
 ./scripts/dev.sh bot-eval --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
+
+# Reproducible rule-vs-ml full gate (dataset -> train -> eval -> no-regression compare)
+./scripts/dev.sh bot-ml-gate --workspace /tmp/nenoserpent_bot_ml_gate
 ```
 
 ### Build and Deploy (WebAssembly)
@@ -164,7 +167,7 @@ docker compose --profile cd run --rm gh-cd-android-preflight
   - In pause/game over/replay/library/medal: back to menu
 - **Y / C / Tap Logo**: Cycle Console Shell Colors
 - **M**: Toggle Music
-- **F8**: Cycle Rule Bot Mode (`off -> safe -> balanced -> aggressive -> off`)
+- **F8**: Cycle Bot Backend (`off -> rule -> ml -> off`)
 - **F9**: Toggle Bot Tuning Panel (debug UI)
 - **Back / Esc**: Quit App
 
@@ -174,6 +177,7 @@ docker compose --profile cd run --rm gh-cd-android-preflight
 - Level authoring guide: `docs/LEVEL_AUTHORING.md`
 - Bot rules and tuning: `docs/BOT_RULES.md`
 - Bot training (PyTorch): `docs/BOT_TRAINING.md`
+- Bot ML validation gate: `docs/BOT_ML_VALIDATION.md`
 - Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 - Rule bot strategy override: set `NENOSERPENT_BOT_STRATEGY_FILE=/abs/path/strategy_profiles.json` to override built-in strategy profiles.
 

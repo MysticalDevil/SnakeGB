@@ -13,6 +13,7 @@ Usage:
   ./scripts/dev.sh bot-tune [--mode balanced --iterations 60 --output /tmp/tuned.json]
   ./scripts/dev.sh bot-train [--dataset /tmp/bot_dataset.csv --model /tmp/bot_policy.pt]
   ./scripts/dev.sh bot-eval [--dataset /tmp/bot_dataset.csv --model /tmp/bot_policy.pt]
+  ./scripts/dev.sh bot-ml-gate [--workspace /tmp/nenoserpent_bot_ml_gate]
   ./scripts/dev.sh bot-e2e [build-dir] [baseline.tsv]
   ./scripts/dev.sh bot-leaderboard [build-dir] [suite.tsv]
 EOF
@@ -46,6 +47,9 @@ case "${subcommand}" in
     ;;
   bot-eval)
     exec "${ROOT_DIR}/dev/bot_eval.sh" "$@"
+    ;;
+  bot-ml-gate)
+    exec "${ROOT_DIR}/dev/bot_ml_gate.sh" "$@"
     ;;
   bot-e2e)
     exec "${ROOT_DIR}/ci/bot_e2e_regression.sh" "$@"
