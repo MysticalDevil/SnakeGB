@@ -176,6 +176,9 @@ private:
   std::uint64_t m_lastObstacleSignature = 0;
   bool m_hasLastObstacleSignature = false;
   int m_dynamicObstacleConfidenceTicks = 0;
+  QList<QPoint> m_prevObstacleSnapshot;
+  QList<QPoint> m_currObstacleSnapshot;
+  bool m_hasObstacleSnapshots = false;
 };
 
 } // namespace nenoserpent::core
