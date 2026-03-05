@@ -227,6 +227,14 @@ target_link_libraries(session-core-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui ne
 add_test(NAME SessionCoreTest COMMAND session-core-tests)
 set_tests_properties(SessionCoreTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
+add_executable(spawn-distribution-tests
+    tests/core/test_spawn_distribution.cpp
+)
+target_include_directories(spawn-distribution-tests PRIVATE src)
+target_link_libraries(spawn-distribution-tests PRIVATE Qt6::Test Qt6::Core Qt6::Gui nenoserpent_core)
+add_test(NAME SpawnDistributionTest COMMAND spawn-distribution-tests)
+set_tests_properties(SpawnDistributionTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 add_executable(session-runner-tests
     tests/core/test_session_runner.cpp
 )
@@ -545,6 +553,7 @@ nenoserpent_apply_project_options(
     engine-adapter-tests
     core-rules-tests
     session-core-tests
+    spawn-distribution-tests
     session-runner-tests
     adapter-tests
     adapter-ui-dispatch-tests
