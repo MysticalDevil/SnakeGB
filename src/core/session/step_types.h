@@ -29,6 +29,7 @@ struct SessionAdvanceResult {
   bool slowMode = false;
   bool appliedMovement = false;
   bool movedFood = false;
+  bool targetReset = false;
   bool magnetAteFood = false;
   bool triggerChoiceAfterMagnet = false;
   bool spawnPowerUpAfterMagnet = false;

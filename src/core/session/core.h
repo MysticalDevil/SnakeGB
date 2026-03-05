@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <deque>
 #include <optional>
+#include <unordered_map>
 
 #include <QPoint>
 
@@ -158,10 +160,19 @@ private:
   auto tickPowerUpCountdown() -> bool;
   [[nodiscard]] auto isOccupied(const QPoint& point) const -> bool;
   void applyPowerUpResult(const PowerUpConsumptionResult& result);
+  void resetStallGuard();
+  [[nodiscard]] auto stallStateHash() const -> std::uint64_t;
+  auto observeStallStateAndMaybeResetTarget(const SessionAdvanceConfig& config,
+                                            const std::function<int(int)>& randomBounded,
+                                            SessionAdvanceResult& result) -> bool;
 
   SessionState m_state;
   std::deque<QPoint> m_body;
   std::deque<QPoint> m_inputQueue;
+  int m_stallNoScoreTicks = 0;
+  int m_stallLastScore = 0;
+  std::deque<std::uint64_t> m_stallRecentHashes;
+  std::unordered_map<std::uint64_t, int> m_stallHashCounts;
 };
 
 } // namespace nenoserpent::core

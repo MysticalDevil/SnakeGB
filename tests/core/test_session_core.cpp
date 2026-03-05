@@ -17,6 +17,7 @@ private slots:
   void testSpawnMagnetAndBuffCountdownMutateCoreState();
   void testPowerUpExpiresWhenNotEaten();
   void testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate();
+  void testAdvanceSessionStepResetsTargetWhenStateRepeatsWithoutScore();
   void testAdvanceSessionStepWrapHeadConsumesPowerUp();
   void testAdvanceSessionStepWrapHeadGrowsWhenEatingFood();
   void testApplyChoiceSelectionMutatesCoreBuffState();
@@ -223,6 +224,37 @@ void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate()
   QVERIFY(result.magnetAteFood);
   QCOMPARE(core.state().score, 1);
   QCOMPARE(core.headPosition(), QPoint(11, 10));
+}
+
+void TestSessionCore::testAdvanceSessionStepResetsTargetWhenStateRepeatsWithoutScore() {
+  nenoserpent::core::SessionCore core;
+  core.setBody({QPoint(0, 0)});
+  core.setDirection(QPoint(1, 0));
+  core.state().food = QPoint(-1, -1);
+  core.state().score = 0;
+
+  bool triggered = false;
+  for (int tick = 0; tick < 220; ++tick) {
+    const auto result = core.advanceSessionStep(
+      {
+        .boardWidth = 2,
+        .boardHeight = 1,
+        .consumeInputQueue = false,
+        .pauseOnChoiceTrigger = false,
+      },
+      [](const int upperBound) {
+        Q_UNUSED(upperBound);
+        return 0;
+      });
+    if (result.targetReset) {
+      triggered = true;
+      QVERIFY(result.movedFood);
+      break;
+    }
+  }
+
+  QVERIFY(triggered);
+  QVERIFY(core.state().food != QPoint(-1, -1));
 }
 
 void TestSessionCore::testAdvanceSessionStepWrapHeadConsumesPowerUp() {

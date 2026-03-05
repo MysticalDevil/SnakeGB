@@ -1,12 +1,23 @@
 #include "core/session/core.h"
 
+#include <algorithm>
 #include <utility>
 
 namespace nenoserpent::core {
 
 namespace {
 constexpr int PowerUpLifetimeTicks = 100;
+constexpr int StallHashWindow = 128;
+constexpr int StallNoScoreTicksThreshold = 120;
+constexpr int StallRepeatThreshold = 6;
+
+auto mixHash(std::uint64_t seed, const std::uint64_t value) -> std::uint64_t {
+  constexpr std::uint64_t kPrime = 1099511628211ULL;
+  seed ^= value + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
+  seed *= kPrime;
+  return seed;
 }
+} // namespace
 
 auto MetaAction::resetTransientRuntime() -> MetaAction {
   return {
@@ -101,6 +112,82 @@ auto SessionCore::headPosition() const -> QPoint {
 
 void SessionCore::incrementTick() {
   m_state.tickCounter++;
+}
+
+void SessionCore::resetStallGuard() {
+  m_stallNoScoreTicks = 0;
+  m_stallLastScore = m_state.score;
+  m_stallRecentHashes.clear();
+  m_stallHashCounts.clear();
+}
+
+auto SessionCore::stallStateHash() const -> std::uint64_t {
+  std::uint64_t hash = 1469598103934665603ULL;
+  hash = mixHash(hash, static_cast<std::uint64_t>(headPosition().x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(headPosition().y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.direction.x() + 16));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.direction.y() + 16));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.food.x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.food.y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.powerUpPos.x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.powerUpPos.y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_state.powerUpType + 32));
+  hash = mixHash(hash, static_cast<std::uint64_t>(m_body.size()));
+  for (const QPoint& segment : m_body) {
+    hash = mixHash(hash, static_cast<std::uint64_t>(segment.x() + 1024));
+    hash = mixHash(hash, static_cast<std::uint64_t>(segment.y() + 1024));
+  }
+  return hash;
+}
+
+auto SessionCore::observeStallStateAndMaybeResetTarget(const SessionAdvanceConfig& config,
+                                                       const std::function<int(int)>& randomBounded,
+                                                       SessionAdvanceResult& result) -> bool {
+  if (!config.consumeInputQueue || m_body.empty() || m_state.score != m_stallLastScore) {
+    resetStallGuard();
+    return false;
+  }
+
+  ++m_stallNoScoreTicks;
+  const std::uint64_t hash = stallStateHash();
+  const int repeats = ++m_stallHashCounts[hash];
+  m_stallRecentHashes.push_back(hash);
+  while (static_cast<int>(m_stallRecentHashes.size()) > StallHashWindow) {
+    const std::uint64_t dropped = m_stallRecentHashes.front();
+    m_stallRecentHashes.pop_front();
+    auto it = m_stallHashCounts.find(dropped);
+    if (it == m_stallHashCounts.end()) {
+      continue;
+    }
+    --it->second;
+    if (it->second <= 0) {
+      m_stallHashCounts.erase(it);
+    }
+  }
+
+  if (m_stallNoScoreTicks < StallNoScoreTicksThreshold || repeats < StallRepeatThreshold) {
+    return false;
+  }
+
+  const QPoint oldFood = m_state.food;
+  bool changed = false;
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    if (!spawnFood(config.boardWidth, config.boardHeight, randomBounded)) {
+      break;
+    }
+    if (m_state.food != oldFood) {
+      changed = true;
+      break;
+    }
+  }
+  if (!changed) {
+    return false;
+  }
+
+  result.movedFood = true;
+  result.targetReset = true;
+  resetStallGuard();
+  return true;
 }
 
 auto SessionCore::enqueueDirection(const QPoint& direction, const std::size_t maxQueueSize)
@@ -434,6 +521,8 @@ auto SessionCore::advanceSessionStep(const SessionAdvanceConfig& config,
     result.magnetFoodPan = magnetFoodResult.pan;
   }
 
+  observeStallStateAndMaybeResetTarget(config, randomBounded, result);
+
   return result;
 }
 
@@ -447,6 +536,7 @@ void SessionCore::bootstrapForLevel(QList<QPoint> obstacles,
   m_state.obstacles = std::move(obstacles);
   m_body = buildSafeInitialSnakeBody(m_state.obstacles, boardWidth, boardHeight);
   m_inputQueue.clear();
+  resetStallGuard();
 }
 
 void SessionCore::restorePersistedSession(const StateSnapshot& snapshot) {
@@ -466,6 +556,7 @@ void SessionCore::restorePersistedSession(const StateSnapshot& snapshot) {
   m_state.food = persistedFood;
   m_state.score = persistedScore;
   m_state.obstacles = persistedObstacles;
+  resetStallGuard();
 }
 
 void SessionCore::seedPreviewState(const PreviewSeed& seed) {
@@ -485,6 +576,7 @@ void SessionCore::seedPreviewState(const PreviewSeed& seed) {
   m_state.lastRoguelikeChoiceScore = -1000;
   m_body = seed.body;
   m_inputQueue.clear();
+  resetStallGuard();
 }
 
 void SessionCore::resetTransientRuntimeState() {
@@ -497,6 +589,7 @@ void SessionCore::resetTransientRuntimeState() {
   m_state.powerUpPos = QPoint(-1, -1);
   m_state.powerUpType = 0;
   m_state.powerUpTicksRemaining = 0;
+  resetStallGuard();
 }
 
 void SessionCore::resetReplayRuntimeState() {
@@ -515,6 +608,7 @@ void SessionCore::restoreSnapshot(const StateSnapshot& snapshot) {
   m_state = snapshot.state;
   m_body = snapshot.body;
   m_inputQueue.clear();
+  resetStallGuard();
 }
 
 void SessionCore::applyPowerUpResult(const PowerUpConsumptionResult& result) {
