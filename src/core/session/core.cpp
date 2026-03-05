@@ -392,6 +392,7 @@ auto SessionCore::advanceSessionStep(const SessionAdvanceConfig& config,
   }
 
   result.nextHead = headPosition() + direction();
+  const QPoint wrappedHead = wrapPoint(result.nextHead, config.boardWidth, config.boardHeight);
   const auto collisionOutcome =
     checkCollision(result.nextHead, config.boardWidth, config.boardHeight);
   result.consumeShield = collisionOutcome.consumeShield;
@@ -402,7 +403,7 @@ auto SessionCore::advanceSessionStep(const SessionAdvanceConfig& config,
     return result;
   }
 
-  result.grew = (result.nextHead == m_state.food);
+  result.grew = (wrappedHead == m_state.food);
 
   const auto foodResult =
     consumeFood(result.nextHead, config.boardWidth, config.boardHeight, randomBounded);
@@ -414,12 +415,12 @@ auto SessionCore::advanceSessionStep(const SessionAdvanceConfig& config,
     return result;
   }
 
-  const auto powerResult = consumePowerUp(result.nextHead, 40, true);
+  const auto powerResult = consumePowerUp(wrappedHead, 40, true);
   result.atePowerUp = powerResult.ate;
   result.miniApplied = powerResult.miniApplied;
   result.slowMode = powerResult.slowMode;
 
-  applyMovement(wrapPoint(result.nextHead, config.boardWidth, config.boardHeight), result.grew);
+  applyMovement(wrappedHead, result.grew);
   result.appliedMovement = true;
 
   const auto magnetResult = applyMagnetAttraction(config.boardWidth, config.boardHeight);

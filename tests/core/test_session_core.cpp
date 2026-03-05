@@ -17,6 +17,8 @@ private slots:
   void testSpawnMagnetAndBuffCountdownMutateCoreState();
   void testPowerUpExpiresWhenNotEaten();
   void testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate();
+  void testAdvanceSessionStepWrapHeadConsumesPowerUp();
+  void testAdvanceSessionStepWrapHeadGrowsWhenEatingFood();
   void testApplyChoiceSelectionMutatesCoreBuffState();
   void testBootstrapForLevelResetsSessionAndBuildsBody();
   void testBootstrapForLevelPreservesAliasedObstacleInput();
@@ -221,6 +223,58 @@ void TestSessionCore::testAdvanceSessionStepKeepsMagnetFoodConsumptionSeparate()
   QVERIFY(result.magnetAteFood);
   QCOMPARE(core.state().score, 1);
   QCOMPARE(core.headPosition(), QPoint(11, 10));
+}
+
+void TestSessionCore::testAdvanceSessionStepWrapHeadConsumesPowerUp() {
+  nenoserpent::core::SessionCore core;
+  core.setBody({QPoint(19, 8), QPoint(18, 8), QPoint(17, 8)});
+  core.setDirection(QPoint(1, 0));
+  core.state().food = QPoint(5, 5);
+  core.state().powerUpPos = QPoint(0, 8);
+  core.state().powerUpType = static_cast<int>(nenoserpent::core::BuffId::Shield);
+
+  const auto result = core.advanceSessionStep(
+    {
+      .boardWidth = 20,
+      .boardHeight = 18,
+      .consumeInputQueue = false,
+      .pauseOnChoiceTrigger = true,
+    },
+    [](const int upperBound) {
+      Q_UNUSED(upperBound);
+      return 99;
+    });
+
+  QVERIFY(result.appliedMovement);
+  QVERIFY(result.atePowerUp);
+  QCOMPARE(core.headPosition(), QPoint(0, 8));
+  QCOMPARE(core.state().powerUpPos, QPoint(-1, -1));
+}
+
+void TestSessionCore::testAdvanceSessionStepWrapHeadGrowsWhenEatingFood() {
+  nenoserpent::core::SessionCore core;
+  core.setBody({QPoint(19, 9), QPoint(18, 9), QPoint(17, 9)});
+  core.setDirection(QPoint(1, 0));
+  core.state().food = QPoint(0, 9);
+  const std::size_t before = core.body().size();
+
+  const auto result = core.advanceSessionStep(
+    {
+      .boardWidth = 20,
+      .boardHeight = 18,
+      .consumeInputQueue = false,
+      .pauseOnChoiceTrigger = false,
+    },
+    [](const int upperBound) {
+      Q_UNUSED(upperBound);
+      return 99;
+    });
+
+  QVERIFY(result.appliedMovement);
+  QVERIFY(result.ateFood);
+  QVERIFY(result.grew);
+  QCOMPARE(core.headPosition(), QPoint(0, 9));
+  QCOMPARE(core.body().size(), before + 1U);
 }
 
 void TestSessionCore::testApplyChoiceSelectionMutatesCoreBuffState() {
