@@ -44,7 +44,7 @@ Key property:
 Adapter bridges core/fsm/services to UI-facing API.
 
 Main entry:
-- `adapter/engine_adapter.h/.cpp`
+- `adapter/engine.h/.cpp`
 
 Split modules:
 - `adapter/session/*`: runtime reset/level state helpers.
@@ -105,7 +105,7 @@ Bootstrap wiring:
 ### 3.1 Gameplay Tick
 
 1. Input/UI action enters adapter (`adapter/input/router.cpp`).
-2. `EngineAdapter` drives simulation tick (`adapter/tick_driver.cpp`, `adapter/simulation.cpp`).
+2. `EngineAdapter` drives simulation tick (`adapter/tick.cpp`, `adapter/simulation.cpp`).
 3. Core step executes (`SessionCore` / `SessionRunner`).
 4. Adapter emits property/signal updates.
 5. View models propagate to QML render tree.

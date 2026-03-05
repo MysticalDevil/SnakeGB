@@ -31,7 +31,7 @@ The gameplay board is currently fixed at:
 
 See:
 
-- [engine_adapter.h](/home/omega/ai-workspace/gameboy-snack/src/adapter/engine_adapter.h)
+- [engine.h](/home/omega/ai-workspace/gameboy-snack/src/adapter/engine.h)
 
 Coordinates are zero-based grid coordinates:
 
@@ -195,8 +195,8 @@ This matters for:
 For level edits:
 
 ```bash
-clang-format -i src/core/level/runtime.cpp tests/test_core_rules.cpp tests/test_engine_adapter.cpp
-./scripts/dev.sh clang-tidy build/dev src/core/level/runtime.cpp tests/test_core_rules.cpp tests/test_engine_adapter.cpp
+clang-format -i src/core/level/runtime.cpp tests/test_core_rules.cpp tests/test_engine.cpp
+./scripts/dev.sh clang-tidy build/dev src/core/level/runtime.cpp tests/test_core_rules.cpp tests/test_engine.cpp
 cmake --build build/dev --parallel
 cd build/dev && ctest --output-on-failure
 ```
