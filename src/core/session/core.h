@@ -173,6 +173,9 @@ private:
   int m_stallLastScore = 0;
   std::deque<std::uint64_t> m_stallRecentHashes;
   std::unordered_map<std::uint64_t, int> m_stallHashCounts;
+  std::uint64_t m_lastObstacleSignature = 0;
+  bool m_hasLastObstacleSignature = false;
+  int m_dynamicObstacleConfidenceTicks = 0;
 };
 
 } // namespace nenoserpent::core
