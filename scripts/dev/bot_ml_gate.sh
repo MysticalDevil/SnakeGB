@@ -62,9 +62,15 @@ while (($# > 0)); do
   esac
 done
 
-if ! uv run python -c "import torch" >/dev/null 2>&1; then
-  echo "[bot-ml-gate] missing dependency: torch" >&2
-  echo "[bot-ml-gate] install with: uv add --dev torch" >&2
+TORCH_CHECK_LOG="${TMP_ROOT}/bot-ml-gate-torch-check.log"
+if ! uv run python -c "import torch" >/dev/null 2>"${TORCH_CHECK_LOG}"; then
+  echo "[bot-ml-gate] torch check failed" >&2
+  cat "${TORCH_CHECK_LOG}" >&2
+  if rg -q "Failed to initialize cache at" "${TORCH_CHECK_LOG}"; then
+    echo "[bot-ml-gate] hint: uv cache permission issue; check access to ~/.cache/uv" >&2
+  else
+    echo "[bot-ml-gate] hint: install with uv add --dev torch" >&2
+  fi
   exit 1
 fi
 
