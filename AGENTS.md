@@ -69,17 +69,17 @@ adb logcat -b crash -d | tail -n 120
 PALETTE_STEPS=0 ./scripts/ui.sh palette-focus /tmp/nenoserpent_palette_focus
 ```
 - Release notes live in `CHANGELOG.md`.
-- Optional Makefile shortcuts (recommended for consistent build dirs under `build/`):
+- Optional just shortcuts (recommended for consistent build dirs under `build/`):
 ```bash
-make debug
-make release
-make dev
-make test
-make tidy
-make fmt
-make android
-make wasm
-make clean
+just debug
+just release
+just dev
+just test
+just tidy
+just fmt
+just android
+just wasm
+just clean
 ```
 
 ## Coding Style & Naming Conventions

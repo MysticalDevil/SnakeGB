@@ -63,6 +63,19 @@ cmake --build --preset release
 ./build/release/NenoSerpent
 ```
 
+- Optional `just` shortcuts:
+```bash
+just debug
+just release
+just dev
+just test
+just tidy
+just fmt
+just android
+just wasm
+just clean
+```
+
 - `Debug`: detailed runtime logs enabled.
 - `RelWithDebInfo` (`dev`): compact runtime logs enabled.
 - `Release` / `MinSizeRel`: routine runtime logs are compiled out.
