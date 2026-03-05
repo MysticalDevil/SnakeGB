@@ -178,6 +178,9 @@ public:
     m_recent.clear();
     m_counts.clear();
     m_observeTick = 0;
+    m_lastScore = 0;
+    m_noScoreTicks = 0;
+    m_hasScore = false;
   }
 
   auto observe(const Snapshot& snapshot, const MoveState& state) -> int {
@@ -186,6 +189,13 @@ public:
     m_recent.push_back(hash);
     trim();
     ++m_observeTick;
+    if (!m_hasScore || state.score > m_lastScore) {
+      m_noScoreTicks = 0;
+    } else {
+      ++m_noScoreTicks;
+    }
+    m_lastScore = state.score;
+    m_hasScore = true;
     return repeats;
   }
 
@@ -199,11 +209,18 @@ public:
     return m_observeTick;
   }
 
+  [[nodiscard]] auto noScoreTicks() const -> int {
+    return m_noScoreTicks;
+  }
+
 private:
   static constexpr int kWindow = 96;
   std::deque<std::uint64_t> m_recent;
   std::unordered_map<std::uint64_t, int> m_counts;
   std::uint64_t m_observeTick = 0;
+  int m_lastScore = 0;
+  int m_noScoreTicks = 0;
+  bool m_hasScore = false;
 
   auto trim() -> void {
     while (static_cast<int>(m_recent.size()) > kWindow) {
@@ -353,11 +370,8 @@ struct TargetDistance {
   int unreachablePenalty = 0;
 };
 
-auto resolveTargetDistance(const QPoint& head,
-                           const Snapshot& snapshot,
-                           const StrategyConfig& config,
-                           const std::vector<bool>& blocked,
-                           const QPoint& tailFallback) -> TargetDistance {
+auto resolvePrimaryTarget(const QPoint& head, const Snapshot& snapshot, const StrategyConfig& config)
+  -> QPoint {
   QPoint target = snapshot.food;
   const bool hasPowerUp = snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0;
   const int priority = powerPriority(config, snapshot.powerUpType);
@@ -371,6 +385,15 @@ auto resolveTargetDistance(const QPoint& head,
       target = snapshot.powerUpPos;
     }
   }
+  return target;
+}
+
+auto resolveTargetDistance(const QPoint& head,
+                           const Snapshot& snapshot,
+                           const StrategyConfig& config,
+                           const std::vector<bool>& blocked,
+                           const QPoint& tailFallback) -> TargetDistance {
+  const QPoint target = resolvePrimaryTarget(head, snapshot, config);
 
   if (const auto reachable = shortestReachableDistance(head, target, snapshot, blocked);
       reachable.has_value()) {
@@ -393,6 +416,77 @@ auto resolveTargetDistance(const QPoint& head,
   const int fallbackDistance =
     toroidalDistance(head, target, snapshot.boardWidth, snapshot.boardHeight);
   return {.distance = fallbackDistance, .unreachablePenalty = 180};
+}
+
+auto pocketPenaltyTowardTarget(const QPoint& from,
+                               const QPoint& target,
+                               const Snapshot& snapshot,
+                               const std::vector<bool>& blocked) -> int {
+  if (snapshot.boardWidth <= 0 || snapshot.boardHeight <= 0) {
+    return 0;
+  }
+  const auto fromIndex = tryBoardIndex(from, snapshot.boardWidth, snapshot.boardHeight);
+  const auto targetIndex = tryBoardIndex(target, snapshot.boardWidth, snapshot.boardHeight);
+  if (!fromIndex.has_value() || !targetIndex.has_value()) {
+    return 0;
+  }
+  if (from == target) {
+    return 0;
+  }
+
+  std::vector<int> distance(blocked.size(), -1);
+  std::vector<int> parent(blocked.size(), -1);
+  std::deque<QPoint> queue;
+  queue.push_back(from);
+  distance[static_cast<std::size_t>(*fromIndex)] = 0;
+  bool reached = false;
+
+  while (!queue.empty() && !reached) {
+    const QPoint current = queue.front();
+    queue.pop_front();
+    const auto currentIndex = tryBoardIndex(current, snapshot.boardWidth, snapshot.boardHeight);
+    if (!currentIndex.has_value()) {
+      continue;
+    }
+    const int nextDistance = distance[static_cast<std::size_t>(*currentIndex)] + 1;
+    for (const QPoint& dir : kDirections) {
+      const QPoint next =
+        nenoserpent::core::wrapPoint(current + dir, snapshot.boardWidth, snapshot.boardHeight);
+      const auto nextIndex = tryBoardIndex(next, snapshot.boardWidth, snapshot.boardHeight);
+      if (!nextIndex.has_value()) {
+        continue;
+      }
+      const auto idx = static_cast<std::size_t>(*nextIndex);
+      if (blocked[idx] || distance[idx] >= 0) {
+        continue;
+      }
+      distance[idx] = nextDistance;
+      parent[idx] = *currentIndex;
+      if (next == target) {
+        reached = true;
+        break;
+      }
+      queue.push_back(next);
+    }
+  }
+
+  if (distance[static_cast<std::size_t>(*targetIndex)] < 0) {
+    return 24;
+  }
+
+  int penalty = 0;
+  int cursor = *targetIndex;
+  while (cursor >= 0 && cursor != static_cast<int>(*fromIndex)) {
+    const QPoint point(cursor % snapshot.boardWidth, cursor / snapshot.boardWidth);
+    const int safeNeighbors = countSafeNeighbors(point, snapshot, blocked);
+    if (safeNeighbors <= 1) {
+      penalty += 30;
+    } else if (safeNeighbors == 2) {
+      penalty += 8;
+    }
+    cursor = parent[static_cast<std::size_t>(cursor)];
+  }
+  return penalty;
 }
 
 auto previewMove(const Snapshot& snapshot, const MoveState& state, const QPoint& candidate)
@@ -628,8 +722,10 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   };
 
   constexpr int kLoopRepeatThreshold = 4;
+  constexpr int kNoScoreEscapeTicks = 28;
   const int repeats = memory.observe(snapshot, initial);
-  const bool escapeMode = repeats >= kLoopRepeatThreshold;
+  const bool stagnantEscape = memory.noScoreTicks() >= kNoScoreEscapeTicks && repeats >= 2;
+  const bool escapeMode = repeats >= kLoopRepeatThreshold || stagnantEscape;
   const int riskBudget = riskBudgetFor(snapshot, repeats);
   const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
   const auto tieRotateSeed = static_cast<std::uint64_t>(stateHash(snapshot, initial)) ^
@@ -656,6 +752,9 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     }
     const int openSpace = floodReachable(preview.next.head, snapshot, blocked);
     const int safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, blocked);
+    const QPoint target = resolvePrimaryTarget(preview.next.head, snapshot, tunedConfig);
+    const int pocketPenalty =
+      pocketPenaltyTowardTarget(preview.next.head, target, snapshot, blocked);
     int score = 0;
     if (escapeMode) {
       score = evaluateEscapeCandidate(snapshot, preview, tunedConfig, revisitCount);
@@ -671,6 +770,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
         immediate + searchValue(snapshot, preview.next, tunedConfig, depth - 1) -
         (revisitCount * std::max(1, tunedConfig.loopRepeatPenalty - 8));
       score += rolloutScore(snapshot, preview.next, tunedConfig) / 6;
+      score -= pocketPenalty * 2;
     } else {
       const QPoint tailFallback =
         preview.next.body.empty() ? preview.next.head : preview.next.body.back();
@@ -692,6 +792,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
               (targetDistance.distance * tunedConfig.targetDistanceWeight) + immediate -
               trapPenalty - (revisitCount * tunedConfig.loopRepeatPenalty) -
               targetDistance.unreachablePenalty;
+      score -= pocketPenalty;
     }
 
     const int riskCost = candidateRiskCost(openSpace, safeNeighbors, revisitCount, snapshot);
