@@ -124,25 +124,25 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 ./scripts/dev.sh bot-leaderboard build/debug
 
 # Generate dataset from fixed leaderboard suite (for imitation training)
-./scripts/dev.sh bot-dataset --output /tmp/nenoserpent_bot_dataset.csv
+./scripts/dev.sh bot-dataset --output cache/dev/nenoserpent_bot_dataset.csv
 
 # Tune bot profile parameters offline and emit override JSON
-./scripts/dev.sh bot-tune --mode balanced --iterations 60 --output /tmp/nenoserpent_bot_tuned.json
+./scripts/dev.sh bot-tune --mode balanced --iterations 60 --output cache/dev/nenoserpent_bot_tuned.json
 
 # Train and evaluate PyTorch imitation baseline
-./scripts/dev.sh bot-train --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
-./scripts/dev.sh bot-eval --dataset /tmp/nenoserpent_bot_dataset.csv --model /tmp/nenoserpent_bot_policy.pt
+./scripts/dev.sh bot-train --dataset cache/dev/nenoserpent_bot_dataset.csv --model cache/dev/nenoserpent_bot_policy.pt
+./scripts/dev.sh bot-eval --dataset cache/dev/nenoserpent_bot_dataset.csv --model cache/dev/nenoserpent_bot_policy.pt
 
 # Reproducible rule-vs-ml full gate (dataset -> train -> eval -> no-regression compare)
-./scripts/dev.sh bot-ml-gate --workspace /tmp/nenoserpent_bot_ml_gate
+./scripts/dev.sh bot-ml-gate --workspace cache/dev/nenoserpent_bot_ml_gate
 
 # Quick ml smoke gate with repository tiny model
 ./scripts/dev.sh bot-ml-smoke build/dev
 
 # Run bot in headful mode directly (no manual F8 cycling needed)
 ./scripts/dev.sh bot-run --backend rule --headful
-./scripts/dev.sh bot-run --backend ml --ml-model /tmp/nenoserpent_bot_policy_runtime.json --headful
-./scripts/dev.sh bot-run --backend ml-online --ml-model /tmp/nenoserpent_bot_policy_runtime.json --headful
+./scripts/dev.sh bot-run --backend ml --ml-model cache/dev/nenoserpent_bot_policy_runtime.json --headful
+./scripts/dev.sh bot-run --backend ml-online --ml-model cache/dev/nenoserpent_bot_policy_runtime.json --headful
 ./scripts/dev.sh bot-run --backend search --headful
 
 # Continuous online training loop for ml-online hot reload
@@ -154,7 +154,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Qt WASM toolchain root (example path)
 export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 
-# Build, package to /tmp/neno-serpent-wasm-dist, and serve locally on :8080
+# Build, package to cache/wasm/neno-serpent-wasm-dist, and serve locally on :8080
 ./scripts/deploy.sh wasm
 ```
 
@@ -210,7 +210,7 @@ docker compose --profile cd run --rm gh-cd-android-preflight
 - Bot rules and tuning: `docs/BOT_RULES.md`
 - Bot training (PyTorch): `docs/BOT_TRAINING.md`
 - Bot ML validation gate: `docs/BOT_ML_VALIDATION.md`
-- Runtime automation injection: set `NENOSERPENT_INPUT_FILE=/tmp/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=/tmp/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
+- Runtime automation injection: set `NENOSERPENT_INPUT_FILE=cache/dev/nenoserpent-input.queue` (recommended) or `NENOSERPENT_INPUT_PIPE=cache/dev/nenoserpent-input.pipe`, then send tokens with `./scripts/input.sh inject ...`
 - Rule bot strategy override: set `NENOSERPENT_BOT_STRATEGY_FILE=/abs/path/strategy_profiles.json` to override built-in strategy profiles.
 
 ## License
