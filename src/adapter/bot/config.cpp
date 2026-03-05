@@ -53,6 +53,10 @@ void applyOverrides(StrategyConfig& config, const QJsonObject& object) {
   config.powerTargetDistanceSlack = intOrDefault(
     object, QStringLiteral("powerTargetDistanceSlack"), config.powerTargetDistanceSlack);
   config.tieBreakSeed = intOrDefault(object, QStringLiteral("tieBreakSeed"), config.tieBreakSeed);
+  config.loopRepeatPenalty =
+    intOrDefault(object, QStringLiteral("loopRepeatPenalty"), config.loopRepeatPenalty);
+  config.loopEscapePenalty =
+    intOrDefault(object, QStringLiteral("loopEscapePenalty"), config.loopEscapePenalty);
   config.choiceCooldownTicks =
     intOrDefault(object, QStringLiteral("choiceCooldownTicks"), config.choiceCooldownTicks);
   config.stateActionCooldownTicks = intOrDefault(
@@ -98,6 +102,8 @@ auto defaultStrategyConfig() -> const StrategyConfig& {
     .powerTargetPriorityThreshold = 30,
     .powerTargetDistanceSlack = 4,
     .tieBreakSeed = 0,
+    .loopRepeatPenalty = 56,
+    .loopEscapePenalty = 220,
     .choiceCooldownTicks = 2,
     .stateActionCooldownTicks = 4,
     .powerPriorityByType = buildDefaultPowerPriority(),

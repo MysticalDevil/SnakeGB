@@ -4,6 +4,7 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <unordered_map>
 #include <ranges>
 #include <tuple>
 #include <vector>
@@ -68,6 +69,7 @@ struct BenchmarkStats {
   int choiceMatchedOracle = 0;
   double choiceMatchRate = 0.0;
   double choiceAvgPriorityGap = 0.0;
+  double loopRate = 0.0;
 };
 
 struct DatasetContext {
@@ -326,6 +328,32 @@ constexpr std::array<QPoint, 4> kDirectionClasses = {
   QPoint{-1, 0},
 };
 
+auto mixHash(std::uint64_t seed, const std::uint64_t value) -> std::uint64_t {
+  constexpr std::uint64_t kPrime = 1099511628211ULL;
+  seed ^= value + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
+  seed *= kPrime;
+  return seed;
+}
+
+auto snapshotHash(const nenoserpent::adapter::bot::Snapshot& snapshot) -> std::uint64_t {
+  std::uint64_t hash = 1469598103934665603ULL;
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.head.x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.head.y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.direction.x() + 16));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.direction.y() + 16));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.food.x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.food.y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.powerUpPos.x() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.powerUpPos.y() + 1024));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.powerUpType + 32));
+  hash = mixHash(hash, static_cast<std::uint64_t>(snapshot.body.size()));
+  for (const QPoint& segment : snapshot.body) {
+    hash = mixHash(hash, static_cast<std::uint64_t>(segment.x() + 1024));
+    hash = mixHash(hash, static_cast<std::uint64_t>(segment.y() + 1024));
+  }
+  return hash;
+}
+
 auto toroidalDistance(const QPoint& from, const QPoint& to, const int width, const int height)
   -> int {
   const int dx = std::abs(from.x() - to.x());
@@ -416,6 +444,8 @@ auto runBenchmark(const int games,
   int choiceTotal = 0;
   int choiceMatchedOracle = 0;
   double choicePriorityGapSum = 0.0;
+  int loopSamples = 0;
+  int loopRepeats = 0;
 
   for (int gameIndex = 0; gameIndex < games; ++gameIndex) {
     const uint32_t gameSeed = seedBase + static_cast<uint32_t>(gameIndex * 37);
@@ -426,6 +456,7 @@ auto runBenchmark(const int games,
     int tickCount = 0;
     int decisions = 0;
     const int maxDecisions = maxTicks * 4;
+    std::unordered_map<std::uint64_t, int> seenStates;
 
     while (decisions < maxDecisions) {
       if ((datasetWriter != nullptr && datasetWriter->shouldStop()) ||
@@ -474,6 +505,31 @@ auto runBenchmark(const int games,
         .fallbackBackend = fallbackBackend,
       });
       cooldown = decision.nextCooldownTicks;
+
+      {
+        const nenoserpent::adapter::bot::Snapshot snapshot{
+          .head = core.headPosition(),
+          .direction = core.direction(),
+          .food = state.food,
+          .powerUpPos = state.powerUpPos,
+          .powerUpType = state.powerUpType,
+          .score = state.score,
+          .levelIndex = levelIndex,
+          .ghostActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Ghost),
+          .shieldActive = state.shieldActive,
+          .portalActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Portal),
+          .laserActive = state.activeBuff == static_cast<int>(nenoserpent::core::BuffId::Laser),
+          .boardWidth = 20,
+          .boardHeight = 18,
+          .obstacles = state.obstacles,
+          .body = core.body(),
+        };
+        const std::uint64_t stateKey = snapshotHash(snapshot);
+        ++loopSamples;
+        if (++seenStates[stateKey] > 1) {
+          ++loopRepeats;
+        }
+      }
 
       if (mode == nenoserpent::core::SessionMode::ChoiceSelection) {
         const auto choiceModel = toChoiceModel(runner.choices());
@@ -600,6 +656,8 @@ auto runBenchmark(const int games,
                     : 0.0;
   const double choiceAvgPriorityGap =
     choiceTotal > 0 ? choicePriorityGapSum / static_cast<double>(choiceTotal) : 0.0;
+  const double loopRate =
+    loopSamples > 0 ? static_cast<double>(loopRepeats) / static_cast<double>(loopSamples) : 0.0;
 
   return {
     .games = games,
@@ -613,6 +671,7 @@ auto runBenchmark(const int games,
     .choiceMatchedOracle = choiceMatchedOracle,
     .choiceMatchRate = choiceMatchRate,
     .choiceAvgPriorityGap = choiceAvgPriorityGap,
+    .loopRate = loopRate,
   };
 }
 
@@ -854,7 +913,8 @@ auto main(int argc, char* argv[]) -> int {
   std::cout << "[bot-benchmark] choice.total=" << stats.choiceTotal
             << " choice.match=" << stats.choiceMatchedOracle
             << " choice.match_rate=" << stats.choiceMatchRate
-            << " choice.avg_gap=" << stats.choiceAvgPriorityGap << '\n';
+            << " choice.avg_gap=" << stats.choiceAvgPriorityGap
+            << " loop.rate=" << stats.loopRate << '\n';
   if (datasetWriterPtr != nullptr) {
     std::cout << "[bot-benchmark] dataset.path=" << dumpDatasetPath.toStdString()
               << " dataset.samples=" << datasetWriter.sampleCount << '\n';

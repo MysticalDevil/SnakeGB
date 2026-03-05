@@ -39,6 +39,8 @@ struct StrategyConfig {
   int powerTargetPriorityThreshold = 14;
   int powerTargetDistanceSlack = 2;
   int tieBreakSeed = 0;
+  int loopRepeatPenalty = 56;
+  int loopEscapePenalty = 220;
 
   int choiceCooldownTicks = 2;
   int stateActionCooldownTicks = 4;

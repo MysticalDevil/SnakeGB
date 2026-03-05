@@ -555,7 +555,7 @@ auto evaluateEscapeCandidate(const Snapshot& snapshot,
 
   int score = (openSpace * config.openSpaceWeight * 2) +
               (safeNeighbors * config.safeNeighborWeight * 3) + (tailDistance * 14) -
-              (revisitCount * 220);
+              (revisitCount * config.loopEscapePenalty);
   if (preview.ateFood) {
     score += config.foodConsumeBonus * 6;
   }
@@ -669,7 +669,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       }
       score =
         immediate + searchValue(snapshot, preview.next, tunedConfig, depth - 1) -
-        (revisitCount * 48);
+        (revisitCount * std::max(1, tunedConfig.loopRepeatPenalty - 8));
       score += rolloutScore(snapshot, preview.next, tunedConfig) / 6;
     } else {
       const QPoint tailFallback =
@@ -690,7 +690,8 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       score = (openSpace * tunedConfig.openSpaceWeight) +
               (safeNeighbors * tunedConfig.safeNeighborWeight) -
               (targetDistance.distance * tunedConfig.targetDistanceWeight) + immediate -
-              trapPenalty - (revisitCount * 56) - targetDistance.unreachablePenalty;
+              trapPenalty - (revisitCount * tunedConfig.loopRepeatPenalty) -
+              targetDistance.unreachablePenalty;
     }
 
     const int riskCost = candidateRiskCost(openSpace, safeNeighbors, revisitCount, snapshot);

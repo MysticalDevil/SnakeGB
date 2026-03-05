@@ -144,6 +144,12 @@ auto State::setParam(const QString& key, const int value) -> bool {
   } else if (normalized == u"tiebreakseed"_s) {
     m_strategyConfig.tieBreakSeed = value;
     changed = true;
+  } else if (normalized == u"looprepeatpenalty"_s) {
+    m_strategyConfig.loopRepeatPenalty = clampRange(value, 0, 240);
+    changed = true;
+  } else if (normalized == u"loopescapepenalty"_s) {
+    m_strategyConfig.loopEscapePenalty = clampRange(value, 0, 420);
+    changed = true;
   } else if (normalized == u"choicecooldownticks"_s) {
     m_strategyConfig.choiceCooldownTicks = clampRange(value, 0, 60);
     changed = true;
@@ -172,6 +178,8 @@ auto State::status() const -> QVariantMap {
     {u"lookaheadDepth"_s, m_strategyConfig.lookaheadDepth},
     {u"lookaheadWeight"_s, m_strategyConfig.lookaheadWeight},
     {u"tieBreakSeed"_s, m_strategyConfig.tieBreakSeed},
+    {u"loopRepeatPenalty"_s, m_strategyConfig.loopRepeatPenalty},
+    {u"loopEscapePenalty"_s, m_strategyConfig.loopEscapePenalty},
     {u"choiceCooldownTicks"_s, m_strategyConfig.choiceCooldownTicks},
     {u"stateActionCooldownTicks"_s, m_strategyConfig.stateActionCooldownTicks},
   };
