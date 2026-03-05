@@ -16,6 +16,7 @@ private slots:
   void searchBackendBreaksTiesWithoutFixedDirectionBias();
   void searchBackendPrefersApproachingFoodInOpenEarlyGame();
   void ruleBackendAvoidsMovingAwayFromFoodInEarlyGame();
+  void searchBackendHardFilterRejectsTightApproachTrap();
   void backendChoiceSelectionUsesCommonPriorityLogic();
 };
 
@@ -215,6 +216,30 @@ void BotBackendAdapterTest::ruleBackendAvoidsMovingAwayFromFoodInEarlyGame() {
   const auto direction = backend.decideDirection(snapshot, strategy);
   QVERIFY(direction.has_value());
   QCOMPARE(*direction, QPoint(0, 1));
+}
+
+void BotBackendAdapterTest::searchBackendHardFilterRejectsTightApproachTrap() {
+  auto& backend =
+    const_cast<nenoserpent::adapter::bot::BotBackend&>(nenoserpent::adapter::bot::searchBackend());
+  backend.reset();
+
+  auto strategy = nenoserpent::adapter::bot::defaultStrategyConfig();
+  strategy.tieBreakSeed = 3;
+
+  nenoserpent::adapter::bot::Snapshot snapshot{};
+  snapshot.boardWidth = 7;
+  snapshot.boardHeight = 7;
+  snapshot.head = QPoint(3, 3);
+  snapshot.direction = QPoint(0, -1);
+  snapshot.food = QPoint(3, 2);
+  snapshot.score = 5;
+  snapshot.body = {QPoint(3, 3), QPoint(3, 4), QPoint(3, 5)};
+  // Food-adjacent pocket: moving up approaches food but leaves almost no free exits.
+  snapshot.obstacles = {QPoint(3, 1), QPoint(2, 2), QPoint(4, 2)};
+
+  const auto direction = backend.decideDirection(snapshot, strategy);
+  QVERIFY(direction.has_value());
+  QVERIFY(*direction == QPoint(-1, 0) || *direction == QPoint(1, 0));
 }
 
 void BotBackendAdapterTest::backendChoiceSelectionUsesCommonPriorityLogic() {

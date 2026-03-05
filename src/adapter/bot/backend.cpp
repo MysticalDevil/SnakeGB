@@ -144,6 +144,23 @@ struct MovePreview {
   bool atePower = false;
 };
 
+enum class FilterRejectReason {
+  Invalid,
+  SafeNeighbors,
+  OpenSpace,
+  TailReachability,
+};
+
+struct CandidateStats {
+  QPoint candidate{0, 0};
+  MovePreview preview;
+  std::vector<bool> blocked;
+  int openSpace = 0;
+  int safeNeighbors = 0;
+  int revisitCount = 0;
+  bool tailReachable = false;
+};
+
 auto mixHash(std::uint64_t seed, const std::uint64_t value) -> std::uint64_t {
   constexpr std::uint64_t kPrime = 1099511628211ULL;
   seed ^= value + 0x9e3779b97f4a7c15ULL + (seed << 6U) + (seed >> 2U);
@@ -734,6 +751,43 @@ auto approachTargetBonus(const QPoint& currentHead,
   return bonus;
 }
 
+struct HardFilterConfig {
+  int minSafeNeighbors = 1;
+  int minOpenSpace = 0;
+  bool requireTailReachable = false;
+};
+
+auto buildHardFilterConfig(const Snapshot& snapshot, const bool relaxed) -> HardFilterConfig {
+  const bool early = snapshot.score < 50 && static_cast<int>(snapshot.body.size()) < 14;
+  HardFilterConfig conf{};
+  conf.minSafeNeighbors = early ? 2 : 1;
+  conf.minOpenSpace = static_cast<int>(snapshot.body.size()) + (early ? 8 : 4);
+  conf.requireTailReachable = early && !snapshot.ghostActive && !snapshot.shieldActive;
+  if (relaxed) {
+    conf.minSafeNeighbors = std::max(1, conf.minSafeNeighbors - 1);
+    conf.minOpenSpace = std::max(0, conf.minOpenSpace - 6);
+    conf.requireTailReachable = false;
+  }
+  return conf;
+}
+
+auto passesHardFilter(const CandidateStats& stats, const HardFilterConfig& conf)
+  -> std::optional<FilterRejectReason> {
+  if (!stats.preview.valid) {
+    return FilterRejectReason::Invalid;
+  }
+  if (stats.safeNeighbors < conf.minSafeNeighbors) {
+    return FilterRejectReason::SafeNeighbors;
+  }
+  if (stats.openSpace < conf.minOpenSpace) {
+    return FilterRejectReason::OpenSpace;
+  }
+  if (conf.requireTailReachable && !stats.tailReachable) {
+    return FilterRejectReason::TailReachability;
+  }
+  return std::nullopt;
+}
+
 auto selectLoopAwareDirection(const Snapshot& snapshot,
                               const StrategyConfig& config,
                               LoopMemory& memory,
@@ -759,25 +813,74 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   const QPoint primaryTarget = resolvePrimaryTarget(initial.head, snapshot, tunedConfig);
   const bool earlyFoodChaseGuard = (primaryTarget == snapshot.food) && snapshot.score < 40 &&
                                    static_cast<int>(snapshot.body.size()) < 12 && !escapeMode;
+
+  std::vector<CandidateStats> legalCandidates;
+  legalCandidates.reserve(kDirections.size());
+  for (const QPoint& candidate : kDirections) {
+    const auto preview = previewMove(snapshot, initial, candidate);
+    if (!preview.valid) {
+      continue;
+    }
+    CandidateStats stats{};
+    stats.candidate = candidate;
+    stats.preview = preview;
+    stats.revisitCount = memory.repeatsFor(snapshot, preview.next);
+    stats.blocked = buildBlockedMap(snapshot, preview.next.body);
+    if (const auto headIndex =
+          tryBoardIndex(preview.next.head, snapshot.boardWidth, snapshot.boardHeight);
+        headIndex.has_value()) {
+      stats.blocked[*headIndex] = false;
+    }
+    stats.openSpace = floodReachable(preview.next.head, snapshot, stats.blocked);
+    stats.safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, stats.blocked);
+    const QPoint tailFallback =
+      preview.next.body.empty() ? preview.next.head : preview.next.body.back();
+    stats.tailReachable =
+      shortestReachableDistance(preview.next.head, tailFallback, snapshot, stats.blocked)
+        .has_value();
+    legalCandidates.push_back(std::move(stats));
+  }
+  if (legalCandidates.empty()) {
+    return std::nullopt;
+  }
+
+  auto filterCandidates = [&](const HardFilterConfig& conf) {
+    std::vector<CandidateStats*> accepted;
+    accepted.reserve(legalCandidates.size());
+    for (auto& candidate : legalCandidates) {
+      if (!passesHardFilter(candidate, conf).has_value()) {
+        accepted.push_back(&candidate);
+      }
+    }
+    return accepted;
+  };
+
+  std::vector<CandidateStats*> viable = filterCandidates(buildHardFilterConfig(snapshot, false));
+  if (viable.empty()) {
+    viable = filterCandidates(buildHardFilterConfig(snapshot, true));
+  }
+  if (viable.empty()) {
+    for (auto& candidate : legalCandidates) {
+      viable.push_back(&candidate);
+    }
+  }
+
   const int currentFoodDistance =
     earlyFoodChaseGuard
       ? toroidalDistance(initial.head, snapshot.food, snapshot.boardWidth, snapshot.boardHeight)
       : 0;
   bool hasNonWorseningFoodMove = false;
   if (earlyFoodChaseGuard) {
-    for (const QPoint& candidate : kDirections) {
-      const auto preview = previewMove(snapshot, initial, candidate);
-      if (!preview.valid) {
-        continue;
-      }
+    for (const CandidateStats* candidate : viable) {
       const int nextFoodDistance = toroidalDistance(
-        preview.next.head, snapshot.food, snapshot.boardWidth, snapshot.boardHeight);
+        candidate->preview.next.head, snapshot.food, snapshot.boardWidth, snapshot.boardHeight);
       if (nextFoodDistance <= currentFoodDistance) {
         hasNonWorseningFoodMove = true;
         break;
       }
     }
   }
+
   const auto tieRotateSeed = static_cast<std::uint64_t>(stateHash(snapshot, initial)) ^
                              static_cast<std::uint64_t>(tunedConfig.tieBreakSeed) ^
                              memory.observeTick();
@@ -787,24 +890,15 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   int bestScore = std::numeric_limits<int>::min();
   int bestTieRank = std::numeric_limits<int>::max();
   std::optional<QPoint> bestDirection;
-  for (const QPoint& candidate : kDirections) {
-    const auto preview = previewMove(snapshot, initial, candidate);
-    if (!preview.valid) {
-      continue;
-    }
-
-    const int revisitCount = memory.repeatsFor(snapshot, preview.next);
-    auto blocked = buildBlockedMap(snapshot, preview.next.body);
-    if (const auto headIndex =
-          tryBoardIndex(preview.next.head, snapshot.boardWidth, snapshot.boardHeight);
-        headIndex.has_value()) {
-      blocked[*headIndex] = false;
-    }
-    const int openSpace = floodReachable(preview.next.head, snapshot, blocked);
-    const int safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, blocked);
-    const QPoint target = resolvePrimaryTarget(preview.next.head, snapshot, tunedConfig);
+  for (const CandidateStats* candidateStats : viable) {
+    const QPoint candidate = candidateStats->candidate;
+    const MovePreview& preview = candidateStats->preview;
+    const int revisitCount = candidateStats->revisitCount;
+    const int openSpace = candidateStats->openSpace;
+    const int safeNeighbors = candidateStats->safeNeighbors;
+    const auto& blocked = candidateStats->blocked;
     const int pocketPenalty =
-      pocketPenaltyTowardTarget(preview.next.head, target, snapshot, blocked);
+      pocketPenaltyTowardTarget(preview.next.head, primaryTarget, snapshot, blocked);
     int score = 0;
     if (escapeMode) {
       score = evaluateEscapeCandidate(snapshot, preview, tunedConfig, revisitCount);
