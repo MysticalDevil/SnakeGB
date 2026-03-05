@@ -72,7 +72,7 @@ done
 cmake --preset "${BUILD_PRESET}"
 cmake --build --preset "${BUILD_PRESET}" --target bot-benchmark
 
-exec python3 "${ROOT_DIR}/scripts/dev/bot_tune.py" \
+exec uv run python "${ROOT_DIR}/scripts/dev/bot_tune.py" \
   --benchmark-bin "${ROOT_DIR}/build/${BUILD_PRESET}/bot-benchmark" \
   --strategy-file "${ROOT_DIR}/src/adapter/bot/strategy_profiles.json" \
   --profile "${PROFILE}" \

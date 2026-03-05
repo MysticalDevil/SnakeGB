@@ -13,6 +13,9 @@ private slots:
   void usesCustomCooldownFromStrategy();
   void usesInjectedBackendForDirectionAndChoice();
   void fallsBackToSecondaryBackendWhenPrimaryUnavailable();
+  void usesFallbackWhenPrimaryMissing();
+  void usesFallbackWhenPrimaryDirectionEmpty();
+  void usesFallbackWhenPrimaryChoiceEmpty();
 };
 
 void BotRuntimeAdapterTest::startMenuTriggersStartWhenEnabled() {
@@ -180,6 +183,153 @@ void BotRuntimeAdapterTest::fallsBackToSecondaryBackendWhenPrimaryUnavailable() 
   QCOMPARE(result.backend, QStringLiteral("rule"));
   QVERIFY(result.usedFallback);
   QCOMPARE(result.fallbackReason, QStringLiteral("backend-unavailable"));
+}
+
+void BotRuntimeAdapterTest::usesFallbackWhenPrimaryMissing() {
+  class RuleLikeBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("rule");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return QPoint(-1, 0);
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return 0;
+    }
+  };
+
+  const RuleLikeBackend fallback{};
+
+  nenoserpent::adapter::bot::RuntimeInput input{};
+  input.enabled = true;
+  input.state = AppState::Playing;
+  input.snapshot.body = {QPoint(8, 8), QPoint(8, 9)};
+  input.backend = nullptr;
+  input.fallbackBackend = &fallback;
+
+  const auto result = nenoserpent::adapter::bot::step(input);
+  QVERIFY(result.enqueueDirection.has_value());
+  QCOMPARE(*result.enqueueDirection, QPoint(-1, 0));
+  QCOMPARE(result.backend, QStringLiteral("rule"));
+  QVERIFY(result.usedFallback);
+  QCOMPARE(result.fallbackReason, QStringLiteral("primary-missing"));
+}
+
+void BotRuntimeAdapterTest::usesFallbackWhenPrimaryDirectionEmpty() {
+  class EmptyPrimaryBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("ml");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return std::nullopt;
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return -1;
+    }
+  };
+
+  class RuleLikeBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("rule");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return QPoint(0, 1);
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return 1;
+    }
+  };
+
+  const EmptyPrimaryBackend primary{};
+  const RuleLikeBackend fallback{};
+
+  nenoserpent::adapter::bot::RuntimeInput input{};
+  input.enabled = true;
+  input.state = AppState::Playing;
+  input.snapshot.body = {QPoint(8, 8), QPoint(8, 9)};
+  input.backend = &primary;
+  input.fallbackBackend = &fallback;
+
+  const auto result = nenoserpent::adapter::bot::step(input);
+  QVERIFY(result.enqueueDirection.has_value());
+  QCOMPARE(*result.enqueueDirection, QPoint(0, 1));
+  QCOMPARE(result.backend, QStringLiteral("rule"));
+  QVERIFY(result.usedFallback);
+  QCOMPARE(result.fallbackReason, QStringLiteral("direction-empty"));
+}
+
+void BotRuntimeAdapterTest::usesFallbackWhenPrimaryChoiceEmpty() {
+  class EmptyPrimaryBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("ml");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return std::nullopt;
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return -1;
+    }
+  };
+
+  class RuleLikeBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("rule");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return QPoint(0, 1);
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return 2;
+    }
+  };
+
+  const EmptyPrimaryBackend primary{};
+  const RuleLikeBackend fallback{};
+
+  nenoserpent::adapter::bot::RuntimeInput input{};
+  input.enabled = true;
+  input.state = AppState::ChoiceSelection;
+  input.choices = {
+    QVariantMap{{"type", 1}},
+    QVariantMap{{"type", 2}},
+    QVariantMap{{"type", 3}},
+  };
+  input.currentChoiceIndex = 0;
+  input.backend = &primary;
+  input.fallbackBackend = &fallback;
+
+  const auto result = nenoserpent::adapter::bot::step(input);
+  QVERIFY(result.setChoiceIndex.has_value());
+  QCOMPARE(*result.setChoiceIndex, 2);
+  QVERIFY(result.triggerStart);
+  QCOMPARE(result.backend, QStringLiteral("rule"));
+  QVERIFY(result.usedFallback);
+  QCOMPARE(result.fallbackReason, QStringLiteral("choice-empty"));
 }
 
 QTEST_MAIN(BotRuntimeAdapterTest)

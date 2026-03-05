@@ -226,7 +226,7 @@ def main() -> int:
     best_score = float("-inf")
     history: list[dict] = []
 
-    with tempfile.TemporaryDirectory(prefix="nenoserpent-bot-tune-") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="nenoserpent-bot-tune-", dir=tmp_root) as tmp_dir:
         tmp_path = Path(tmp_dir) / "strategy_override.json"
         for idx in range(args.iterations):
             if idx == 0:
