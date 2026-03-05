@@ -27,15 +27,50 @@ void emitIfSet(const std::function<void(T, U)>& callback, T first, U second) {
 using Clock = std::chrono::steady_clock;
 using Ms = std::chrono::milliseconds;
 
+void normalizeCallbacks(AudioCallbacks& callbacks) {
+  if (!callbacks.startMusic) {
+    callbacks.startMusic = [](nenoserpent::audio::ScoreTrackId) {};
+  }
+  if (!callbacks.stopMusic) {
+    callbacks.stopMusic = []() {};
+  }
+  if (!callbacks.setPaused) {
+    callbacks.setPaused = [](bool) {};
+  }
+  if (!callbacks.setMusicEnabled) {
+    callbacks.setMusicEnabled = [](bool) {};
+  }
+  if (!callbacks.duckMusic) {
+    callbacks.duckMusic = [](float, int) {};
+  }
+  if (!callbacks.setVolume) {
+    callbacks.setVolume = [](float) {};
+  }
+  if (!callbacks.setScore) {
+    callbacks.setScore = [](int) {};
+  }
+  if (!callbacks.playBeep) {
+    callbacks.playBeep = [](int, int, float) {};
+  }
+  if (!callbacks.playScoreCue) {
+    callbacks.playScoreCue = [](nenoserpent::audio::ScoreCueId, float) {};
+  }
+  if (!callbacks.playCrash) {
+    callbacks.playCrash = [](int) {};
+  }
+}
+
 } // namespace
 
 AudioBus::AudioBus(AudioCallbacks callbacks) // NOLINT(performance-unnecessary-value-param)
     : m_callbacks(std::move(callbacks)) {
+  normalizeCallbacks(m_callbacks);
 }
 
 void AudioBus::setCallbacks(
   AudioCallbacks callbacks) { // NOLINT(performance-unnecessary-value-param)
   m_callbacks = std::move(callbacks);
+  normalizeCallbacks(m_callbacks);
 }
 
 auto AudioBus::pausedForState(const int state) -> bool {

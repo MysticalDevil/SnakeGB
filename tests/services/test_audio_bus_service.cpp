@@ -21,6 +21,7 @@ private slots:
   void testConfirmOverridesRecentUiInteract();
   void testExternalTrackOverrideLoadsFromEnvPath();
   void testTransientEventsTriggerMusicDucking();
+  void testSetCallbacksNormalizesEmptyFunctions();
 };
 
 void TestAudioBusService::testCueTableCoversAllEvents() {
@@ -365,6 +366,29 @@ void TestAudioBusService::testTransientEventsTriggerMusicDucking() {
   QCOMPARE(duckingCalls.at(2).second, 130);
   QCOMPARE(duckingCalls.at(3).first, 0.35F);
   QCOMPARE(duckingCalls.at(3).second, 240);
+}
+
+void TestAudioBusService::testSetCallbacksNormalizesEmptyFunctions() {
+  nenoserpent::services::AudioBus audioBus;
+  nenoserpent::services::AudioCallbacks callbacks{};
+  callbacks.setVolume = {};
+  callbacks.setPaused = {};
+  callbacks.setMusicEnabled = {};
+  callbacks.setScore = {};
+  callbacks.playBeep = {};
+  callbacks.playCrash = {};
+  callbacks.playScoreCue = {};
+  callbacks.startMusic = {};
+  callbacks.stopMusic = {};
+  callbacks.duckMusic = {};
+
+  audioBus.setCallbacks(std::move(callbacks));
+
+  audioBus.applyVolume(0.5F);
+  audioBus.syncPausedState(3);
+  audioBus.handleMusicToggle(true, 2, 0);
+  audioBus.dispatchEvent(nenoserpent::audio::Event::UiInteract);
+  audioBus.dispatchEvent(nenoserpent::audio::Event::Food, {.score = 1, .pan = 0.0F});
 }
 
 QTEST_MAIN(TestAudioBusService)
