@@ -266,6 +266,10 @@ Item {
         menuColor: gameWorld.menuColor
         readableText: gameWorld.readableText
         elapsed: gameWorld.elapsed
+        blurSourceItem: gameWorld
+        lowPerfMode: Qt.platform.os === "android"
+        blurScale: 1.05
+        panelOpacity: 0.70
         buffLabel: buffName(gameWorld.activeBuff)
         rarityLabel: rarityName(gameWorld.activeBuff)
         accent: rarityColor(gameWorld.activeBuff)

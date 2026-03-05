@@ -20,6 +20,11 @@ void EngineAdapter::update() {
     return;
   }
 
+  const int prevActiveBuff = m_session.activeBuff;
+  const int prevBuffTicksRemaining = m_session.buffTicksRemaining;
+  const int prevBuffTicksTotal = m_session.buffTicksTotal;
+  const bool prevShieldActive = m_session.shieldActive;
+
   if (m_fsmState) {
     dispatchStateCallback([](GameState& state) -> void { state.update(); });
     if (m_state == AppState::Playing || m_state == AppState::Replaying) {
@@ -32,6 +37,12 @@ void EngineAdapter::update() {
       }
       applyPostTickTasks();
     }
+  }
+  if (prevActiveBuff != m_session.activeBuff ||
+      prevBuffTicksRemaining != m_session.buffTicksRemaining ||
+      prevBuffTicksTotal != m_session.buffTicksTotal ||
+      prevShieldActive != m_session.shieldActive) {
+    emit buffChanged();
   }
   updateReflectionFallback();
 }

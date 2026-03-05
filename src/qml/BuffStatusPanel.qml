@@ -3,6 +3,10 @@ import QtQuick
 Rectangle {
     id: buffPanel
     property bool active: false
+    property var blurSourceItem: null
+    property bool lowPerfMode: Qt.platform.os === "android"
+    property real blurScale: 1.15
+    property real panelOpacity: 0.74
     property string gameFont: ""
     property var menuColor
     property var readableText
@@ -26,10 +30,36 @@ Rectangle {
     width: 126
     height: 32
     radius: 4
-    color: panelFill
-    border.color: panelBorder
-    border.width: 1
+    color: "transparent"
+    border.width: 0
     visible: active
+
+    ShaderEffectSource {
+        id: blurSource
+        sourceItem: buffPanel.blurSourceItem
+        sourceRect: Qt.rect(buffPanel.x, buffPanel.y, buffPanel.width, buffPanel.height)
+        live: !buffPanel.lowPerfMode
+        recursive: false
+        hideSource: false
+    }
+
+    ShaderEffect {
+        anchors.fill: panelBackground
+        visible: buffPanel.visible && !!buffPanel.blurSourceItem && !buffPanel.lowPerfMode
+        property variant source: blurSource
+        property vector2d texelStep: Qt.vector2d(1.0 / Math.max(1.0, width), 1.0 / Math.max(1.0, height))
+        property real blurScale: buffPanel.blurScale
+        fragmentShader: "qrc:/shaders/src/qml/blur.frag.qsb"
+    }
+
+    Rectangle {
+        id: panelBackground
+        anchors.fill: parent
+        radius: buffPanel.radius
+        color: Qt.rgba(buffPanel.panelFill.r, buffPanel.panelFill.g, buffPanel.panelFill.b, buffPanel.panelOpacity)
+        border.color: buffPanel.panelBorder
+        border.width: 1
+    }
 
     Rectangle {
         anchors.left: parent.left
@@ -98,7 +128,7 @@ Rectangle {
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
-            width: parent.width * buffPanel.progressRatio
+            width: Math.max(1, parent.width * buffPanel.progressRatio)
             radius: 1
             color: buffPanel.accent
         }

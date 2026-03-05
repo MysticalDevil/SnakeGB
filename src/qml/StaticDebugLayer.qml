@@ -385,6 +385,10 @@ Rectangle {
                 menuColor: staticSceneLayer.menuColor
                 readableText: staticSceneLayer.readableText
                 elapsed: 0
+                blurSourceItem: previewBackdrop
+                lowPerfMode: Qt.platform.os === "android"
+                blurScale: 1.05
+                panelOpacity: 0.70
                 buffLabel: buffName(previewBuffType)
                 rarityLabel: rarityName(previewBuffType)
                 accent: rarityColor(previewBuffType)
