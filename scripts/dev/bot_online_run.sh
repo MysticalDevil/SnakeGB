@@ -22,6 +22,10 @@ GATE_MODE="${BOT_ONLINE_GATE_MODE:-balanced}"
 GATE_EPS="${BOT_ONLINE_GATE_NO_REGRESSION_EPS:-0.0}"
 CACHE_MAX_MB="${BOT_ONLINE_CACHE_MAX_MB:-1024}"
 CACHE_TARGET_MB="${BOT_ONLINE_CACHE_TARGET_MB:-768}"
+MIN_DATASET_SAMPLES="${BOT_ONLINE_MIN_DATASET_SAMPLES:-40}"
+MIN_PUBLISH_ROUND="${BOT_ONLINE_MIN_PUBLISH_ROUND:-1}"
+PUBLISH_COOLDOWN_ROUNDS="${BOT_ONLINE_PUBLISH_COOLDOWN_ROUNDS:-1}"
+MAX_BLOCKED_STREAK="${BOT_ONLINE_MAX_BLOCKED_STREAK:-8}"
 
 while (($# > 0)); do
   case "$1" in
@@ -85,6 +89,22 @@ while (($# > 0)); do
       CACHE_TARGET_MB="$2"
       shift 2
       ;;
+    --min-dataset-samples)
+      MIN_DATASET_SAMPLES="$2"
+      shift 2
+      ;;
+    --min-publish-round)
+      MIN_PUBLISH_ROUND="$2"
+      shift 2
+      ;;
+    --publish-cooldown-rounds)
+      PUBLISH_COOLDOWN_ROUNDS="$2"
+      shift 2
+      ;;
+    --max-blocked-streak)
+      MAX_BLOCKED_STREAK="$2"
+      shift 2
+      ;;
     *)
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
@@ -107,6 +127,10 @@ Options:
   --gate-eps <float>            Publish gate regression tolerance (default: 0.0)
   --cache-max-mb <N>            Trainer workspace high-water mark MB (default: 1024)
   --cache-target-mb <N>         Trainer prune target MB (default: 768)
+  --min-dataset-samples <N>     Trainer stability floor for dataset rows (default: 40)
+  --min-publish-round <N>       Trainer warmup rounds before publish (default: 1)
+  --publish-cooldown-rounds <N> Trainer minimum rounds between publishes (default: 1)
+  --max-blocked-streak <N>      Trainer stop threshold for consecutive blocked rounds (default: 8)
 
 Behavior:
   - starts bot-online-train in background
@@ -152,7 +176,11 @@ echo "[bot-online-run] start trainer workspace=${WORKSPACE}"
   --gate-mode "${GATE_MODE}" \
   --gate-eps "${GATE_EPS}" \
   --cache-max-mb "${CACHE_MAX_MB}" \
-  --cache-target-mb "${CACHE_TARGET_MB}" &
+  --cache-target-mb "${CACHE_TARGET_MB}" \
+  --min-dataset-samples "${MIN_DATASET_SAMPLES}" \
+  --min-publish-round "${MIN_PUBLISH_ROUND}" \
+  --publish-cooldown-rounds "${PUBLISH_COOLDOWN_ROUNDS}" \
+  --max-blocked-streak "${MAX_BLOCKED_STREAK}" &
 TRAINER_PID=$!
 
 echo "[bot-online-run] start game backend=ml-online model=${RUNTIME_JSON_PATH}"

@@ -31,6 +31,14 @@ Quick smoke gate (repo tiny model):
 ./scripts/dev.sh bot-ml-online-gate --workspace cache/dev/nenoserpent_bot_ml_online_gate --rounds 3
 ```
 
+Optional stability knobs can be forwarded:
+
+```bash
+./scripts/dev.sh bot-ml-online-gate --workspace cache/dev/nenoserpent_bot_ml_online_gate \
+  --rounds 3 --min-dataset-samples 20 --min-publish-round 1 \
+  --publish-cooldown-rounds 1 --max-blocked-streak 8
+```
+
 Outputs:
 
 - `cache/dev/nenoserpent_bot_ml_gate/dataset.csv`

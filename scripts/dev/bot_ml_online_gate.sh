@@ -14,6 +14,10 @@ GATE_MAX_TICKS="${BOT_ML_ONLINE_GATE_MAX_TICKS:-1200}"
 GATE_LEVEL="${BOT_ML_ONLINE_GATE_LEVEL:-0}"
 GATE_MODE="${BOT_ML_ONLINE_GATE_MODE:-balanced}"
 GATE_EPS="${BOT_ML_ONLINE_GATE_EPS:-0.0}"
+MIN_DATASET_SAMPLES="${BOT_ML_ONLINE_GATE_MIN_DATASET_SAMPLES:-20}"
+MIN_PUBLISH_ROUND="${BOT_ML_ONLINE_GATE_MIN_PUBLISH_ROUND:-1}"
+PUBLISH_COOLDOWN_ROUNDS="${BOT_ML_ONLINE_GATE_PUBLISH_COOLDOWN_ROUNDS:-1}"
+MAX_BLOCKED_STREAK="${BOT_ML_ONLINE_GATE_MAX_BLOCKED_STREAK:-8}"
 
 while (($# > 0)); do
   case "$1" in
@@ -49,6 +53,22 @@ while (($# > 0)); do
       GATE_EPS="$2"
       shift 2
       ;;
+    --min-dataset-samples)
+      MIN_DATASET_SAMPLES="$2"
+      shift 2
+      ;;
+    --min-publish-round)
+      MIN_PUBLISH_ROUND="$2"
+      shift 2
+      ;;
+    --publish-cooldown-rounds)
+      PUBLISH_COOLDOWN_ROUNDS="$2"
+      shift 2
+      ;;
+    --max-blocked-streak)
+      MAX_BLOCKED_STREAK="$2"
+      shift 2
+      ;;
     *)
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
@@ -64,6 +84,10 @@ Options:
   --gate-level <N>       Gate level index (default: 0)
   --gate-mode <name>     Gate strategy mode (default: balanced)
   --gate-eps <float>     No-regression tolerance (default: 0.0)
+  --min-dataset-samples <N>     Stability floor for dataset rows (default: 20)
+  --min-publish-round <N>       Warmup rounds before publish (default: 1)
+  --publish-cooldown-rounds <N> Min rounds between publishes (default: 1)
+  --max-blocked-streak <N>      Stop threshold for blocked rounds (default: 8)
 
 Pass conditions:
   - summary exists
@@ -99,6 +123,10 @@ echo "[bot-ml-online-gate] phase=online-train rounds=${ROUNDS}"
   --gate-level "${GATE_LEVEL}" \
   --gate-mode "${GATE_MODE}" \
   --gate-eps "${GATE_EPS}" \
+  --min-dataset-samples "${MIN_DATASET_SAMPLES}" \
+  --min-publish-round "${MIN_PUBLISH_ROUND}" \
+  --publish-cooldown-rounds "${PUBLISH_COOLDOWN_ROUNDS}" \
+  --max-blocked-streak "${MAX_BLOCKED_STREAK}" \
   --summary "${SUMMARY_PATH}"
 
 if [[ ! -f "${SUMMARY_PATH}" ]]; then

@@ -103,6 +103,11 @@ Online publish gate (enabled by default in `bot-online-train`):
 - Cache growth guard in loop:
   - `--cache-max-mb` high-water mark
   - `--cache-target-mb` prune target after high-water is exceeded
+- Stability guard in loop:
+  - `--min-dataset-samples` dataset row floor per round
+  - `--min-publish-round` warmup rounds before publish is allowed
+  - `--publish-cooldown-rounds` minimum rounds between publishes
+  - `--max-blocked-streak` stop loop when blocked rounds are continuously too many
 
 ## 4. Offline Tuning + Training Loop
 

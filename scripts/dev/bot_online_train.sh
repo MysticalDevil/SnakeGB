@@ -24,6 +24,10 @@ CACHE_MAX_MB="${BOT_ONLINE_CACHE_MAX_MB:-1024}"
 CACHE_TARGET_MB="${BOT_ONLINE_CACHE_TARGET_MB:-768}"
 MAX_ROUNDS="${BOT_ONLINE_MAX_ROUNDS:-0}"
 SUMMARY_PATH="${BOT_ONLINE_SUMMARY_PATH:-}"
+MIN_DATASET_SAMPLES="${BOT_ONLINE_MIN_DATASET_SAMPLES:-40}"
+MIN_PUBLISH_ROUND="${BOT_ONLINE_MIN_PUBLISH_ROUND:-1}"
+PUBLISH_COOLDOWN_ROUNDS="${BOT_ONLINE_PUBLISH_COOLDOWN_ROUNDS:-1}"
+MAX_BLOCKED_STREAK="${BOT_ONLINE_MAX_BLOCKED_STREAK:-8}"
 
 while (($# > 0)); do
   case "$1" in
@@ -91,6 +95,22 @@ while (($# > 0)); do
       SUMMARY_PATH="$2"
       shift 2
       ;;
+    --min-dataset-samples)
+      MIN_DATASET_SAMPLES="$2"
+      shift 2
+      ;;
+    --min-publish-round)
+      MIN_PUBLISH_ROUND="$2"
+      shift 2
+      ;;
+    --publish-cooldown-rounds)
+      PUBLISH_COOLDOWN_ROUNDS="$2"
+      shift 2
+      ;;
+    --max-blocked-streak)
+      MAX_BLOCKED_STREAK="$2"
+      shift 2
+      ;;
     *)
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
@@ -114,6 +134,10 @@ Options:
   --cache-target-mb <N>         Prune target size in MB when high-water exceeded (default: 768)
   --max-rounds <N>              Run finite rounds then exit (default: 0=infinite)
   --summary <path>              Optional summary output file (key=value lines)
+  --min-dataset-samples <N>     Require at least N dataset rows per round (default: 40)
+  --min-publish-round <N>       Do not publish before this round index (default: 1)
+  --publish-cooldown-rounds <N> Min rounds between publishes (default: 1)
+  --max-blocked-streak <N>      Stop loop when consecutive blocked rounds reach N (0=disable, default: 8)
 
 Notes:
   - Keep this running in terminal A.
@@ -138,6 +162,9 @@ ROUND=0
 PUBLISHED_COUNT=0
 BLOCKED_COUNT=0
 LAST_GATE_REASON="none"
+LAST_PUBLISH_ROUND=0
+BLOCKED_STREAK=0
+MAX_BLOCKED_STREAK_SEEN=0
 
 extract_score_pair() {
   local text="$1"
@@ -169,6 +196,14 @@ run_gate_benchmark() {
     --max-ticks "${GATE_MAX_TICKS}" \
     --level "${GATE_LEVEL}" \
     --seed "${seed}"
+}
+
+dataset_sample_count() {
+  if [[ ! -f "${DATASET_PATH}" ]]; then
+    echo "0"
+    return
+  fi
+  awk 'END { print (NR > 0 ? NR - 1 : 0) }' "${DATASET_PATH}"
 }
 
 workspace_size_mb() {
@@ -203,6 +238,7 @@ echo "[bot-online-train] profile=${PROFILE} intervalSec=${INTERVAL_SEC} epochs=$
 echo "[bot-online-train] gate games=${GATE_GAMES} maxTicks=${GATE_MAX_TICKS} level=${GATE_LEVEL} mode=${GATE_MODE} eps=${GATE_NO_REGRESSION_EPS}"
 echo "[bot-online-train] cache maxMb=${CACHE_MAX_MB} targetMb=${CACHE_TARGET_MB}"
 echo "[bot-online-train] maxRounds=${MAX_ROUNDS} summary=${SUMMARY_PATH:-<none>}"
+echo "[bot-online-train] stability minSamples=${MIN_DATASET_SAMPLES} minPublishRound=${MIN_PUBLISH_ROUND} cooldownRounds=${PUBLISH_COOLDOWN_ROUNDS} maxBlockedStreak=${MAX_BLOCKED_STREAK}"
 
 while true; do
   ROUND=$((ROUND + 1))
@@ -213,6 +249,28 @@ while true; do
     --profile "${PROFILE}" \
     --max-samples-per-case "${MAX_SAMPLES_PER_CASE}" \
     --output "${DATASET_PATH}"
+  SAMPLE_COUNT="$(dataset_sample_count)"
+  echo "[bot-online-train] round=${ROUND} dataset.samples=${SAMPLE_COUNT}"
+
+  SHOULD_PUBLISH=1
+  if [[ "${SAMPLE_COUNT}" -lt "${MIN_DATASET_SAMPLES}" ]]; then
+    SHOULD_PUBLISH=0
+    LAST_GATE_REASON="insufficient-samples"
+    echo "[bot-online-train] round=${ROUND} gate=blocked reason=insufficient-samples samples=${SAMPLE_COUNT} min=${MIN_DATASET_SAMPLES}"
+  fi
+  if [[ "${ROUND}" -lt "${MIN_PUBLISH_ROUND}" ]]; then
+    SHOULD_PUBLISH=0
+    LAST_GATE_REASON="warmup-round"
+    echo "[bot-online-train] round=${ROUND} gate=blocked reason=warmup-round minRound=${MIN_PUBLISH_ROUND}"
+  fi
+  if [[ "${LAST_PUBLISH_ROUND}" -gt 0 && "${PUBLISH_COOLDOWN_ROUNDS}" -gt 0 ]]; then
+    ROUNDS_SINCE_PUBLISH=$((ROUND - LAST_PUBLISH_ROUND))
+    if [[ "${ROUNDS_SINCE_PUBLISH}" -lt "${PUBLISH_COOLDOWN_ROUNDS}" ]]; then
+      SHOULD_PUBLISH=0
+      LAST_GATE_REASON="publish-cooldown"
+      echo "[bot-online-train] round=${ROUND} gate=blocked reason=publish-cooldown since=${ROUNDS_SINCE_PUBLISH} need=${PUBLISH_COOLDOWN_ROUNDS}"
+    fi
+  fi
 
   echo "[bot-online-train] round=${ROUND} phase=train seed=${ROUND_SEED}"
   "${ROOT_DIR}/scripts/dev.sh" bot-train \
@@ -225,7 +283,6 @@ while true; do
     --lr "${LR}" \
     --seed "${ROUND_SEED}"
 
-  SHOULD_PUBLISH=1
   if [[ -f "${RUNTIME_JSON_PATH}" ]]; then
     echo "[bot-online-train] round=${ROUND} phase=gate baseline=current candidate=new"
     BASELINE_OUTPUT="$(run_gate_benchmark "${RUNTIME_JSON_PATH}" "${ROUND_SEED}" || true)"
@@ -251,13 +308,24 @@ while true; do
     mv "${TMP_RUNTIME_JSON}" "${RUNTIME_JSON_PATH}"
     PUBLISHED_COUNT=$((PUBLISHED_COUNT + 1))
     LAST_GATE_REASON="published"
+    LAST_PUBLISH_ROUND="${ROUND}"
+    BLOCKED_STREAK=0
     echo "[bot-online-train] round=${ROUND} published=${RUNTIME_JSON_PATH}"
   else
     rm -f "${TMP_RUNTIME_JSON}"
     BLOCKED_COUNT=$((BLOCKED_COUNT + 1))
+    BLOCKED_STREAK=$((BLOCKED_STREAK + 1))
+    if [[ "${BLOCKED_STREAK}" -gt "${MAX_BLOCKED_STREAK_SEEN}" ]]; then
+      MAX_BLOCKED_STREAK_SEEN="${BLOCKED_STREAK}"
+    fi
     echo "[bot-online-train] round=${ROUND} kept-current=${RUNTIME_JSON_PATH}"
   fi
   prune_workspace_if_needed
+  if [[ "${MAX_BLOCKED_STREAK}" -gt 0 && "${BLOCKED_STREAK}" -ge "${MAX_BLOCKED_STREAK}" ]]; then
+    LAST_GATE_REASON="blocked-streak-limit"
+    echo "[bot-online-train] stop reason=blocked-streak-limit streak=${BLOCKED_STREAK} limit=${MAX_BLOCKED_STREAK}" >&2
+    break
+  fi
   if [[ "${MAX_ROUNDS}" -gt 0 && "${ROUND}" -ge "${MAX_ROUNDS}" ]]; then
     break
   fi
@@ -272,6 +340,8 @@ if [[ -n "${SUMMARY_PATH}" ]]; then
     echo "blocked=${BLOCKED_COUNT}"
     echo "runtime_json=${RUNTIME_JSON_PATH}"
     echo "last_reason=${LAST_GATE_REASON}"
+    echo "last_publish_round=${LAST_PUBLISH_ROUND}"
+    echo "max_blocked_streak=${MAX_BLOCKED_STREAK_SEEN}"
   } > "${SUMMARY_PATH}"
   echo "[bot-online-train] summary=${SUMMARY_PATH}"
 fi
