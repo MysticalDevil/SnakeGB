@@ -29,8 +29,16 @@ DB_DIR="${BUILD_DIR}/.clang-tidy-db"
 CACHE_DIR="${BUILD_DIR}/.clang-tidy-cache"
 mkdir -p "${DB_DIR}" "${CACHE_DIR}"
 
-jq 'map(.command |= gsub(" -mno-direct-extern-access"; ""))' \
-  "${BUILD_DIR}/compile_commands.json" > "${DB_DIR}/compile_commands.json"
+jq '
+  map(
+    .command |= (
+      gsub(" -mno-direct-extern-access"; "") |
+      gsub(" -fdeps-format=[^ ]+"; "") |
+      gsub(" -fmodule-mapper=[^ ]+"; "") |
+      gsub(" -fmodules-ts"; "")
+    )
+  )
+' "${BUILD_DIR}/compile_commands.json" > "${DB_DIR}/compile_commands.json"
 
 TIDY_VERSION="$(clang-tidy --version | tr '\n' ' ')"
 CFG_HASH="nocfg"
@@ -52,7 +60,8 @@ filter_tidy_noise() {
   sed -E \
     -e '/^[0-9]+ warnings generated\.$/d' \
     -e '/^Suppressed [0-9]+ warnings? /d' \
-    -e '/^Use -header-filter=.*$/d'
+    -e '/^Use -header-filter=.*$/d' \
+    -e "/^error: unknown argument: '-f(deps-format|module-mapper|modules-ts).*\[clang-diagnostic-error\]$/d"
 }
 
 for rel in "${INPUT_FILES[@]}"; do
