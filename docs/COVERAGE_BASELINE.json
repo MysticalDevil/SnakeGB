@@ -6,9 +6,9 @@
     "branch_baseline": 26.5
   },
   "integration": {
-    "line_min": 39.5,
-    "branch_min": 15.0,
-    "line_baseline": 39.5,
-    "branch_baseline": 15.0
+    "line_min": 40.0,
+    "branch_min": 16.0,
+    "line_baseline": 40.0,
+    "branch_baseline": 16.0
   }
 }
