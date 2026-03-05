@@ -9,6 +9,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TMP_ROOT="${NENOSERPENT_TMP_DIR:-${NENOSERPENT_CACHE_DIR:-${ROOT_DIR}/cache/dev}}"
 WORKSPACE="${BOT_ONLINE_WORKSPACE:-${TMP_ROOT}/nenoserpent_bot_online}"
 PROFILE="${BOT_ONLINE_PROFILE:-dev}"
+DATASET_SUITE="${BOT_ONLINE_DATASET_SUITE:-${ROOT_DIR}/scripts/ci/bot_leaderboard_rule_suite.tsv}"
 INTERVAL_SEC="${BOT_ONLINE_INTERVAL_SEC:-20}"
 MAX_SAMPLES_PER_CASE="${BOT_ONLINE_MAX_SAMPLES_PER_CASE:-6}"
 EPOCHS="${BOT_ONLINE_EPOCHS:-8}"
@@ -38,6 +39,10 @@ while (($# > 0)); do
       ;;
     --profile)
       PROFILE="$2"
+      shift 2
+      ;;
+    --suite)
+      DATASET_SUITE="$2"
       shift 2
       ;;
     --interval-sec)
@@ -125,6 +130,7 @@ Usage:
 Options:
   --workspace <dir>             Output workspace (default: cache/dev/nenoserpent_bot_online)
   --profile <debug|dev|release> Dataset generation profile (default: dev)
+  --suite <path>                Dataset suite TSV (default: scripts/ci/bot_leaderboard_rule_suite.tsv)
   --interval-sec <N>            Delay between rounds (default: 20)
   --max-samples-per-case <N>    Dataset cap per leaderboard case (default: 6)
   --epochs <N>                  Train epochs per round (default: 8)
@@ -279,6 +285,7 @@ prune_workspace_if_needed() {
 
 echo "[bot-online-train] workspace=${WORKSPACE}"
 echo "[bot-online-train] profile=${PROFILE} intervalSec=${INTERVAL_SEC} epochs=${EPOCHS} batchSize=${BATCH_SIZE}"
+echo "[bot-online-train] datasetSuite=${DATASET_SUITE}"
 echo "[bot-online-train] gate games=${GATE_GAMES} maxTicks=${GATE_MAX_TICKS} level=${GATE_LEVEL} mode=${GATE_MODE} eps=${GATE_NO_REGRESSION_EPS}"
 echo "[bot-online-train] cache maxMb=${CACHE_MAX_MB} targetMb=${CACHE_TARGET_MB}"
 echo "[bot-online-train] maxRounds=${MAX_ROUNDS} summary=${SUMMARY_PATH:-<none>}"
@@ -297,6 +304,7 @@ while true; do
   echo "[bot-online-train] round=${ROUND} phase=dataset"
   "${ROOT_DIR}/scripts/dev.sh" bot-dataset \
     --profile "${PROFILE}" \
+    --suite "${DATASET_SUITE}" \
     --max-samples-per-case "${MAX_SAMPLES_PER_CASE}" \
     --output "${DATASET_PATH}"
   SAMPLE_COUNT="$(dataset_sample_count)"

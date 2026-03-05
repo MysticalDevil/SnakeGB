@@ -103,6 +103,7 @@ EOF
       cat <<'EOF'
 Usage: ./scripts/dev.sh bot-ml-online-gate [--workspace cache/<dir> --rounds N]
        [--min-dataset-samples N --min-publish-round N --publish-cooldown-rounds N --max-blocked-streak N]
+       [--suite scripts/ci/bot_leaderboard_rule_suite.tsv]
 Purpose: validate ml-online training/publish loop with reproducible pass conditions.
 EOF
       ;;
@@ -111,6 +112,7 @@ EOF
 Usage: ./scripts/dev.sh bot-online-train [--workspace cache/<dir> --interval-sec N]
        [--gate-games N --gate-max-ticks N --gate-level N --gate-mode name --gate-eps F]
        [--min-dataset-samples N --min-publish-round N --publish-cooldown-rounds N --max-blocked-streak N]
+       [--suite scripts/ci/bot_leaderboard_rule_suite.tsv]
 Purpose: periodically regenerate dataset and retrain runtime JSON for ml-online mode.
          New model is published only when gate metrics do not regress.
 EOF
@@ -118,6 +120,7 @@ EOF
     bot-online-run)
       cat <<'EOF'
 Usage: ./scripts/dev.sh bot-online-run [--workspace cache/<dir> --build-preset dev --ui-mode screen]
+       [--suite scripts/ci/bot_leaderboard_rule_suite.tsv]
 Purpose: start ml-online trainer loop in background and run game in headful mode.
          Supports the same trainer stability knobs as bot-online-train.
 EOF

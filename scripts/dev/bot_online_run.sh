@@ -12,6 +12,7 @@ WORKSPACE="${BOT_ONLINE_WORKSPACE:-${TMP_ROOT}/nenoserpent_bot_online}"
 BUILD_PRESET="${BUILD_PRESET:-dev}"
 UI_MODE="${BOT_ONLINE_UI_MODE:-screen}"
 PROFILE="${BOT_ONLINE_PROFILE:-dev}"
+DATASET_SUITE="${BOT_ONLINE_DATASET_SUITE:-${ROOT_DIR}/scripts/ci/bot_leaderboard_rule_suite.tsv}"
 INTERVAL_SEC="${BOT_ONLINE_INTERVAL_SEC:-20}"
 EPOCHS="${BOT_ONLINE_EPOCHS:-8}"
 BATCH_SIZE="${BOT_ONLINE_BATCH_SIZE:-192}"
@@ -44,6 +45,10 @@ while (($# > 0)); do
       ;;
     --profile)
       PROFILE="$2"
+      shift 2
+      ;;
+    --suite)
+      DATASET_SUITE="$2"
       shift 2
       ;;
     --interval-sec)
@@ -117,6 +122,7 @@ Options:
   --build-preset <name>         Build preset for game binary (default: dev)
   --ui-mode <full|screen>       UI mode for headful game run (default: screen)
   --profile <debug|dev|release> Trainer dataset profile (default: dev)
+  --suite <path>                Trainer dataset suite (default: scripts/ci/bot_leaderboard_rule_suite.tsv)
   --interval-sec <N>            Trainer round interval (default: 20)
   --epochs <N>                  Trainer epochs per round (default: 8)
   --batch-size <N>              Trainer batch size per round (default: 192)
@@ -167,6 +173,7 @@ echo "[bot-online-run] start trainer workspace=${WORKSPACE}"
 "${DEV_SH}" bot-online-train \
   --workspace "${WORKSPACE}" \
   --profile "${PROFILE}" \
+  --suite "${DATASET_SUITE}" \
   --interval-sec "${INTERVAL_SEC}" \
   --epochs "${EPOCHS}" \
   --batch-size "${BATCH_SIZE}" \

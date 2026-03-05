@@ -89,6 +89,10 @@ For online evolution (`ml-online`), run a continuous training loop in parallel:
   --ml-model cache/dev/nenoserpent_bot_online/nenoserpent_bot_policy_runtime.json --headful
 ```
 
+By default, `bot-online-train` uses `scripts/ci/bot_leaderboard_rule_suite.tsv`
+to avoid mixed-suite `ml` skip noise and keep rounds faster.
+Use `--suite <path>` to switch back to another dataset suite.
+
 Or use one-command launcher:
 
 ```bash

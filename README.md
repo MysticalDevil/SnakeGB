@@ -152,6 +152,9 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 ./scripts/dev.sh bot-online-train --workspace cache/dev/nenoserpent_bot_online
 # Optional no-regression tolerance for publish gate
 ./scripts/dev.sh bot-online-train --workspace cache/dev/nenoserpent_bot_online --gate-eps 0.05
+# Optional: use custom dataset suite (default is rule-only suite)
+./scripts/dev.sh bot-online-train --workspace cache/dev/nenoserpent_bot_online \
+  --suite scripts/ci/bot_leaderboard_suite.tsv
 # Optional stability guard knobs
 ./scripts/dev.sh bot-online-train --workspace cache/dev/nenoserpent_bot_online \
   --min-dataset-samples 80 --min-publish-round 2 --publish-cooldown-rounds 2 --max-blocked-streak 10

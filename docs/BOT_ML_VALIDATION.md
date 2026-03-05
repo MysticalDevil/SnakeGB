@@ -31,6 +31,9 @@ Quick smoke gate (repo tiny model):
 ./scripts/dev.sh bot-ml-online-gate --workspace cache/dev/nenoserpent_bot_ml_online_gate --rounds 3
 ```
 
+Default `ml-online` dataset suite is `scripts/ci/bot_leaderboard_rule_suite.tsv`.
+Use `--suite <path>` if you need a different suite.
+
 Optional stability knobs can be forwarded:
 
 ```bash

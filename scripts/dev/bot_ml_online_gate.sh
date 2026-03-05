@@ -7,6 +7,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TMP_ROOT="${NENOSERPENT_TMP_DIR:-${NENOSERPENT_CACHE_DIR:-${ROOT_DIR}/cache/dev}}"
 WORKSPACE="${BOT_ML_ONLINE_GATE_WORKSPACE:-${TMP_ROOT}/nenoserpent_bot_ml_online_gate}"
 PROFILE="${BOT_ML_ONLINE_GATE_PROFILE:-dev}"
+DATASET_SUITE="${BOT_ML_ONLINE_GATE_DATASET_SUITE:-${ROOT_DIR}/scripts/ci/bot_leaderboard_rule_suite.tsv}"
 ROUNDS="${BOT_ML_ONLINE_GATE_ROUNDS:-3}"
 INTERVAL_SEC="${BOT_ML_ONLINE_GATE_INTERVAL_SEC:-0}"
 GATE_GAMES="${BOT_ML_ONLINE_GATE_GAMES:-16}"
@@ -27,6 +28,10 @@ while (($# > 0)); do
       ;;
     --profile)
       PROFILE="$2"
+      shift 2
+      ;;
+    --suite)
+      DATASET_SUITE="$2"
       shift 2
       ;;
     --rounds)
@@ -78,6 +83,7 @@ Usage:
 Options:
   --workspace <dir>      Output workspace (default: cache/dev/nenoserpent_bot_ml_online_gate)
   --profile <name>       Dataset profile (default: dev)
+  --suite <path>         Dataset suite TSV (default: scripts/ci/bot_leaderboard_rule_suite.tsv)
   --rounds <N>           Online-train rounds to execute (default: 3)
   --gate-games <N>       Per-round publish gate games (default: 16)
   --gate-max-ticks <N>   Per-round publish gate max ticks (default: 1200)
@@ -122,6 +128,7 @@ echo "[bot-ml-online-gate] phase=online-train rounds=${ROUNDS}"
 "${ROOT_DIR}/scripts/dev.sh" bot-online-train \
   --workspace "${WORKSPACE}" \
   --profile "${PROFILE}" \
+  --suite "${DATASET_SUITE}" \
   --max-rounds "${ROUNDS}" \
   --interval-sec "${INTERVAL_SEC}" \
   --gate-games "${GATE_GAMES}" \
