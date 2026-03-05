@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <utility>
 
 #include <QVariantMap>
@@ -27,6 +28,7 @@ public:
 
   [[nodiscard]] auto status() const -> QVariantMap;
   [[nodiscard]] auto currentBackend() const -> const BotBackend*;
+  void onTick();
 
   [[nodiscard]] auto strategyConfig() const -> const StrategyConfig& {
     return m_strategyConfig;
@@ -59,6 +61,8 @@ public:
   }
 
 private:
+  void configureMlOnline(const QString& modelPath);
+  void pollMlOnlineModelHotReload();
   void applyModeDefaults();
 
   BotMode m_strategyMode = BotMode::Balanced;
@@ -68,6 +72,11 @@ private:
   int m_actionCooldownTicks = 0;
   StrategyConfig m_baseStrategyConfig = defaultStrategyConfig();
   StrategyConfig m_strategyConfig = m_baseStrategyConfig;
+  QString m_mlModelPath;
+  bool m_mlOnlineHotReloadEnabled = false;
+  int m_mlOnlinePollIntervalTicks = 24;
+  int m_mlOnlinePollCountdown = 24;
+  std::int64_t m_mlModelLastModifiedMs = -1;
 };
 
 } // namespace nenoserpent::adapter::bot

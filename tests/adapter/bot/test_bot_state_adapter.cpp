@@ -52,6 +52,9 @@ void BotStateAdapterTest::cycleBackendModeUpdatesAutoplayState() {
 
   state.cycleBackendMode();
   QCOMPARE(state.backendModeName(), QStringLiteral("ml"));
+
+  state.cycleBackendMode();
+  QCOMPARE(state.backendModeName(), QStringLiteral("ml-online"));
 }
 
 void BotStateAdapterTest::setParamClampsAndAppearsInStatus() {

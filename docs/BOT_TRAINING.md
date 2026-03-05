@@ -7,7 +7,8 @@ This document defines the current imitation-learning baseline for NenoSerpent bo
 - Source policy: existing rule bot (`safe|balanced|aggressive`).
 - Training target: action class (`up|right|down|left`).
 - Model: small MLP classifier.
-- Runtime integration: wired via `ml` backend (`NENOSERPENT_BOT_ML_MODEL=<runtime-json>`).
+- Runtime integration: wired via `ml`/`ml-online` backend
+  (`NENOSERPENT_BOT_ML_MODEL=<runtime-json>`).
 
 Prerequisite:
 

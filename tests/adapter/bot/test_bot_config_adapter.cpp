@@ -75,12 +75,17 @@ void BotConfigAdapterTest::cyclesBackendModesInExpectedOrder() {
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Rule),
            QStringLiteral("rule"));
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Ml), QStringLiteral("ml"));
+  QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::MlOnline),
+           QStringLiteral("ml-online"));
   QCOMPARE(nenoserpent::adapter::bot::backendModeName(BotBackendMode::Search),
            QStringLiteral("search"));
 
   QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Off), BotBackendMode::Rule);
   QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Rule), BotBackendMode::Ml);
-  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Ml), BotBackendMode::Search);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Ml),
+           BotBackendMode::MlOnline);
+  QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::MlOnline),
+           BotBackendMode::Search);
   QCOMPARE(nenoserpent::adapter::bot::nextBackendMode(BotBackendMode::Search), BotBackendMode::Off);
 }
 

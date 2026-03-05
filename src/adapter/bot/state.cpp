@@ -1,7 +1,9 @@
 #include "adapter/bot/state.h"
 
 #include <algorithm>
+#include <cstdint>
 
+#include <QFileInfo>
 #include <QVariantMap>
 
 #include "adapter/bot/config_loader.h"
@@ -34,13 +36,18 @@ void State::initializeFromEnvironment() {
       << "invalid ml gate env override, using defaults when parse fails";
   }
 
-  if (!envConfig.mlModelPath.isEmpty()) {
-    if (m_mlBackend.loadFromFile(envConfig.mlModelPath)) {
-      qCInfo(nenoserpentInputLog).noquote()
-        << "bot ml model loaded source=" << envConfig.mlModelPath;
+  m_mlModelPath = envConfig.mlModelPath;
+  configureMlOnline(m_mlModelPath);
+
+  if (!m_mlModelPath.isEmpty()) {
+    if (m_mlBackend.loadFromFile(m_mlModelPath)) {
+      const QFileInfo modelInfo(m_mlModelPath);
+      m_mlModelLastModifiedMs =
+        modelInfo.exists() ? modelInfo.lastModified().toMSecsSinceEpoch() : -1;
+      qCInfo(nenoserpentInputLog).noquote() << "bot ml model loaded source=" << m_mlModelPath;
     } else {
       qCWarning(nenoserpentInputLog).noquote()
-        << "bot ml model unavailable source=" << envConfig.mlModelPath
+        << "bot ml model unavailable source=" << m_mlModelPath
         << "reason=" << m_mlBackend.errorString();
     }
   } else {
@@ -57,7 +64,7 @@ void State::initializeFromEnvironment() {
   }
   qCWarning(nenoserpentInputLog).noquote()
     << "invalid bot backend override:" << envConfig.backendRaw
-    << "(expected off|rule|ml|search, fallback off)";
+    << "(expected off|rule|ml|ml-online|search, fallback off)";
   m_backendMode = BotBackendMode::Off;
 }
 
@@ -146,6 +153,8 @@ auto State::status() const -> QVariantMap {
     {u"mode"_s, strategyModeName()},
     {u"backend"_s, backendModeName()},
     {u"mlAvailable"_s, m_mlBackend.isAvailable()},
+    {u"mlOnlineHotReload"_s, m_mlOnlineHotReloadEnabled},
+    {u"mlModelPath"_s, m_mlModelPath},
     {u"strategyMode"_s, strategyModeName()},
     {u"openSpaceWeight"_s, m_strategyConfig.openSpaceWeight},
     {u"safeNeighborWeight"_s, m_strategyConfig.safeNeighborWeight},
@@ -167,11 +176,66 @@ auto State::currentBackend() const -> const BotBackend* {
   case BotBackendMode::Rule:
     return &ruleBackend();
   case BotBackendMode::Ml:
+  case BotBackendMode::MlOnline:
     return &m_mlBackend;
   case BotBackendMode::Search:
     return &searchBackend();
   }
   return nullptr;
+}
+
+void State::onTick() {
+  pollMlOnlineModelHotReload();
+}
+
+void State::configureMlOnline(const QString& modelPath) {
+  bool hotReloadOk = false;
+  const int hotReloadRaw =
+    qEnvironmentVariableIntValue("NENOSERPENT_BOT_ML_ONLINE_HOT_RELOAD", &hotReloadOk);
+  m_mlOnlineHotReloadEnabled = hotReloadOk ? hotReloadRaw != 0 : true;
+
+  bool pollTicksOk = false;
+  const int pollTicksRaw =
+    qEnvironmentVariableIntValue("NENOSERPENT_BOT_ML_ONLINE_RELOAD_TICKS", &pollTicksOk);
+  m_mlOnlinePollIntervalTicks = pollTicksOk ? std::max(1, pollTicksRaw) : 24;
+  m_mlOnlinePollCountdown = m_mlOnlinePollIntervalTicks;
+  if (m_mlOnlineHotReloadEnabled) {
+    qCInfo(nenoserpentInputLog).noquote()
+      << "bot ml-online hot-reload enabled pollTicks=" << m_mlOnlinePollIntervalTicks
+      << "model=" << modelPath;
+  }
+}
+
+void State::pollMlOnlineModelHotReload() {
+  if (m_backendMode != BotBackendMode::MlOnline || !m_mlOnlineHotReloadEnabled ||
+      m_mlModelPath.isEmpty()) {
+    return;
+  }
+  --m_mlOnlinePollCountdown;
+  if (m_mlOnlinePollCountdown > 0) {
+    return;
+  }
+  m_mlOnlinePollCountdown = m_mlOnlinePollIntervalTicks;
+
+  const QFileInfo modelInfo(m_mlModelPath);
+  if (!modelInfo.exists()) {
+    qCWarning(nenoserpentInputLog).noquote()
+      << "bot ml-online model missing path=" << m_mlModelPath;
+    return;
+  }
+  const std::int64_t lastModifiedMs = modelInfo.lastModified().toMSecsSinceEpoch();
+  if (lastModifiedMs <= 0 || lastModifiedMs == m_mlModelLastModifiedMs) {
+    return;
+  }
+  if (m_mlBackend.loadFromFile(m_mlModelPath)) {
+    m_mlModelLastModifiedMs = lastModifiedMs;
+    qCInfo(nenoserpentInputLog).noquote()
+      << "bot ml-online model hot-reloaded source=" << m_mlModelPath;
+    return;
+  }
+  qCWarning(nenoserpentInputLog).noquote()
+    << "bot ml-online hot-reload failed source=" << m_mlModelPath
+    << "reason=" << m_mlBackend.errorString();
 }
 
 void State::applyModeDefaults() {

@@ -44,14 +44,14 @@ void BotConfigLoaderAdapterTest::parsesBackendAndMlGateFromEnvironment() {
   ScopedEnv confEnv("NENOSERPENT_BOT_ML_MIN_CONF");
   ScopedEnv marginEnv("NENOSERPENT_BOT_ML_MIN_MARGIN");
 
-  qputenv("NENOSERPENT_BOT_BACKEND", "search");
+  qputenv("NENOSERPENT_BOT_BACKEND", "ml-online");
   qputenv("NENOSERPENT_BOT_ML_MIN_CONF", "0.77");
   qputenv("NENOSERPENT_BOT_ML_MIN_MARGIN", "1.05");
 
   const auto config = nenoserpent::adapter::bot::loadEnvironmentConfig();
   QVERIFY(config.backendOverrideProvided);
   QVERIFY(config.backendOverride.has_value());
-  QCOMPARE(*config.backendOverride, nenoserpent::adapter::bot::BotBackendMode::Search);
+  QCOMPARE(*config.backendOverride, nenoserpent::adapter::bot::BotBackendMode::MlOnline);
   QVERIFY(config.minConfidenceValid);
   QVERIFY(config.minMarginValid);
   QCOMPARE(config.minConfidence, 0.77F);

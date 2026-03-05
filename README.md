@@ -142,6 +142,7 @@ CMAKE_BUILD_TYPE=Release ./scripts/deploy.sh android
 # Run bot in headful mode directly (no manual F8 cycling needed)
 ./scripts/dev.sh bot-run --backend rule --headful
 ./scripts/dev.sh bot-run --backend ml --ml-model /tmp/nenoserpent_bot_policy_runtime.json --headful
+./scripts/dev.sh bot-run --backend ml-online --ml-model /tmp/nenoserpent_bot_policy_runtime.json --headful
 ./scripts/dev.sh bot-run --backend search --headful
 ```
 

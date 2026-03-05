@@ -40,6 +40,7 @@ auto RuntimeFacade::setParam(const QString& key, const int value) -> bool {
 
 auto RuntimeFacade::runTick(const RuntimeTickInput& input, const RuntimeTickCallbacks& callbacks)
   -> bool {
+  m_state.onTick();
   const auto orchestratorOutput =
     runOrchestratorTick(m_state,
                         {

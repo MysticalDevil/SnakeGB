@@ -44,13 +44,13 @@ while (($# > 0)); do
       if [[ "$1" == "-h" || "$1" == "--help" ]]; then
         cat <<'EOF'
 Usage:
-  ./scripts/dev.sh bot-run [--build-preset <preset>] [--backend off|rule|ml|search]
+  ./scripts/dev.sh bot-run [--build-preset <preset>] [--backend off|rule|ml|ml-online|search]
                            [--headful|--headless] [--ui-mode full|screen]
                            [--ml-model <runtime-json>]
 
 Notes:
   - shell ui-mode is debug-only and is intentionally disabled for bot-run.
-  - backend=ml requires --ml-model.
+  - backend=ml and backend=ml-online require --ml-model.
 EOF
         exit 0
       fi
@@ -65,12 +65,12 @@ if [[ "${UI_MODE}" != "full" && "${UI_MODE}" != "screen" ]]; then
   exit 1
 fi
 if [[ "${BOT_BACKEND}" != "off" && "${BOT_BACKEND}" != "rule" && "${BOT_BACKEND}" != "ml" &&
-  "${BOT_BACKEND}" != "search" ]]; then
-  echo "invalid --backend: ${BOT_BACKEND} (expected off|rule|ml|search)" >&2
+  "${BOT_BACKEND}" != "ml-online" && "${BOT_BACKEND}" != "search" ]]; then
+  echo "invalid --backend: ${BOT_BACKEND} (expected off|rule|ml|ml-online|search)" >&2
   exit 1
 fi
-if [[ "${BOT_BACKEND}" == "ml" && -z "${ML_MODEL_PATH}" ]]; then
-  echo "backend=ml requires --ml-model <runtime-json-path>" >&2
+if [[ ("${BOT_BACKEND}" == "ml" || "${BOT_BACKEND}" == "ml-online") && -z "${ML_MODEL_PATH}" ]]; then
+  echo "backend=${BOT_BACKEND} requires --ml-model <runtime-json-path>" >&2
   exit 1
 fi
 

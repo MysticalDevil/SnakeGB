@@ -26,6 +26,9 @@ auto parseBackendModeOverride(const QString& value) -> std::optional<BotBackendM
   if (value == QStringLiteral("ml")) {
     return BotBackendMode::Ml;
   }
+  if (value == QStringLiteral("ml-online")) {
+    return BotBackendMode::MlOnline;
+  }
   if (value == QStringLiteral("search")) {
     return BotBackendMode::Search;
   }

@@ -17,20 +17,24 @@ Backend behavior (`F8`):
 - `off`: bot disabled
 - `rule`: rule backend enabled
 - `ml`: ML backend enabled; automatic fallback to `rule` on model unavailable/inference miss
+- `ml-online`: same inference path as `ml`, plus periodic model-file hot reload while playing
 - `search`: depth-limited lookahead search backend (no model dependency)
 
 Strategy behavior (`F10`):
 
 - `safe -> balanced -> aggressive -> safe` cycle
-- this only changes rule-policy weights; it does not change backend (`off|rule|ml|search`)
+- this only changes rule-policy weights; it does not change backend (`off|rule|ml|ml-online|search`)
 
 Startup backend override:
 
-- `NENOSERPENT_BOT_BACKEND=off|rule|ml|search`
+- `NENOSERPENT_BOT_BACKEND=off|rule|ml|ml-online|search`
 - optional `NENOSERPENT_BOT_ML_MODEL=/abs/path/policy.runtime.json`
 - optional confidence gate:
   - `NENOSERPENT_BOT_ML_MIN_CONF` (default `0.90`)
   - `NENOSERPENT_BOT_ML_MIN_MARGIN` (default `1.20`)
+- optional hot-reload controls (`ml-online` only):
+  - `NENOSERPENT_BOT_ML_ONLINE_HOT_RELOAD=1|0` (default `1`)
+  - `NENOSERPENT_BOT_ML_ONLINE_RELOAD_TICKS=N` (default `24`)
 
 Strategy behavior:
 
@@ -114,7 +118,7 @@ PyTorch imitation-learning baseline:
 Debug tokens accepted by runtime injection:
 
 - `DBG_BOT_PANEL` (toggle panel visibility)
-- `DBG_BOT_MODE` (cycle backend: `off -> rule -> ml -> search`)
+- `DBG_BOT_MODE` (cycle backend: `off -> rule -> ml -> ml-online -> search`)
 - `DBG_BOT_STRATEGY` (cycle strategy profile)
 - `DBG_BOT_RESET` (reapply current mode defaults)
 - `DBG_BOT_PARAM:KEY=VALUE[,KEY=VALUE...]`
