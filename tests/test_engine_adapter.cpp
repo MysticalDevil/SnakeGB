@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QSet>
 #include <QSettings>
+#include <QSignalSpy>
 #include <QStandardPaths>
 #include <QtTest>
 
@@ -15,6 +16,27 @@
 class TestEngineAdapter : public QObject {
   Q_OBJECT
 private:
+  class ScopedEnv final {
+  public:
+    explicit ScopedEnv(const char* key)
+        : m_key(key),
+          m_hadValue(qEnvironmentVariableIsSet(key)),
+          m_previous(m_hadValue ? qgetenv(key) : QByteArray()) {
+    }
+    ~ScopedEnv() {
+      if (m_hadValue) {
+        qputenv(m_key.constData(), m_previous);
+      } else {
+        qunsetenv(m_key.constData());
+      }
+    }
+
+  private:
+    QByteArray m_key;
+    bool m_hadValue = false;
+    QByteArray m_previous;
+  };
+
   static void clearPersistentState() {
     QSettings settings;
     const QString settingsFile = settings.fileName();
@@ -421,6 +443,47 @@ private slots:
     QCOMPARE(after.value("backend").toString(), beforeBackend);
     QVERIFY(after.value("mode").toString() != beforeMode);
     QVERIFY(after.contains("mlAvailable"));
+  }
+
+  void testBotBackendEnvironmentOverrideModes() {
+    const auto checkBackend = [](const char* mode, const char* expected) {
+      ScopedEnv scopedBackend("NENOSERPENT_BOT_BACKEND");
+      qputenv("NENOSERPENT_BOT_BACKEND", mode);
+      EngineAdapter game;
+      QCOMPARE(game.botStatus().value("backend").toString(), QString::fromLatin1(expected));
+    };
+
+    checkBackend("off", "off");
+    checkBackend("rule", "rule");
+    checkBackend("ml", "ml");
+    checkBackend("search", "search");
+  }
+
+  void testInvalidBotBackendOverrideFallsBackToOff() {
+    ScopedEnv scopedBackend("NENOSERPENT_BOT_BACKEND");
+    qputenv("NENOSERPENT_BOT_BACKEND", "unknown-backend");
+
+    EngineAdapter game;
+    QCOMPARE(game.botStatus().value("backend").toString(), QString("off"));
+  }
+
+  void testEmitAudioEventRoutesAllVariants() {
+    EngineAdapter game;
+    QSignalSpy foodSpy(&game, &EngineAdapter::foodEaten);
+    QSignalSpy crashSpy(&game, &EngineAdapter::playerCrashed);
+    QSignalSpy uiSpy(&game, &EngineAdapter::uiInteractTriggered);
+    QSignalSpy powerSpy(&game, &EngineAdapter::powerUpEaten);
+
+    game.emitAudioEvent(nenoserpent::audio::Event::Food, 0.25F);
+    game.emitAudioEvent(nenoserpent::audio::Event::Crash, 0.0F);
+    game.emitAudioEvent(nenoserpent::audio::Event::UiInteract, 0.0F);
+    game.emitAudioEvent(nenoserpent::audio::Event::Confirm, 0.0F);
+    game.emitAudioEvent(nenoserpent::audio::Event::PowerUp, 0.0F);
+
+    QCOMPARE(foodSpy.count(), 1);
+    QCOMPARE(crashSpy.count(), 1);
+    QCOMPARE(uiSpy.count(), 1);
+    QCOMPARE(powerSpy.count(), 1);
   }
 };
 
