@@ -46,8 +46,7 @@ auto contextualChoiceStrategy(const StrategyConfig& base, const Snapshot& snapsh
   const DecisionPolicy policy = decisionPolicyFromEnvironment();
   const int boardCells = std::max(1, snapshot.boardWidth * snapshot.boardHeight);
   const int bodyPermille = (static_cast<int>(snapshot.body.size()) * 1000) / boardCells;
-  const int obstaclePermille =
-    (static_cast<int>(snapshot.obstacles.size()) * 1000) / boardCells;
+  const int obstaclePermille = (static_cast<int>(snapshot.obstacles.size()) * 1000) / boardCells;
 
   auto boostPriority = [&contextual](const int type, const int delta) {
     const int current = powerPriority(contextual, type);
@@ -100,6 +99,10 @@ auto dynamicChoiceCooldownTicks(const StrategyConfig& strategy, const Snapshot& 
                     strategy.choiceCooldownTicks + 8);
 }
 
+auto isMlLikeBackendName(const QString& backendName) -> bool {
+  return backendName == QStringLiteral("ml") || backendName == QStringLiteral("ml-online");
+}
+
 } // namespace
 
 auto step(const RuntimeInput& input) -> RuntimeOutput {
@@ -123,13 +126,24 @@ auto step(const RuntimeInput& input) -> RuntimeOutput {
 
   if (input.state == AppState::Playing) {
     output.enqueueDirection = backend.decideDirection(input.snapshot, strategy);
+    if (!output.enqueueDirection.has_value() && isMlLikeBackendName(output.backend)) {
+      const BotBackend& search = searchBackend();
+      if (&search != &backend && search.isAvailable()) {
+        output.enqueueDirection = search.decideDirection(input.snapshot, strategy);
+        if (output.enqueueDirection.has_value()) {
+          output.backend = search.name();
+          output.usedFallback = true;
+          output.fallbackReason = QStringLiteral("direction-empty-search");
+        }
+      }
+    }
     if (!output.enqueueDirection.has_value() && input.fallbackBackend != nullptr &&
         input.fallbackBackend != &backend && input.fallbackBackend->isAvailable()) {
       output.enqueueDirection = input.fallbackBackend->decideDirection(input.snapshot, strategy);
       if (output.enqueueDirection.has_value()) {
         output.backend = input.fallbackBackend->name();
         output.usedFallback = true;
-        output.fallbackReason = QStringLiteral("direction-empty");
+        output.fallbackReason = QStringLiteral("direction-empty-rule");
       }
     }
     return output;

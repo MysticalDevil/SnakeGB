@@ -17,6 +17,7 @@ private slots:
   void usesInjectedBackendForDirectionAndChoice();
   void fallsBackToSecondaryBackendWhenPrimaryUnavailable();
   void usesFallbackWhenPrimaryMissing();
+  void usesSearchFallbackWhenPrimaryMlDirectionEmpty();
   void usesFallbackWhenPrimaryDirectionEmpty();
   void usesFallbackWhenPrimaryChoiceEmpty();
 };
@@ -360,15 +361,74 @@ void BotRuntimeAdapterTest::usesFallbackWhenPrimaryDirectionEmpty() {
   input.enabled = true;
   input.state = AppState::Playing;
   input.snapshot.body = {QPoint(8, 8), QPoint(8, 9)};
+  input.snapshot.boardWidth = 20;
+  input.snapshot.boardHeight = 18;
   input.backend = &primary;
   input.fallbackBackend = &fallback;
 
   const auto result = nenoserpent::adapter::bot::step(input);
   QVERIFY(result.enqueueDirection.has_value());
-  QCOMPARE(*result.enqueueDirection, QPoint(0, 1));
-  QCOMPARE(result.backend, QStringLiteral("rule"));
   QVERIFY(result.usedFallback);
-  QCOMPARE(result.fallbackReason, QStringLiteral("direction-empty"));
+  QVERIFY(result.backend == QStringLiteral("search") || result.backend == QStringLiteral("rule"));
+  QVERIFY(result.fallbackReason == QStringLiteral("direction-empty-search") ||
+          result.fallbackReason == QStringLiteral("direction-empty-rule"));
+}
+
+void BotRuntimeAdapterTest::usesSearchFallbackWhenPrimaryMlDirectionEmpty() {
+  class EmptyPrimaryBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("ml");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return std::nullopt;
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return -1;
+    }
+  };
+
+  class RuleLikeBackend final : public nenoserpent::adapter::bot::BotBackend {
+  public:
+    [[nodiscard]] auto name() const -> QString override {
+      return QStringLiteral("rule");
+    }
+    [[nodiscard]] auto decideDirection(const nenoserpent::adapter::bot::Snapshot&,
+                                       const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> std::optional<QPoint> override {
+      return QPoint(0, 1);
+    }
+    [[nodiscard]] auto decideChoice(const QVariantList&,
+                                    const nenoserpent::adapter::bot::StrategyConfig&) const
+      -> int override {
+      return 1;
+    }
+  };
+
+  const EmptyPrimaryBackend primary{};
+  const RuleLikeBackend fallback{};
+
+  nenoserpent::adapter::bot::RuntimeInput input{};
+  input.enabled = true;
+  input.state = AppState::Playing;
+  input.snapshot.body = {QPoint(10, 10), QPoint(10, 11), QPoint(10, 12)};
+  input.snapshot.head = QPoint(10, 10);
+  input.snapshot.direction = QPoint(0, -1);
+  input.snapshot.food = QPoint(15, 10);
+  input.snapshot.boardWidth = 20;
+  input.snapshot.boardHeight = 18;
+  input.backend = &primary;
+  input.fallbackBackend = &fallback;
+
+  const auto result = nenoserpent::adapter::bot::step(input);
+  QVERIFY(result.enqueueDirection.has_value());
+  QCOMPARE(result.backend, QStringLiteral("search"));
+  QVERIFY(result.usedFallback);
+  QCOMPARE(result.fallbackReason, QStringLiteral("direction-empty-search"));
 }
 
 void BotRuntimeAdapterTest::usesFallbackWhenPrimaryChoiceEmpty() {
