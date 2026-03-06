@@ -953,6 +953,8 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   const int riskBudget = riskBudgetFor(snapshot, repeats);
   const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
   const QPoint primaryTarget = targetFsm.targetPoint(snapshot, tunedConfig);
+  const int currentPrimaryDistance =
+    toroidalDistance(initial.head, primaryTarget, snapshot.boardWidth, snapshot.boardHeight);
   const bool earlyFoodChaseGuard = (targetFsm.mode() == TargetMode::FoodChase) &&
                                    (primaryTarget == snapshot.food) && snapshot.score < 40 &&
                                    static_cast<int>(snapshot.body.size()) < 12 && !escapeMode;
@@ -1168,6 +1170,19 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       }
     }
     int score = breakdown.total();
+    if (!escapeMode && noScoreTicks >= 12) {
+      const int nextPrimaryDistance = toroidalDistance(
+        preview.next.head, primaryTarget, snapshot.boardWidth, snapshot.boardHeight);
+      const int distanceDelta = nextPrimaryDistance - currentPrimaryDistance;
+      if (distanceDelta > 0) {
+        const int stallPenalty = std::min(180, distanceDelta * (8 + (noScoreTicks / 4)));
+        breakdown.progress = clampScoreBlock(breakdown.progress - stallPenalty, -280, 280);
+      } else if (distanceDelta < 0) {
+        const int stallBonus = std::min(96, (-distanceDelta) * (6 + (noScoreTicks / 8)));
+        breakdown.progress = clampScoreBlock(breakdown.progress + stallBonus, -280, 280);
+      }
+      score = breakdown.total();
+    }
     if (earlyFoodChaseGuard && hasNonWorseningFoodMove) {
       const int nextFoodDistance = toroidalDistance(
         preview.next.head, snapshot.food, snapshot.boardWidth, snapshot.boardHeight);

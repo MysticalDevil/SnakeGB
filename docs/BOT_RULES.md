@@ -61,6 +61,9 @@ As of the latest refactor, `rule` and `search` backends use a unified staged pip
    - Score composition:
      - `Progress + Survival + Reward - Risk - LoopCost`
    - Each block is range-clamped to avoid single-term domination.
+   - Under no-score stall windows, target-distance drift shaping is applied:
+     - moving farther from primary target gets extra progress penalty
+     - moving closer gets bounded progress bonus
 4. `Loop Control`
    - Loop observation (`LoopMemory`) is separated from loop penalty/escape policy (`LoopController`).
 5. `Decision Telemetry`
