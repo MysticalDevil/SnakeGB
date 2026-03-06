@@ -1,5 +1,8 @@
 import QtQuick
 import NenoSerpent 1.0
+import "meta/AchievementMeta.js" as AchievementMeta
+import "debug/DebugTokenParser.js" as DebugTokenParser
+import "debug/DebugStateFactory.js" as DebugStateFactory
 
 QtObject {
     id: controller
@@ -18,171 +21,7 @@ QtObject {
     property var stateOwner
 
     readonly property var konamiSequence: ["U", "U", "D", "D", "L", "R", "L", "R", "B", "A"]
-    readonly property var debugStateTokens: ({
-        DBG_GAMEOVER: { state: AppState.GameOver, osd: "DBG: GAMEOVER" },
-        DBG_REPLAY: { state: AppState.Replaying, osd: "DBG: REPLAY" },
-        DBG_CATALOG: { state: AppState.Library, osd: "DBG: CATALOG" },
-        DBG_ACHIEVEMENTS: { state: AppState.MedalRoom, osd: "DBG: ACHIEVEMENTS" }
-    })
-    readonly property var medalIds: [
-        "Gold Medal (50 Pts)",
-        "Silver Medal (20 Pts)",
-        "Centurion (100 Crashes)",
-        "Gourmet (500 Food)",
-        "Untouchable",
-        "Speed Demon",
-        "Pacifist (60s No Food)"
-    ]
-    readonly property var staticSceneAliases: ({
-        DBG_STATIC_BOOT: "boot",
-        DBG_STATIC_GAME: "game",
-        DBG_STATIC_REPLAY: "replay",
-        DBG_STATIC_CHOICE: "choice",
-        DBG_STATIC_OSD: "osd_text",
-        DBG_STATIC_VOL: "osd_volume",
-        DBG_STATIC_OFF: "",
-        STATIC_BOOT: "boot",
-        STATIC_GAME: "game",
-        STATIC_REPLAY: "replay",
-        STATIC_CHOICE: "choice",
-        STATIC_OSD: "osd_text",
-        STATIC_VOL: "osd_volume",
-        STATIC_OFF: ""
-    })
-    readonly property var injectedActionTokens: ({
-        UP: "NavUp",
-        U: "NavUp",
-        DOWN: "NavDown",
-        D: "NavDown",
-        LEFT: "NavLeft",
-        L: "NavLeft",
-        RIGHT: "NavRight",
-        R: "NavRight",
-        A: "Primary",
-        PRIMARY: "Primary",
-        OK: "Primary",
-        B: "Secondary",
-        SECONDARY: "Secondary",
-        START: "Start",
-        SELECT: "SelectShort",
-        BACK: "Back",
-        ESC: "Escape",
-        ESCAPE: "Escape",
-        F6: "ToggleIconLab",
-        ICON: "ToggleIconLab",
-        COLOR: "ToggleShellColor",
-        SHELL: "ToggleShellColor",
-        MUSIC: "ToggleMusic",
-        BOTMODE: "ToggleBot",
-        BOTSTRAT: "ToggleBotStrategy",
-        BOTPANEL: "ToggleBotPanel"
-    })
-    readonly property var staticSceneOptionHandlers: ({
-        BUFF: function(sceneName, options, value, helpers) {
-            const buffType = helpers.parseBoundedInt(value, 1, 12)
-            if (buffType !== null) {
-                options.buffType = buffType
-            }
-        },
-        SCORE: function(sceneName, options, value, helpers) {
-            const score = helpers.parseBoundedInt(value, 0)
-            if (score !== null) {
-                options.score = score
-            }
-        },
-        HI: function(sceneName, options, value, helpers) {
-            const highScore = helpers.parseBoundedInt(value, 0)
-            if (highScore !== null) {
-                options.highScore = highScore
-            }
-        },
-        REMAIN: function(sceneName, options, value, helpers) {
-            const remaining = helpers.parseBoundedInt(value, 0)
-            if (remaining !== null) {
-                options.buffRemaining = remaining
-            }
-        },
-        TOTAL: function(sceneName, options, value, helpers) {
-            const total = helpers.parseBoundedInt(value, 1)
-            if (total !== null) {
-                options.buffTotal = total
-            }
-        },
-        INDEX: function(sceneName, options, value, helpers) {
-            const choiceIndex = helpers.parseBoundedInt(value, 0)
-            if (choiceIndex !== null) {
-                options.choiceIndex = choiceIndex
-            }
-        },
-        TYPES: function(sceneName, options, value, helpers) {
-            options.choiceTypes = helpers.parseChoiceTypes(value)
-        },
-        CHOICES: function(sceneName, options, value, helpers) {
-            options.choiceTypes = helpers.parseChoiceTypes(value)
-        },
-        TITLE: function(sceneName, options, value, helpers) {
-            if (sceneName === "boot") {
-                options.bootTitle = helpers.decodeLabel(value)
-            } else if (sceneName === "choice") {
-                options.choiceTitle = helpers.decodeLabel(value)
-            }
-        },
-        SUBTITLE: function(sceneName, options, value, helpers) {
-            if (sceneName === "boot") {
-                options.bootSubtitle = helpers.decodeLabel(value)
-            } else if (sceneName === "choice") {
-                options.choiceSubtitle = helpers.decodeLabel(value)
-            }
-        },
-        LOAD: function(sceneName, options, value, helpers) {
-            options.bootLoadLabel = helpers.decodeLabel(value)
-        },
-        LOADLABEL: function(sceneName, options, value, helpers) {
-            options.bootLoadLabel = helpers.decodeLabel(value)
-        },
-        PROGRESS: function(sceneName, options, value, helpers) {
-            const progress = helpers.parseProgress(value)
-            if (progress !== null) {
-                options.bootLoadProgress = progress
-            }
-        },
-        LOADPROGRESS: function(sceneName, options, value, helpers) {
-            const progress = helpers.parseProgress(value)
-            if (progress !== null) {
-                options.bootLoadProgress = progress
-            }
-        },
-        FOOTER: function(sceneName, options, value, helpers) {
-            options.choiceFooterHint = helpers.decodeLabel(value)
-        },
-        FOOTERHINT: function(sceneName, options, value, helpers) {
-            options.choiceFooterHint = helpers.decodeLabel(value)
-        },
-        OSD: function(sceneName, options, value, helpers) {
-            options.osdText = helpers.decodeLabel(value)
-        },
-        OSDTEXT: function(sceneName, options, value, helpers) {
-            options.osdText = helpers.decodeLabel(value)
-        },
-        VOLUME: function(sceneName, options, value, helpers) {
-            const volume = helpers.parseProgress(value)
-            if (volume !== null) {
-                options.osdVolume = volume
-            }
-        },
-        SNAKE: function(sceneName, options, value, helpers) {
-            options.snakeSegments = helpers.parsePointList(value)
-        },
-        FOOD: function(sceneName, options, value, helpers) {
-            options.foodCells = helpers.parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
-        },
-        OBSTACLES: function(sceneName, options, value, helpers) {
-            options.obstacleCells = helpers.parsePointList(value).map((cell) => ({ x: cell.x, y: cell.y }))
-        },
-        POWERUPS: function(sceneName, options, value, helpers) {
-            options.powerupCells = helpers.parsePowerupList(value)
-        }
-    })
+    readonly property var medalIds: AchievementMeta.ids()
     property int konamiIndex: 0
 
     function resetKonamiProgress() {
@@ -204,128 +43,6 @@ QtObject {
         if (!nextEnabled && controller.commandController) {
             controller.commandController.dispatch("state_start_menu")
         }
-    }
-
-    function parseStaticSceneOptions(sceneName, rawOptions) {
-        const helpers = {
-            decodeLabel(value) {
-                return String(value || "").replace(/\+/g, " ").replace(/_/g, " ")
-            },
-            parseBoundedInt(value, min, max) {
-                const parsed = Number(value)
-                if (!Number.isInteger(parsed)) {
-                    return null
-                }
-                if (parsed < min) {
-                    return null
-                }
-                if (max !== undefined && parsed > max) {
-                    return null
-                }
-                return parsed
-            },
-            parseChoiceTypes(value) {
-                return String(value || "")
-                    .split(/[|/]/)
-                    .map((entry) => Number(entry.trim()))
-                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 12)
-                    .slice(0, 3)
-            },
-            parseProgress(value) {
-                const progress = Number(value)
-                if (Number.isNaN(progress)) {
-                    return null
-                }
-                return progress > 1 ? progress / 100.0 : progress
-            },
-            parsePointList(value) {
-                return value
-                    .split(/[|/]/)
-                    .map((entry) => entry.trim())
-                    .filter((entry) => entry.length > 0)
-                    .map((entry) => {
-                        const parts = entry.split(":").map((part) => part.trim())
-                        if (parts.length < 2) {
-                            return null
-                        }
-                        const x = Number(parts[0])
-                        const y = Number(parts[1])
-                        if (!Number.isInteger(x) || !Number.isInteger(y)) {
-                            return null
-                        }
-                        const point = { x, y }
-                        if (parts.length >= 3) {
-                            const marker = parts[2]
-                            point.head = marker === "H" || marker === "h" || marker === "1"
-                        }
-                        return point
-                    })
-                    .filter((entry) => !!entry)
-            },
-            parsePowerupList(value) {
-                return value
-                    .split(/[|/]/)
-                    .map((entry) => entry.trim())
-                    .filter((entry) => entry.length > 0)
-                    .map((entry) => {
-                        const parts = entry.split(":").map((part) => part.trim())
-                        if (parts.length < 2) {
-                            return null
-                        }
-                        const x = Number(parts[0])
-                        const y = Number(parts[1])
-                        const type = parts.length >= 3 ? Number(parts[2]) : 1
-                        if (!Number.isInteger(x) || !Number.isInteger(y) ||
-                                !Number.isInteger(type) || type < 1 || type > 12) {
-                            return null
-                        }
-                        return { x, y, type }
-                    })
-                    .filter((entry) => !!entry)
-            }
-        }
-
-        const options = {}
-        const raw = String(rawOptions || "").trim()
-        if (raw.length === 0) {
-            return options
-        }
-
-        const parts = raw.split(",").map((part) => part.trim()).filter((part) => part.length > 0)
-        const bareValues = []
-
-        for (const part of parts) {
-            const separatorIndex = part.indexOf("=")
-            if (separatorIndex < 0) {
-                const bareInt = Number(part)
-                if (Number.isInteger(bareInt)) {
-                    bareValues.push(bareInt)
-                }
-                continue
-            }
-
-            const key = part.slice(0, separatorIndex).trim().toUpperCase()
-            const value = part.slice(separatorIndex + 1).trim()
-            const handler = controller.staticSceneOptionHandlers[key]
-            if (handler) {
-                handler(sceneName, options, value, helpers)
-            }
-        }
-
-        if (sceneName === "choice") {
-            if (!options.choiceTypes || options.choiceTypes.length === 0) {
-                options.choiceTypes = bareValues
-                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 12)
-                    .slice(0, 3)
-            }
-        } else if (bareValues.length > 0) {
-            const buffType = bareValues[0]
-            if (buffType >= 1 && buffType <= 12) {
-                options.buffType = buffType
-            }
-        }
-
-        return options
     }
 
     function setStaticScene(sceneName, options) {
@@ -448,140 +165,62 @@ QtObject {
     function activateStaticScene(sceneName, rawOptions) {
         const options = rawOptions === undefined
             ? {}
-            : controller.parseStaticSceneOptions(sceneName, rawOptions)
+            : DebugTokenParser.parseStaticSceneOptions(sceneName, rawOptions)
         controller.setStaticScene(sceneName, options)
         return true
     }
 
-    function parseInjectedTypeList(rawValue) {
-        if (String(rawValue || "").trim().toUpperCase() === "ALL") {
-            return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        }
-        return String(rawValue || "")
-            .split(/[,|/]/)
-            .map((part) => Number(part.trim()))
-            .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12)
+    function resolveAppState(stateName) {
+        if (stateName === "GameOver") return AppState.GameOver
+        if (stateName === "Replaying") return AppState.Replaying
+        if (stateName === "Library") return AppState.Library
+        if (stateName === "MedalRoom") return AppState.MedalRoom
+        return AppState.Splash
     }
 
-    function parseAchievementIdList(rawValue) {
-        const normalized = String(rawValue || "").trim()
-        if (normalized.toUpperCase() === "ALL") {
-            return controller.medalIds.slice()
-        }
-        return normalized
-            .split(/[|/]/)
-            .map((part) => part.trim().replace(/\+/g, " ").replace(/_/g, " "))
-            .filter((part) => controller.medalIds.indexOf(part) !== -1)
-    }
-
-    function routeMappedDebugStateToken(token) {
-        const entry = controller.debugStateTokens[token]
-        if (!entry) {
-            return false
-        }
-        controller.commandController.requestStateChange(entry.state)
-        controller.showDebugOsd(entry.osd)
-        return true
-    }
-
-    function routeMappedStaticSceneToken(token, rawOptions) {
-        if (!(token in controller.staticSceneAliases)) {
-            return false
-        }
-        const sceneName = controller.staticSceneAliases[token]
-        if (rawOptions !== undefined && token.startsWith("DBG_STATIC_") && sceneName !== "") {
-            return controller.activateStaticScene(sceneName, rawOptions)
-        }
-        controller.setStaticScene(sceneName, {})
-        return true
-    }
-
-    function dispatchInjectedAlias(token) {
-        const actionKey = controller.injectedActionTokens[token]
-        if (!actionKey) {
-            return false
-        }
-        if (controller.inputController) {
-            controller.inputController.dispatchAction(controller.actionMap[actionKey])
-        }
-        return true
-    }
-
-    function routeDebugToken(token) {
-        if (token === "DBG_BOT_PANEL") {
+    function routeParsedToken(parsed) {
+        if (parsed.kind === "bot_panel") {
             controller.toggleBotDebugPanel()
             return true
         }
-        if (token.startsWith("DBG_CATALOG")) {
-            const separatorIndex = token.indexOf(":")
-            const payload = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
-            const discoveredTypes = separatorIndex >= 0
-                ? controller.parseInjectedTypeList(payload)
-                : []
-            const discoverAllFruits = String(payload).trim().toUpperCase() === "ALL"
+        if (parsed.kind === "catalog") {
+            const state = DebugStateFactory.catalogState(parsed)
             if (controller.stateOwner) {
                 controller.stateOwner.iconDebugMode = false
-                controller.stateOwner.staticDebugScene = ""
-                controller.stateOwner.staticDebugOptions = { discoveredTypes, discoverAllFruits }
+                controller.stateOwner.staticDebugScene = state.staticScene
+                controller.stateOwner.staticDebugOptions = state.staticDebugOptions
             }
-            controller.commandController.requestStateChange(AppState.Library)
-            controller.showDebugOsd(discoverAllFruits
-                ? "DBG: CATALOG ALL"
-                : (discoveredTypes.length > 0
-                ? `DBG: CATALOG ${discoveredTypes.join("/")}`
-                : "DBG: CATALOG"))
+            controller.commandController.requestStateChange(controller.resolveAppState(state.nextState))
+            controller.showDebugOsd(state.osdText)
             return true
         }
-        if (token.startsWith("DBG_ACHIEVEMENTS")) {
-            const separatorIndex = token.indexOf(":")
-            const payload = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
-            const unlockedAchievementIds = separatorIndex >= 0
-                ? controller.parseAchievementIdList(payload)
-                : []
-            const unlockAllAchievements = String(payload).trim().toUpperCase() === "ALL"
+        if (parsed.kind === "achievements") {
+            const state = DebugStateFactory.achievementsState(parsed)
             if (controller.stateOwner) {
                 controller.stateOwner.iconDebugMode = false
-                controller.stateOwner.staticDebugScene = ""
-                controller.stateOwner.staticDebugOptions = {
-                    unlockedAchievementIds,
-                    unlockAllAchievements
-                }
+                controller.stateOwner.staticDebugScene = state.staticScene
+                controller.stateOwner.staticDebugOptions = state.staticDebugOptions
             }
-            controller.commandController.requestStateChange(AppState.MedalRoom)
-            controller.showDebugOsd(unlockAllAchievements
-                ? "DBG: ACHIEVEMENTS ALL"
-                : (unlockedAchievementIds.length > 0
-                ? `DBG: ACH ${unlockedAchievementIds.length}`
-                : "DBG: ACHIEVEMENTS"))
+            controller.commandController.requestStateChange(controller.resolveAppState(state.nextState))
+            controller.showDebugOsd(state.osdText)
             return true
         }
-        if (token === "DBG_BOT_MODE") {
+        if (parsed.kind === "bot_mode") {
             controller.commandController.cycleBotMode()
             return true
         }
-        if (token === "DBG_BOT_STRATEGY") {
+        if (parsed.kind === "bot_strategy") {
             controller.commandController.cycleBotStrategyMode()
             return true
         }
-        if (token === "DBG_BOT_RESET") {
+        if (parsed.kind === "bot_reset") {
             controller.commandController.resetBotModeDefaults()
             return true
         }
-        if (token.startsWith("DBG_BOT_PARAM:")) {
-            const payload = token.slice("DBG_BOT_PARAM:".length)
-            const parts = payload.split(",").map((part) => part.trim()).filter((part) => part.length > 0)
+        if (parsed.kind === "bot_param") {
             let applied = false
-            for (const part of parts) {
-                const separator = part.indexOf("=")
-                if (separator <= 0 || separator >= part.length - 1) {
-                    continue
-                }
-                const key = part.slice(0, separator).trim()
-                const value = Number(part.slice(separator + 1).trim())
-                if (!Number.isInteger(value)) {
-                    continue
-                }
-                if (controller.commandController.setBotParam(key, value)) {
+            for (const part of parsed.params) {
+                if (controller.commandController.setBotParam(part.key, part.value)) {
                     applied = true
                 }
             }
@@ -590,23 +229,14 @@ QtObject {
             }
             return true
         }
-        if (token.startsWith("DBG_CHOICE")) {
-            let choiceTypes = []
-            const separatorIndex = token.indexOf(":")
-            if (separatorIndex >= 0 && separatorIndex + 1 < token.length) {
-                choiceTypes = token
-                    .slice(separatorIndex + 1)
-                    .split(",")
-                    .map((part) => Number(part.trim()))
-                    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12)
-            }
-            controller.commandController.seedChoicePreview(choiceTypes)
-            controller.showDebugOsd(choiceTypes.length > 0
-                ? `DBG: CHOICE ${choiceTypes.join("/")}`
+        if (parsed.kind === "choice") {
+            controller.commandController.seedChoicePreview(parsed.choiceTypes)
+            controller.showDebugOsd(parsed.choiceTypes.length > 0
+                ? `DBG: CHOICE ${parsed.choiceTypes.join("/")}`
                 : "DBG: CHOICE")
             return true
         }
-        if (token === "DBG_MENU") {
+        if (parsed.kind === "menu") {
             if (controller.iconDebugMode) {
                 controller.exitIconLab()
             } else {
@@ -615,7 +245,7 @@ QtObject {
             }
             return true
         }
-        if (token === "DBG_PLAY") {
+        if (parsed.kind === "play") {
             controller.commandController.dispatch("state_start_menu")
             if (controller.inputController) {
                 controller.inputController.dispatchAction(controller.actionMap.Start)
@@ -623,7 +253,7 @@ QtObject {
             controller.showDebugOsd("DBG: PLAY")
             return true
         }
-        if (token === "DBG_PAUSE") {
+        if (parsed.kind === "pause") {
             controller.commandController.dispatch("state_start_menu")
             if (controller.inputController) {
                 controller.inputController.dispatchAction(controller.actionMap.Start)
@@ -632,50 +262,51 @@ QtObject {
             controller.showDebugOsd("DBG: PAUSE")
             return true
         }
-        if (controller.routeMappedDebugStateToken(token)) {
+        if (parsed.kind === "debug_state") {
+            controller.commandController.requestStateChange(controller.resolveAppState(parsed.entry.state))
+            controller.showDebugOsd(parsed.entry.osd)
             return true
         }
-        if (token === "DBG_REPLAY_BUFF") {
+        if (parsed.kind === "replay_buff") {
             controller.commandController.seedReplayBuffPreview()
             return true
         }
-        if (token === "DBG_ICONS") {
+        if (parsed.kind === "icons") {
             if (!controller.iconDebugMode) {
                 controller.toggleIconLabMode()
             }
             controller.showDebugOsd("DBG: ICON LAB")
             return true
         }
-        if (token.startsWith("DBG_STATIC_")) {
-            const separatorIndex = token.indexOf(":")
-            const baseToken = separatorIndex >= 0 ? token.slice(0, separatorIndex) : token
-            const rawOptions = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
-            return controller.routeMappedStaticSceneToken(baseToken, rawOptions)
-        }
-        return false
-    }
-
-    function routeInjectedToken(rawToken) {
-        const token = String(rawToken).trim().toUpperCase()
-        if (controller.uiLogger) {
-            controller.uiLogger.inputDebug(`inject token=${token}`)
-        }
-        if (controller.routeDebugToken(token)) {
+        if (parsed.kind === "static_scene") {
+            const state = DebugStateFactory.staticSceneState(parsed)
+            controller.setStaticScene(state.staticScene, state.staticDebugOptions)
             return true
         }
-        if (controller.dispatchInjectedAlias(token)) {
+        if (parsed.kind === "action") {
+            if (controller.inputController) {
+                controller.inputController.dispatchAction(controller.actionMap[parsed.actionKey])
+            }
             return true
         }
-        if (token === "PALETTE" || token === "NEXT_PALETTE") {
+        if (parsed.kind === "palette") {
             controller.commandController.dispatch("next_palette")
             return true
         }
-        if (controller.routeMappedStaticSceneToken(token)) {
+        return parsed.kind !== "unknown"
+    }
+
+    function routeInjectedToken(rawToken) {
+        const parsed = DebugTokenParser.parseToken(rawToken, controller.medalIds)
+        if (controller.uiLogger) {
+            controller.uiLogger.inputDebug(`inject token=${parsed.token}`)
+        }
+        if (controller.routeParsedToken(parsed)) {
             return true
         }
-        controller.showDebugOsd(`UNKNOWN INPUT: ${token}`)
+        controller.showDebugOsd(`UNKNOWN INPUT: ${parsed.token}`)
         if (controller.uiLogger) {
-            controller.uiLogger.injectWarning(`unknown token=${token}`)
+            controller.uiLogger.injectWarning(`unknown token=${parsed.token}`)
         }
         return false
     }

@@ -1,5 +1,8 @@
 import QtQuick
+import "meta/PowerMeta.js" as PowerMeta
+import "meta/AchievementMeta.js" as AchievementMeta
 import "icons" as Icons
+import "components" as Components
 
 Rectangle {
     id: iconLabLayer
@@ -8,12 +11,7 @@ Rectangle {
     property real elapsed: 0
     property string gameFont: ""
     property var menuColor
-    property var drawFoodSymbol
-    property var drawPowerSymbol
     property var powerColor
-    property var buffName
-    property var rarityName
-    property var powerGlyph
     signal resetSelectionRequested()
 
     visible: active
@@ -37,15 +35,7 @@ Rectangle {
     readonly property color textStrong: menuColor("titleInk")
     readonly property color textMuted: menuColor("secondaryInk")
     readonly property color textOnAccent: menuColor("actionInk")
-    readonly property var medalSpecs: [
-        { id: "Gold Medal (50 Pts)", short: "GOLD" },
-        { id: "Silver Medal (20 Pts)", short: "SILVER" },
-        { id: "Centurion (100 Crashes)", short: "CENT" },
-        { id: "Gourmet (500 Food)", short: "GOURMET" },
-        { id: "Untouchable", short: "UNTOUCH" },
-        { id: "Speed Demon", short: "SPEED" },
-        { id: "Pacifist (60s No Food)", short: "PACIFIST" }
-    ]
+    readonly property var medalSpecs: AchievementMeta.all()
 
     onVisibleChanged: {
         if (visible) {
@@ -66,32 +56,16 @@ Rectangle {
         anchors.margins: iconLabLayer.contentMargin
         spacing: iconLabLayer.contentSpacing
 
-        Rectangle {
+        Components.SectionHeader {
             width: parent.width
             height: iconLabLayer.headerHeight
-            radius: 3
             color: Qt.rgba(iconLabLayer.panelBgStrong.r, iconLabLayer.panelBgStrong.g, iconLabLayer.panelBgStrong.b, 0.86)
             border.color: iconLabLayer.borderStrong
-            border.width: 1
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 0
-                Text {
-                    text: "ICON LAB"
-                    color: iconLabLayer.textStrong
-                    font.family: gameFont
-                    font.pixelSize: 12
-                    font.bold: true
-                }
-                Text {
-                    text: "FRUITS + MEDALS"
-                    color: Qt.rgba(iconLabLayer.textMuted.r, iconLabLayer.textMuted.g, iconLabLayer.textMuted.b, 0.9)
-                    font.family: gameFont
-                    font.pixelSize: 7
-                    font.bold: true
-                }
-            }
+            titleText: "ICON LAB"
+            subtitleText: "FRUITS + MEDALS"
+            gameFont: gameFont
+            textColor: iconLabLayer.textStrong
+            subtitleColor: Qt.rgba(iconLabLayer.textMuted.r, iconLabLayer.textMuted.g, iconLabLayer.textMuted.b, 0.9)
         }
 
         Row {
@@ -233,21 +207,21 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             spacing: 0
                             Text {
-                                text: buffName(modelData)
+                                text: PowerMeta.buffName(modelData)
                                 color: iconLabLayer.textStrong
                                 font.family: gameFont
                                 font.pixelSize: 8
                                 font.bold: true
                             }
                             Text {
-                                text: rarityName(modelData)
+                                text: PowerMeta.rarityName(modelData)
                                 color: powerColor(modelData)
                                 font.family: gameFont
                                 font.pixelSize: 7
                                 font.bold: true
                             }
                             Text {
-                                text: `GLYPH ${powerGlyph(modelData)}`
+                                text: `GLYPH ${PowerMeta.powerGlyph(modelData)}`
                                 color: iconLabLayer.textMuted
                                 font.family: gameFont
                                 font.pixelSize: 7
@@ -260,22 +234,14 @@ Rectangle {
             }
         }
 
-        Rectangle {
+        Components.SectionHeader {
             width: parent.width
             height: iconLabLayer.sectionHeaderHeight
-            radius: 3
             color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.84)
             border.color: iconLabLayer.borderSoft
-            border.width: 1
-
-            Text {
-                anchors.centerIn: parent
-                text: "ACHIEVEMENT GLYPHS"
-                color: iconLabLayer.textStrong
-                font.family: gameFont
-                font.pixelSize: 7
-                font.bold: true
-            }
+            titleText: "ACHIEVEMENT GLYPHS"
+            gameFont: gameFont
+            textColor: iconLabLayer.textStrong
         }
 
         Grid {
@@ -318,7 +284,7 @@ Rectangle {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width - parent.spacing - 22
-                            text: modelData.short
+                            text: AchievementMeta.shortLabel(modelData.id)
                             color: iconLabLayer.textStrong
                             font.family: gameFont
                             font.pixelSize: 6
@@ -339,7 +305,7 @@ Rectangle {
             border.width: 1
             Text {
                 anchors.centerIn: parent
-                text: `SELECTED: ${buffName(iconLabLayer.iconLabSelection + 1)}`
+                text: `SELECTED: ${PowerMeta.buffName(iconLabLayer.iconLabSelection + 1)}`
                 color: iconLabLayer.textStrong
                 font.family: gameFont
                 font.pixelSize: 8

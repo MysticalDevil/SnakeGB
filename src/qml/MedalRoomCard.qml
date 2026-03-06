@@ -1,11 +1,11 @@
 import QtQuick
 import "icons" as Icons
+import "components" as Components
 
-Rectangle {
+Components.ListCardFrame {
     id: medalCard
     property var medalData
     property bool unlocked: false
-    property bool selected: false
     property color cardNormal: "transparent"
     property color cardSelected: "transparent"
     property color cardBorder: "white"
@@ -20,23 +20,14 @@ Rectangle {
     width: parent ? parent.width : 0
     height: 62
     radius: 4
-    color: selected ? cardSelected : cardNormal
-    border.color: cardBorder
-    border.width: 1
+    normalFill: medalCard.cardNormal
+    selectedFill: medalCard.cardSelected
+    borderColor: medalCard.cardBorder
 
     readonly property color titleInk: selected ? badgeText : titleColor
     readonly property color hintInk: selected
         ? Qt.rgba(badgeText.r, badgeText.g, badgeText.b, 0.92)
         : Qt.rgba(secondaryText.r, secondaryText.g, secondaryText.b, 0.94)
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: 3
-        color: "transparent"
-        border.color: selected ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.08)
-        border.width: 1
-    }
 
     Row {
         anchors.fill: parent
@@ -90,28 +81,20 @@ Rectangle {
         }
     }
 
-    Rectangle {
+    Components.StatusPill {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.rightMargin: 4
         anchors.topMargin: 4
         width: medalCard.unlocked ? 38 : 36
         height: 12
-        radius: 3
         color: Qt.rgba(medalCard.selected ? medalCard.badgeText.r : medalCard.badgeFill.r,
                         medalCard.selected ? medalCard.badgeText.g : medalCard.badgeFill.g,
                         medalCard.selected ? medalCard.badgeText.b : medalCard.badgeFill.b,
                         medalCard.unlocked ? 0.22 : 0.14)
-        border.color: medalCard.selected ? medalCard.badgeText : medalCard.cardBorder
-        border.width: 1
-
-        Text {
-            anchors.centerIn: parent
-            text: medalCard.unlocked ? "DONE" : "LOCK"
-            color: medalCard.selected ? medalCard.badgeText : medalCard.titleColor
-            font.family: medalCard.gameFont
-            font.pixelSize: 8
-            font.bold: true
-        }
+        borderColor: medalCard.selected ? medalCard.badgeText : medalCard.cardBorder
+        textColor: medalCard.selected ? medalCard.badgeText : medalCard.titleColor
+        gameFont: medalCard.gameFont
+        label: medalCard.unlocked ? "DONE" : "LOCK"
     }
 }

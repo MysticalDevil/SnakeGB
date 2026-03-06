@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import "components" as Components
 
 Rectangle {
     id: medalRoot
@@ -65,35 +66,17 @@ Rectangle {
         anchors.margins: 8
         spacing: 6
 
-        Rectangle {
+        Components.SectionHeader {
             id: headerPanel
             width: parent.width
             height: 30
-            radius: 3
             color: Qt.rgba(medalRoot.panelBgStrong.r, medalRoot.panelBgStrong.g, medalRoot.panelBgStrong.b, 0.86)
             border.color: medalRoot.dividerColor
-            border.width: 1
-
-            Column {
-                anchors.centerIn: parent
-                spacing: 0
-
-                Text {
-                    text: "ACHIEVEMENTS"
-                    color: medalRoot.titleColor
-                    font.family: gameFont
-                    font.pixelSize: 14
-                    font.bold: true
-                }
-
-                Text {
-                    text: `${medalRoot.effectiveUnlockedCount} UNLOCKED`
-                    color: Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.92)
-                    font.family: gameFont
-                    font.pixelSize: 8
-                    font.bold: true
-                }
-            }
+            titleText: "ACHIEVEMENTS"
+            subtitleText: `${medalRoot.effectiveUnlockedCount} UNLOCKED`
+            gameFont: gameFont
+            textColor: medalRoot.titleColor
+            subtitleColor: Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.92)
         }
 
         ListView {

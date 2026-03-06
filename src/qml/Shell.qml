@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import "ThemeCatalog.js" as ThemeCatalog
+import "theme/ScreenThemes.js" as ScreenThemes
 
 Item {
     id: shell
@@ -15,7 +15,7 @@ Item {
     readonly property Item screenItem: screenBorder.screenItem
     property real shellCornerRadius: 13
     property real shellLowerRightRadius: 72
-    readonly property var shellTheme: ThemeCatalog.shellTheme(shellThemeName, shellColor)
+    readonly property var shellTheme: ScreenThemes.shellTheme(shellThemeName, shellColor)
     readonly property real lowerDeckTop: screenBorder.bottom + 28
     // Local z-layer tokens (avoid bare numbers in component tree).
     readonly property int zSpeakerCluster: 20

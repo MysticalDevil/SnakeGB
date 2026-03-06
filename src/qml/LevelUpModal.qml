@@ -113,8 +113,8 @@ ModalSurface {
                     accent: levelUpModal.rarityColor(powerType)
                     fillColor: levelUpModal.modalCardFill
                     fillSelectedColor: levelUpModal.modalCardFillSelected
-                    borderColor: levelUpModal.cardBorderColor
-                    borderSelectedColor: levelUpModal.modalPanelBorder
+                    frameBorderColor: levelUpModal.cardBorderColor
+                    frameBorderSelectedColor: levelUpModal.modalPanelBorder
                     titleColor: levelUpModal.modalCardTitleInk
                     descriptionColor: levelUpModal.modalCardDescInk
                     iconSocketColor: Qt.lighter(levelUpModal.modalCardFill, 1.02)

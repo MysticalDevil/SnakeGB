@@ -1,20 +1,20 @@
 import QtQuick
 import "icons" as Icons
+import "components" as Components
 
-Rectangle {
+Components.ListCardFrame {
     id: choiceCard
     property string gameFont: ""
     property string titleText: ""
     property string descriptionText: ""
     property string badgeText: ""
     property int powerType: 0
-    property bool selected: false
     property real elapsed: 0
     property color accent: "white"
     property color fillColor: "white"
     property color fillSelectedColor: "white"
-    property color borderColor: "black"
-    property color borderSelectedColor: "black"
+    property color frameBorderColor: "black"
+    property color frameBorderSelectedColor: "black"
     property color titleColor: "black"
     property color descriptionColor: "black"
     property color iconSocketColor: "white"
@@ -29,9 +29,9 @@ Rectangle {
     width: parent ? parent.width : 0
     height: 48
     radius: 4
-    color: selected ? fillSelectedColor : fillColor
-    border.color: selected ? borderSelectedColor : borderColor
-    border.width: 1
+    normalFill: choiceCard.fillColor
+    selectedFill: choiceCard.fillSelectedColor
+    borderColor: selected ? frameBorderSelectedColor : frameBorderColor
 
     readonly property int badgeWidth: 50
     readonly property int sidePadding: 8
@@ -40,18 +40,9 @@ Rectangle {
 
     Rectangle {
         anchors.fill: parent
-        radius: parent.radius
+        radius: choiceCard.radius
         color: choiceCard.accent
         opacity: selected ? 0.08 : 0.02
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: 3
-        color: "transparent"
-        border.color: selected ? Qt.rgba(1, 1, 1, 0.18) : Qt.rgba(1, 1, 1, 0.08)
-        border.width: 1
     }
 
     Rectangle {
@@ -88,7 +79,7 @@ Rectangle {
             radius: 6
             contentMargin: 2
             fillColor: choiceCard.iconSocketColor
-            borderColor: choiceCard.selected ? choiceCard.borderSelectedColor : choiceCard.iconBorderColor
+            borderColor: choiceCard.selected ? choiceCard.frameBorderSelectedColor : choiceCard.iconBorderColor
             borderWidth: 1
             powerType: choiceCard.powerType
             glyphColor: choiceCard.iconGlyphColor
@@ -123,28 +114,19 @@ Rectangle {
         }
     }
 
-    Rectangle {
+    Components.StatusPill {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.rightMargin: choiceCard.sidePadding
         anchors.topMargin: 3
         width: choiceCard.badgeWidth
         height: 13
-        radius: 3
         color: choiceCard.badgeColor
-        border.color: choiceCard.badgeBorderColor
-        border.width: selected ? 2 : 1
-
-        Text {
-            anchors.fill: parent
-            text: choiceCard.badgeText
-            color: choiceCard.badgeTextColor
-            font.family: choiceCard.gameFont
-            font.pixelSize: 8
-            font.bold: true
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
+        borderColor: choiceCard.badgeBorderColor
+        borderLineWidth: selected ? 2 : 1
+        textColor: choiceCard.badgeTextColor
+        gameFont: choiceCard.gameFont
+        label: choiceCard.badgeText
     }
 
     Rectangle {

@@ -1,10 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import NenoSerpent 1.0
-import "ThemeCatalog.js" as ThemeCatalog
-import "ScreenThemeTokens.js" as ScreenThemeTokens
-import "PowerMeta.js" as PowerMeta
-import "ReadabilityRules.js" as ReadabilityRules
+import "theme/Palette.js" as Palette
+import "theme/ScreenThemes.js" as ScreenThemes
+import "theme/Accents.js" as Accents
+import "theme/Readability.js" as Readability
+import "meta/PowerMeta.js" as PowerMeta
+import "debug/DebugBindings.js" as DebugBindings
 import "LayerScale.js" as LayerScale
 
 Item {
@@ -26,188 +28,19 @@ Item {
     property int iconLabSelection: 0
     readonly property bool lowPerfFxMode: Qt.platform.os === "android"
 
-    readonly property var menuColor: function(role) {
-        return ScreenThemeTokens.menuColor(themeViewModel.paletteName, role)
-    }
-    readonly property var powerColor: function(type) {
-        return ScreenThemeTokens.powerAccent(themeViewModel.paletteName, type, root.gameInk)
-    }
+    readonly property var menuColor: function(role) { return Palette.menuColor(themeViewModel.paletteName, role) }
+    readonly property var powerColor: function(type) { return Accents.powerAccent(themeViewModel.paletteName, type, root.gameInk) }
     readonly property var buffName: PowerMeta.buffName
     readonly property var powerGlyph: PowerMeta.powerGlyph
     readonly property var choiceGlyph: PowerMeta.choiceGlyph
     readonly property var rarityTier: PowerMeta.rarityTier
     readonly property var rarityName: PowerMeta.rarityName
-    readonly property var rarityColor: function(type) {
-        return ScreenThemeTokens.rarityAccent(
-            themeViewModel.paletteName,
-            PowerMeta.rarityTier(type),
-            root.menuColor("actionInk"))
-    }
-    readonly property var readableText: function(bgColor) {
-        return ReadabilityRules.readableText(
-            bgColor,
-            root.menuColor("titleInk"),
-            root.menuColor("actionInk"))
-    }
-    readonly property var readableMutedText: function(bgColor) {
-        return ReadabilityRules.readableMutedText(
-            bgColor,
-            root.menuColor("titleInk"),
-            root.menuColor("actionInk"))
-    }
-    readonly property var readableSecondaryText: function(bgColor) {
-        return ReadabilityRules.readableSecondaryText(
-            bgColor,
-            root.menuColor("titleInk"),
-            root.menuColor("actionInk"))
-    }
-
-    function drawFoodSymbol(ctx, w, h) {
-        ctx.clearRect(0, 0, w, h)
-        const px = Math.max(1, Math.floor(Math.min(w, h) / 10))
-        const stroke = Math.max(1, px)
-        ctx.strokeStyle = gameBorder
-        ctx.lineWidth = stroke
-        ctx.fillStyle = gameFoodCore
-        ctx.fillRect(w * 0.22, h * 0.32, w * 0.56, h * 0.48)
-        ctx.fillRect(w * 0.14, h * 0.42, w * 0.16, h * 0.24)
-        ctx.fillRect(w * 0.70, h * 0.42, w * 0.16, h * 0.24)
-        ctx.fillRect(w * 0.30, h * 0.24, w * 0.12, h * 0.10)
-        ctx.fillRect(w * 0.58, h * 0.24, w * 0.12, h * 0.10)
-        ctx.strokeRect(w * 0.22, h * 0.32, w * 0.56, h * 0.48)
-        ctx.strokeRect(w * 0.14, h * 0.42, w * 0.16, h * 0.24)
-        ctx.strokeRect(w * 0.70, h * 0.42, w * 0.16, h * 0.24)
-        ctx.fillStyle = gameFoodHighlight
-        ctx.fillRect(w * 0.28, h * 0.40, w * 0.18, h * 0.14)
-        ctx.fillRect(w * 0.54, h * 0.38, w * 0.14, h * 0.12)
-        ctx.fillStyle = gameFoodStem
-        ctx.fillRect(w * 0.48, h * 0.10, Math.max(1, w * 0.10), Math.max(2, h * 0.18))
-        ctx.fillRect(w * 0.58, h * 0.14, Math.max(1, w * 0.14), Math.max(1, h * 0.08))
-        ctx.fillStyle = gameFoodSpark
-        ctx.fillRect(w * 0.22, h * 0.70, Math.max(1, px), Math.max(1, px))
-        ctx.fillRect(w * 0.74, h * 0.68, Math.max(1, px), Math.max(1, px))
-    }
-
-    function drawPowerSymbol(ctx, w, h, type, accent) {
-        ctx.clearRect(0, 0, w, h)
-        ctx.lineWidth = Math.max(1, Math.floor(w * 0.12))
-        ctx.strokeStyle = accent
-        ctx.fillStyle = accent
-
-        if (type === 1) {
-            ctx.strokeRect(2, 2, w - 4, h - 4)
-            ctx.clearRect(Math.floor(w * 0.42), Math.floor(h * 0.30), Math.floor(w * 0.16),
-                          Math.floor(h * 0.44))
-        } else if (type === 2) {
-            ctx.beginPath()
-            ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
-            ctx.stroke()
-            ctx.fillRect(w * 0.26, h * 0.46, w * 0.48, Math.max(1, h * 0.1))
-        } else if (type === 3) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.25, h * 0.20)
-            ctx.lineTo(w * 0.25, h * 0.70)
-            ctx.quadraticCurveTo(w * 0.50, h * 0.92, w * 0.75, h * 0.70)
-            ctx.lineTo(w * 0.75, h * 0.20)
-            ctx.stroke()
-        } else if (type === 4) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.50, h * 0.12)
-            ctx.lineTo(w * 0.80, h * 0.28)
-            ctx.lineTo(w * 0.72, h * 0.72)
-            ctx.lineTo(w * 0.50, h * 0.90)
-            ctx.lineTo(w * 0.28, h * 0.72)
-            ctx.lineTo(w * 0.20, h * 0.28)
-            ctx.closePath()
-            ctx.stroke()
-        } else if (type === 5) {
-            ctx.beginPath()
-            ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.arc(w * 0.68, h * 0.34, w * 0.08, 0, Math.PI * 2)
-            ctx.fill()
-        } else if (type === 6) {
-            ctx.save()
-            ctx.translate(w * 0.38, h * 0.52)
-            ctx.rotate(Math.PI / 4)
-            ctx.strokeRect(-w * 0.12, -h * 0.12, w * 0.24, h * 0.24)
-            ctx.restore()
-            ctx.save()
-            ctx.translate(w * 0.62, h * 0.48)
-            ctx.rotate(Math.PI / 4)
-            ctx.strokeRect(-w * 0.12, -h * 0.12, w * 0.24, h * 0.24)
-            ctx.restore()
-        } else if (type === 7) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.26, h * 0.22)
-            ctx.lineTo(w * 0.55, h * 0.22)
-            ctx.lineTo(w * 0.42, h * 0.52)
-            ctx.lineTo(w * 0.70, h * 0.52)
-            ctx.lineTo(w * 0.34, h * 0.85)
-            ctx.lineTo(w * 0.46, h * 0.60)
-            ctx.lineTo(w * 0.24, h * 0.60)
-            ctx.closePath()
-            ctx.fill()
-        } else if (type === 8) {
-            ctx.strokeRect(w * 0.30, h * 0.30, w * 0.40, h * 0.40)
-            ctx.fillRect(w * 0.16, h * 0.16, w * 0.10, 1)
-            ctx.fillRect(w * 0.16, h * 0.16, 1, h * 0.10)
-            ctx.fillRect(w * 0.74, h * 0.74, w * 0.10, 1)
-            ctx.fillRect(w * 0.84, h * 0.74, 1, h * 0.10)
-        } else if (type === 9) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.50, h * 0.10)
-            ctx.lineTo(w * 0.60, h * 0.34)
-            ctx.lineTo(w * 0.86, h * 0.38)
-            ctx.lineTo(w * 0.66, h * 0.54)
-            ctx.lineTo(w * 0.72, h * 0.84)
-            ctx.lineTo(w * 0.50, h * 0.68)
-            ctx.lineTo(w * 0.28, h * 0.84)
-            ctx.lineTo(w * 0.34, h * 0.54)
-            ctx.lineTo(w * 0.14, h * 0.38)
-            ctx.lineTo(w * 0.40, h * 0.34)
-            ctx.closePath()
-            ctx.stroke()
-        } else if (type === 10) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.18, h * 0.50)
-            ctx.lineTo(w * 0.64, h * 0.50)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(w * 0.52, h * 0.34)
-            ctx.lineTo(w * 0.68, h * 0.50)
-            ctx.lineTo(w * 0.52, h * 0.66)
-            ctx.stroke()
-            ctx.strokeRect(w * 0.16, h * 0.24, w * 0.18, h * 0.18)
-        } else if (type === 11) {
-            ctx.beginPath()
-            ctx.arc(w * 0.52, h * 0.52, w * 0.22, Math.PI * 0.20, Math.PI * 1.85)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(w * 0.30, h * 0.28)
-            ctx.lineTo(w * 0.18, h * 0.18)
-            ctx.lineTo(w * 0.20, h * 0.34)
-            ctx.closePath()
-            ctx.fill()
-        } else if (type === 12) {
-            ctx.beginPath()
-            ctx.moveTo(w * 0.50, h * 0.16)
-            ctx.lineTo(w * 0.50, h * 0.62)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.arc(w * 0.50, h * 0.68, w * 0.20, 0, Math.PI)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(w * 0.30, h * 0.68)
-            ctx.lineTo(w * 0.18, h * 0.82)
-            ctx.stroke()
-            ctx.beginPath()
-            ctx.moveTo(w * 0.70, h * 0.68)
-            ctx.lineTo(w * 0.82, h * 0.82)
-            ctx.stroke()
-        }
-    }
+    readonly property var rarityColor: function(type) { return Accents.rarityAccent(themeViewModel.paletteName, PowerMeta.rarityTier(type), root.menuColor("actionInk")) }
+    readonly property var readableText: function(bgColor) { return Readability.readableText(bgColor, root.menuColor("titleInk"), root.menuColor("actionInk")) }
+    readonly property var readableMutedText: function(bgColor) { return Readability.readableMutedText(bgColor, root.menuColor("titleInk"), root.menuColor("actionInk")) }
+    readonly property var readableSecondaryText: function(bgColor) { return Readability.readableSecondaryText(bgColor, root.menuColor("titleInk"), root.menuColor("actionInk")) }
+    readonly property var libraryDebugProps: DebugBindings.libraryProps(root.staticDebugOptions)
+    readonly property var achievementDebugProps: DebugBindings.achievementProps(root.staticDebugOptions)
 
     function iconLabMove(dx, dy) {
         const cols = 3
@@ -360,8 +193,6 @@ Item {
                     gameBorder: root.gameBorder
                     gameObstacleFill: root.gameObstacleFill
                     gameObstaclePulse: root.gameObstaclePulse
-                    drawFoodSymbol: root.drawFoodSymbol
-                    drawPowerSymbol: root.drawPowerSymbol
                     powerColor: root.powerColor
                     buffName: root.buffName
                     rarityTier: root.rarityTier
@@ -375,9 +206,8 @@ Item {
                     z: LayerScale.stateLibrary
                     active: sessionRender.state === AppState.Library
                     fruitLibraryModel: selectionViewModel.fruitLibrary
-                    debugDiscoveredTypes: root.staticDebugOptions && root.staticDebugOptions.discoveredTypes
-                                          ? root.staticDebugOptions.discoveredTypes : []
-                    debugDiscoverAll: root.staticDebugOptions && root.staticDebugOptions.discoverAllFruits === true
+                    debugDiscoveredTypes: root.libraryDebugProps.debugDiscoveredTypes
+                    debugDiscoverAll: root.libraryDebugProps.debugDiscoverAll
                     libraryIndex: selectionViewModel.libraryIndex
                     setLibraryIndex: function(index) {
                         root.commandController.dispatch(`set_library_index:${index}`)
@@ -385,7 +215,7 @@ Item {
                     gameFont: root.gameFont
                     powerColor: root.powerColor
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "catalog")
+                    pageTheme: ScreenThemes.pageTheme(themeViewModel.paletteName, "catalog")
                 }
 
                 MedalRoom {
@@ -396,14 +226,13 @@ Item {
                     p2: root.p2
                     p3: root.p3
                     menuColor: root.menuColor
-                    pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "achievements")
+                    pageTheme: ScreenThemes.pageTheme(themeViewModel.paletteName, "achievements")
                     medalLibraryModel: selectionViewModel.medalLibrary
                     medalIndex: selectionViewModel.medalIndex
                     unlockedCount: selectionViewModel.achievements.length
                     unlockedAchievementIds: selectionViewModel.achievements
-                    debugUnlockedAchievementIds: root.staticDebugOptions && root.staticDebugOptions.unlockedAchievementIds
-                                               ? root.staticDebugOptions.unlockedAchievementIds : []
-                    debugUnlockAll: root.staticDebugOptions && root.staticDebugOptions.unlockAllAchievements === true
+                    debugUnlockedAchievementIds: root.achievementDebugProps.debugUnlockedAchievementIds
+                    debugUnlockAll: root.achievementDebugProps.debugUnlockAll
                     setMedalIndex: function(index) {
                         root.commandController.dispatch(`set_medal_index:${index}`)
                     }
@@ -428,8 +257,6 @@ Item {
                     gameBorder: root.gameBorder
                     gameObstacleFill: root.gameObstacleFill
                     gameObstaclePulse: root.gameObstaclePulse
-                    drawFoodSymbol: root.drawFoodSymbol
-                    drawPowerSymbol: root.drawPowerSymbol
                     buffName: root.buffName
                     rarityTier: root.rarityTier
                     rarityName: root.rarityName
@@ -445,12 +272,7 @@ Item {
                     menuColor: root.menuColor
                     elapsed: root.elapsed
                     iconLabSelection: root.iconLabSelection
-                    drawFoodSymbol: root.drawFoodSymbol
-                    drawPowerSymbol: root.drawPowerSymbol
                     powerColor: root.powerColor
-                    buffName: root.buffName
-                    rarityName: root.rarityName
-                    powerGlyph: root.powerGlyph
                     onResetSelectionRequested: root.iconLabSelection = 0
                 }
 
@@ -495,7 +317,6 @@ Item {
                 menuColor: root.menuColor
                 gameFont: root.gameFont
                 elapsed: root.elapsed
-                drawPowerSymbol: root.drawPowerSymbol
                 rarityTier: root.rarityTier
                 rarityName: root.rarityName
                 rarityColor: root.rarityColor

@@ -1,5 +1,5 @@
 import QtQuick
-import "PowerMeta.js" as PowerMeta
+import "meta/PowerMeta.js" as PowerMeta
 import "icons" as Icons
 
 Rectangle {
