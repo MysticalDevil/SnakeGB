@@ -978,8 +978,14 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     stats.safeNeighbors = countSafeNeighbors(preview.next.head, snapshot, stats.blocked);
     const QPoint tailFallback =
       preview.next.body.empty() ? preview.next.head : preview.next.body.back();
+    auto tailReachBlocked = stats.blocked;
+    if (const auto tailIndex =
+          tryBoardIndex(tailFallback, snapshot.boardWidth, snapshot.boardHeight);
+        tailIndex.has_value()) {
+      tailReachBlocked[*tailIndex] = false;
+    }
     stats.tailReachable =
-      shortestReachableDistance(preview.next.head, tailFallback, snapshot, stats.blocked)
+      shortestReachableDistance(preview.next.head, tailFallback, snapshot, tailReachBlocked)
         .has_value();
     legalCandidates.push_back(std::move(stats));
   }
@@ -1068,6 +1074,8 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     const auto& blocked = candidateStats->blocked;
     const int pocketPenalty =
       pocketPenaltyTowardTarget(preview.next.head, primaryTarget, snapshot, blocked);
+    const int normalizedOpenSpace = openSpace / 4;
+    const int normalizedSafeNeighbors = safeNeighbors * 12;
     ScoreBreakdown breakdown{};
     if (escapeMode) {
       breakdown.survival = clampScoreBlock(
@@ -1104,15 +1112,17 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       breakdown.progress = clampScoreBlock(
         approachTargetBonus(
           initial.head, preview.next.head, primaryTarget, snapshot, tunedConfig, repeats) +
-          searchTerm + rolloutTerm - (targetDistance.distance * tunedConfig.targetDistanceWeight) -
+          (searchTerm / 6) + (rolloutTerm / 3) -
+          (targetDistance.distance * tunedConfig.targetDistanceWeight) -
           targetDistance.unreachablePenalty,
-        -280,
-        340);
-      breakdown.survival = clampScoreBlock((openSpace * tunedConfig.openSpaceWeight) +
-                                             (safeNeighbors * tunedConfig.safeNeighborWeight) +
-                                             (candidateStats->tailReachable ? 32 : -64),
-                                           -240,
-                                           340);
+        -220,
+        260);
+      breakdown.survival = clampScoreBlock(
+        (normalizedOpenSpace * tunedConfig.openSpaceWeight) +
+          (normalizedSafeNeighbors + (safeNeighbors * tunedConfig.safeNeighborWeight / 2)) +
+          (candidateStats->tailReachable ? 28 : -56),
+        -180,
+        220);
       breakdown.reward = clampScoreBlock(immediate, 0, 220);
       breakdown.loopCost =
         loopController.loopCost(revisitCount, pocketPenalty, tunedConfig, true, false);
@@ -1133,13 +1143,14 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
           initial.head, preview.next.head, primaryTarget, snapshot, tunedConfig, repeats) -
           (targetDistance.distance * tunedConfig.targetDistanceWeight) -
           targetDistance.unreachablePenalty,
-        -220,
+        -180,
+        180);
+      breakdown.survival = clampScoreBlock(
+        (normalizedOpenSpace * tunedConfig.openSpaceWeight) +
+          (normalizedSafeNeighbors + (safeNeighbors * tunedConfig.safeNeighborWeight / 2)) +
+          (candidateStats->tailReachable ? 24 : -56),
+        -160,
         220);
-      breakdown.survival = clampScoreBlock((openSpace * tunedConfig.openSpaceWeight) +
-                                             (safeNeighbors * tunedConfig.safeNeighborWeight) +
-                                             (candidateStats->tailReachable ? 24 : -56),
-                                           -200,
-                                           300);
       breakdown.reward = clampScoreBlock(immediate, 0, 220);
       breakdown.loopCost =
         loopController.loopCost(revisitCount, pocketPenalty, tunedConfig, false, false);

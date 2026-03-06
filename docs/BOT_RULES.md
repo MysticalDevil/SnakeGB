@@ -45,6 +45,30 @@ Strategy behavior:
 - `balanced`: default profile behavior
 - `aggressive`: stronger scoring/path-shortening bias
 
+## Rule Decision Pipeline (Current)
+
+As of the latest refactor, `rule` and `search` backends use a unified staged pipeline:
+
+1. `Hard Filter`
+   - Candidate actions must pass legality plus survival prechecks.
+   - Strict filter stats are collected for telemetry:
+     - `strict_ok`
+     - reject buckets: `safe`, `space`, `tail`
+2. `Target FSM`
+   - `FoodChase` / `PowerChase` / `Escape`
+   - Transition hysteresis is used to avoid per-tick oscillation.
+3. `Bounded Scoring Blocks`
+   - Score composition:
+     - `Progress + Survival + Reward - Risk - LoopCost`
+   - Each block is range-clamped to avoid single-term domination.
+4. `Loop Control`
+   - Loop observation (`LoopMemory`) is separated from loop penalty/escape policy (`LoopController`).
+5. `Decision Telemetry`
+   - Runtime summary includes filter acceptance/reject stats and top-3 candidate score contributions.
+
+This pipeline is intentionally backend-internal, so adapter/QML does not depend on
+scoring internals.
+
 ## Strategy Profiles
 
 Built-in profile file:
