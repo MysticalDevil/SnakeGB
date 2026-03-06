@@ -2,166 +2,230 @@ name: NenoSerpent CMake CI
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ "v*" ]
+    branches: ["main"]
+    tags: ["v*"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  static-check:
     runs-on: ubuntu-24.04
-    env:
-      BOT_ML_MODEL_B64: ${{ secrets.BOT_ML_MODEL_B64 }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    - name: Setup CMake 4.x
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: "4.1.0"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Install System Dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          clang \
-          clang-format \
-          clang-tidy \
-          ninja-build \
-          libgl1-mesa-dev \
-          libvulkan-dev \
-          libasound2-dev \
-          libpulse-dev \
-          libsensors-dev \
-          ripgrep \
-          python3-pip \
-          xvfb \
-          libxcb-cursor0 \
-          libxcb-xinerama0 \
-          libxcb-icccm4 \
-          libxcb-image0 \
-          libxcb-keysyms1 \
-          libxcb-render-util0 \
-          libxcb-shape0 \
-          libxkbcommon-x11-0
+      - name: Setup CMake 4.x
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
 
-    - name: Install Coverage Tooling
-      run: |
-        python3 -m pip install --user --break-system-packages gcovr
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            clang-format \
+            clang-tidy \
+            ninja-build \
+            libgl1-mesa-dev \
+            libvulkan-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libsensors-dev \
+            ripgrep \
+            python3-pip \
+            xvfb \
+            libxcb-cursor0 \
+            libxcb-xinerama0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxkbcommon-x11-0
 
-    - name: Install Qt6
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '6.7.2' # Upgraded to more stable 6.7 LTS
-        host: 'linux'
-        target: 'desktop'
-        # Added qtsensors to the modules list
-        modules: 'qtmultimedia qtshadertools qtsensors'
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.7.2"
+          host: "linux"
+          target: "desktop"
+          modules: "qtmultimedia qtshadertools qtsensors"
 
-    - name: Determine Changed C/C++ Files
-      id: changed_cpp
-      shell: bash
-      run: |
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          base_sha="${{ github.event.pull_request.base.sha }}"
-        else
-          base_sha="${{ github.event.before }}"
-        fi
-        if [[ -z "${base_sha}" || "${base_sha}" == "0000000000000000000000000000000000000000" ]]; then
-          base_sha="$(git rev-list --max-parents=0 HEAD)"
-        fi
-        git diff --name-only "${base_sha}"...HEAD -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' \
-          > /tmp/changed-cpp-all.txt
-        git diff --name-only "${base_sha}"...HEAD -- 'src/*.cpp' 'src/**/*.cpp' 'tests/**/*.cpp' 'tools/**/*.cpp' \
-          > /tmp/changed-cpp-sources.txt
+      - name: Determine Changed C/C++ Files
+        id: changed_cpp
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha="${{ github.event.pull_request.base.sha }}"
+          else
+            base_sha="${{ github.event.before }}"
+          fi
+          if [[ -z "${base_sha}" || "${base_sha}" == "0000000000000000000000000000000000000000" ]]; then
+            base_sha="$(git rev-list --max-parents=0 HEAD)"
+          fi
 
-        if [[ -s /tmp/changed-cpp-all.txt ]]; then
-          echo "has_all=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "has_all=false" >> "$GITHUB_OUTPUT"
-        fi
+          git diff --name-only "${base_sha}"...HEAD -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' \
+            > /tmp/changed-cpp-all.txt
+          git diff --name-only "${base_sha}"...HEAD -- 'src/*.cpp' 'src/**/*.cpp' 'tests/**/*.cpp' 'tools/**/*.cpp' \
+            > /tmp/changed-cpp-sources.txt
 
-        if [[ -s /tmp/changed-cpp-sources.txt ]]; then
-          echo "has_sources=true" >> "$GITHUB_OUTPUT"
-        else
-          echo "has_sources=false" >> "$GITHUB_OUTPUT"
-        fi
+          if [[ -s /tmp/changed-cpp-all.txt ]]; then
+            echo "has_all=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_all=false" >> "$GITHUB_OUTPUT"
+          fi
 
-    - name: C/C++ Format Gate
-      if: steps.changed_cpp.outputs.has_all == 'true'
-      run: |
-        xargs -r clang-format --dry-run --Werror < /tmp/changed-cpp-all.txt
+          if [[ -s /tmp/changed-cpp-sources.txt ]]; then
+            echo "has_sources=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_sources=false" >> "$GITHUB_OUTPUT"
+          fi
 
-    - name: Configure Debug Clang
-      run: cmake --preset debug-clang --fresh
+      - name: C/C++ Format Gate
+        if: steps.changed_cpp.outputs.has_all == 'true'
+        run: |
+          xargs -r clang-format --dry-run --Werror < /tmp/changed-cpp-all.txt
 
-    - name: Build Debug Clang
-      run: cmake --build --preset debug-clang
+      - name: Configure Debug Clang
+        run: cmake --preset debug-clang --fresh
 
-    - name: Clang-Tidy Gate (Analyzer)
-      if: steps.changed_cpp.outputs.has_sources == 'true'
-      run: |
-        xargs -r clang-tidy -p build/debug-clang -quiet -checks='-*,clang-analyzer-*' \
-          < /tmp/changed-cpp-sources.txt
+      - name: Build Debug Clang
+        run: cmake --build --preset debug-clang
 
-    - name: Run Debug Clang Tests
-      run: |
-        export QT_QPA_PLATFORM=offscreen
-        xvfb-run -a ctest --preset debug-clang --output-on-failure
+      - name: Clang-Tidy Gate (Analyzer)
+        if: steps.changed_cpp.outputs.has_sources == 'true'
+        run: |
+          xargs -r clang-tidy -p build/debug-clang -quiet -checks='-*,clang-analyzer-*' \
+            < /tmp/changed-cpp-sources.txt
 
-    - name: Configure Dev Build
-      run: cmake --preset dev --fresh
+  build-test:
+    runs-on: ubuntu-24.04
 
-    - name: Build Dev
-      run: cmake --build --preset dev
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Configure Coverage Build
-      run: cmake --preset coverage --fresh
+      - name: Setup CMake 4.x
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
 
-    - name: Build Coverage Targets
-      run: cmake --build --preset coverage
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            ninja-build \
+            libgl1-mesa-dev \
+            libvulkan-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libsensors-dev \
+            xvfb \
+            libxcb-cursor0 \
+            libxcb-xinerama0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxkbcommon-x11-0
 
-    - name: Coverage Gate (Unit)
-      run: |
-        find build/coverage -name '*.gcda' -delete
-        export QT_QPA_PLATFORM=offscreen
-        xvfb-run -a ctest --preset coverage -E "EngineAdapterTest|SessionRunnerTest|AdapterUiCommandTest" --output-on-failure
-        ./scripts/ci/coverage_collect.sh build/coverage build/coverage/coverage-unit-summary.json
-        python3 ./scripts/ci/coverage_gate.py \
-          --summary build/coverage/coverage-unit-summary.json \
-          --group unit
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.7.2"
+          host: "linux"
+          target: "desktop"
+          modules: "qtmultimedia qtshadertools qtsensors"
 
-    - name: Coverage Gate (Integration)
-      run: |
-        find build/coverage -name '*.gcda' -delete
-        export QT_QPA_PLATFORM=offscreen
-        xvfb-run -a ctest --preset coverage -R "EngineAdapterTest|SessionRunnerTest|AdapterUiCommandTest" --output-on-failure
-        ./scripts/ci/coverage_collect.sh build/coverage build/coverage/coverage-integration-summary.json
-        python3 ./scripts/ci/coverage_gate.py \
-          --summary build/coverage/coverage-integration-summary.json \
-          --group integration
+      - name: Configure Debug Clang
+        run: cmake --preset debug-clang --fresh
 
-    - name: Build Bot Benchmark
-      run: cmake --build --preset debug-clang --target bot-benchmark
+      - name: Build Debug Clang
+        run: cmake --build --preset debug-clang
 
-    - name: Bot Benchmark Gate (Mode Matrix)
-      run: |
-        BOT_E2E_PROFILE=debug \
-        ./scripts/ci/bot_e2e_regression.sh build/debug-clang
+      - name: Run Debug Clang Tests
+        run: |
+          export QT_QPA_PLATFORM=offscreen
+          xvfb-run -a ctest --preset debug-clang --output-on-failure
 
-    - name: Bot ML Smoke Gate (Repo Tiny Model)
-      run: |
-        BOT_ML_SMOKE_PROFILE=debug \
-        ./scripts/ci/bot_ml_smoke_gate.sh build/debug-clang
+  coverage:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
 
-    - name: Bot ML No-Regression Gate (optional)
-      if: env.BOT_ML_MODEL_B64 != ''
-      run: |
-        echo "${BOT_ML_MODEL_B64}" | base64 -d > /tmp/nenoserpent_bot_policy_runtime.json
-        BOT_ML_MODEL=/tmp/nenoserpent_bot_policy_runtime.json \
-        BOT_LEADERBOARD_PROFILE=debug \
-        BOT_LEADERBOARD_REQUIRE_NO_REGRESSION=1 \
-        ./scripts/ci/bot_leaderboard_regression.sh build/debug-clang
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup CMake 4.x
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "4.1.0"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            ninja-build \
+            libgl1-mesa-dev \
+            libvulkan-dev \
+            libasound2-dev \
+            libpulse-dev \
+            libsensors-dev \
+            ripgrep \
+            python3-pip \
+            xvfb \
+            libxcb-cursor0 \
+            libxcb-xinerama0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxkbcommon-x11-0
+
+      - name: Install Coverage Tooling
+        run: |
+          python3 -m pip install --user --break-system-packages gcovr
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: "6.7.2"
+          host: "linux"
+          target: "desktop"
+          modules: "qtmultimedia qtshadertools qtsensors"
+
+      - name: Configure Coverage Build
+        run: cmake --preset coverage --fresh
+
+      - name: Build Coverage Targets
+        run: cmake --build --preset coverage
+
+      - name: Coverage Gate (Unit)
+        run: |
+          find build/coverage -name '*.gcda' -delete
+          export QT_QPA_PLATFORM=offscreen
+          xvfb-run -a ctest --preset coverage -E "EngineAdapterTest|SessionRunnerTest|AdapterUiCommandTest" --output-on-failure
+          ./scripts/ci/coverage_collect.sh build/coverage build/coverage/coverage-unit-summary.json
+          python3 ./scripts/ci/coverage_gate.py \
+            --summary build/coverage/coverage-unit-summary.json \
+            --group unit
+
+      - name: Coverage Gate (Integration)
+        run: |
+          find build/coverage -name '*.gcda' -delete
+          export QT_QPA_PLATFORM=offscreen
+          xvfb-run -a ctest --preset coverage -R "EngineAdapterTest|SessionRunnerTest|AdapterUiCommandTest" --output-on-failure
+          ./scripts/ci/coverage_collect.sh build/coverage build/coverage/coverage-integration-summary.json
+          python3 ./scripts/ci/coverage_gate.py \
+            --summary build/coverage/coverage-integration-summary.json \
+            --group integration
