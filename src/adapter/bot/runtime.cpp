@@ -126,10 +126,12 @@ auto step(const RuntimeInput& input) -> RuntimeOutput {
 
   if (input.state == AppState::Playing) {
     output.enqueueDirection = backend.decideDirection(input.snapshot, strategy);
+    output.decisionSummary = backend.lastDecisionSummary();
     if (!output.enqueueDirection.has_value() && isMlLikeBackendName(output.backend)) {
       const BotBackend& search = searchBackend();
       if (&search != &backend && search.isAvailable()) {
         output.enqueueDirection = search.decideDirection(input.snapshot, strategy);
+        output.decisionSummary = search.lastDecisionSummary();
         if (output.enqueueDirection.has_value()) {
           output.backend = search.name();
           output.usedFallback = true;
@@ -140,6 +142,7 @@ auto step(const RuntimeInput& input) -> RuntimeOutput {
     if (!output.enqueueDirection.has_value() && input.fallbackBackend != nullptr &&
         input.fallbackBackend != &backend && input.fallbackBackend->isAvailable()) {
       output.enqueueDirection = input.fallbackBackend->decideDirection(input.snapshot, strategy);
+      output.decisionSummary = input.fallbackBackend->lastDecisionSummary();
       if (output.enqueueDirection.has_value()) {
         output.backend = input.fallbackBackend->name();
         output.usedFallback = true;

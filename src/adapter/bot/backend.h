@@ -24,6 +24,9 @@ public:
     -> std::optional<QPoint> = 0;
   [[nodiscard]] virtual auto decideChoice(const QVariantList& choices,
                                           const StrategyConfig& config) const -> int = 0;
+  [[nodiscard]] virtual auto lastDecisionSummary() const -> QString {
+    return {};
+  }
   virtual void reset() {
   }
 };

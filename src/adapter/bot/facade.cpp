@@ -60,6 +60,9 @@ auto RuntimeFacade::runTick(const RuntimeTickInput& input, const RuntimeTickCall
       qCInfo(nenoserpentInputLog).noquote() << "bot backend route ->" << routeTelemetry.backend;
     }
   }
+  if (!decision.decisionSummary.isEmpty()) {
+    qCDebug(nenoserpentInputLog).noquote() << decision.decisionSummary;
+  }
 
   const auto applyResult = applyDecision({
     .decision = decision,

@@ -32,6 +32,7 @@ struct RuntimeOutput {
   QString backend = QStringLiteral("rule");
   bool usedFallback = false;
   QString fallbackReason;
+  QString decisionSummary;
 };
 
 [[nodiscard]] auto step(const RuntimeInput& input) -> RuntimeOutput;

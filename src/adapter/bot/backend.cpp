@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <QStringList>
+
 #include "core/game/rules.h"
 
 namespace nenoserpent::adapter::bot {
@@ -171,6 +173,20 @@ struct ScoreBreakdown {
   [[nodiscard]] auto total() const -> int {
     return progress + survival + reward - risk - loopCost;
   }
+};
+
+struct FilterStats {
+  int legal = 0;
+  int strictAccepted = 0;
+  int strictSafeReject = 0;
+  int strictSpaceReject = 0;
+  int strictTailReject = 0;
+};
+
+struct CandidateTelemetry {
+  QPoint direction{0, 0};
+  ScoreBreakdown breakdown;
+  int total = std::numeric_limits<int>::min();
 };
 
 auto mixHash(std::uint64_t seed, const std::uint64_t value) -> std::uint64_t {
@@ -375,6 +391,18 @@ private:
   int m_modeTicks = 0;
   std::uint64_t m_lastObserveTick = 0;
 };
+
+auto targetModeName(const TargetMode mode) -> QString {
+  switch (mode) {
+  case TargetMode::FoodChase:
+    return QStringLiteral("FoodChase");
+  case TargetMode::PowerChase:
+    return QStringLiteral("PowerChase");
+  case TargetMode::Escape:
+    return QStringLiteral("Escape");
+  }
+  return QStringLiteral("Unknown");
+}
 
 auto buildBlockedMap(const Snapshot& snapshot, const std::deque<QPoint>& body)
   -> std::vector<bool> {
@@ -901,8 +929,12 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
                               LoopMemory& memory,
                               LoopController& loopController,
                               TargetFsm& targetFsm,
+                              QString* decisionSummaryOut,
                               const bool useSearchScoring) -> std::optional<QPoint> {
   if (snapshot.body.empty() || snapshot.boardWidth <= 0 || snapshot.boardHeight <= 0) {
+    if (decisionSummaryOut != nullptr) {
+      *decisionSummaryOut = QStringLiteral("bot decision: invalid snapshot");
+    }
     return std::nullopt;
   }
   const StrategyConfig tunedConfig = stageAdjustedStrategy(config, snapshot);
@@ -952,23 +984,47 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     legalCandidates.push_back(std::move(stats));
   }
   if (legalCandidates.empty()) {
+    if (decisionSummaryOut != nullptr) {
+      *decisionSummaryOut = QStringLiteral("bot decision: no legal candidates");
+    }
     return std::nullopt;
   }
+  FilterStats filterStats{};
+  filterStats.legal = static_cast<int>(legalCandidates.size());
 
-  auto filterCandidates = [&](const HardFilterConfig& conf) {
+  auto filterCandidates = [&](const HardFilterConfig& conf, const bool collectStrictStats) {
     std::vector<CandidateStats*> accepted;
     accepted.reserve(legalCandidates.size());
     for (auto& candidate : legalCandidates) {
-      if (!passesHardFilter(candidate, conf).has_value()) {
+      const auto reason = passesHardFilter(candidate, conf);
+      if (!reason.has_value()) {
         accepted.push_back(&candidate);
+        if (collectStrictStats) {
+          ++filterStats.strictAccepted;
+        }
+      } else if (collectStrictStats) {
+        switch (*reason) {
+        case FilterRejectReason::SafeNeighbors:
+          ++filterStats.strictSafeReject;
+          break;
+        case FilterRejectReason::OpenSpace:
+          ++filterStats.strictSpaceReject;
+          break;
+        case FilterRejectReason::TailReachability:
+          ++filterStats.strictTailReject;
+          break;
+        case FilterRejectReason::Invalid:
+          break;
+        }
       }
     }
     return accepted;
   };
 
-  std::vector<CandidateStats*> viable = filterCandidates(buildHardFilterConfig(snapshot, false));
+  std::vector<CandidateStats*> viable =
+    filterCandidates(buildHardFilterConfig(snapshot, false), true);
   if (viable.empty()) {
-    viable = filterCandidates(buildHardFilterConfig(snapshot, true));
+    viable = filterCandidates(buildHardFilterConfig(snapshot, true), false);
   }
   if (viable.empty()) {
     for (auto& candidate : legalCandidates) {
@@ -1001,6 +1057,8 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
   int bestScore = std::numeric_limits<int>::min();
   int bestTieRank = std::numeric_limits<int>::max();
   std::optional<QPoint> bestDirection;
+  std::vector<CandidateTelemetry> candidateTelemetry;
+  candidateTelemetry.reserve(viable.size());
   for (const CandidateStats* candidateStats : viable) {
     const QPoint candidate = candidateStats->candidate;
     const MovePreview& preview = candidateStats->preview;
@@ -1115,6 +1173,43 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       bestTieRank = tieRank;
       bestDirection = candidate;
     }
+    candidateTelemetry.push_back({.direction = candidate, .breakdown = breakdown, .total = score});
+  }
+  if (decisionSummaryOut != nullptr) {
+    std::sort(candidateTelemetry.begin(),
+              candidateTelemetry.end(),
+              [](const CandidateTelemetry& lhs, const CandidateTelemetry& rhs) {
+                return lhs.total > rhs.total;
+              });
+    const int topCount = std::min(3, static_cast<int>(candidateTelemetry.size()));
+    QStringList topItems;
+    topItems.reserve(topCount);
+    for (int i = 0; i < topCount; ++i) {
+      const auto& item = candidateTelemetry[static_cast<std::size_t>(i)];
+      topItems.append(QStringLiteral("(%1,%2)=%3[p=%4 s=%5 r=%6 rk=%7 lc=%8]")
+                        .arg(item.direction.x())
+                        .arg(item.direction.y())
+                        .arg(item.total)
+                        .arg(item.breakdown.progress)
+                        .arg(item.breakdown.survival)
+                        .arg(item.breakdown.reward)
+                        .arg(item.breakdown.risk)
+                        .arg(item.breakdown.loopCost));
+    }
+    *decisionSummaryOut =
+      QStringLiteral("bot decision: mode=%1 legal=%2 strict_ok=%3 reject{safe=%4 space=%5 tail=%6}"
+                     " viable=%7 selected=(%8,%9) score=%10 top3=%11")
+        .arg(targetModeName(targetFsm.mode()))
+        .arg(filterStats.legal)
+        .arg(filterStats.strictAccepted)
+        .arg(filterStats.strictSafeReject)
+        .arg(filterStats.strictSpaceReject)
+        .arg(filterStats.strictTailReject)
+        .arg(viable.size())
+        .arg(bestDirection.has_value() ? bestDirection->x() : 0)
+        .arg(bestDirection.has_value() ? bestDirection->y() : 0)
+        .arg(bestScore)
+        .arg(topItems.join(QStringLiteral(" ")));
   }
   return bestDirection;
 }
@@ -1128,7 +1223,7 @@ public:
   [[nodiscard]] auto decideDirection(const Snapshot& snapshot, const StrategyConfig& config) const
     -> std::optional<QPoint> override {
     return selectLoopAwareDirection(
-      snapshot, config, m_loopMemory, m_loopController, m_targetFsm, false);
+      snapshot, config, m_loopMemory, m_loopController, m_targetFsm, &m_lastDecisionSummary, false);
   }
 
   [[nodiscard]] auto decideChoice(const QVariantList& choices, const StrategyConfig& config) const
@@ -1136,16 +1231,22 @@ public:
     return pickChoiceIndex(choices, config);
   }
 
+  [[nodiscard]] auto lastDecisionSummary() const -> QString override {
+    return m_lastDecisionSummary;
+  }
+
   void reset() override {
     m_loopMemory.clear();
     m_loopController.clear();
     m_targetFsm.clear();
+    m_lastDecisionSummary.clear();
   }
 
 private:
   mutable LoopMemory m_loopMemory;
   mutable LoopController m_loopController;
   mutable TargetFsm m_targetFsm;
+  mutable QString m_lastDecisionSummary;
 };
 
 class SearchBackend final : public BotBackend {
@@ -1157,7 +1258,7 @@ public:
   [[nodiscard]] auto decideDirection(const Snapshot& snapshot, const StrategyConfig& config) const
     -> std::optional<QPoint> override {
     return selectLoopAwareDirection(
-      snapshot, config, m_loopMemory, m_loopController, m_targetFsm, true);
+      snapshot, config, m_loopMemory, m_loopController, m_targetFsm, &m_lastDecisionSummary, true);
   }
 
   [[nodiscard]] auto decideChoice(const QVariantList& choices, const StrategyConfig& config) const
@@ -1165,16 +1266,22 @@ public:
     return pickChoiceIndex(choices, config);
   }
 
+  [[nodiscard]] auto lastDecisionSummary() const -> QString override {
+    return m_lastDecisionSummary;
+  }
+
   void reset() override {
     m_loopMemory.clear();
     m_loopController.clear();
     m_targetFsm.clear();
+    m_lastDecisionSummary.clear();
   }
 
 private:
   mutable LoopMemory m_loopMemory;
   mutable LoopController m_loopController;
   mutable TargetFsm m_targetFsm;
+  mutable QString m_lastDecisionSummary;
 };
 
 } // namespace
