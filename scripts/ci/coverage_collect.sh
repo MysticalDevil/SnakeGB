@@ -79,6 +79,31 @@ cleanup_orphan_coverage_artifacts() {
   fi
 }
 
+resolve_gcov_executable() {
+  if [[ -n "${GCOV_EXECUTABLE:-}" ]]; then
+    printf '%s\n' "${GCOV_EXECUTABLE}"
+    return 0
+  fi
+
+  local llvm_cov_path=""
+  for candidate in \
+    "$(command -v llvm-cov 2>/dev/null || true)" \
+    "$(command -v llvm-cov-21 2>/dev/null || true)" \
+    "$(clang --print-prog-name=llvm-cov 2>/dev/null || true)"; do
+    if [[ -n "${candidate}" && -x "${candidate}" ]]; then
+      llvm_cov_path="${candidate}"
+      break
+    fi
+  done
+
+  if [[ -z "${llvm_cov_path}" ]]; then
+    echo "[coverage] missing llvm-cov: set GCOV_EXECUTABLE or ensure llvm-cov is on PATH" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "${llvm_cov_path} gcov"
+}
+
 GCOVR_BIN="${GCOVR_BIN:-}"
 GCOVR_SOURCE="unset"
 GCOVR_PREFIX=()
@@ -102,7 +127,7 @@ if [[ -z "${GCOVR_BIN}" ]]; then
   exit 1
 fi
 
-GCOV_EXECUTABLE="${GCOV_EXECUTABLE:-/usr/lib/llvm/21/bin/llvm-cov gcov}"
+GCOV_EXECUTABLE="$(resolve_gcov_executable)"
 GCOV_WORKDIR="${GCOV_WORKDIR:-${ROOT_DIR}/cache/coverage/gcov}"
 mkdir -p "${GCOV_WORKDIR}"
 cleanup_orphan_coverage_artifacts
@@ -121,5 +146,6 @@ cleanup_orphan_coverage_artifacts
 
 echo "[coverage] gcovr=${GCOVR_BIN}"
 echo "[coverage] gcovr_source=${GCOVR_SOURCE}"
+echo "[coverage] gcov_executable=${GCOV_EXECUTABLE}"
 echo "[coverage] gcov_workdir=${GCOV_WORKDIR}"
 echo "[coverage] wrote summary: ${OUTPUT_JSON}"
