@@ -84,6 +84,7 @@ private:
   int m_mlOnlinePollIntervalTicks = 24;
   int m_mlOnlinePollCountdown = 24;
   std::int64_t m_mlModelLastModifiedMs = -1;
+  bool m_mlOnlineMissingModelReported = false;
   int m_runtimeTicks = 0;
   int m_directionEmptyRuleTotal = 0;
   int m_directionEmptyRuleWindow = 0;

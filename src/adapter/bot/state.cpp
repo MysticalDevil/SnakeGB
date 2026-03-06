@@ -401,6 +401,7 @@ void State::configureMlOnline(const QString& modelPath) {
     qEnvironmentVariableIntValue("NENOSERPENT_BOT_ML_ONLINE_RELOAD_TICKS", &pollTicksOk);
   m_mlOnlinePollIntervalTicks = pollTicksOk ? std::max(1, pollTicksRaw) : 24;
   m_mlOnlinePollCountdown = m_mlOnlinePollIntervalTicks;
+  m_mlOnlineMissingModelReported = false;
   if (m_mlOnlineHotReloadEnabled) {
     qCInfo(nenoserpentInputLog).noquote()
       << "bot ml-online hot-reload enabled pollTicks=" << m_mlOnlinePollIntervalTicks
@@ -421,8 +422,11 @@ void State::pollMlOnlineModelHotReload() {
 
   const QFileInfo modelInfo(m_mlModelPath);
   if (!modelInfo.exists()) {
-    qCWarning(nenoserpentInputLog).noquote()
-      << "bot ml-online model missing path=" << m_mlModelPath;
+    if (!m_mlOnlineMissingModelReported) {
+      m_mlOnlineMissingModelReported = true;
+      qCWarning(nenoserpentInputLog).noquote()
+        << "bot ml-online model missing path=" << m_mlModelPath;
+    }
     return;
   }
   const std::int64_t lastModifiedMs = modelInfo.lastModified().toMSecsSinceEpoch();
@@ -431,6 +435,7 @@ void State::pollMlOnlineModelHotReload() {
   }
   if (m_mlBackend.loadFromFile(m_mlModelPath)) {
     m_mlModelLastModifiedMs = lastModifiedMs;
+    m_mlOnlineMissingModelReported = false;
     qCInfo(nenoserpentInputLog).noquote()
       << "bot ml-online model hot-reloaded source=" << m_mlModelPath;
     return;

@@ -1,6 +1,7 @@
 #include <QtTest/QtTest>
 
 #include "adapter/bot/controller.h"
+#include "power_up_id.h"
 
 class BotControllerAdapterTest final : public QObject {
   Q_OBJECT
@@ -29,9 +30,9 @@ void BotControllerAdapterTest::avoidsImmediateCollisionWhenChoosingDirection() {
 
 void BotControllerAdapterTest::picksShieldOverOtherChoices() {
   const QVariantList choices = {
-    QVariantMap{{"type", 3}, {"name", "Magnet"}},
-    QVariantMap{{"type", 4}, {"name", "Shield"}},
-    QVariantMap{{"type", 7}, {"name", "Diamond"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Magnet)}, {"name", "Magnet"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Shield)}, {"name", "Shield"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Gold)}, {"name", "Gold"}},
   };
 
   QCOMPARE(nenoserpent::adapter::bot::pickChoiceIndex(choices), 1);
@@ -39,9 +40,9 @@ void BotControllerAdapterTest::picksShieldOverOtherChoices() {
 
 void BotControllerAdapterTest::picksMiniAsTopPriorityChoiceByDefault() {
   const QVariantList choices = {
-    QVariantMap{{"type", 4}, {"name", "Shield"}},
-    QVariantMap{{"type", 9}, {"name", "Mini"}},
-    QVariantMap{{"type", 8}, {"name", "Laser"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Shield)}, {"name", "Shield"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Mini)}, {"name", "Mini"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Freeze)}, {"name", "Freeze"}},
   };
 
   QCOMPARE(nenoserpent::adapter::bot::pickChoiceIndex(choices), 1);
@@ -49,12 +50,12 @@ void BotControllerAdapterTest::picksMiniAsTopPriorityChoiceByDefault() {
 
 void BotControllerAdapterTest::respectsCustomChoicePriorityFromStrategy() {
   const QVariantList choices = {
-    QVariantMap{{"type", 4}, {"name", "Shield"}},
-    QVariantMap{{"type", 7}, {"name", "Diamond"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Shield)}, {"name", "Shield"}},
+    QVariantMap{{"type", static_cast<int>(PowerUpId::Gold)}, {"name", "Gold"}},
   };
   auto strategy = nenoserpent::adapter::bot::defaultStrategyConfig();
-  strategy.powerPriorityByType.insert(4, 5);
-  strategy.powerPriorityByType.insert(7, 80);
+  strategy.powerPriorityByType.insert(static_cast<int>(PowerUpId::Shield), 5);
+  strategy.powerPriorityByType.insert(static_cast<int>(PowerUpId::Gold), 80);
 
   QCOMPARE(nenoserpent::adapter::bot::pickChoiceIndex(choices, strategy), 1);
 }
