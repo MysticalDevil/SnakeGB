@@ -90,8 +90,11 @@ jobs:
 
       - name: C/C++ Format Gate
         if: steps.changed_cpp.outputs.has_all == 'true'
+        shell: bash
         run: |
-          xargs -r clang-format --dry-run --Werror < /tmp/changed-cpp-all.txt
+          mapfile -t changed_cpp < /tmp/changed-cpp-all.txt
+          printf 'format-gate files:\n%s\n' "${changed_cpp[@]}"
+          clang-format --dry-run --Werror "${changed_cpp[@]}"
 
       - name: Configure Debug Clang
         run: cmake --preset debug-clang --fresh
@@ -101,9 +104,12 @@ jobs:
 
       - name: Clang-Tidy Gate (Analyzer)
         if: steps.changed_cpp.outputs.has_sources == 'true'
+        shell: bash
         run: |
-          xargs -r clang-tidy -p build/debug-clang -quiet -checks='-*,clang-analyzer-*' \
-            < /tmp/changed-cpp-sources.txt
+          mapfile -t changed_cpp_sources < /tmp/changed-cpp-sources.txt
+          printf 'clang-tidy files:\n%s\n' "${changed_cpp_sources[@]}"
+          clang-tidy -p build/debug-clang -quiet -checks='-*,clang-analyzer-*' \
+            "${changed_cpp_sources[@]}"
 
   build-test:
     runs-on: ubuntu-24.04
