@@ -67,6 +67,11 @@ As of the latest refactor, `rule` and `search` backends use a unified staged pip
      - moving closer gets bounded progress bonus
 4. `Loop Control`
    - Loop observation (`LoopMemory`) is separated from loop penalty/escape policy (`LoopController`).
+   - Escape mode applies orbit-break shaping:
+     - stall-level-based preferred direction jitter
+     - straight/reverse suppression
+     - quadratic revisit penalty escalation
+     - 2-step/4-step cycle continuation penalty
 5. `Decision Telemetry`
    - Runtime summary includes filter acceptance/reject stats and top-3 candidate score contributions
      (`p/s/r/d/rk/lc`, where `d` is stall drift shaping).
