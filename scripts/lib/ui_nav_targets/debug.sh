@@ -31,10 +31,10 @@ ui_nav_build_debug_target_plan() {
       UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_CHOICE "${DBG_CHOICE_TYPES:-}")")
       ;;
     dbg-catalog)
-      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_CATALOG")
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_CATALOG "${DBG_CATALOG_TYPES:-}")")
       ;;
     dbg-achievements)
-      UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ACHIEVEMENTS")
+      UI_NAV_TARGET_STEPS+=("TOKEN:$(ui_nav_debug_token DBG_ACHIEVEMENTS "${DBG_ACHIEVEMENTS_IDS:-}")")
       ;;
     dbg-icons)
       UI_NAV_TARGET_STEPS+=("TOKEN:DBG_ICONS")

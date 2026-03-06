@@ -1,5 +1,6 @@
 import QtQuick
 import "PowerMeta.js" as PowerMeta
+import "icons" as Icons
 
 Rectangle {
     id: staticSceneLayer
@@ -338,16 +339,13 @@ Rectangle {
                     width: previewBackdrop.cellWidth
                     height: previewBackdrop.cellHeight
 
-                    Canvas {
+                    Icons.FoodGlyph {
                         anchors.fill: parent
-                        onPaint: {
-                            const ctx = getContext("2d")
-                            ctx.reset()
-                            drawFoodSymbol(ctx, width, height)
-                        }
-                        Component.onCompleted: requestPaint()
-                        onWidthChanged: requestPaint()
-                        onHeightChanged: requestPaint()
+                        strokeColor: staticSceneLayer.gameBorder
+                        coreColor: staticSceneLayer.panelAccent
+                        highlightColor: staticSceneLayer.playBg
+                        stemColor: staticSceneLayer.gameBorder
+                        sparkColor: staticSceneLayer.secondaryInk
                     }
                 }
             }
@@ -361,16 +359,10 @@ Rectangle {
                     width: previewBackdrop.cellWidth
                     height: previewBackdrop.cellHeight
 
-                    Canvas {
+                    Icons.PowerGlyph {
                         anchors.fill: parent
-                        onPaint: {
-                            const ctx = getContext("2d")
-                            ctx.reset()
-                            drawPowerSymbol(ctx, width, height, modelData.type, staticSceneLayer.gameInk)
-                        }
-                        Component.onCompleted: requestPaint()
-                        onWidthChanged: requestPaint()
-                        onHeightChanged: requestPaint()
+                        powerType: modelData.type
+                        glyphColor: staticSceneLayer.gameInk
                     }
                 }
             }

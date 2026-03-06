@@ -14,7 +14,7 @@ private slots:
 
 void TestLibraryModelsAdapter::testBuildFruitLibraryModelMasksUndiscoveredEntries() {
   const QVariantList model = nenoserpent::adapter::buildFruitLibraryModel(QList<int>{1, 3});
-  QCOMPARE(model.size(), 9);
+  QCOMPARE(model.size(), 12);
 
   const QVariantMap ghost = model[0].toMap();
   QCOMPARE(ghost.value(u"name"_s).toString(), QStringLiteral("Ghost"));

@@ -39,13 +39,19 @@ auto fruitNameForType(const int type) -> QString {
   case 5:
     return u"Portal"_s;
   case 6:
-    return u"Golden"_s;
+    return u"Gold"_s;
   case 7:
-    return u"Diamond"_s;
-  case 8:
     return u"Laser"_s;
-  case 9:
+  case 8:
     return u"Mini"_s;
+  case 9:
+    return u"Freeze"_s;
+  case 10:
+    return u"Scout"_s;
+  case 11:
+    return u"Vacuum"_s;
+  case 12:
+    return u"Anchor"_s;
   default:
     return u"Unknown"_s;
   }
@@ -61,13 +67,16 @@ auto buildFruitLibraryModel(const QList<int>& discoveredFruitTypes) -> QVariantL
   const QList<FruitInfo> fruits{
     {.type = 1, .name = u"Ghost"_s, .description = u"Pass through yourself."_s},
     {.type = 2, .name = u"Slow"_s, .description = u"Drops speed by one tier."_s},
-    {.type = 3, .name = u"Magnet"_s, .description = u"Standard nutritious food."_s},
+    {.type = 3, .name = u"Magnet"_s, .description = u"Pulls food toward the snake."_s},
     {.type = 4, .name = u"Shield"_s, .description = u"Survive one collision."_s},
     {.type = 5, .name = u"Portal"_s, .description = u"Pass through obstacle walls."_s},
-    {.type = 6, .name = u"Golden"_s, .description = u"2x points per food."_s},
-    {.type = 7, .name = u"Diamond"_s, .description = u"3x points per food."_s},
-    {.type = 8, .name = u"Laser"_s, .description = u"Breaks one obstacle."_s},
-    {.type = 9, .name = u"Mini"_s, .description = u"Shrinks body by 50%."_s},
+    {.type = 6, .name = u"Gold"_s, .description = u"2x points per food."_s},
+    {.type = 7, .name = u"Laser"_s, .description = u"Breaks one obstacle."_s},
+    {.type = 8, .name = u"Mini"_s, .description = u"Shrinks body by 50%."_s},
+    {.type = 9, .name = u"Freeze"_s, .description = u"Freezes dynamic hazards briefly."_s},
+    {.type = 10, .name = u"Scout"_s, .description = u"Reveals the safest next cell."_s},
+    {.type = 11, .name = u"Vacuum"_s, .description = u"Pulls nearby food and power-ups inward."_s},
+    {.type = 12, .name = u"Anchor"_s, .description = u"Locks the current speed tier."_s},
   };
 
   QVariantList result;

@@ -15,6 +15,8 @@ Rectangle {
     property int medalIndex: 0
     property int unlockedCount: 0
     property var unlockedAchievementIds: []
+    property var debugUnlockedAchievementIds: []
+    property bool debugUnlockAll: false
     property var setMedalIndex
     property string gameFont
 
@@ -35,6 +37,17 @@ Rectangle {
     readonly property color unknownText: pageTheme && pageTheme.unknownText ? pageTheme.unknownText : secondaryText
     readonly property color scrollbarHandle: pageTheme && pageTheme.scrollbarHandle ? pageTheme.scrollbarHandle : dividerColor
     readonly property color scrollbarTrack: pageTheme && pageTheme.scrollbarTrack ? pageTheme.scrollbarTrack : panelBgSoft
+    readonly property var effectiveUnlockedAchievementIds: {
+        if (debugUnlockAll) {
+            return medalLibraryModel.map((entry) => entry.id)
+        }
+        return debugUnlockedAchievementIds && debugUnlockedAchievementIds.length > 0
+            ? debugUnlockedAchievementIds
+            : unlockedAchievementIds
+    }
+    readonly property int effectiveUnlockedCount: debugUnlockAll
+        ? medalLibraryModel.length
+        : effectiveUnlockedAchievementIds.length
 
     color: pageBg
     clip: true
@@ -74,7 +87,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: `${medalRoot.unlockedCount} UNLOCKED`
+                    text: `${medalRoot.effectiveUnlockedCount} UNLOCKED`
                     color: Qt.rgba(medalRoot.secondaryText.r, medalRoot.secondaryText.g, medalRoot.secondaryText.b, 0.92)
                     font.family: gameFont
                     font.pixelSize: 8
@@ -162,8 +175,9 @@ Rectangle {
             }
 
             delegate: MedalRoomCard {
-                modelData: modelData
-                unlocked: !!modelData && medalRoot.unlockedAchievementIds.indexOf(modelData.id) !== -1
+                medalData: modelData
+                unlocked: !!modelData && (medalRoot.debugUnlockAll
+                    || medalRoot.effectiveUnlockedAchievementIds.indexOf(modelData.id) !== -1)
                 selected: medalList.currentIndex === index
                 cardNormal: medalRoot.cardNormal
                 cardSelected: medalRoot.cardSelected

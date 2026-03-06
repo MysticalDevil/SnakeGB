@@ -24,6 +24,15 @@ QtObject {
         DBG_CATALOG: { state: AppState.Library, osd: "DBG: CATALOG" },
         DBG_ACHIEVEMENTS: { state: AppState.MedalRoom, osd: "DBG: ACHIEVEMENTS" }
     })
+    readonly property var medalIds: [
+        "Gold Medal (50 Pts)",
+        "Silver Medal (20 Pts)",
+        "Centurion (100 Crashes)",
+        "Gourmet (500 Food)",
+        "Untouchable",
+        "Speed Demon",
+        "Pacifist (60s No Food)"
+    ]
     readonly property var staticSceneAliases: ({
         DBG_STATIC_BOOT: "boot",
         DBG_STATIC_GAME: "game",
@@ -70,7 +79,7 @@ QtObject {
     })
     readonly property var staticSceneOptionHandlers: ({
         BUFF: function(sceneName, options, value, helpers) {
-            const buffType = helpers.parseBoundedInt(value, 1, 9)
+            const buffType = helpers.parseBoundedInt(value, 1, 12)
             if (buffType !== null) {
                 options.buffType = buffType
             }
@@ -219,7 +228,7 @@ QtObject {
                 return String(value || "")
                     .split(/[|/]/)
                     .map((entry) => Number(entry.trim()))
-                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
+                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 12)
                     .slice(0, 3)
             },
             parseProgress(value) {
@@ -267,7 +276,7 @@ QtObject {
                         const y = Number(parts[1])
                         const type = parts.length >= 3 ? Number(parts[2]) : 1
                         if (!Number.isInteger(x) || !Number.isInteger(y) ||
-                                !Number.isInteger(type) || type < 1 || type > 9) {
+                                !Number.isInteger(type) || type < 1 || type > 12) {
                             return null
                         }
                         return { x, y, type }
@@ -306,12 +315,12 @@ QtObject {
         if (sceneName === "choice") {
             if (!options.choiceTypes || options.choiceTypes.length === 0) {
                 options.choiceTypes = bareValues
-                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 9)
+                    .filter((entry) => Number.isInteger(entry) && entry >= 1 && entry <= 12)
                     .slice(0, 3)
             }
         } else if (bareValues.length > 0) {
             const buffType = bareValues[0]
-            if (buffType >= 1 && buffType <= 9) {
+            if (buffType >= 1 && buffType <= 12) {
                 options.buffType = buffType
             }
         }
@@ -444,6 +453,27 @@ QtObject {
         return true
     }
 
+    function parseInjectedTypeList(rawValue) {
+        if (String(rawValue || "").trim().toUpperCase() === "ALL") {
+            return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        }
+        return String(rawValue || "")
+            .split(/[,|/]/)
+            .map((part) => Number(part.trim()))
+            .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12)
+    }
+
+    function parseAchievementIdList(rawValue) {
+        const normalized = String(rawValue || "").trim()
+        if (normalized.toUpperCase() === "ALL") {
+            return controller.medalIds.slice()
+        }
+        return normalized
+            .split(/[|/]/)
+            .map((part) => part.trim().replace(/\+/g, " ").replace(/_/g, " "))
+            .filter((part) => controller.medalIds.indexOf(part) !== -1)
+    }
+
     function routeMappedDebugStateToken(token) {
         const entry = controller.debugStateTokens[token]
         if (!entry) {
@@ -480,6 +510,49 @@ QtObject {
     function routeDebugToken(token) {
         if (token === "DBG_BOT_PANEL") {
             controller.toggleBotDebugPanel()
+            return true
+        }
+        if (token.startsWith("DBG_CATALOG")) {
+            const separatorIndex = token.indexOf(":")
+            const payload = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
+            const discoveredTypes = separatorIndex >= 0
+                ? controller.parseInjectedTypeList(payload)
+                : []
+            const discoverAllFruits = String(payload).trim().toUpperCase() === "ALL"
+            if (controller.stateOwner) {
+                controller.stateOwner.iconDebugMode = false
+                controller.stateOwner.staticDebugScene = ""
+                controller.stateOwner.staticDebugOptions = { discoveredTypes, discoverAllFruits }
+            }
+            controller.commandController.requestStateChange(AppState.Library)
+            controller.showDebugOsd(discoverAllFruits
+                ? "DBG: CATALOG ALL"
+                : (discoveredTypes.length > 0
+                ? `DBG: CATALOG ${discoveredTypes.join("/")}`
+                : "DBG: CATALOG"))
+            return true
+        }
+        if (token.startsWith("DBG_ACHIEVEMENTS")) {
+            const separatorIndex = token.indexOf(":")
+            const payload = separatorIndex >= 0 ? token.slice(separatorIndex + 1) : ""
+            const unlockedAchievementIds = separatorIndex >= 0
+                ? controller.parseAchievementIdList(payload)
+                : []
+            const unlockAllAchievements = String(payload).trim().toUpperCase() === "ALL"
+            if (controller.stateOwner) {
+                controller.stateOwner.iconDebugMode = false
+                controller.stateOwner.staticDebugScene = ""
+                controller.stateOwner.staticDebugOptions = {
+                    unlockedAchievementIds,
+                    unlockAllAchievements
+                }
+            }
+            controller.commandController.requestStateChange(AppState.MedalRoom)
+            controller.showDebugOsd(unlockAllAchievements
+                ? "DBG: ACHIEVEMENTS ALL"
+                : (unlockedAchievementIds.length > 0
+                ? `DBG: ACH ${unlockedAchievementIds.length}`
+                : "DBG: ACHIEVEMENTS"))
             return true
         }
         if (token === "DBG_BOT_MODE") {
@@ -525,7 +598,7 @@ QtObject {
                     .slice(separatorIndex + 1)
                     .split(",")
                     .map((part) => Number(part.trim()))
-                    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 9)
+                    .filter((value) => Number.isInteger(value) && value >= 1 && value <= 12)
             }
             controller.commandController.seedChoicePreview(choiceTypes)
             controller.showDebugOsd(choiceTypes.length > 0

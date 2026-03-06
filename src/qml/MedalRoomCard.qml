@@ -1,8 +1,9 @@
 import QtQuick
+import "icons" as Icons
 
 Rectangle {
     id: medalCard
-    property var modelData
+    property var medalData
     property bool unlocked: false
     property bool selected: false
     property color cardNormal: "transparent"
@@ -17,7 +18,7 @@ Rectangle {
     property string gameFont: ""
 
     width: parent ? parent.width : 0
-    height: 56
+    height: 62
     radius: 4
     color: selected ? cardSelected : cardNormal
     border.color: cardBorder
@@ -42,32 +43,29 @@ Rectangle {
         anchors.margins: 6
         spacing: 12
 
-        Rectangle {
-            width: 28
-            height: 28
-            radius: 14
+        Icons.AchievementBadgeIcon {
+            width: 36
+            height: 36
             anchors.verticalCenter: parent.verticalCenter
-            color: medalCard.unlocked ? medalCard.badgeFill : medalCard.iconFill
-            border.color: medalCard.cardBorder
-            border.width: 1
-
-            Text {
-                anchors.centerIn: parent
-                text: medalCard.unlocked ? "★" : "?"
-                color: medalCard.unlocked ? medalCard.badgeText : medalCard.unknownText
-                font.pixelSize: 14
-                font.bold: true
-            }
+            achievementId: medalCard.medalData ? String(medalCard.medalData.id) : ""
+            borderColor: medalCard.cardBorder
+            borderWidth: 1
+            unlocked: medalCard.unlocked
+            selected: medalCard.selected
+            badgeFill: medalCard.badgeFill
+            badgeText: medalCard.badgeText
+            iconFill: medalCard.iconFill
+            unknownText: medalCard.unknownText
         }
 
         Column {
-            width: parent.width - 50
+            width: parent.width - 58
             anchors.verticalCenter: parent.verticalCenter
             spacing: 1
 
             Text {
-                text: medalCard.unlocked && medalCard.modelData
-                    ? medalCard.modelData.id
+                text: medalCard.unlocked && medalCard.medalData
+                    ? medalCard.medalData.id
                     : "?????????"
                 color: medalCard.titleInk
                 font.family: medalCard.gameFont
@@ -76,9 +74,9 @@ Rectangle {
             }
 
             Text {
-                text: medalCard.unlocked && medalCard.modelData
+                text: medalCard.unlocked && medalCard.medalData
                     ? "UNLOCKED"
-                    : (medalCard.modelData ? medalCard.modelData.hint : "")
+                    : (medalCard.medalData ? medalCard.medalData.hint : "")
                 color: medalCard.hintInk
                 font.family: medalCard.gameFont
                 font.pixelSize: 8

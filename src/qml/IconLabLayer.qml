@@ -1,4 +1,5 @@
 import QtQuick
+import "icons" as Icons
 
 Rectangle {
     id: iconLabLayer
@@ -24,6 +25,8 @@ Rectangle {
     readonly property int contentSpacing: 4
     readonly property int headerHeight: 24
     readonly property int infoHeight: 28
+    readonly property int sectionHeaderHeight: 14
+    readonly property int medalSectionHeight: 42
     readonly property int footerHeight: 14
     readonly property color panelBgStrong: menuColor("cardPrimary")
     readonly property color panelBg: menuColor("cardSecondary")
@@ -34,6 +37,15 @@ Rectangle {
     readonly property color textStrong: menuColor("titleInk")
     readonly property color textMuted: menuColor("secondaryInk")
     readonly property color textOnAccent: menuColor("actionInk")
+    readonly property var medalSpecs: [
+        { id: "Gold Medal (50 Pts)", short: "GOLD" },
+        { id: "Silver Medal (20 Pts)", short: "SILVER" },
+        { id: "Centurion (100 Crashes)", short: "CENT" },
+        { id: "Gourmet (500 Food)", short: "GOURMET" },
+        { id: "Untouchable", short: "UNTOUCH" },
+        { id: "Speed Demon", short: "SPEED" },
+        { id: "Pacifist (60s No Food)", short: "PACIFIST" }
+    ]
 
     onVisibleChanged: {
         if (visible) {
@@ -73,7 +85,7 @@ Rectangle {
                     font.bold: true
                 }
                 Text {
-                    text: "F6/KONAMI EXIT"
+                    text: "FRUITS + MEDALS"
                     color: Qt.rgba(iconLabLayer.textMuted.r, iconLabLayer.textMuted.g, iconLabLayer.textMuted.b, 0.9)
                     font.family: gameFont
                     font.pixelSize: 7
@@ -103,16 +115,13 @@ Rectangle {
                         color: Qt.rgba(iconLabLayer.panelBgSoft.r, iconLabLayer.panelBgSoft.g, iconLabLayer.panelBgSoft.b, 0.86)
                         border.color: iconLabLayer.borderStrong
                         border.width: 1
-                        Canvas {
+                        Icons.FoodGlyph {
                             anchors.fill: parent
-                            onPaint: {
-                                const ctx = getContext("2d")
-                                ctx.reset()
-                                drawFoodSymbol(ctx, width, height)
-                            }
-                            Component.onCompleted: requestPaint()
-                            onWidthChanged: requestPaint()
-                            onHeightChanged: requestPaint()
+                            strokeColor: iconLabLayer.borderStrong
+                            coreColor: iconLabLayer.panelAccent
+                            highlightColor: iconLabLayer.panelBgStrong
+                            stemColor: iconLabLayer.borderStrong
+                            sparkColor: iconLabLayer.textMuted
                         }
                     }
                     Column {
@@ -147,16 +156,17 @@ Rectangle {
             height: Math.max(
                         0,
                         parent.height - iconLabLayer.headerHeight - iconLabLayer.infoHeight
-                        - iconLabLayer.footerHeight - (iconLabLayer.contentSpacing * 3))
+                        - iconLabLayer.sectionHeaderHeight - iconLabLayer.medalSectionHeight
+                        - iconLabLayer.footerHeight - (iconLabLayer.contentSpacing * 4))
             columns: 3
             columnSpacing: iconLabLayer.contentSpacing
             rowSpacing: iconLabLayer.contentSpacing
 
             Repeater {
-                model: [1,2,3,4,5,6,7,8,9]
+                model: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                 delegate: Rectangle {
                     width: Math.floor((iconLabGrid.width - (iconLabGrid.columnSpacing * 2)) / 3)
-                    height: Math.floor((iconLabGrid.height - (iconLabGrid.rowSpacing * 2)) / 3)
+                    height: Math.floor((iconLabGrid.height - (iconLabGrid.rowSpacing * 3)) / 4)
                     radius: 4
                     property int iconIdx: index
                     clip: true
@@ -212,16 +222,10 @@ Rectangle {
                             border.width: 1
                             anchors.verticalCenter: parent.verticalCenter
 
-                            Canvas {
+                            Icons.PowerGlyph {
                                 anchors.fill: parent
-                                onPaint: {
-                                    const ctx = getContext("2d")
-                                    ctx.reset()
-                                    drawPowerSymbol(ctx, width, height, modelData, powerColor(modelData))
-                                }
-                                Component.onCompleted: requestPaint()
-                                onWidthChanged: requestPaint()
-                                onHeightChanged: requestPaint()
+                                powerType: modelData
+                                glyphColor: powerColor(modelData)
                             }
                         }
 
@@ -250,6 +254,76 @@ Rectangle {
                                 font.bold: true
                                 visible: parent.parent.height >= 42
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            width: parent.width
+            height: iconLabLayer.sectionHeaderHeight
+            radius: 3
+            color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.84)
+            border.color: iconLabLayer.borderSoft
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+                text: "ACHIEVEMENT GLYPHS"
+                color: iconLabLayer.textStrong
+                font.family: gameFont
+                font.pixelSize: 7
+                font.bold: true
+            }
+        }
+
+        Grid {
+            width: parent.width
+            height: iconLabLayer.medalSectionHeight
+            columns: 4
+            columnSpacing: iconLabLayer.contentSpacing
+            rowSpacing: iconLabLayer.contentSpacing
+
+            Repeater {
+                model: iconLabLayer.medalSpecs
+
+                delegate: Rectangle {
+                    width: Math.floor((parent.width - (parent.columnSpacing * 3)) / 4)
+                    height: Math.floor((parent.height - parent.rowSpacing) / 2)
+                    radius: 3
+                    color: Qt.rgba(iconLabLayer.panelBg.r, iconLabLayer.panelBg.g, iconLabLayer.panelBg.b, 0.8)
+                    border.color: iconLabLayer.borderSoft
+                    border.width: 1
+
+                    Row {
+                        anchors.fill: parent
+                        anchors.margins: 3
+                        spacing: 4
+
+                        Icons.AchievementBadgeIcon {
+                            width: Math.max(14, parent.height - 4)
+                            height: width
+                            anchors.verticalCenter: parent.verticalCenter
+                            achievementId: modelData.id
+                            unlocked: true
+                            badgeFill: iconLabLayer.panelAccent
+                            badgeText: iconLabLayer.textOnAccent
+                            iconFill: iconLabLayer.panelBgSoft
+                            unknownText: iconLabLayer.textMuted
+                            borderColor: iconLabLayer.borderStrong
+                            borderWidth: 1
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width - parent.spacing - 22
+                            text: modelData.short
+                            color: iconLabLayer.textStrong
+                            font.family: gameFont
+                            font.pixelSize: 6
+                            font.bold: true
+                            elide: Text.ElideRight
                         }
                     }
                 }

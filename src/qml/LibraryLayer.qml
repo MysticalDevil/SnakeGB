@@ -1,5 +1,7 @@
 import QtQuick
 import QtQuick.Controls
+import "PowerMeta.js" as PowerMeta
+import "icons" as Icons
 
 Rectangle {
     id: libraryLayer
@@ -11,6 +13,8 @@ Rectangle {
     property var menuColor
     property var pageTheme
     property var powerColor
+    property var debugDiscoveredTypes: []
+    property bool debugDiscoverAll: false
 
     readonly property color pageBg: menuColor("cardPrimary")
     readonly property color panelBgStrong: menuColor("cardPrimary")
@@ -34,11 +38,35 @@ Rectangle {
         }
         let count = 0
         for (let i = 0; i < fruitLibraryModel.length; ++i) {
-            if (fruitLibraryModel[i].discovered) {
+            if (isDiscovered(fruitLibraryModel[i])) {
                 count += 1
             }
         }
         return count
+    }
+
+    function isDebugDiscovered(type) {
+        return debugDiscoveredTypes && debugDiscoveredTypes.indexOf(Number(type)) !== -1
+    }
+
+    function isDiscovered(entry) {
+        return !!entry && (debugDiscoverAll || entry.discovered || isDebugDiscovered(entry.type))
+    }
+
+    function resolvedName(entry) {
+        if (!entry) {
+            return "??????"
+        }
+        return isDiscovered(entry) ? PowerMeta.choiceName(Number(entry.type)).toUpperCase() : "??????"
+    }
+
+    function resolvedDesc(entry) {
+        if (!entry) {
+            return ""
+        }
+        return isDiscovered(entry)
+                ? PowerMeta.choiceDescription(Number(entry.type))
+                : "Eat this fruit in-game to unlock its data."
     }
 
     anchors.fill: parent
@@ -203,77 +231,35 @@ Rectangle {
                         height: 24
                         anchors.verticalCenter: parent.verticalCenter
 
-                        Item {
+                        Icons.PowerIcon {
                             anchors.centerIn: parent
                             width: 20
                             height: 20
+                            visible: libraryLayer.isDiscovered(modelData)
+                            radius: 4
+                            contentMargin: 2
+                            fillColor: libraryCard.selected
+                                       ? Qt.rgba(libraryLayer.panelBgStrong.r, libraryLayer.panelBgStrong.g,
+                                                 libraryLayer.panelBgStrong.b, 0.88)
+                                       : Qt.rgba(libraryLayer.iconFill.r, libraryLayer.iconFill.g,
+                                                 libraryLayer.iconFill.b, 0.96)
+                            borderColor: libraryCard.selected
+                                         ? Qt.rgba(libraryLayer.textOnAccent.r, libraryLayer.textOnAccent.g,
+                                                   libraryLayer.textOnAccent.b, 0.72)
+                                         : Qt.rgba(powerColor(modelData.type).r, powerColor(modelData.type).g,
+                                                   powerColor(modelData.type).b, 0.72)
+                            borderWidth: modelData.type >= 9 ? 2 : 1
+                            powerType: Number(modelData.type)
+                            glyphColor: libraryCard.selected ? libraryLayer.textOnAccent : powerColor(modelData.type)
+                        }
 
-                            Rectangle { anchors.fill: parent; color: "transparent"; border.color: libraryLayer.iconStroke; border.width: 1; visible: modelData.discovered && modelData.type === 1 }
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: "transparent"
-                                border.color: libraryLayer.iconStroke
-                                border.width: 2
-                                visible: modelData.discovered && modelData.type === 2
-
-                                Rectangle {
-                                    width: 10
-                                    height: 2
-                                    color: libraryLayer.iconStroke
-                                    anchors.centerIn: parent
-                                }
-                            }
-                            Rectangle {
-                                anchors.fill: parent
-                                color: libraryLayer.iconStroke
-                                visible: modelData.discovered && modelData.type === 3
-                                clip: true
-
-                                Rectangle {
-                                    width: 20
-                                    height: 20
-                                    rotation: 45
-                                    y: 10
-                                    color: libraryLayer.iconFill
-                                }
-                            }
-                            Rectangle { anchors.fill: parent; radius: 10; color: "transparent"; border.color: libraryLayer.iconStroke; border.width: 2; visible: modelData.discovered && modelData.type === 4 }
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 10
-                                color: "transparent"
-                                border.color: libraryLayer.iconStroke
-                                border.width: 1
-                                visible: modelData.discovered && modelData.type === 5
-
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: 10
-                                    height: 10
-                                    radius: 5
-                                    border.color: libraryLayer.iconStroke
-                                    border.width: 1
-                                }
-                            }
-                            Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: powerColor(6); visible: modelData.discovered && modelData.type === 6 }
-                            Rectangle { anchors.centerIn: parent; width: 16; height: 16; rotation: 45; color: powerColor(7); visible: modelData.discovered && modelData.type === 7 }
-                            Rectangle { anchors.fill: parent; color: "transparent"; border.color: powerColor(8); border.width: 2; visible: modelData.discovered && modelData.type === 8 }
-                            Rectangle {
-                                anchors.fill: parent
-                                color: "transparent"
-                                border.color: libraryLayer.iconStroke
-                                border.width: 1
-                                visible: modelData.discovered && modelData.type === 9
-
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: 4
-                                    height: 4
-                                    color: libraryLayer.iconFill
-                                }
-                            }
-                            Text { text: "?"; color: libraryLayer.unknownText; visible: !modelData.discovered; anchors.centerIn: parent; font.bold: true; font.pixelSize: 12 }
+                        Text {
+                            text: "?"
+                            color: libraryLayer.unknownText
+                            visible: !libraryLayer.isDiscovered(modelData)
+                            anchors.centerIn: parent
+                            font.bold: true
+                            font.pixelSize: 12
                         }
                     }
 
@@ -282,7 +268,7 @@ Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
 
                         Text {
-                            text: modelData.name
+                            text: libraryLayer.resolvedName(modelData)
                             color: libraryCard.labelColor
                             font.family: gameFont
                             font.pixelSize: 11
@@ -290,7 +276,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: modelData.desc
+                            text: libraryLayer.resolvedDesc(modelData)
                             color: libraryCard.descColor
                             font.family: gameFont
                             font.pixelSize: 8

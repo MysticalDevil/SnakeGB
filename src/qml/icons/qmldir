@@ -1,0 +1,8 @@
+module NenoSerpent.Icons
+IconFrame 1.0 IconFrame.qml
+AchievementGlyph 1.0 AchievementGlyph.qml
+AchievementBadgeIcon 1.0 AchievementBadgeIcon.qml
+FoodGlyph 1.0 FoodGlyph.qml
+FoodIcon 1.0 FoodIcon.qml
+PowerGlyph 1.0 PowerGlyph.qml
+PowerIcon 1.0 PowerIcon.qml

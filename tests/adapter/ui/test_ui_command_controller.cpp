@@ -55,7 +55,7 @@ void TestUiCommandController::testCycleBgmForwardsVariantSwitch() {
 void TestUiCommandController::testSeedChoicePreviewForwardsDebugSeed() {
   EngineAdapter engineAdapter;
   UiCommandController controller(&engineAdapter);
-  const QVariantList choiceTypes{PowerUpId::Rich, PowerUpId::Shield, PowerUpId::Ghost};
+  const QVariantList choiceTypes{PowerUpId::Gold, PowerUpId::Shield, PowerUpId::Ghost};
 
   controller.seedChoicePreview(choiceTypes);
 

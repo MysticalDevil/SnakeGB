@@ -94,22 +94,23 @@ Item {
         ctx.strokeStyle = accent
         ctx.fillStyle = accent
 
-        if (type === 1) { // Ghost
+        if (type === 1) {
             ctx.strokeRect(2, 2, w - 4, h - 4)
-            ctx.clearRect(Math.floor(w * 0.42), Math.floor(h * 0.30), Math.floor(w * 0.16), Math.floor(h * 0.44))
-        } else if (type === 2) { // Slow
+            ctx.clearRect(Math.floor(w * 0.42), Math.floor(h * 0.30), Math.floor(w * 0.16),
+                          Math.floor(h * 0.44))
+        } else if (type === 2) {
             ctx.beginPath()
             ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
             ctx.stroke()
             ctx.fillRect(w * 0.26, h * 0.46, w * 0.48, Math.max(1, h * 0.1))
-        } else if (type === 3) { // Magnet
+        } else if (type === 3) {
             ctx.beginPath()
             ctx.moveTo(w * 0.25, h * 0.20)
             ctx.lineTo(w * 0.25, h * 0.70)
             ctx.quadraticCurveTo(w * 0.50, h * 0.92, w * 0.75, h * 0.70)
             ctx.lineTo(w * 0.75, h * 0.20)
             ctx.stroke()
-        } else if (type === 4) { // Shield
+        } else if (type === 4) {
             ctx.beginPath()
             ctx.moveTo(w * 0.50, h * 0.12)
             ctx.lineTo(w * 0.80, h * 0.28)
@@ -119,14 +120,14 @@ Item {
             ctx.lineTo(w * 0.20, h * 0.28)
             ctx.closePath()
             ctx.stroke()
-        } else if (type === 5) { // Portal
+        } else if (type === 5) {
             ctx.beginPath()
             ctx.arc(w / 2, h / 2, w * 0.34, 0, Math.PI * 2)
             ctx.stroke()
             ctx.beginPath()
             ctx.arc(w * 0.68, h * 0.34, w * 0.08, 0, Math.PI * 2)
             ctx.fill()
-        } else if (type === 6) { // Double
+        } else if (type === 6) {
             ctx.save()
             ctx.translate(w * 0.38, h * 0.52)
             ctx.rotate(Math.PI / 4)
@@ -137,15 +138,7 @@ Item {
             ctx.rotate(Math.PI / 4)
             ctx.strokeRect(-w * 0.12, -h * 0.12, w * 0.24, h * 0.24)
             ctx.restore()
-        } else if (type === 7) { // Diamond
-            ctx.save()
-            ctx.translate(w / 2, h / 2)
-            ctx.rotate(Math.PI / 4)
-            ctx.strokeRect(-w * 0.20, -h * 0.20, w * 0.40, h * 0.40)
-            ctx.restore()
-            ctx.fillRect(w * 0.48, h * 0.05, 1, h * 0.18)
-            ctx.fillRect(w * 0.41, h * 0.12, w * 0.14, 1)
-        } else if (type === 8) { // Laser
+        } else if (type === 7) {
             ctx.beginPath()
             ctx.moveTo(w * 0.26, h * 0.22)
             ctx.lineTo(w * 0.55, h * 0.22)
@@ -156,12 +149,63 @@ Item {
             ctx.lineTo(w * 0.24, h * 0.60)
             ctx.closePath()
             ctx.fill()
-        } else if (type === 9) { // Mini
+        } else if (type === 8) {
             ctx.strokeRect(w * 0.30, h * 0.30, w * 0.40, h * 0.40)
             ctx.fillRect(w * 0.16, h * 0.16, w * 0.10, 1)
             ctx.fillRect(w * 0.16, h * 0.16, 1, h * 0.10)
             ctx.fillRect(w * 0.74, h * 0.74, w * 0.10, 1)
             ctx.fillRect(w * 0.84, h * 0.74, 1, h * 0.10)
+        } else if (type === 9) {
+            ctx.beginPath()
+            ctx.moveTo(w * 0.50, h * 0.10)
+            ctx.lineTo(w * 0.60, h * 0.34)
+            ctx.lineTo(w * 0.86, h * 0.38)
+            ctx.lineTo(w * 0.66, h * 0.54)
+            ctx.lineTo(w * 0.72, h * 0.84)
+            ctx.lineTo(w * 0.50, h * 0.68)
+            ctx.lineTo(w * 0.28, h * 0.84)
+            ctx.lineTo(w * 0.34, h * 0.54)
+            ctx.lineTo(w * 0.14, h * 0.38)
+            ctx.lineTo(w * 0.40, h * 0.34)
+            ctx.closePath()
+            ctx.stroke()
+        } else if (type === 10) {
+            ctx.beginPath()
+            ctx.moveTo(w * 0.18, h * 0.50)
+            ctx.lineTo(w * 0.64, h * 0.50)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(w * 0.52, h * 0.34)
+            ctx.lineTo(w * 0.68, h * 0.50)
+            ctx.lineTo(w * 0.52, h * 0.66)
+            ctx.stroke()
+            ctx.strokeRect(w * 0.16, h * 0.24, w * 0.18, h * 0.18)
+        } else if (type === 11) {
+            ctx.beginPath()
+            ctx.arc(w * 0.52, h * 0.52, w * 0.22, Math.PI * 0.20, Math.PI * 1.85)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(w * 0.30, h * 0.28)
+            ctx.lineTo(w * 0.18, h * 0.18)
+            ctx.lineTo(w * 0.20, h * 0.34)
+            ctx.closePath()
+            ctx.fill()
+        } else if (type === 12) {
+            ctx.beginPath()
+            ctx.moveTo(w * 0.50, h * 0.16)
+            ctx.lineTo(w * 0.50, h * 0.62)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.arc(w * 0.50, h * 0.68, w * 0.20, 0, Math.PI)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(w * 0.30, h * 0.68)
+            ctx.lineTo(w * 0.18, h * 0.82)
+            ctx.stroke()
+            ctx.beginPath()
+            ctx.moveTo(w * 0.70, h * 0.68)
+            ctx.lineTo(w * 0.82, h * 0.82)
+            ctx.stroke()
         }
     }
 
@@ -171,12 +215,11 @@ Item {
         const col = idx % cols
         const row = Math.floor(idx / cols)
         const nextCol = Math.max(0, Math.min(cols - 1, col + (dx > 0 ? 1 : (dx < 0 ? -1 : 0))))
-        const nextRow = Math.max(0, Math.min(2, row + (dy > 0 ? 1 : (dy < 0 ? -1 : 0))))
+        const nextRow = Math.max(0, Math.min(3, row + (dy > 0 ? 1 : (dy < 0 ? -1 : 0))))
         iconLabSelection = nextRow * cols + nextCol
     }
 
     readonly property color gameBg: menuColor("cardPrimary")
-    // Lift play/replay/choice background so it matches menu brightness after LCD shader.
     readonly property color playBg: gameBg
     readonly property color gamePanel: menuColor("cardSecondary")
     readonly property color gameInk: menuColor("titleInk")
@@ -184,7 +227,8 @@ Item {
     readonly property color gameAccent: menuColor("actionCard")
     readonly property color gameAccentInk: menuColor("actionInk")
     readonly property color gameBorder: menuColor("borderPrimary")
-    readonly property color gameGrid: Qt.rgba(menuColor("borderSecondary").r, menuColor("borderSecondary").g, menuColor("borderSecondary").b, 0.012)
+    readonly property color gameGrid: Qt.rgba(menuColor("borderSecondary").r, menuColor("borderSecondary").g,
+                                              menuColor("borderSecondary").b, 0.012)
     readonly property color gameFoodCore: menuColor("actionCard")
     readonly property color gameFoodHighlight: menuColor("cardPrimary")
     readonly property color gameFoodStem: menuColor("borderPrimary")
@@ -268,7 +312,6 @@ Item {
                     }
                 }
 
-                // --- STATE 0: SPLASH ---
                 SplashLayer {
                     anchors.fill: parent
                     z: LayerScale.stateSplash
@@ -277,7 +320,6 @@ Item {
                     menuColor: root.menuColor
                 }
 
-                // --- STATE 1: MENU ---
                 MenuLayer {
                     anchors.fill: parent
                     z: LayerScale.stateMenu
@@ -289,7 +331,6 @@ Item {
                     highScore: sessionStatusViewModel.highScore
                 }
 
-                // --- STATE 2, 3, 4, 5, 6: WORLD ---
                 WorldLayer {
                     id: worldLayer
                     z: LayerScale.stateWorld
@@ -308,6 +349,7 @@ Item {
                     activeBuff: sessionRender.activeBuff
                     buffTicksRemaining: sessionRender.buffTicksRemaining
                     buffTicksTotal: sessionRender.buffTicksTotal
+                    scoutHintCell: sessionRender.scoutHintCell
                     elapsed: root.elapsed
                     gameFont: root.gameFont
                     menuColor: root.menuColor
@@ -333,6 +375,9 @@ Item {
                     z: LayerScale.stateLibrary
                     active: sessionRender.state === AppState.Library
                     fruitLibraryModel: selectionViewModel.fruitLibrary
+                    debugDiscoveredTypes: root.staticDebugOptions && root.staticDebugOptions.discoveredTypes
+                                          ? root.staticDebugOptions.discoveredTypes : []
+                    debugDiscoverAll: root.staticDebugOptions && root.staticDebugOptions.discoverAllFruits === true
                     libraryIndex: selectionViewModel.libraryIndex
                     setLibraryIndex: function(index) {
                         root.commandController.dispatch(`set_library_index:${index}`)
@@ -343,7 +388,6 @@ Item {
                     pageTheme: ThemeCatalog.pageTheme(themeViewModel.paletteName, "catalog")
                 }
 
-                // --- STATE 8: MEDAL ROOM ---
                 MedalRoom {
                     id: medalRoom
                     z: LayerScale.stateMedals
@@ -357,6 +401,9 @@ Item {
                     medalIndex: selectionViewModel.medalIndex
                     unlockedCount: selectionViewModel.achievements.length
                     unlockedAchievementIds: selectionViewModel.achievements
+                    debugUnlockedAchievementIds: root.staticDebugOptions && root.staticDebugOptions.unlockedAchievementIds
+                                               ? root.staticDebugOptions.unlockedAchievementIds : []
+                    debugUnlockAll: root.staticDebugOptions && root.staticDebugOptions.unlockAllAchievements === true
                     setMedalIndex: function(index) {
                         root.commandController.dispatch(`set_medal_index:${index}`)
                     }
@@ -508,7 +555,6 @@ Item {
             recursive: false
         }
 
-        // --- 2. FX layer ---
         ShaderEffect {
             id: lcdShader
             anchors.fill: parent
@@ -516,8 +562,10 @@ Item {
             property variant source: lcdSource
             property variant history: root.lowPerfFxMode ? lcdHistoryDirect : lcdHistoryRecursive
             property real time: root.lowPerfFxMode ? root.elapsed * 0.24 : root.elapsed
-            property real reflectionX: root.lowPerfFxMode ? sessionRender.reflectionOffset.x * 0.25 : sessionRender.reflectionOffset.x
-            property real reflectionY: root.lowPerfFxMode ? sessionRender.reflectionOffset.y * 0.25 : sessionRender.reflectionOffset.y
+            property real reflectionX: root.lowPerfFxMode ? sessionRender.reflectionOffset.x * 0.25
+                                                           : sessionRender.reflectionOffset.x
+            property real reflectionY: root.lowPerfFxMode ? sessionRender.reflectionOffset.y * 0.25
+                                                           : sessionRender.reflectionOffset.y
             property bool isPlayScene: sessionRender.state === AppState.Playing || root.staticDebugScene === "game"
             property bool isReplayScene: sessionRender.state === AppState.Replaying || root.staticDebugScene === "replay"
             property bool isChoiceScene: sessionRender.state === AppState.ChoiceSelection || root.staticDebugScene === "choice"
@@ -555,7 +603,6 @@ Item {
             ink: root.gameAccentInk
             gameFont: root.gameFont
         }
-
     }
 
     function showOSD(t) { osd.show(t) }

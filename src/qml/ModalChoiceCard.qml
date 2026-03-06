@@ -1,4 +1,5 @@
 import QtQuick
+import "icons" as Icons
 
 Rectangle {
     id: choiceCard
@@ -80,32 +81,17 @@ Rectangle {
         anchors.rightMargin: choiceCard.sidePadding + 1
         spacing: 10
 
-        Rectangle {
+        Icons.PowerIcon {
             width: choiceCard.iconSize
             height: width
-            radius: 6
-            color: choiceCard.iconSocketColor
-            border.color: choiceCard.selected ? choiceCard.borderSelectedColor : choiceCard.iconBorderColor
-            border.width: 1
             anchors.verticalCenter: parent.verticalCenter
-
-            Item {
-                anchors.centerIn: parent
-                width: 22
-                height: 22
-
-                Canvas {
-                    anchors.fill: parent
-                    onPaint: {
-                        const ctx = getContext("2d")
-                        ctx.reset()
-                        drawPowerSymbol(ctx, width, height, powerType, iconGlyphColor)
-                    }
-                    Component.onCompleted: requestPaint()
-                    onWidthChanged: requestPaint()
-                    onHeightChanged: requestPaint()
-                }
-            }
+            radius: 6
+            contentMargin: 2
+            fillColor: choiceCard.iconSocketColor
+            borderColor: choiceCard.selected ? choiceCard.borderSelectedColor : choiceCard.iconBorderColor
+            borderWidth: 1
+            powerType: choiceCard.powerType
+            glyphColor: choiceCard.iconGlyphColor
         }
 
         Column {
