@@ -18,7 +18,8 @@ cmake --workflow --preset debug-workflow
 - **Expanded Navigation**: Hidden fruit library (`LEFT`), achievements room (`UP`), replay (`DOWN`), level switch (`SELECT`).
 - **Refined Input Rules**: Context-sensitive `B` behavior restored across menu/game/pause/game-over/roguelike/library/medal.
 - **Dynamic Levels**: `Classic`, `The Cage`, `Dynamic Pulse`, `Tunnel Run`, `Crossfire`, `Shifting Box`.
-- **Roguelike Power-up Suite**: 9 distinct effects including working **Magnet** fruit attraction and unique portal wall-phasing.
+- **Roguelike Power-up Suite**: 12 distinct effects with reusable iconography, retro choice flow, and effect-specific visuals such as Ghost translucency and hazard control powers.
+- **Expanded Achievement Set**: 12 achievement badges with dedicated glyphs, achievement room support, and icon-lab integration.
 - **Ghost Replay**: Deterministic replay with recorded input and choice playback.
 - **Mobile Sensor Glare**: `QtSensors` accelerometer-powered screen reflection movement (with desktop fallback motion).
 - **Android Ready**: arm64 deployment pipeline and runtime logcat-driven crash triage workflow.
@@ -33,8 +34,9 @@ cmake --workflow --preset debug-workflow
   - `Dynamic Pulse`, `Crossfire`, `Shifting Box`: script-driven moving obstacles.
   - `Tunnel Run`: narrow dual-column tunnel pressure.
 - **Roguelike Choices**: random ability choices appear as score progresses; each run can evolve differently.
-- **Special Fruits**: 9 fruit effects (Ghost/Slow/Magnet/Shield/Portal/Double/Diamond/Laser/Mini) with temporary or instant buffs.
+- **Special Fruits**: 12 fruit effects (Ghost/Slow/Magnet/Shield/Portal/Gold/Laser/Mini/Freeze/Scout/Vacuum/Anchor) with temporary or instant buffs.
 - **Ghost Replay**: best run input+choice replay for route learning and score improvement.
+- **Collections**: fruit catalog, achievement room, and icon lab all share the same reusable icon/component system.
 
 ## Tech Stack
 
@@ -86,6 +88,7 @@ just clean
 - `RelWithDebInfo` (`dev`): compact runtime logs enabled.
 - `Release` / `MinSizeRel`: routine runtime logs are compiled out.
 - `just check` uses `debug-clang` preset as the local bot/runtime regression gate.
+- GitHub CI now validates changed C/C++ files with `clang-format` and `clang-tidy` analyzer checks, then builds/tests `debug-clang` and builds `dev`.
 
 ### Build and Run via Zig
 ```bash
@@ -184,27 +187,6 @@ export QT_WASM_PREFIX=~/qt-toolchains/build-qt-wasm/qt-wasm-install-mt
 - Set `SERVE=0` to only build/package without starting a web server.
 - Local serving uses `./scripts/deploy.sh wasm-serve` with COOP/COEP headers so `SharedArrayBuffer` works in Chromium-based browsers.
 - `qtlogo.svg`/`favicon` are injected from project icon during packaging to keep wasm console/network logs clean.
-
-### Local GitHub CI/CD Simulation (Docker Compose)
-```bash
-# Put local secrets in .env (this file is git-ignored)
-# ANDROID_KEYSTORE_B64=...
-# ANDROID_KEYSTORE_PASS=...
-# ANDROID_KEY_PASS=...
-# ANDROID_KEY_ALIAS=nenoserpent
-
-# Simulate .github/workflows/cmake.yml
-docker compose --profile ci run --rm gh-ci
-
-# Simulate .github/workflows/cd.yml (current release + placeholders)
-docker compose --profile cd run --rm gh-cd
-
-# Simulate Android CD signing-secret preflight
-docker compose --profile cd run --rm gh-cd-android-preflight
-```
-
-- Compose uses `docker/ci/Dockerfile` and `scripts/ci/run_gh_sim.sh`.
-- The container mounts the current repo at `/workspace` and executes CMake presets directly.
 
 ## Controls
 - **Arrow Keys**: Move snake

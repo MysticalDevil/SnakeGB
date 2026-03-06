@@ -18,7 +18,8 @@ cmake --workflow --preset debug-workflow
 - **主界面导航扩展**：隐藏图鉴（`LEFT`）、成就页（`UP`）、高分回放（`DOWN`）、`SELECT` 切关。
 - **按键行为修复**：`B` 在不同状态下恢复正确语义（游戏内切配色、菜单退出、页面回退等）。
 - **动态关卡扩展**：`Classic`、`The Cage`、`Dynamic Pulse`、`Tunnel Run`、`Crossfire`、`Shifting Box`。
-- **Roguelike 特殊果实**：9 种能力全部区分，`Magnet` 已实现吸引果实效果，`Portal` 改为穿越障碍墙。
+- **Roguelike 特殊果实**：12 种能力全部区分，图标体系已统一组件化，并补齐了 `Freeze` / `Scout` / `Vacuum` / `Anchor` 等新能力。
+- **成就系统扩展**：12 枚成就徽章均有独立 glyph，并已接入成就页和 Icon Lab。
 - **幽灵回放**：记录输入与能力选择历史，稳定回放最高分过程。
 - **移动端陀螺仪光泽**：基于 `QtSensors` 的屏幕反光偏移（桌面端有回退动画）。
 - **Android 运行链路**：完善 arm64 构建部署与 logcat 崩溃排查流程。
@@ -33,8 +34,9 @@ cmake --workflow --preset debug-workflow
   - `Dynamic Pulse` / `Crossfire` / `Shifting Box`：脚本驱动动态障碍。
   - `Tunnel Run`：双柱隧道压迫地形。
 - **Roguelike 选择**：分数推进过程中会触发能力三选一，每局成长路径不同。
-- **特殊果实系统**：9 种能力包含瞬时与持续效果，影响得分、碰撞与机动性。
+- **特殊果实系统**：12 种能力包含瞬时与持续效果，影响得分、碰撞、机动性与节奏控制。
 - **幽灵回放**：回放最高分运行轨迹（输入+能力选择），便于复盘与练习路线。
+- **图鉴与成就页**：果实图鉴、成就页和 Icon Lab 已共享同一套可复用图标组件。
 
 ## 技术栈
 
@@ -63,6 +65,7 @@ cmake --build --preset release
 - `Debug`: 保留详细运行日志。
 - `RelWithDebInfo` (`dev`): 保留简略运行日志。
 - `Release` / `MinSizeRel`: 编译期关闭常规 `qDebug/qInfo/qWarning` 日志。
+- GitHub CI 现已对变更中的 C/C++ 文件执行 `clang-format` 与 `clang-tidy` analyzer 检查，并构建 `debug-clang` 与 `dev` 预设。
 
 ### 通过 Zig 编译与运行
 ```bash
