@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Setup CMake 4.x
       uses: jwlawson/actions-setup-cmake@v2
       with:
@@ -22,6 +24,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          clang \
+          clang-format \
+          clang-tidy \
           ninja-build \
           libgl1-mesa-dev \
           libvulkan-dev \
@@ -54,19 +59,56 @@ jobs:
         # Added qtsensors to the modules list
         modules: 'qtmultimedia qtshadertools qtsensors'
 
-    - name: Configure CMake
+    - name: Determine Changed C/C++ Files
+      id: changed_cpp
+      shell: bash
       run: |
-        export CC=gcc
-        export CXX=g++
-        cmake --preset debug --fresh
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          base_sha="${{ github.event.pull_request.base.sha }}"
+        else
+          base_sha="${{ github.event.before }}"
+        fi
+        if [[ -z "${base_sha}" || "${base_sha}" == "0000000000000000000000000000000000000000" ]]; then
+          base_sha="$(git rev-list --max-parents=0 HEAD)"
+        fi
+        header_and_source_files="$(
+          git diff --name-only "${base_sha}"...HEAD -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' \
+            | tr '\n' ' '
+        )"
+        source_files="$(
+          git diff --name-only "${base_sha}"...HEAD -- 'src/*.cpp' 'src/**/*.cpp' 'tests/**/*.cpp' 'tools/**/*.cpp' \
+            | tr '\n' ' '
+        )"
+        echo "all=${header_and_source_files}" >> "$GITHUB_OUTPUT"
+        echo "sources=${source_files}" >> "$GITHUB_OUTPUT"
 
-    - name: Build
-      run: cmake --build --preset debug
+    - name: C/C++ Format Gate
+      if: ${{ steps.changed_cpp.outputs.all != '' }}
+      run: |
+        clang-format --dry-run --Werror ${{ steps.changed_cpp.outputs.all }}
 
-    - name: Run Tests
+    - name: Configure Debug Clang
+      run: cmake --preset debug-clang --fresh
+
+    - name: Build Debug Clang
+      run: cmake --build --preset debug-clang
+
+    - name: Clang-Tidy Gate (Analyzer)
+      if: ${{ steps.changed_cpp.outputs.sources != '' }}
+      run: |
+        clang-tidy -p build/debug-clang -quiet -checks='-*,clang-analyzer-*' \
+          ${{ steps.changed_cpp.outputs.sources }}
+
+    - name: Run Debug Clang Tests
       run: |
         export QT_QPA_PLATFORM=offscreen
-        xvfb-run -a ctest --preset debug --output-on-failure
+        xvfb-run -a ctest --preset debug-clang --output-on-failure
+
+    - name: Configure Dev Build
+      run: cmake --preset dev --fresh
+
+    - name: Build Dev
+      run: cmake --build --preset dev
 
     - name: Configure Coverage Build
       run: cmake --preset coverage --fresh
@@ -95,17 +137,17 @@ jobs:
           --group integration
 
     - name: Build Bot Benchmark
-      run: cmake --build --preset debug --target bot-benchmark
+      run: cmake --build --preset debug-clang --target bot-benchmark
 
     - name: Bot Benchmark Gate (Mode Matrix)
       run: |
         BOT_E2E_PROFILE=debug \
-        ./scripts/ci/bot_e2e_regression.sh build/debug
+        ./scripts/ci/bot_e2e_regression.sh build/debug-clang
 
     - name: Bot ML Smoke Gate (Repo Tiny Model)
       run: |
         BOT_ML_SMOKE_PROFILE=debug \
-        ./scripts/ci/bot_ml_smoke_gate.sh build/debug
+        ./scripts/ci/bot_ml_smoke_gate.sh build/debug-clang
 
     - name: Bot ML No-Regression Gate (optional)
       if: ${{ secrets.BOT_ML_MODEL_B64 != '' }}
@@ -114,4 +156,4 @@ jobs:
         BOT_ML_MODEL=/tmp/nenoserpent_bot_policy_runtime.json \
         BOT_LEADERBOARD_PROFILE=debug \
         BOT_LEADERBOARD_REQUIRE_NO_REGRESSION=1 \
-        ./scripts/ci/bot_leaderboard_regression.sh build/debug
+        ./scripts/ci/bot_leaderboard_regression.sh build/debug-clang
