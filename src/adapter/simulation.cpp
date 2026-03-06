@@ -106,6 +106,8 @@ void EngineAdapter::applyCollisionMitigationEffects(
     emit buffChanged();
   }
   if (result.consumeShield) {
+    m_shieldConsumedThisRun = true;
+    m_sinceShieldConsumedMs = 0;
     triggerHaptic(5);
     emit buffChanged();
   }
@@ -123,6 +125,7 @@ void EngineAdapter::applyFoodConsumptionEffects(const float pan,
                                                 const bool triggerChoice,
                                                 const bool spawnPowerUpAfterFood) {
   nenoserpent::adapter::logFoodEaten(m_profileManager.get());
+  m_foodEatenThisRun++;
   m_noFoodElapsedMs = 0;
   emit foodEaten(pan);
   m_timer->setInterval(gameplayTickIntervalMs());
@@ -140,14 +143,17 @@ void EngineAdapter::applyFoodConsumptionEffects(const float pan,
 
 void EngineAdapter::applyPowerUpConsumptionEffects(
   const nenoserpent::core::SessionAdvanceResult& result) {
+  const int eatenPowerType = m_session.powerUpType;
   if (m_state != AppState::Replaying &&
-      nenoserpent::adapter::discoverFruit(m_profileManager.get(), m_session.powerUpType)) {
+      nenoserpent::adapter::discoverFruit(m_profileManager.get(), eatenPowerType)) {
     emit fruitLibraryChanged();
     emit eventPrompt(u"CATALOG UNLOCK: "_s +
-                     nenoserpent::adapter::fruitNameForType(m_session.powerUpType));
+                     nenoserpent::adapter::fruitNameForType(eatenPowerType));
   }
-  if (m_state != AppState::Replaying && m_session.powerUpType == PowerUpId::Ghost) {
-    nenoserpent::adapter::logGhostTrigger(m_profileManager.get());
+  if (m_state != AppState::Replaying && eatenPowerType > PowerUpId::None) {
+    m_usedAnyPowerThisRun = true;
+    m_collectedPowerTypesThisRun.insert(eatenPowerType);
+    m_triggeredPowerTypesThisRun.insert(eatenPowerType);
   }
   if (result.miniApplied) {
     syncSnakeModelFromCore();
@@ -166,6 +172,26 @@ void EngineAdapter::applyMovementEffects(const nenoserpent::core::SessionAdvance
   syncSnakeModelFromCore();
   m_currentRecording.append(m_sessionCore.headPosition());
   m_noFoodElapsedMs += m_timer->interval();
+  if (m_shieldConsumedThisRun) {
+    m_sinceShieldConsumedMs += m_timer->interval();
+  }
+  if (gameplayTickIntervalMs() <= 100) {
+    m_highSpeedElapsedMs += m_timer->interval();
+  } else {
+    m_highSpeedElapsedMs = 0;
+  }
+
+  const QPoint head = m_sessionCore.headPosition();
+  if (m_session.activeBuff == PowerUpId::Ghost) {
+    const auto& body = m_sessionCore.body();
+    const auto overlap = std::find(std::next(body.begin()), body.end(), head);
+    if (overlap != body.end()) {
+      m_phaseWalkCount = 1;
+    }
+  }
+  if (m_session.activeBuff == PowerUpId::Portal && m_session.obstacles.contains(head)) {
+    m_phaseWalkCount = 1;
+  }
 
   if (m_ghostFrameIndex < static_cast<int>(m_bestRecording.size())) {
     m_ghostFrameIndex++;
@@ -175,6 +201,7 @@ void EngineAdapter::applyMovementEffects(const nenoserpent::core::SessionAdvance
     emit foodChanged();
   }
   if (result.magnetAteFood) {
+    m_triggeredPowerTypesThisRun.insert(PowerUpId::Magnet);
     applyFoodConsumptionEffects(
       result.magnetFoodPan, result.triggerChoiceAfterMagnet, result.spawnPowerUpAfterMagnet);
   }

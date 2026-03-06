@@ -2,14 +2,13 @@
 
 #include <QStringList>
 
+#include "core/achievement/rules.h"
+
 class ProfileManager;
 
 namespace nenoserpent::adapter {
 
-auto unlockAchievements(ProfileManager* profile,
-                        int score,
-                        int tickIntervalMs,
-                        bool timerActive,
-                        int noFoodElapsedMs) -> QStringList;
+auto unlockAchievements(ProfileManager* profile, const nenoserpent::core::AchievementStats& stats)
+  -> QStringList;
 
 } // namespace nenoserpent::adapter

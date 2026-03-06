@@ -4,6 +4,7 @@
 #include "adapter/engine.h"
 #include "adapter/level/applier.h"
 #include "adapter/level/script_runtime.h"
+#include "adapter/models/library.h"
 #include "adapter/profile/bridge.h"
 #include "core/level/runtime.h"
 #include "power_up_id.h"
@@ -58,13 +59,27 @@ void EngineAdapter::loadLevelData(const int i) {
 }
 
 void EngineAdapter::checkAchievements() {
-  const QStringList newlyUnlocked = nenoserpent::adapter::unlockAchievements(m_profileManager.get(),
-                                                                             m_session.score,
-                                                                             m_timer->interval(),
-                                                                             m_timer->isActive(),
-                                                                             m_noFoodElapsedMs);
-  for (const QString& title : newlyUnlocked) {
-    emit achievementEarned(title);
+  const nenoserpent::core::AchievementStats stats{
+    .score = m_session.score,
+    .tickIntervalMs = m_timer->interval(),
+    .timerActive = m_timer->isActive(),
+    .totalCrashes = nenoserpent::adapter::totalCrashes(m_profileManager.get()),
+    .totalFoodEaten = nenoserpent::adapter::totalFoodEaten(m_profileManager.get()),
+    .noFoodElapsedMs = m_noFoodElapsedMs,
+    .foodEatenThisRun = m_foodEatenThisRun,
+    .usedAnyPowerThisRun = m_usedAnyPowerThisRun,
+    .collectedPowerTypesThisRun = m_collectedPowerTypesThisRun,
+    .triggeredPowerTypesThisRun = m_triggeredPowerTypesThisRun,
+    .shieldConsumedThisRun = m_shieldConsumedThisRun,
+    .ticksSinceShieldConsumedMs = m_sinceShieldConsumedMs,
+    .highSpeedElapsedMs = m_highSpeedElapsedMs,
+    .phaseWalkCount = m_phaseWalkCount,
+  };
+
+  const QStringList newlyUnlocked =
+    nenoserpent::adapter::unlockAchievements(m_profileManager.get(), stats);
+  for (const QString& id : newlyUnlocked) {
+    emit achievementEarned(nenoserpent::adapter::achievementTitleForId(id));
     emit achievementsChanged();
   }
 }

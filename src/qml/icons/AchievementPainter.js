@@ -10,7 +10,7 @@ function draw(ctx, w, h, achievementId, color) {
     ctx.strokeStyle = color
     ctx.fillStyle = color
 
-    if (isMatch(achievementId, "Gold Medal")) {
+    if (achievementId === "gold_medal") {
         ctx.beginPath()
         ctx.arc(w * 0.50, h * 0.44, w * 0.18, 0, Math.PI * 2)
         ctx.stroke()
@@ -27,7 +27,7 @@ function draw(ctx, w, h, achievementId, color) {
         return
     }
 
-    if (isMatch(achievementId, "Silver Medal")) {
+    if (achievementId === "silver_medal") {
         ctx.beginPath()
         ctx.arc(w * 0.50, h * 0.48, w * 0.18, 0, Math.PI * 2)
         ctx.stroke()
@@ -42,7 +42,7 @@ function draw(ctx, w, h, achievementId, color) {
         return
     }
 
-    if (isMatch(achievementId, "Centurion")) {
+    if (achievementId === "centurion") {
         ctx.beginPath()
         ctx.moveTo(w * 0.24, h * 0.32)
         ctx.lineTo(w * 0.76, h * 0.32)
@@ -62,7 +62,7 @@ function draw(ctx, w, h, achievementId, color) {
         return
     }
 
-    if (isMatch(achievementId, "Gourmet")) {
+    if (achievementId === "gourmet") {
         ctx.beginPath()
         ctx.arc(w * 0.48, h * 0.42, w * 0.18, 0, Math.PI * 2)
         ctx.stroke()
@@ -77,13 +77,45 @@ function draw(ctx, w, h, achievementId, color) {
         return
     }
 
-    if (isMatch(achievementId, "Untouchable")) {
+    if (achievementId === "collector") {
+        ctx.beginPath()
+        ctx.arc(w * 0.36, h * 0.36, w * 0.10, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(w * 0.64, h * 0.36, w * 0.10, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(w * 0.36, h * 0.64, w * 0.10, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.arc(w * 0.64, h * 0.64, w * 0.10, 0, Math.PI * 2)
+        ctx.stroke()
+        return
+    }
+
+    if (achievementId === "power_chain") {
+        ctx.beginPath()
+        ctx.moveTo(w * 0.24, h * 0.34)
+        ctx.lineTo(w * 0.44, h * 0.34)
+        ctx.lineTo(w * 0.56, h * 0.50)
+        ctx.lineTo(w * 0.76, h * 0.50)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(w * 0.24, h * 0.66)
+        ctx.lineTo(w * 0.44, h * 0.66)
+        ctx.lineTo(w * 0.56, h * 0.50)
+        ctx.lineTo(w * 0.76, h * 0.50)
+        ctx.stroke()
+        return
+    }
+
+    if (achievementId === "minimalist") {
         ctx.strokeRect(w * 0.24, h * 0.28, w * 0.52, h * 0.44)
         ctx.clearRect(w * 0.44, h * 0.34, w * 0.12, h * 0.30)
         return
     }
 
-    if (isMatch(achievementId, "Speed Demon")) {
+    if (achievementId === "speed_demon") {
         ctx.beginPath()
         ctx.moveTo(w * 0.30, h * 0.20)
         ctx.lineTo(w * 0.56, h * 0.20)
@@ -97,13 +129,48 @@ function draw(ctx, w, h, achievementId, color) {
         return
     }
 
-    if (isMatch(achievementId, "Pacifist")) {
+    if (achievementId === "pacifist") {
         ctx.beginPath()
         ctx.arc(w * 0.46, h * 0.48, w * 0.16, Math.PI * 0.20, Math.PI * 1.70)
         ctx.stroke()
         ctx.beginPath()
         ctx.moveTo(w * 0.42, h * 0.60)
         ctx.lineTo(w * 0.62, h * 0.34)
+        ctx.stroke()
+        return
+    }
+
+    if (achievementId === "last_stand") {
+        ctx.beginPath()
+        ctx.arc(w * 0.50, h * 0.42, w * 0.18, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(w * 0.50, h * 0.60)
+        ctx.lineTo(w * 0.50, h * 0.82)
+        ctx.stroke()
+        return
+    }
+
+    if (achievementId === "steady_nerves") {
+        ctx.beginPath()
+        ctx.arc(w * 0.50, h * 0.52, w * 0.24, Math.PI, 0)
+        ctx.stroke()
+        ctx.beginPath()
+        ctx.moveTo(w * 0.50, h * 0.52)
+        ctx.lineTo(w * 0.68, h * 0.40)
+        ctx.stroke()
+        return
+    }
+
+    if (achievementId === "phase_walker") {
+        ctx.beginPath()
+        ctx.moveTo(w * 0.26, h * 0.24)
+        ctx.lineTo(w * 0.74, h * 0.24)
+        ctx.lineTo(w * 0.52, h * 0.50)
+        ctx.lineTo(w * 0.74, h * 0.76)
+        ctx.lineTo(w * 0.26, h * 0.76)
+        ctx.lineTo(w * 0.48, h * 0.50)
+        ctx.closePath()
         ctx.stroke()
         return
     }

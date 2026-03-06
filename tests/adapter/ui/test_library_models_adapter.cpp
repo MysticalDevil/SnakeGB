@@ -27,9 +27,10 @@ void TestLibraryModelsAdapter::testBuildFruitLibraryModelMasksUndiscoveredEntrie
 
 void TestLibraryModelsAdapter::testBuildMedalLibraryModelIncludesKnownRows() {
   const QVariantList model = nenoserpent::adapter::buildMedalLibraryModel();
-  QCOMPARE(model.size(), 7);
+  QCOMPARE(model.size(), 12);
   const QVariantMap first = model[0].toMap();
-  QCOMPARE(first.value(u"id"_s).toString(), QStringLiteral("Gold Medal (50 Pts)"));
+  QCOMPARE(first.value(u"id"_s).toString(), QStringLiteral("gold_medal"));
+  QCOMPARE(first.value(u"title"_s).toString(), QStringLiteral("Gold Medal"));
   QCOMPARE(first.value(u"hint"_s).toString(), QStringLiteral("Reach 50 points"));
 }
 

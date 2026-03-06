@@ -191,8 +191,10 @@ void EngineAdapter::selectChoice(const int index) {
     emit fruitLibraryChanged();
     emit eventPrompt(u"CATALOG UNLOCK: "_s + nenoserpent::adapter::fruitNameForType(type.value()));
   }
-  if (m_state != AppState::Replaying && type.value() == PowerUpId::Ghost) {
-    nenoserpent::adapter::logGhostTrigger(m_profileManager.get());
+  if (m_state != AppState::Replaying && type.value() > PowerUpId::None) {
+    m_usedAnyPowerThisRun = true;
+    m_collectedPowerTypesThisRun.insert(type.value());
+    m_triggeredPowerTypesThisRun.insert(type.value());
   }
   if (result.miniApplied) {
     syncSnakeModelFromCore();

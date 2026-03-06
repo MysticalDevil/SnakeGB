@@ -30,11 +30,9 @@ void updateHighScore(ProfileManager* profile, int score);
 
 void incrementCrashes(ProfileManager* profile);
 void logFoodEaten(ProfileManager* profile);
-void logGhostTrigger(ProfileManager* profile);
 [[nodiscard]] auto discoverFruit(ProfileManager* profile, int type) -> bool;
 [[nodiscard]] auto totalCrashes(const ProfileManager* profile) -> int;
 [[nodiscard]] auto totalFoodEaten(const ProfileManager* profile) -> int;
-[[nodiscard]] auto totalGhostTriggers(const ProfileManager* profile) -> int;
 
 [[nodiscard]] auto unlockedMedals(const ProfileManager* profile) -> QStringList;
 [[nodiscard]] auto unlockMedal(ProfileManager* profile, const QString& title) -> bool;

@@ -63,8 +63,8 @@ Components.ListCardFrame {
             spacing: 1
 
             Text {
-                text: medalCard.unlocked && medalCard.medalData
-                    ? medalCard.medalData.id
+                text: medalCard.medalData
+                    ? medalCard.medalData.title
                     : "?????????"
                 color: medalCard.titleInk
                 font.family: medalCard.gameFont

@@ -13,8 +13,7 @@ ProfileManager::ProfileManager(QObject* parent)
   m_volume = m_settings.value(u"volume"_s, 1.0).toFloat();
   m_totalCrashes = m_settings.value(u"stats/crashes"_s, 0).toInt();
   m_totalFoodEaten = m_settings.value(u"stats/food"_s, 0).toInt();
-  m_totalGhostTriggers = m_settings.value(u"stats/ghosts"_s, 0).toInt();
-  m_unlockedMedals = m_settings.value(u"medals"_s).toStringList();
+  m_unlockedMedals = m_settings.value(u"achievements"_s).toStringList();
 
   QVariantList fruitList = m_settings.value(u"discoveredFruits"_s).toList();
   for (const auto& v : fruitList)
@@ -46,7 +45,7 @@ auto ProfileManager::unlockMedal(const QString& t) -> bool {
   if (m_unlockedMedals.contains(t))
     return false;
   m_unlockedMedals << t;
-  m_settings.setValue(u"medals"_s, m_unlockedMedals);
+  m_settings.setValue(u"achievements"_s, m_unlockedMedals);
   emit medalUnlocked(t);
   return true;
 }
@@ -67,7 +66,6 @@ auto ProfileManager::discoverFruit(const int t) -> bool {
 void ProfileManager::saveStats() {
   m_settings.setValue(u"stats/crashes"_s, m_totalCrashes);
   m_settings.setValue(u"stats/food"_s, m_totalFoodEaten);
-  m_settings.setValue(u"stats/ghosts"_s, m_totalGhostTriggers);
 }
 
 void ProfileManager::saveSession(int score,

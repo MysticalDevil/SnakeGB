@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QtTest/QtTest>
 
+#include "core/achievement/rules.h"
 #include "core/buff/runtime.h"
 #include "core/choice/runtime.h"
 #include "core/game/rules.h"
@@ -35,6 +36,7 @@ private slots:
   void testTickBuffCountdown();
   void testWeightedRandomBuffIdUsesWeightsAndFallback();
   void testReplayTimelineAppliesOnlyOnMatchingTicks();
+  void testAchievementRulesUseRuntimeStats();
 };
 
 class FakeReplayEngine final : public IGameEngine {
@@ -453,6 +455,38 @@ void TestCoreRules::testReplayTimelineAppliesOnlyOnMatchingTicks() {
   QCOMPARE(engine.selectedChoices.size(), 3);
   QCOMPARE(engine.selectedChoices.last(), 1);
   QCOMPARE(choiceIndex, 3);
+}
+
+void TestCoreRules::testAchievementRulesUseRuntimeStats() {
+  nenoserpent::core::AchievementStats stats{
+    .score = 50,
+    .tickIntervalMs = 60,
+    .timerActive = true,
+    .totalCrashes = 100,
+    .totalFoodEaten = 500,
+    .noFoodElapsedMs = 60000,
+    .usedAnyPowerThisRun = false,
+    .shieldConsumedThisRun = true,
+    .ticksSinceShieldConsumedMs = 20000,
+    .highSpeedElapsedMs = 30000,
+    .phaseWalkCount = 1,
+  };
+  stats.collectedPowerTypesThisRun = QSet<int>{1, 2, 3, 4};
+  stats.triggeredPowerTypesThisRun = QSet<int>{1, 2, 3};
+
+  const QStringList unlocked = nenoserpent::core::unlockedAchievementIds(stats);
+  QVERIFY(unlocked.contains(QStringLiteral("silver_medal")));
+  QVERIFY(unlocked.contains(QStringLiteral("gold_medal")));
+  QVERIFY(unlocked.contains(QStringLiteral("speed_demon")));
+  QVERIFY(unlocked.contains(QStringLiteral("centurion")));
+  QVERIFY(unlocked.contains(QStringLiteral("gourmet")));
+  QVERIFY(unlocked.contains(QStringLiteral("pacifist")));
+  QVERIFY(unlocked.contains(QStringLiteral("last_stand")));
+  QVERIFY(unlocked.contains(QStringLiteral("collector")));
+  QVERIFY(unlocked.contains(QStringLiteral("power_chain")));
+  QVERIFY(unlocked.contains(QStringLiteral("minimalist")));
+  QVERIFY(unlocked.contains(QStringLiteral("steady_nerves")));
+  QVERIFY(unlocked.contains(QStringLiteral("phase_walker")));
 }
 
 QTEST_MAIN(TestCoreRules)

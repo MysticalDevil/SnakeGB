@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QRandomGenerator>
 #include <QRect>
+#include <QSet>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
@@ -383,6 +384,7 @@ private:
   void clearSavedState();
   void resetTransientRuntimeState();
   void resetReplayRuntimeTracking();
+  void resetAchievementRunStats();
   void loadLevelData(int index);
   void applyFallbackLevelData(int levelIndex);
   void checkAchievements();
@@ -454,6 +456,14 @@ private:
   int m_choiceSpeedRecoveryDurationMs = 0;
   int m_choiceSpeedRecoveryStartIntervalMs = 0;
   int m_choiceSpeedRecoveryTargetIntervalMs = 0;
+  int m_foodEatenThisRun = 0;
+  bool m_usedAnyPowerThisRun = false;
+  QSet<int> m_collectedPowerTypesThisRun;
+  QSet<int> m_triggeredPowerTypesThisRun;
+  bool m_shieldConsumedThisRun = false;
+  int m_sinceShieldConsumedMs = 0;
+  int m_highSpeedElapsedMs = 0;
+  int m_phaseWalkCount = 0;
 
   static constexpr QRect m_boardRect{0, 0, BOARD_WIDTH, BOARD_HEIGHT};
 };

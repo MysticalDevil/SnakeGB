@@ -19,6 +19,18 @@ void EngineAdapter::resetTransientRuntimeState() {
   m_choicePending = false;
   m_choiceIndex = 0;
   m_noFoodElapsedMs = 0;
+  resetAchievementRunStats();
+}
+
+void EngineAdapter::resetAchievementRunStats() {
+  m_foodEatenThisRun = 0;
+  m_usedAnyPowerThisRun = false;
+  m_collectedPowerTypesThisRun.clear();
+  m_triggeredPowerTypesThisRun.clear();
+  m_shieldConsumedThisRun = false;
+  m_sinceShieldConsumedMs = 0;
+  m_highSpeedElapsedMs = 0;
+  m_phaseWalkCount = 0;
 }
 
 void EngineAdapter::resetReplayRuntimeTracking() {

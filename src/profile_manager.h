@@ -43,10 +43,6 @@ public:
     m_totalFoodEaten++;
     saveStats();
   }
-  void logGhostTrigger() {
-    m_totalGhostTriggers++;
-    saveStats();
-  }
 
   [[nodiscard]] auto unlockedMedals() const -> QStringList {
     return m_unlockedMedals;
@@ -73,9 +69,6 @@ public:
   [[nodiscard]] auto totalFoodEaten() const -> int {
     return m_totalFoodEaten;
   }
-  [[nodiscard]] auto totalGhostTriggers() const -> int {
-    return m_totalGhostTriggers;
-  }
 
 signals:
   void medalUnlocked(const QString& title);
@@ -91,7 +84,6 @@ private:
   float m_volume = 1.0f;
   int m_totalCrashes = 0;
   int m_totalFoodEaten = 0;
-  int m_totalGhostTriggers = 0;
   QStringList m_unlockedMedals;
   QList<int> m_discoveredFruits;
 };

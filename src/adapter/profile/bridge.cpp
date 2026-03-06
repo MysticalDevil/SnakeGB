@@ -66,12 +66,6 @@ void logFoodEaten(ProfileManager* profile) {
   }
 }
 
-void logGhostTrigger(ProfileManager* profile) {
-  if (profile != nullptr) {
-    profile->logGhostTrigger();
-  }
-}
-
 auto discoverFruit(ProfileManager* profile, const int type) -> bool {
   if (profile == nullptr) {
     return false;
@@ -85,10 +79,6 @@ auto totalCrashes(const ProfileManager* profile) -> int {
 
 auto totalFoodEaten(const ProfileManager* profile) -> int {
   return profile != nullptr ? profile->totalFoodEaten() : 0;
-}
-
-auto totalGhostTriggers(const ProfileManager* profile) -> int {
-  return profile != nullptr ? profile->totalGhostTriggers() : 0;
 }
 
 auto unlockedMedals(const ProfileManager* profile) -> QStringList {

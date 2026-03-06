@@ -24,6 +24,38 @@ auto createMedalEntry(const QString& id, const QString& hint) -> QVariantMap {
   return map;
 }
 
+struct MedalInfo {
+  QString id;
+  QString title;
+  QString hint;
+};
+
+auto medalCatalog() -> const QList<MedalInfo>& {
+  static const QList<MedalInfo> medals{
+    {.id = u"gold_medal"_s, .title = u"Gold Medal"_s, .hint = u"Reach 50 points"_s},
+    {.id = u"silver_medal"_s, .title = u"Silver Medal"_s, .hint = u"Reach 20 points"_s},
+    {.id = u"speed_demon"_s, .title = u"Speed Demon"_s, .hint = u"Hit the top speed tier"_s},
+    {.id = u"centurion"_s, .title = u"Centurion"_s, .hint = u"Crash 100 times"_s},
+    {.id = u"gourmet"_s, .title = u"Gourmet"_s, .hint = u"Eat 500 food"_s},
+    {.id = u"pacifist"_s, .title = u"Pacifist"_s, .hint = u"Stay alive 60s without food"_s},
+    {.id = u"last_stand"_s, .title = u"Last Stand"_s, .hint = u"Survive 20s after shield breaks"_s},
+    {.id = u"collector"_s,
+     .title = u"Collector"_s,
+     .hint = u"Collect 4 different powers in one run"_s},
+    {.id = u"power_chain"_s,
+     .title = u"Power Chain"_s,
+     .hint = u"Trigger 3 different power effects in one run"_s},
+    {.id = u"minimalist"_s,
+     .title = u"Minimalist"_s,
+     .hint = u"Score 25 without any special fruit"_s},
+    {.id = u"steady_nerves"_s, .title = u"Steady Nerves"_s, .hint = u"Hold high speed for 30s"_s},
+    {.id = u"phase_walker"_s,
+     .title = u"Phase Walker"_s,
+     .hint = u"Use Ghost or Portal to slip through danger"_s},
+  };
+  return medals;
+}
+
 } // namespace
 
 auto fruitNameForType(const int type) -> QString {
@@ -89,26 +121,32 @@ auto buildFruitLibraryModel(const QList<int>& discoveredFruitTypes) -> QVariantL
 }
 
 auto buildMedalLibraryModel() -> QVariantList {
-  struct MedalInfo {
-    QString title;
-    QString description;
-  };
-  const QList<MedalInfo> medals{
-    {.title = u"Gold Medal (50 Pts)"_s, .description = u"Reach 50 points"_s},
-    {.title = u"Silver Medal (20 Pts)"_s, .description = u"Reach 20 points"_s},
-    {.title = u"Centurion (100 Crashes)"_s, .description = u"Crash 100 times"_s},
-    {.title = u"Gourmet (500 Food)"_s, .description = u"Eat 500 food"_s},
-    {.title = u"Untouchable"_s, .description = u"20 Ghost triggers"_s},
-    {.title = u"Speed Demon"_s, .description = u"Max speed reached"_s},
-    {.title = u"Pacifist (60s No Food)"_s, .description = u"60s no food"_s},
-  };
-
   QVariantList result;
-  result.reserve(medals.size());
-  for (const auto& medal : medals) {
-    result.append(createMedalEntry(medal.title, medal.description));
+  result.reserve(medalCatalog().size());
+  for (const auto& medal : medalCatalog()) {
+    QVariantMap entry = createMedalEntry(medal.id, medal.hint);
+    entry.insert(u"title"_s, medal.title);
+    result.append(entry);
   }
   return result;
+}
+
+auto achievementTitleForId(const QString& id) -> QString {
+  for (const auto& medal : medalCatalog()) {
+    if (medal.id == id) {
+      return medal.title;
+    }
+  }
+  return QString{};
+}
+
+auto achievementHintForId(const QString& id) -> QString {
+  for (const auto& medal : medalCatalog()) {
+    if (medal.id == id) {
+      return medal.hint;
+    }
+  }
+  return QString{};
 }
 
 } // namespace nenoserpent::adapter
