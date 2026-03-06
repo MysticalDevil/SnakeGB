@@ -364,10 +364,20 @@ public:
     m_mode = TargetMode::FoodChase;
     m_modeTicks = 0;
     m_lastObserveTick = 0;
+    m_forceTailChaseTicks = 0;
+    m_powerChaseCooldownTicks = 0;
   }
 
   auto mode() const -> TargetMode {
     return m_mode;
+  }
+
+  [[nodiscard]] auto suppressPowerChase() const -> bool {
+    return m_powerChaseCooldownTicks > 0 || m_forceTailChaseTicks > 0;
+  }
+
+  [[nodiscard]] auto forceTailChaseActive() const -> bool {
+    return m_forceTailChaseTicks > 0;
   }
 
   auto update(const Snapshot& snapshot,
@@ -375,17 +385,29 @@ public:
               const int repeats,
               const int noScoreTicks,
               const std::uint64_t observeTick) -> void {
-    const bool hasPower =
-      snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0 &&
-      powerPriority(config, snapshot.powerUpType) >= config.powerTargetPriorityThreshold;
-    const bool wantEscape = repeats >= 4 || noScoreTicks >= 28;
-    const TargetMode desired =
-      wantEscape ? TargetMode::Escape : (hasPower ? TargetMode::PowerChase : TargetMode::FoodChase);
-
     if (observeTick != m_lastObserveTick) {
       ++m_modeTicks;
       m_lastObserveTick = observeTick;
+      if (m_forceTailChaseTicks > 0) {
+        --m_forceTailChaseTicks;
+      }
+      if (m_powerChaseCooldownTicks > 0) {
+        --m_powerChaseCooldownTicks;
+      }
     }
+
+    if (noScoreTicks >= 56) {
+      m_forceTailChaseTicks = std::max(m_forceTailChaseTicks, 24);
+      m_powerChaseCooldownTicks = std::max(m_powerChaseCooldownTicks, 40);
+    }
+
+    const bool hasPowerCandidate =
+      snapshot.powerUpPos.x() >= 0 && snapshot.powerUpPos.y() >= 0 &&
+      powerPriority(config, snapshot.powerUpType) >= config.powerTargetPriorityThreshold;
+    const bool hasPower = hasPowerCandidate && !suppressPowerChase();
+    const bool wantEscape = repeats >= 4 || noScoreTicks >= 28 || m_forceTailChaseTicks > 0;
+    const TargetMode desired =
+      wantEscape ? TargetMode::Escape : (hasPower ? TargetMode::PowerChase : TargetMode::FoodChase);
 
     if (desired == m_mode) {
       return;
@@ -406,6 +428,9 @@ public:
   }
 
   auto targetPoint(const Snapshot& snapshot, const StrategyConfig& config) const -> QPoint {
+    if (m_forceTailChaseTicks > 0) {
+      return snapshot.body.empty() ? snapshot.food : snapshot.body.back();
+    }
     if (m_mode == TargetMode::Escape) {
       return snapshot.body.empty() ? snapshot.food : snapshot.body.back();
     }
@@ -425,6 +450,8 @@ private:
 
   TargetMode m_mode = TargetMode::FoodChase;
   int m_modeTicks = 0;
+  int m_forceTailChaseTicks = 0;
+  int m_powerChaseCooldownTicks = 0;
   std::uint64_t m_lastObserveTick = 0;
 };
 
@@ -989,7 +1016,18 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     (targetFsm.mode() == TargetMode::Escape) || loopController.escapeMode(repeats);
   const int riskBudget = riskBudgetFor(snapshot, repeats);
   const int depth = std::clamp(tunedConfig.lookaheadDepth + 1, 2, 6);
-  const QPoint primaryTarget = targetFsm.targetPoint(snapshot, tunedConfig);
+  QPoint primaryTarget = targetFsm.targetPoint(snapshot, tunedConfig);
+  if (escapeMode && noScoreTicks >= 72) {
+    const std::array<QPoint, 4> escapeAnchors = {
+      QPoint(0, 0),
+      QPoint(snapshot.boardWidth - 1, 0),
+      QPoint(snapshot.boardWidth - 1, snapshot.boardHeight - 1),
+      QPoint(0, snapshot.boardHeight - 1),
+    };
+    const auto anchorIndex = static_cast<int>((memory.observeTick() / 8U) %
+                                              static_cast<std::uint64_t>(escapeAnchors.size()));
+    primaryTarget = escapeAnchors[static_cast<std::size_t>(anchorIndex)];
+  }
   const int currentPrimaryDistance =
     toroidalDistance(initial.head, primaryTarget, snapshot.boardWidth, snapshot.boardHeight);
   const bool earlyFoodChaseGuard = (targetFsm.mode() == TargetMode::FoodChase) &&
@@ -1102,6 +1140,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
     escapeMode
       ? std::clamp(((std::max(0, noScoreTicks - 24)) / 10) + std::max(0, repeats - 2), 0, 8)
       : 0;
+  const bool deepEscapeStall = escapeMode && (noScoreTicks >= 96);
   const int orbitPreferredIndex =
     orbitBreakLevel > 0
       ? static_cast<int>((tieRotateSeed + static_cast<std::uint64_t>(noScoreTicks / 3U)) %
@@ -1140,7 +1179,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       if (preview.ateFood) {
         breakdown.reward += tunedConfig.foodConsumeBonus * 2;
       }
-      if (preview.atePower) {
+      if (preview.atePower && !targetFsm.suppressPowerChase()) {
         breakdown.reward += powerPriority(tunedConfig, snapshot.powerUpType) * 2;
       }
       breakdown.reward = clampScoreBlock(breakdown.reward, 0, 240);
@@ -1175,7 +1214,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       if (preview.ateFood) {
         immediate += tunedConfig.foodConsumeBonus;
       }
-      if (preview.atePower) {
+      if (preview.atePower && !targetFsm.suppressPowerChase()) {
         immediate += powerPriority(tunedConfig, snapshot.powerUpType);
       }
       const QPoint tailFallback =
@@ -1211,7 +1250,7 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       if (preview.ateFood) {
         immediate += tunedConfig.foodConsumeBonus;
       }
-      if (preview.atePower) {
+      if (preview.atePower && !targetFsm.suppressPowerChase()) {
         immediate += powerPriority(tunedConfig, snapshot.powerUpType);
       }
       breakdown.progress = clampScoreBlock(
@@ -1244,6 +1283,17 @@ auto selectLoopAwareDirection(const Snapshot& snapshot,
       }
     }
     int score = breakdown.total();
+    if (deepEscapeStall) {
+      const int deepEscapeScore = (openSpacePct * 6) + (safeNeighbors * 80) +
+                                  (candidateStats->tailReachable ? 40 : -80) - (revisitCount * 50) -
+                                  breakdown.loopCost - breakdown.risk -
+                                  (candidate == snapshot.direction ? 60 : 0);
+      breakdown.progress = clampScoreBlock(deepEscapeScore, -360, 360);
+      breakdown.survival = 0;
+      breakdown.reward = 0;
+      breakdown.drift = 0;
+      score = breakdown.total();
+    }
     if (!escapeMode && noScoreTicks >= 12) {
       const int nextPrimaryDistance = toroidalDistance(
         preview.next.head, primaryTarget, snapshot.boardWidth, snapshot.boardHeight);

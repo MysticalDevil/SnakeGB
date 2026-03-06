@@ -58,6 +58,9 @@ As of the latest refactor, `rule` and `search` backends use a unified staged pip
    - `FoodChase` / `PowerChase` / `Escape`
    - Transition hysteresis is used to avoid per-tick oscillation.
    - Escape scoring branch follows FSM mode directly (not only repeat-threshold guard).
+   - Hard escape recovery:
+     - prolonged no-score window enables temporary `tail-chase` forcing
+     - power-chase is temporarily cooled down after prolonged stalls
 3. `Bounded Scoring Blocks`
    - Score composition:
      - `Progress + Survival + Reward - Risk - LoopCost`
@@ -72,6 +75,9 @@ As of the latest refactor, `rule` and `search` backends use a unified staged pip
      - straight/reverse suppression
      - quadratic revisit penalty escalation
      - 2-step/4-step cycle continuation penalty
+   - During forced tail-chase window, power reward bias is suppressed.
+   - Under prolonged escape stalls, target anchor rotates across board corners to break rings.
+   - Under deep stalls, escape scoring switches to survival-only override to force breakout.
 5. `Decision Telemetry`
    - Runtime summary includes filter acceptance/reject stats and top-3 candidate score contributions
      (`p/s/r/d/rk/lc`, where `d` is stall drift shaping).
